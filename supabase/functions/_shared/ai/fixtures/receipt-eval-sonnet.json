@@ -3,35 +3,38 @@
   "readerModel": "anthropic/claude-haiku-5.5",
   "cases": 80,
   "failed": 0,
-  "kind": 0.988,
-  "amount": 0.988,
-  "date": 0.951,
+  "kind": 0.888,
+  "amount": 0.878,
+  "date": 0.878,
   "wrongAnchoredAmount": 0,
   "checkAmounts": 0,
+  "costPerReceiptUsd": 0.007387,
   "sentences": [
     {
       "id": "rcpt-he-01",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מרכול הגפן\n\nרח' העצמאות 18, אשדוד\n\nעוסק מורשה 519527496 טל' 03-8349444\n\n--------------------------------------------------\n\nקופה 1                                    קבלה 837484\nתאריך 29.10.2026                          שעה 15:58\n\n--------------------------------------------------\n\nשוקולד חלב                                8.09\nחומוס מוכן                                33.60\n3 x 11.20\nפסטה פנה 500 ג'                           24.27\n3 x 8.09\nטחינה גולמית 500 ג'                       23.19\nשמן קנולה 1 ל'                            29.18\n2 x 14.59\nרסק עגבניות                               10.78\n2 x 5.39\nקפה טורקי 200 ג'                          15.99\n\n--------------------------------------------------\n\nסה\"כ לתשלום                               145.10\nכולל מע\"מ 18%                             …",
-      "read": "{\"items\":[{\"amount\":145.1,\"amount_text\":\"145.10\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":10,\"year\":2026},\"date_text\":\"29.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכול הגפן\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מרכול הגפן\n\nרח' העצמאות 18, אשדוד\n\nעוסק מורשה 519527496 טל' 03-8349444\n\n------------------------------------------------\n\nקופה 1                                      קבלה 837484\nתאריך 29.10.2026                              שעה 15:58\n\n------------------------------------------------\n\nשוקולד חלב                                        8.09\nחומוס מוכן                                       33.60\n3 x 11.20\nפסטה פנה 500 ג'                                  24.27\n3 x 8.09\nטחינה גולמית 500 ג'                              23.19\nשמן קנולה 1 ל'                                   29.18\n2 x 14.59\nרסק עגבניות                                      10.78\n2 x 5.39\nקפה טורקי 200 ג'                                 15.99\n\n------------------------------------------------\n\nסה\"כ לתשלום                              …",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"null\", \"rule_action\": \"null\", \"items\": [{\"amount\": 145.1, \"amount_text\": \"145.10\", \"currency\": \"ILS\", \"description\": \"מרכול הגפן\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"29.10.2026\", \"date_kind\": \"exact\", \"date_day\": 29, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007427,
+      "readCostUsd": 0.0003818
     },
     {
       "id": "rcpt-he-02",
@@ -52,10 +55,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מרכז המזון בגבעה\n\nרח' הגליל 9, כרמיאל\nעוסק מורשה 507638691 טל' 08-8666431\n--------------------------------------------------\n\nקופה 7\nקבלה 754244\nתאריך 27.09.2026\nשעה 15:12\n--------------------------------------------------\n\nיוגורט טבעי\n6.70\nאורז פרסי 1 ק\"ג\n12.09\nטחינה גולמית 500 ג'\n16.99\nמלפפונים\n1.385 ק\"ג x 7.87\n10.90\nעגבניות\n0.385 ק\"ג x 7.91\n3.05\nחומוס מוכן\n3 x 10.49\n31.47\n--------------------------------------------------\n\nסה\"כ לתשלום\n81.20\nכולל מע\"מ 18%\n12.39\n--------------------------------------------------\n\nאשראי אמקס 7158\n81.20\nמס' אישור\n2040406\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":81.2,\"amount_text\":\"81.20\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":9,\"year\":2026},\"date_text\":\"27.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכז המזון בגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מרכז המזון בגבעה\n\nרח' הגליל 9, כרמיאל\n\nעוסק מורשה 507638691 טל' 08-8666431\n--------------------------------------------------\n\nקופה 7                                    קבלה 754244\nתאריך 27.09.2026                          שעה 15:12\n--------------------------------------------------\n\nיוגורט טבעי                                    6.70\nאורז פרסי 1 ק\"ג                               12.09\nטחינה גולמית 500 ג'                           16.99\nמלפפונים                                       10.90\n7.87 x ק\"ג 1.385\nעגבניות                                         3.05\n7.91 x ק\"ג 0.385\nחומוס מוכן                                     31.47\n3 x 10.49\n--------------------------------------------------\n\nסה\"כ לתשלום                                   81.20\nכולל מע\"מ 18%                                 12.39\n…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":81.2,\"amount_text\":\"81.20\",\"currency\":\"\",\"description\":\"מרכז המזון בגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"27.09.2026\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007071,
+      "readCostUsd": 0.0003724
     },
     {
       "id": "rcpt-he-03",
@@ -76,10 +81,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר השכונה\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 500275953 טל' 09-5943118\n--------------------------------------------------\n\nקופה 7                                    קבלה 152890\nתאריך 29/10/26                            שעה 14:26\n--------------------------------------------------\n\nפטה פנה 500 ג'                                   7.49\nחלב 3% 1 לי                                      6.80\nטחינה גולמית 500 ג'                             24.79\nקפה טורקי 200 ג'                                41.18\n2 x 20.59\n\n--------------------------------------------------\n\nסכום ביניים                                     80.26\nהנחת מועדון                                     -4.01\nסה\"כ לתשלום                                     76.25\nכולל מע\"מ 18%                                   11.63\n------------------------…",
-      "read": "{\"items\":[{\"amount\":76.25,\"amount_text\":\"76.25\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":10,\"year\":2026},\"date_text\":\"29/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר השכונה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר השכונה\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 500275953 טלי 09-5943118\n--------------------------------------------------\n\nקופה 7\n152890 קבלה\nתאריך 29/10/26\nשעה 14:26\n--------------------------------------------------\n\n7.49          פסטה פנה 500 ג'\n6.80          חלב 3% 1 לי\n24.79         טחינה גולמית 500 ג'\n41.18         קפה טורקי 200 ג'\n              2 x 20.59\n\n--------------------------------------------------\n\n80.26         סכום ביניים\n-4.01         הנחת מועדון\n76.25         סה\"כ לתשלום\n11.63         כולל 18% מע\"מ\n--------------------------------------------------\n\n76.25         אשראי אמקס 0351\n5348361       מס' אישור\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 76.25, \"amount_text\": \"76.25\", \"currency\": \"ILS\", \"description\": \"סופר השכונה\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"29/10/26\", \"date_kind\": \"exact\", \"date_day\": 29, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006415,
+      "readCostUsd": 0.000374
     },
     {
       "id": "rcpt-he-04",
@@ -100,10 +107,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר השכונה\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 548846169 טל' 08-7890570\n---------------------------------------------\n\nקופה 1\nקבלה 719467\nתאריך 27/10/26\nשעה 11:43\n---------------------------------------------\n\nטחינה גולמית 500 ג'\n2 x 19.80\n39.60\n\nלחם אחיד פרוס\n2 x 8.80\n17.60\n\nשמן קנולה 1 לי\n13.99\n\nיוגורט טבעי\n2 x 4.79\n9.58\n\nחומוס מוכן\n10.99\n---------------------------------------------\n\nסכום ביניים\n91.76\n\nהנחת מועדון\n-9.18\n\nסה\"כ לתשלום\n82.58\n\nכולל מע\"מ 18%\n12.60\n---------------------------------------------\n\nאשראי ויזה 8010\n82.58\n\nמס' אישור\n5712330\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":82.58,\"amount_text\":\"82.58\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":10,\"year\":2026},\"date_text\":\"27/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר השכונה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר השכונה\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 548846169 טל' 08-7890570\n--------------------------------\n\nקופה 1                           קבלה 719467\nתאריך 27/10/26                   שעה 11:43\n--------------------------------\n\nטחינה גולמית 500 ג'                    39.60\n2 x 19.80\nלחם אחיד פרוס                          17.60\n2 x 8.80\nשמן קנולה 1 ל'                         13.99\nיוגורט טבעי                             9.58\n2 x 4.79\nחומוס מוכן                             10.99\n--------------------------------\n\nסכום ביניים                            91.76\nהנחת מועדון                            -9.18\nסה\"כ לתשלום                            82.58\nכולל מע\"מ 18%                          12.60\n--------------------------------\n\nאשראי ויזה 8010                        82.58\nמס' אישור                  …",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":82.58,\"amount_text\":\"82.58\",\"currency\":\"ILS\",\"description\":\"סופר השכונה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"27/10/26\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006943,
+      "readCostUsd": 0.0003689
     },
     {
       "id": "rcpt-he-05",
@@ -124,10 +133,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר זול כאן\nרח' הגליל 9, כרמיאל\nעוסק מורשה 520341909 טל' 08-9676557\n--------------------------------------------------\nקופה 7                    קבלה 367538\nתאריך 08.10.2026           שעה 15:08\n--------------------------------------------------\nרסק עגבניות                           13.47\n3 x 4.49\nאורז פרסי 1 ק\"ג                       10.70\nשוקולד חלב                            12.58\n2 x 6.29\nמלפפונים                              12.91\n1.756 ק\"ג x 7.35\nמים מינרליים 6x1.5                    16.99\n--------------------------------------------------\nסכום ביניים                           66.65\nהנחת מועדון                           -3.33\nסה\"כ לתשלום                           63.32\nכולל מע\"מ 18%                         9.66\n--------------------------------------------------\nאשראי ויזה 9724       …",
-      "read": "{\"items\":[{\"amount\":63.32,\"amount_text\":\"63.32\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":8,\"month\":10,\"year\":2026},\"date_text\":\"08.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר זול כאן\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר זול כאן\nרח' הגליל 9, כרמיאל\nעוסק מורשה 520341909 טל' 08-9676557\n--------------------------------------------------\nקופה 7                    קבלה 367538\nתאריך 08.10.2026           שעה 15:08\n--------------------------------------------------\nרסק עגבניות                    13.47\n3 x 4.49\nאורז פרטי 1 ק\"ג                10.70\nשוקולד חלב                     12.58\n2 x 6.29\nמלפפונים                       12.91\n1.756 ק\"ג x 7.35\nמים מינרליים 6x1.5              16.99\n--------------------------------------------------\nסכום ביניים                     66.65\nהנחת מועדון                     -3.33\nסה\"כ לתשלום                     63.32\nכולל מע\"מ 18%                    9.66\n--------------------------------------------------\nאשראי ויזה 9724                 63.32\nמס' אישור                      9637996\nהח…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":63.32,\"amount_text\":\"63.32\",\"currency\":\"ILS\",\"description\":\"סופר זול כאן\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"08.10.2026\",\"date_kind\":\"exact\",\"date_day\":8,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007447,
+      "readCostUsd": 0.0003735
     },
     {
       "id": "rcpt-he-06",
@@ -148,10 +159,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מינימרקט הדקל\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 514002981 טל' 03-5159457\n--------------------------------------------\n\nקבלה 570406              קופה 7\nשעה 16:14              תאריך 10/10/26\n--------------------------------------------\n\n5.69                 יוגורט טבעי\n24.59            טחינה גולמית 500 ג'\n6.39                 שוקולד חלב\n--------------------------------------------\n\n36.67              סכום ביניים\n-1.83              הנחת מועדון\n34.84            סה\"כ לתשלום\n5.31              כולל מע\"מ 18%\n--------------------------------------------\n\n34.84         אשראי ישראכרט 1035\n7669700           מס' אישור\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":34.84,\"amount_text\":\"34.84\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":10,\"month\":10,\"year\":2026},\"date_text\":\"10/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מינימרקט הדקל\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מינימרקט הדקל\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 514002981 טל' 03-5159457\n--------------------------------------------------\n\nקבלה 570406                              קופה 7\nשעה 16:14                          תאריך 10/10/26\n--------------------------------------------------\n\n5.69                              יוגורט טבעי\n24.59                     טחינה גולמית 500 ג'\n6.39                              שוקולד חלב\n--------------------------------------------------\n\n36.67                           סכום ביניים\n-1.83                            הנחת מועדון\n34.84                        סה\"כ לתשלום\n5.31                             כולל מע\"מ 18%\n--------------------------------------------------\n\n34.84                    אשראי ישראכרט 1035\n7669700                          מס' אישור\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 34.84, \"amount_text\": \"34.84\", \"currency\": \"ILS\", \"description\": \"מינימרקט הדקל\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/10/26\", \"date_kind\": \"exact\", \"date_day\": 10, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006019,
+      "readCostUsd": 0.0003737
     },
     {
       "id": "rcpt-he-07",
@@ -172,10 +185,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מרכז המזון בגבעה\n\nשד' ירושלים 7, חולון\nעוסק מורשה 564624464 טל' 09-9836182\n--------------------------------------------------\n\nקופה 2\nקבלה 718750\nתאריך 18/09/2026\nשעה 10:23\n--------------------------------------------------\n\nעגבניות\n15.03\n9.25 x ק\"ג 1.625\n\nחומוס מוכן\n27.90\n9.30 x 3\n\nתפוחי אדמה\n11.04\n6.59 x ק\"ג 1.675\n\nרסק עגבניות\n4.20\n\nגבינה צהובה 28%\n22.09\n\nשוקולד חלב\n8.30\n--------------------------------------------------\n\nסה\"כ לתשלום\n88.56\n\nכולל מע\"מ 18%\n13.51\n--------------------------------------------------\n\nאשראי ויזה 7119\n88.56\n\nמס' אישור\n0513622\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":88.56,\"amount_text\":\"88.56\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":18,\"month\":9,\"year\":2026},\"date_text\":\"18/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכז המזון בגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מרכז המזון בגבעה\n\nשד' ירושלים 7, חולון\nעוסק מורשה 564624464 טל' 09-9836182\n--------------------------------------------------\nקופה 2\nקבלה 718750\nתאריך 18/09/2026\nשעה 10:23\n--------------------------------------------------\n\nעגבניות\n15.03\n9.25 x 1.625 ק\"ג\n\nחומוס מוכן\n27.90\n9.30 x 3\n\nתפוחי אדמה\n11.04\n6.59 x 1.675 ק\"ג\n\nרסק עגבניות\n4.20\nגבינה צהובה 28%\n22.09\nשוקולד חלב\n8.30\n--------------------------------------------------\n\nסה\"כ לתשלום\n88.56\nכולל מע\"מ 18%\n13.51\n--------------------------------------------------\n\nאשראי ויזה 7119\n88.56\nמס' אישור\n0513622\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":88.56,\"amount_text\":\"88.56\",\"currency\":\"ILS\",\"description\":\"מרכז המזון בגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"18/09/2026\",\"date_kind\":\"exact\",\"date_day\":18,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006791,
+      "readCostUsd": 0.0003711
     },
     {
       "id": "rcpt-he-08",
@@ -196,10 +211,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מרכז המזון בגבעה\nשד' ירושלים 7, חולון\nעוסק מורשה 509602260 טל' 03-7017594\n--------------------------------------------------\nקופה 5                                059723 קבלה\nתאריך 21/09/26                         שעה 10:43\n--------------------------------------------------\nיוגורט טבעי                                    5.89\nנייר טואלט 32 גלילים                          37.20\nחומוס מוכן                                    18.38\n2 x 9.19\nפסטה פנה 500 ג'                                6.69\n--------------------------------------------------\nסה\"כ לתשלום                                  68.16\nכולל מע\"מ 18%                                10.40\n--------------------------------------------------\nאשראי ויזה 2485                              68.16\nמס' אישור                                  3770708\nהח…",
-      "read": "{\"items\":[{\"amount\":68.16,\"amount_text\":\"68.16\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":21,\"month\":9,\"year\":2026},\"date_text\":\"21/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכז המזון בגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מרכז המזון בגבעה\nשד' ירושלים 7, חולון\nעוסק מורשה 509602260 טלי 03-7017594\n--------------------------------------------------\nקופה 5                                    קבלה 059723\nתאריך 21/09/26                            שעה 10:43\n--------------------------------------------------\nיוגורט טבעי                                    5.89\nנייר טואלט 32 גלילים                          37.20\nחומוס מוכן                                    18.38\n2 x 9.19\nפסטה פנה 500 ג'                                6.69\n--------------------------------------------------\nסה\"כ לתשלום                                  68.16\nכולל מע\"מ 18%                                10.40\n--------------------------------------------------\nאשראי ויזה 2485                              68.16\nמס' אישור                                  377…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 68.16, \"amount_text\": \"68.16\", \"currency\": \"ILS\", \"description\": \"מרכז המזון בגבעה\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"21/09/26\", \"date_kind\": \"exact\", \"date_day\": 21, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006331,
+      "readCostUsd": 0.0003771
     },
     {
       "id": "rcpt-he-09",
@@ -220,34 +237,38 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר זול כאן\n\nרח' ויצמן 40, כפר סבא\n\nעוסק מורשה 500044546 טל' 08-9930321\n\n--------------------------------------------------\n\nקופה 9\nקבלה 470837\nשעה 18:29\nתאריך 26/09/2026\n\n--------------------------------------------------\n\nנייר טואלט 32 גלילים\n41.70\n\nתפוחי אדמה\n4.76\n\n0.979 ק\"ג x 4.86\n\nלחם אחיד פרוס\n8.40\n\nטחינה גולמית 500 ג'\n57.27\n\n3 x 19.09\n\nיוגורט טבעי\n4.59\n\nרסק עגבניות\n3.89\n\nגבינה צהובה 28%\n24.59\n\nמים מינרליים 6x1.5\n15.39\n\nחומוס מוכן\n10.89\n\n--------------------------------------------------\n\nסה\"כ לתשלום\n171.48\n\nכולל מע\"מ 18%\n26.16\n\n--------------------------------------------------\n\nאשראי ויזה 4852\n171.48\n\nמס' אישור\n9223916\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":171.48,\"amount_text\":\"171.48\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":26,\"month\":9,\"year\":2026},\"date_text\":\"26/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר זול כאן\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר זול כאן\n\nרח' ויצמן 40, כפר סבא\n\nעוסק מורשה 500044546 טל' 08-9930321\n\n--------------------------------------------------\n\nקופה 9\nקבלה 470837\nשעה 18:29                          תאריך 26/09/2026\n\n--------------------------------------------------\n\nנייר טואלט 32 גלילים                         41.70\nתפוחי אדמה                                    4.76\n0.979 ק\"ג x 4.86\nלחם אחיד פרוס                                 8.40\nטחינה גולמית 500 ג'                          57.27\n3 x 19.09\nיוגורט טבעי                                   4.59\nרסק עגבניות                                   3.89\nגבינה צהובה 28%                              24.59\nמים מינרליים 6x1.5                           15.39\nחומוס מוכן                                   10.89\n\n--------------------------------------------------\n\nסה\"כ לתשלום…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 171.48, \"amount_text\": \"171.48\", \"currency\": \"\", \"description\": \"סופר זול כאן\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"26/09/2026\", \"date_kind\": \"exact\", \"date_day\": 26, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007647,
+      "readCostUsd": 0.0003815
     },
     {
       "id": "rcpt-he-10",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר זול כאן\n\nרח' הרצל 12, רחובות\n\nעוסק מורשה 512274561 טל' 04-5909198\n\n--------------------------------\n\nקופה 3\nקבלה 320472\nתאריך 29.09.2026\nשעה 12:14\n\n--------------------------------\n\nשוקולד חלב\n7.89\n\nטחינה גולמית 500 ג'\n23.59\n\nחומוס מוכן\n9.89\n\nמים מינרליים 6x1.5\n14.99\n\nרסק עגבניות\n2 x 4.29\n8.58\n\nשמן קנולה 1 לי\n12.19\n\nיוגורט טבעי\n3 x 4.99\n14.97\n\n--------------------------------\n\nסה\"כ לתשלום\n92.10\n\nכולל מע\"מ 18%\n14.05\n\n--------------------------------\n\nמזומן\n100.00\n\nעודף\n7.90\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":92.1,\"amount_text\":\"92.10\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":9,\"year\":2026},\"date_text\":\"29.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר זול כאן\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר זול כאן\n\nרח' הרצל 12, רחובות\n\nעוסק מורשה 512274561 טל' 04-5909198\n----------------------------------\nקופה 3\nקבלה 320472\nתאריך 29.09.2026\nשעה 12:14\n----------------------------------\nשוקולד חלב\n7.89\nטחינה גולמית 500 ג'\n23.59\nחומוס מוכן\n9.89\nמים מינרליים 6x1.5\n14.99\nרסק עגבניות\n8.58\n2 x 4.29\nשמן קנולה 1 לי\n12.19\nיוגורט טבעי\n14.97\n3 x 4.99\n----------------------------------\nסה\"כ לתשלום\n92.10\nכולל מע\"מ 18%\n14.05\n----------------------------------\nמזומן\n100.00\nעודף\n7.90\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"null\",\"rule_action\":\"null\",\"items\":[{\"amount\":92.10,\"amount_text\":\"92.10\",\"currency\":\"ILS\",\"description\":\"סופר זול כאן\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"29.09.2026\",\"date_kind\":\"exact\",\"date_day\":29,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006571,
+      "readCostUsd": 0.0003669
     },
     {
       "id": "rcpt-he-11",
@@ -268,10 +289,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סופר השכונה\n\nדרך השלום 52, תל אביב\nעוסק מורשה 530938411 טלי 04-9245280\n--------------------------------------------------------------\n\nקופה 1                          קבלה 431433\nתאריך 21/09/2026                שעה 10:27\n--------------------------------------------------------------\n\nלחם אחיד פרוס                              15.20\n2 x 7.60\nתפוחי אדמה                                 4.61\n0.916 ק\"ג x 5.03\nפסטה פנה 500 ג'                            22.77\n3 x 7.59\n\n--------------------------------------------------------------\n\nסכום ביניים                                42.58\nהנחת מועדון                                -4.26\nסה\"כ לתשלום                                38.32\nכולל מע\"מ 18%                              5.85\n\n--------------------------------------------------------------\n\nאשראי אמק…",
-      "read": "{\"items\":[{\"amount\":38.32,\"amount_text\":\"38.32\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":21,\"month\":9,\"year\":2026},\"date_text\":\"21/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר השכונה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סופר השכונה\n\nדרך השלום 52, תל אביב\nעוסק מורשה 530938411 טל' 04-9245280\n--------------------------------------------------\n\nקופה 1                    קבלה 431433\nתאריך 21/09/2026          שעה 10:27\n--------------------------------------------------\n\nלחם אחיד פרוס                    15.20\n2 x 7.60\nתפוחי אדמה                        4.61\n0.916 ק\"ג x 5.03\nפסטה פנה 500 ג'                  22.77\n3 x 7.59\n\n--------------------------------------------------\n\nסכום ביניים                      42.58\nהנחת מועדון                      -4.26\nסה\"כ לתשלום                      38.32\nכולל מע\"מ 18%                     5.85\n\n--------------------------------------------------\n\nאשראי אמקס 8325                  38.32\nמס' אישור                        6027964\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":38.32,\"amount_text\":\"38.32\",\"currency\":\"ILS\",\"description\":\"סופר השכונה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"21/09/2026\",\"date_kind\":\"exact\",\"date_day\":21,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006557,
+      "readCostUsd": 0.0003677
     },
     {
       "id": "rcpt-he-12",
@@ -292,10 +315,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "שוק העיר\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 522954453 טל' 03-7519756\n--------------------------------\n\nקופה 2\nקבלה 093083\nתאריך 29/09/26\nשעה 14:23\n--------------------------------\n\nשמן קנולה 1 ל'\n42.87\n3 x 14.29\n\nעגבניות\n3.42\n0.398 ק\"ג x 8.59\n\nלחם אחיד פרוס\n7.99\n\nרסק עגבניות\n8.20\n2 x 4.10\n\nקפה טורקי 200 ג'\n20.49\n\nשוקולד חלב\n7.50\n\nחלב 1 3% ל'\n7.29\n\nטחינה גולמית 500 ג'\n34.80\n2 x 17.40\n--------------------------------\n\nסה\"כ לתשלום\n132.56\n\nכולל מע\"מ 18%\n20.22\n--------------------------------\n\nאשראי אמקס 2200\n132.56\n\nמס' אישור\n8886419\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":132.56,\"amount_text\":\"132.56\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":9,\"year\":2026},\"date_text\":\"29/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שוק העיר\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "שוק העיר\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 522954453 טל' 03-7519756\n--------------------------------\n\nקופה 2                          קבלה 093083\nתאריך 29/09/26                  שעה 14:23\n--------------------------------\n\nשמן קנולה 1 ל'                  42.87\n3 x 14.29\nעגבניות                         3.42\n0.398 ק\"ג x 8.59\nלחם אחיד פרוס                   7.99\nרסק עגבניות                     8.20\n2 x 4.10\nקפה טורקי 200 ג'                20.49\nשוקולד חלב                      7.50\nחלב 1 3% ל'                     7.29\nטחינה גולמית 500 ג'             34.80\n2 x 17.40\n--------------------------------\n\nסה\"כ לתשלום                     132.56\nכולל מע\"מ 18%                   20.22\n--------------------------------\n\nאשראי אמקס 2200                 132.56\nמס' אישור                       8886419\n\nתודה ולה…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":132.56,\"amount_text\":\"132.56\",\"currency\":\"ILS\",\"description\":\"שוק העיר\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"29/09/26\",\"date_kind\":\"exact\",\"date_day\":29,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007459,
+      "readCostUsd": 0.0003714
     },
     {
       "id": "rcpt-he-13",
@@ -316,17 +341,19 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מינימרקט הדקל\n\nרח' הרצל 12, רחובות\n\nעוסק מורשה 575634296 טל' 04-8123720\n\n--------------------------------------------------\n\nקופה 2\nקבלה 251689\n\nתאריך 23/09/26\nשעה 12:00\n\n--------------------------------------------------\n\nיוגורט טבעי\n5.30\n\nגבינה צהובה 28%\n27.60\n\nנייר טואלט 32 גלילים\n141.57\n3 x 47.19\n\nתפוחי אדמה\n8.22\n1.631 ק\"ג x 5.04\n\nביצים L תבנית 12\n16.69\n\nלחם אחיד פרוס\n18.58\n2 x 9.29\n\n--------------------------------------------------\n\nסכום ביניים\n217.96\n\nהנחת מועדון\n-21.80\n\nסה\"כ לתשלום\n196.16\n\nכולל מע\"מ 18%\n29.92\n\n--------------------------------------------------\n\nאשראי ויזה 9204\n196.16\n\nמס' אישור\n4071543\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":196.16,\"amount_text\":\"196.16\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":9,\"year\":2026},\"date_text\":\"23/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מינימרקט הדקל\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מינימרקט הדקל\n\nרח' הרצל 12, רחובות\n\nעוסק מורשה 575634296 טל' 04-8123720\n--------------------------------------------------\nקופה 2\n251689 קבלה\nתאריך 23/09/26\nשעה 12:00\n--------------------------------------------------\nיוגורט טבעי\n5.30\n\nגבינה צהובה 28%\n27.60\n\nנייר טואלט 32 גלילים\n141.57\n3 x 47.19\n\nתפוחי אדמה\n8.22\n1.631 ק\"ג x 5.04\n\nביצים L תבנית 12\n16.69\n\nלחם אחיד פרוס\n18.58\n2 x 9.29\n--------------------------------------------------\nסכום ביניים\n217.96\n\nהנחת מועדון\n-21.80\n\nסה\"כ לתשלום\n196.16\n\nכולל מע\"מ 18%\n29.92\n--------------------------------------------------\nאשראי ויזה 9204\n196.16\n\nמס' אישור\n4071543\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":196.16,\"amount_text\":\"196.16\",\"currency\":\"ILS\",\"description\":\"מינימרקט הדקל\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"23/09/26\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007307,
+      "readCostUsd": 0.0003726
     },
     {
       "id": "rcpt-he-14",
       "kindOk": false,
       "fields": {
         "route": "unreadable",
-        "parsed": false,
+        "parsed": true,
         "clear": true,
         "amountChecked": 1,
         "amountCorrect": 0,
@@ -340,10 +367,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "I'm unable to read the text in this image clearly enough to transcribe it accurately. The receipt appears to be displayed upside-down and rotated, with text that is difficult to discern with confidence at this orientation.\n\nCould you please:\n1. Rotate the image right-side up before sharing, or\n2. Provide a clearer, properly oriented image\n\nThis will help me copy the document accurately, line by line, without errors or guessing at characters I can't clearly identify.",
-      "read": "{\"items\":\"null\",\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "I can see this is a receipt that is upside down and appears to be in Hebrew. The text is difficult to read accurately in this rotated orientation, and since it's mirrored/upside down, I cannot reliably copy the Hebrew text line by line without risking significant errors.\n\nTo give you an accurate transcription, could you either:\n1. Rotate the image 180 degrees and re-upload it, or\n2. Let me know if you'd like me to attempt a best-effort reading despite the orientation challenges (with the caveat that accuracy may be limited)?\n\nI want to make sure I copy the document correctly rather than guess at characters that are hard to distinguish in this orientation.",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": []}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006631,
+      "readCostUsd": 0.0003012
     },
     {
       "id": "rcpt-he-15",
@@ -364,10 +393,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בית מרקחת השרון\nרח' הנביאים 3, ירושלים\nעוסק מורשה 501953155 טל' 09-6482746\nקופה 4\nתאריך 20/10/26\nקבלה 050655\nשעה 18:02\nפלסטרים 20 יח'\n10.19\nמברשת שיניים\n9.90\nויטמין D3\n3 x 60.99 = 182.97\nמשחת שיניים\n14.19\nשמפו 700 מ\"ל\n22.20\nסה\"כ לתשלום\n239.45\nכולל מע\"מ 18%\n36.53\nאשראי מסטרקארד 1322\nמס' אישור\n239.45\n8516299\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":239.45,\"amount_text\":\"239.45\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":10,\"year\":2026},\"date_text\":\"20/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית מרקחת השרון\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "בית מרקחת השרון\nרח' הנביאים 3, ירושלים\nעוסק מורשה 501953155 טל' 09-6482746\n--------------------------------\nקופה 4\nתאריך 20/10/26\nקבלה 050655\nשעה 18:02\n--------------------------------\nפלסטרים 20 יח'\nמברשת שיניים\nויטמין D3\n3 x 60.99\nמשחת שיניים\nשמפו 700 מ\"ל\n\n10.19\n9.90\n182.97\n\n14.19\n22.20\n--------------------------------\nסה\"כ לתשלום\nכולל מע\"מ 18%\n\n239.45\n--------------------------------\nאשראי מסטרקארד 1322\nמס' אישור\n36.53\n\n239.45\n8516299\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":239.45,\"amount_text\":\"239.45\",\"currency\":\"ILS\",\"description\":\"בית מרקחת השרון\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"20/10/26\",\"date_kind\":\"exact\",\"date_day\":20,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007437,
+      "readCostUsd": 0.0003669
     },
     {
       "id": "rcpt-he-16",
@@ -388,10 +419,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בית מרקחת השרון\n\nרח' הגליל 9, כרמיאל\nעוסק מורשה 552965437 טל' 08-5567094\n--------------------------------------------------\n\nקופה 2                              קבלה 201247\nתאריך 04.10.2026                    שעה 21:48\n--------------------------------------------------\n\nשמפו 700 מ\"ל                             27.19\nמשחת שיניים                              22.50\nקרם ידיים                                22.30\nפלסטרים 20 יח'                           36.60\n3 x 12.20\n--------------------------------------------------\n\nסכום ביניים                             108.59\nהנחת מועדון                             -10.86\nסה\"כ לתשלום                              97.73\nכולל מע\"מ 18%                            14.91\n--------------------------------------------------\n\nמזומן                                  …",
-      "read": "{\"items\":[{\"amount\":97.73,\"amount_text\":\"97.73\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":4,\"month\":10,\"year\":2026},\"date_text\":\"04.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית מרקחת השרון\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "בית מרקחת השרון\n\nרח' הגליל 9, כרמיאל\nעוסק מורשה 552965437 טל' 08-5567094\n--------------------------------------------------\n\nקופה 2                               קבלה 201247\nתאריך 04.10.2026                      שעה 21:48\n--------------------------------------------------\n\nשמפו 700 מ\"ל                              27.19\nמשחת שיניים                               22.50\nקרם ידיים                                 22.30\nפלסטרים 20 יח'                            36.60\n3 x 12.20\n--------------------------------------------------\n\nסכום ביניים                              108.59\nהנחת מועדון                              -10.86\nסה\"כ לתשלום                               97.73\nכולל מע\"מ 18%                             14.91\n--------------------------------------------------\n\nמזומן                       …",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 97.73, \"amount_text\": \"97.73\", \"currency\": \"ILS\", \"description\": \"בית מרקחת השרון\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"cash\", \"date_text\": \"04.10.2026\", \"date_kind\": \"exact\", \"date_day\": 4, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006355,
+      "readCostUsd": 0.0003744
     },
     {
       "id": "rcpt-he-17",
@@ -412,10 +445,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פארם הגליל\n\nרח' הרצל 12, רחובות\nעוסק מורשה 575929466 טלי 04-8925890\n--------------------------------------------\n\nקופה 7\nקבלה 002094\nתאריך 20/10/26\nשעה 13:55\n--------------------------------------------\n\nשמפו 700 מ\"ל\n3 x 26.30\n78.90\n\nויטמין D3\n3 x 60.29\n180.87\n\nמגבונים לחים\n2 x 14.09\n28.18\n\nמשחת שיניים\n20.79\n--------------------------------------------\n\nסכום ביניים\n308.74\nהנחת מועדון\n-15.44\nסה\"כ לתשלום\n293.30\nכולל מע\"מ 18%\n44.74\n--------------------------------------------\n\nאשראי ישראכרט 4447\n293.30\nמס' אישור\n0784272\n\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":293.3,\"amount_text\":\"293.30\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":10,\"year\":2026},\"date_text\":\"20/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פארם הגליל\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "פארם הגליל\n\nרח' הרצל 12, רחובות\nעוסק מורשה 575929466 טל' 04-8925890\n--------------------------------------------------\n\nקופה 7\nקבלה 002094\nתאריך 20/10/26\nשעה 13:55\n--------------------------------------------------\n\nשמפו 700 מ\"ל\n3 x 26.30\n78.90\n\nויטמין D3\n3 x 60.29\n180.87\n\nמגבונים לחים\n2 x 14.09\n28.18\n\nמשחת שיניים\n20.79\n--------------------------------------------------\n\nסכום ביניים\n308.74\nהנחת מועדון\n-15.44\nסה\"כ לתשלום\n293.30\nכולל מע\"מ 18%\n44.74\n--------------------------------------------------\n\nאשראי ישראכרט 4447\n293.30\nמס' אישור\n0784272\n\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 293.30, \"amount_text\": \"293.30\", \"currency\": \"ILS\", \"description\": \"פארם הגליל\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"20/10/26\", \"date_kind\": \"exact\", \"date_day\": 20, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006903,
+      "readCostUsd": 0.000376
     },
     {
       "id": "rcpt-he-18",
@@ -436,10 +471,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פארמה פלוס\nשד' ירושלים 7, חולון\nעוסק מורשה 572217495 טל' 04-6298541\n--------------------------------------------\nקבלה 681734\nשעה 14:45\nקופה 4\nתאריך 26/10/26\n--------------------------------------------\n54.60\nמברשת שיניים\n3 x 18.20\n12.09\nפלסטרים 20 יח'\n18.90\nאקמול 20 טבליות\n--------------------------------------------\n85.59\nסכום ביניים\n-4.28\nהנחת מועדון\n81.31\nסה\"כ לתשלום\n12.40\nכולל מע\"מ 18%\n--------------------------------------------\n81.31\nאשראי מסטרקארד 3317\n9904931\nמס' אישור\nהחזרה עד 25/11/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":81.31,\"amount_text\":\"81.31\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":26,\"month\":10,\"year\":2026},\"date_text\":\"26/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פארמה פלוס\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "פארמה פלוס\n\nשד' ירושלים 7, חולון\nעוסק מורשה 572217495 טל' 04-6298541\n--------------------------------------------\n\nקבלה 681734\nשעה 14:45\nקופה 4\nתאריך 26/10/26\n--------------------------------------------\n\n54.60\nמברשת שיניים\n3 x 18.20\n12.09\nפלסטרים 20 יח'\n18.90\nאקמול 20 טבליות\n--------------------------------------------\n\n85.59\nסכום ביניים\n-4.28\nהנחת מועדון\n81.31\nסה\"כ לתשלום\n12.40\nכולל מע\"מ 18%\n--------------------------------------------\n\n81.31\nאשראי מסטרקארד 3317\n9904931\nמס' אישור\nהחזרה עד 25/11/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":81.31,\"amount_text\":\"81.31\",\"currency\":\"ILS\",\"description\":\"פארמה פלוס\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"26/10/26\",\"date_kind\":\"exact\",\"date_day\":26,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006355,
+      "readCostUsd": 0.0003664
     },
     {
       "id": "rcpt-he-19",
@@ -460,10 +497,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פארמה פלוס\nשדי ירושלים 7, חולון\nעוסק מורשה טל' 589723174 09-7440603\n--------------------------------------\nקופה 2\nתאריך 27.10.2026\nקבלה 501477\nשעה 21:00\n--------------------------------------\nאקמול 20 טבליות\n18.09\nמשחת שיניים\n21.20\nמגבונים לחים\n9.09\nקרם ידיים\n47.58\n2 x 23.79\n--------------------------------------\nסה\"כ לתשלום\n95.96\nכולל מע\"מ 18%\n14.64\n--------------------------------------\nאשראי מסטרקארד 9959\n95.96\nמס' אישור\n4142292\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":95.96,\"amount_text\":\"95.96\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":10,\"year\":2026},\"date_text\":\"27.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פארמה פלוס\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "פארמה פלוס\n\nשדי ירושלים 7, חולון\nעוסק מורשה טל' 589723174 09-7440603\n--------------------------------------------------\n\nקופה 2                              קבלה 501477\nתאריך 27.10.2026                    שעה 21:00\n--------------------------------------------------\n\nאקמול 20 טבליות                             18.09\nמשחת שיניים                                 21.20\nמגבונים לחים                                9.09\nקרם ידיים                                   47.58\n2 x 23.79\n--------------------------------------------------\n\nסה\"כ לתשלום                               95.96\nכולל מע\"מ 18%                             14.64\n--------------------------------------------------\n\nאשראי מסטרקארד 9959                        95.96\nמס' אישור                                  4142292\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 95.96, \"amount_text\": \"95.96\", \"currency\": \"ILS\", \"description\": \"פארמה פלוס\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"27.10.2026\", \"date_kind\": \"exact\", \"date_day\": 27, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005889,
+      "readCostUsd": 0.0003719
     },
     {
       "id": "rcpt-he-20",
@@ -484,10 +523,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פארם הגליל\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 550468994 טלי 08-7796479\nקבלה 963328\nשעה 11:26\nקופה 5\nתאריך 20/10/26\n13.10\n20.50\n16.09\n140.10\nמגבונים לחים\nמשחת שיניים\nמברשת שיניים\nויטמין D3\n3 x 46.70\n189.79\n-18.98\nסכום ביניים\nהנחת מועדון\n170.81\n26.06\nסה\"כ לתשלום\nכולל מע\"מ 18%\n170.81\n0028187\nאשראי אמקס 0032\nמס' אישור\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":170.81,\"amount_text\":\"170.81\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":10,\"year\":2026},\"date_text\":\"20/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פארם הגליל\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "פארם הגליל\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 550468994 טלי 08-7796479\n--------------------------------\nקבלה 963328\nשעה 11:26\n--------------------------------\nקופה 5\nתאריך 20/10/26\n--------------------------------\nמגבונים לחים\nמשחת שיניים\nמברשת שיניים\nויטמין D3\n3 x 46.70\n\n13.10\n20.50\n16.09\n140.10\n--------------------------------\nסכום ביניים\nהנחת מועדון\n189.79\n-18.98\n--------------------------------\nסה\"כ לתשלום\nכולל מע\"מ 18%\n170.81\n26.06\n--------------------------------\nאשראי אמקס 0032\nמס' אישור\n170.81\n0028187\n\nהחזרה עד 19/11/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 170.81, \"amount_text\": \"170.81\", \"currency\": \"\", \"description\": \"פארם הגליל\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"20/10/26\", \"date_kind\": \"exact\", \"date_day\": 20, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007853,
+      "readCostUsd": 0.0003728
     },
     {
       "id": "rcpt-he-21",
@@ -508,10 +549,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תחנת דלק צומת הגבעה\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 537874043 טל' 08-9146769\n--------------------------------------------\n\nקופה 8                           קבלה 329588\nתאריך 15/10/26                       שעה 12:39\n--------------------------------------------\n\nמשאבה 2\n\nבנזין 95                              183.65\n7.71 x 23.82 ליטר\nקמ\"ק ברכב                             175974\nסה\"כ לתשלום                          183.65\nכולל מע\"מ 18%                         28.01\n--------------------------------------------\n\nאשראי מסטרקארד 7356                   183.65\nמס' אישור                           9182156\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":183.65,\"amount_text\":\"183.65\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":10,\"year\":2026},\"date_text\":\"15/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תחנת דלק צומת הגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "תחנת דלק צומת הגבעה\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 537874043 טל' 08-9146769\n--------------------------------------------\n\nקופה 8                           קבלה 329588\nתאריך 15/10/26                       שעה 12:39\n--------------------------------------------\n\nמשאבה 2\n\nבנזין 95                              183.65\n7.71 x 23.82 ליטר\nק\"מ ברכב                              175974\nסה\"כ לתשלום                          183.65\nכולל מע\"מ 18%                         28.01\n--------------------------------------------\n\nאשראי מסטרקארד 7356                   183.65\nמס' אישור                           9182156\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":183.65,\"amount_text\":\"183.65\",\"currency\":\"ILS\",\"description\":\"תחנת דלק צומת הגבעה - בנזין 95\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"15/10/26\",\"date_kind\":\"exact\",\"date_day\":15,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005515,
+      "readCostUsd": 0.0003686
     },
     {
       "id": "rcpt-he-22",
@@ -532,10 +575,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תחנת דלק צומת הגבעה\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 576856613 טלי 03-8897480\n--------------------------------------------------\n\nקופה 4                                    קבלה 068864\nתאריך 16/09/26                            שעה 11:11\n--------------------------------------------------\n\nמשאבה 6\nבנזין 95\n7.45 x ליטר 54.89\nק\"מ ברכב                                  117141\nסה\"כ לתשלום                               408.93\nכולל מע\"מ 18%                             62.38\n--------------------------------------------------\n\nאשראי אמקס 0972                           408.93\nמס' אישור                                 4539787\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":408.93,\"amount_text\":\"408.93\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":16,\"month\":9,\"year\":2026},\"date_text\":\"16/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תחנת דלק צומת הגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "תחנת דלק צומת הגבעה\n\nרח' העצמאות 18, אשדוד\nעוסק מורשה 576856613 טלי 03-8897480\n--------------------------------------------------\n\nקופה 4                                068864 קבלה\nתאריך 16/09/26                        שעה 11:11\n--------------------------------------------------\n\nמשאבה 6\nבנזין 95                              408.93\n7.45 x ליטר 54.89\nק\"מ ברכב                              117141\nסה\"כ לתשלום                           408.93\nכולל מע\"מ 18%                         62.38\n--------------------------------------------------\n\nאשראי אמקס 0972                       408.93\nמס' אישור                             4539787\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":408.93,\"amount_text\":\"408.93\",\"currency\":\"ILS\",\"description\":\"בנזין 95 - תחנת דלק צומת הגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"16/09/26\",\"date_kind\":\"exact\",\"date_day\":16,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005495,
+      "readCostUsd": 0.0003689
     },
     {
       "id": "rcpt-he-23",
@@ -556,10 +601,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תדלוק העמק\nרח' הנביאים 3, ירושלים\nעוסק מורשה 5211 91824 טל' 03-8052405\n--------------------------------------------------\nקבלה 135711\nקופה 3\nשעה 20:10\nתאריך 18.10.2026\n--------------------------------------------------\nמשאבה 11\nבנזין 95\n7.62 x ליטר 43.95\n334.90\nקק\"מ ברכב 67030\nשטיפת רכב 35.00\nסה\"כ לתשלום 369.90\nכולל מע\"מ 18% 56.43\n--------------------------------------------------\nאשראי ויזה 4928 369.90\nמס' אישור 3335845\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":369.9,\"amount_text\":\"369.90\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":18,\"month\":10,\"year\":2026},\"date_text\":\"18.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תדלוק העמק\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "תדלוק העמק\nרח' הנביאים 3, ירושלים\nעוסק מורשה 5221191824 טל' 03-8052405\n--------------------------------------------------------\nקבלה 135711\nשעה 20:10\nקופה 3\nתאריך 18.10.2026\n--------------------------------------------------------\nמשאבה 11\nבנזין 95\n7.62 x ליטר 43.95\n334.90\n\nקב\"מ רכב\n67030\nשטיפת רכב\n35.00\nסה\"כ לתשלום\n369.90\nכולל מע\"מ 18%\n56.43\n--------------------------------------------------------\nאשראי ויזה 4928\n369.90\nמס' אישור\n3335845\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":369.9,\"amount_text\":\"369.90\",\"currency\":\"ILS\",\"description\":\"תדלוק העמק\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"18.10.2026\",\"date_kind\":\"exact\",\"date_day\":18,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005587,
+      "readCostUsd": 0.0003621
     },
     {
       "id": "rcpt-he-24",
@@ -580,10 +627,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תחנת דלק צומת הגבעה\n\nשדי ירושלים 7, חולון\nעוסק מורשה 597810848 טלי 08-7263630\n--------------------------------\nקופה 8\nתאריך 22.09.2026\nקבלה 570387\nשעה 19:55\n--------------------------------\nמשאבה 8\nבנזין 95\n7.59 x ליטר 18.14\nקק\"מ ברכב\nסה\"כ לתשלום\nכולל מע\"מ 18%\n\n137.68\n\n77659\n137.68\n21.00\n--------------------------------\nBit\n137.68\nאסמכתא 980364895\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":137.68,\"amount_text\":\"137.68\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":9,\"year\":2026},\"date_text\":\"22.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תחנת דלק צומת הגבעה\",\"payment_method\":\"bit_paybox\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "copy": "תחנת דלק צומת הגבעה\n\nשדי ירושלים 7, חולון\nעוסק מורשה 597810848 טלי 08-7263630\n--------------------------------\nקופה 8\nתאריך 22.09.2026\nקבלה 570387\nשעה 19:55\n--------------------------------\nמשאבה 8\nבנזין 95\n7.59 x ליטר 18.14\nקמ ברכב\nסהכ לתשלום\nכולל מעמ 18%\n--------------------------------\n\n137.68\n\n77659\n137.68\n21.00\nBit\n137.68\nאסמכתא 980364895\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":137.68,\"amount_text\":\"137.68\",\"currency\":\"ILS\",\"description\":\"תחנת דלק צומת הגבעה - בנזין 95\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"bit_paybox\",\"date_text\":\"22.09.2026\",\"date_kind\":\"exact\",\"date_day\":22,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006167,
+      "readCostUsd": 0.0003669
     },
     {
       "id": "rcpt-he-25",
@@ -604,10 +653,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תדלוק העמק\n\nרח' הגליל 9, כרמיאל\nעוסק מורשה 552209966 טל' 03-9225990\n--------------------------------------------\nקופה 5                              קבלה 431747\nתאריך 27.10.2026                      שעה 10:52\n--------------------------------------------\nמשאבה 6\n\nבנזין 95                                314.44\n7.51 x ליטר 41.87\n\nרכב מ\"ק                                   37747\nסה\"כ לתשלום                             314.44\nכולל מע\"מ 18%                             47.97\n--------------------------------------------\nמזומן                                    500.00\nעודף                                     185.56\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":314.44,\"amount_text\":\"314.44\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":10,\"year\":2026},\"date_text\":\"27.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תדלוק העמק\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "תדלוק העמק\n\nרח' הגליל 9, כרמיאל\nעוסק מורשה 552209966 טל' 03-9225990\n--------------------------------------------\n\nקופה 5                                431747 קבלה\nתאריך 27.10.2026                        שעה 10:52\n--------------------------------------------\n\nמשאבה 6\nבנזין 95                                    314.44\n41.87 ליטר x 7.51\nק\"מ ברכב                                      37747\nסה\"כ לתשלום                               314.44\nכולל מע\"מ 18%                              47.97\n--------------------------------------------\n\nמזומן                                        500.00\nעודף                                         185.56\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":314.44,\"amount_text\":\"314.44\",\"currency\":\"ILS\",\"description\":\"תדלוק העמק - בנזין 95\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"27.10.2026\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005345,
+      "readCostUsd": 0.0003629
     },
     {
       "id": "rcpt-he-26",
@@ -628,10 +679,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "תחנת דלק צומת הגבעה\n\nשד' ירושלים 7, חולון\nעוסק מורשה 556708893 טלי 09-7775560\n--------------------------------------------------\nקופה 8\nקבלה 212603\nשעה 14:17\nתאריך 23/09/2026\n--------------------------------------------------\nמשאבה 11\nבנזין 95\n7.76 x 29.67 ליטר\n\n230.24\nק\"מ ברכב 173987\nשטיפת רכב 35.00\n\nסה\"כ לתשלום 265.24\nכולל מע\"מ 18% 40.46\n--------------------------------------------------\nאשראי מסטרקארד 3103\n265.24\nמס' אישור 8344474\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":265.24,\"amount_text\":\"265.24\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":9,\"year\":2026},\"date_text\":\"23/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תחנת דלק צומת הגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "תחנת דלק צומת הגבעה\n\nשד' ירושלים 7, חולון\nעוסק מורשה 556708893 טלי 09-7775560\n--------------------------------------------\n\nקופה 8\nקבלה 212603\nתאריך 23/09/2026\nשעה 14:17\n--------------------------------------------\n\nמשאבה 11\nבנזין 95\n7.76 x 29.67 ליטר\n230.24\n\nקק\"מ ברכב\n173987\nשטיפת רכב\n35.00\n\nסה\"כ לתשלום\n265.24\n\nכולל מע\"מ 18%\n40.46\n--------------------------------------------\n\nאשראי מסטרקארד 3103\n265.24\nמס' אישור\n8344474\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":265.24,\"amount_text\":\"265.24\",\"currency\":\"\",\"description\":\"תחנת דלק צומת הגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"23/09/2026\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005617,
+      "readCostUsd": 0.0003644
     },
     {
       "id": "rcpt-he-27",
@@ -652,10 +705,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "מסעדת הגפן\n\nדרך השלום 52, תל אביב\nעוסק מורשה 566779687 טל 08-7671302\n--------------------------------------------\nקופה 8                              קבלה 953353\nשולחן 5                              סועדים 2\nתאריך 23/09/26                       שעה 09:44\n--------------------------------------------\nשניצל בצלחת\n2 x 66.90                                133.80\n\nעוגת שוקולד\n2 x 34.89                                 69.78\n--------------------------------------------\nסה\"כ ארוחה                              203.58\nטיפ                                       20.00\nסה\"כ לתשלום                             223.58\nכולל מע\"מ 18%                            34.11\n--------------------------------------------\nמזומן                                    500.00\nעודף                                     276.42\n\nתוד…",
-      "read": "{\"items\":[{\"amount\":223.58,\"amount_text\":\"223.58\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":9,\"year\":2026},\"date_text\":\"23/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מסעדת הגפן\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מסעדת הגפן\n\nדרך השלום 52, תל אביב\nעוסק מורשה 566779687 טל 08-7671302\n--------------------------------\nקופה 8 קבלה 953353\nשולחן 5 סועדים 2\nתאריך 23/09/26 שעה 09:44\n--------------------------------\nשניצל בצלחת 133.80\n2 x 66.90\nעוגת שוקולד 69.78\n2 x 34.89\n--------------------------------\nסה\"כ ארוחה 203.58\nטיפ 20.00\nסה\"כ לתשלום 223.58\nכולל מע\"מ 18% 34.11\n--------------------------------\nמזומן 500.00\nעודף 276.42\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":223.58,\"amount_text\":\"223.58\",\"currency\":\"ILS\",\"description\":\"מסעדת הגפן\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"23/09/26\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005935,
+      "readCostUsd": 0.0003617
     },
     {
       "id": "rcpt-he-28",
@@ -676,10 +731,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "קפה ברחוב\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 546189412 טל' 08-5554223\n--------------------------------\n\nקופה 1                    קבלה 336487\nשולחן 9                   סועדים 5\nתאריך 14/10/26            שעה 10:21\n--------------------------------\n\nצ'יפס                           19.70\nסלט ישראלי                      41.69\nהמבורגר 220 ג'                  62.30\nעוגת שוקולד                    102.57\n3 x 34.19\n\n--------------------------------\nסה\"כ לתשלום                   226.26\nכולל מע\"מ 18%                   34.51\n--------------------------------\n\nBit                            226.26\nאסמכתא 600569127\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":226.26,\"amount_text\":\"226.26\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":14,\"month\":10,\"year\":2026},\"date_text\":\"14/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"קפה ברחוב\",\"payment_method\":\"bit_paybox\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "קפה ברחוב\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 546189412 טל' 08-5554223\n--------------------------------\n\nקופה 1                    קבלה 336487\nשולחן 9                   סועדים 5\nתאריך 14/10/26            שעה 10:21\n--------------------------------\n\nצ'יפס                              19.70\nסלט ישראלי                         41.69\nהמבורגר 220 ג'                     62.30\nעוגת שוקולד                       102.57\n3 x 34.19\n--------------------------------\n\nסה\"כ לתשלום                      226.26\nכולל מע\"מ 18%                     34.51\n--------------------------------\n\nBit                                226.26\n\nאסמכתא 600569127\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 226.26, \"amount_text\": \"226.26\", \"currency\": \"ILS\", \"description\": \"קפה ברחוב\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"bit_paybox\", \"date_text\": \"14/10/26\", \"date_kind\": \"exact\", \"date_day\": 14, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005861,
+      "readCostUsd": 0.0003714
     },
     {
       "id": "rcpt-he-29",
@@ -700,10 +757,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "המטבח של סבתא\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 580504624 טל' 03-9128209\n--------------------------------\nקופה 9\nשולחן 26\nתאריך 03/10/26\nקבלה 456805\nסועדים 4\nשעה 15:57\n--------------------------------\nעוגת שוקולד\nהמבורגר 220 ג'\nצ'יפס\n29.59\n74.20\n21.49\n--------------------------------\nסה\"כ ארוחה\nטיפ\n125.28\n13.00\nסה\"כ לתשלום\n138.28\nכולל מע\"מ 18%\n21.09\n--------------------------------\nאשראי ויזה 8000\nמס' אישור\n138.28\n6583107\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":138.28,\"amount_text\":\"138.28\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":10,\"year\":2026},\"date_text\":\"03/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"המטבח של סבתא\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "המטבח של סבתא\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 580504624 טל' 03-9128209\n--------------------------------\nקופה 9\nשולחן 26\nתאריך 03/10/26\nקבלה 456805\nסועדים 4\nשעה 15:57\n--------------------------------\nעוגת שוקולד\nהמבורגר 220 ג'\nצ'יפס\n\n29.59\n74.20\n21.49\n--------------------------------\nסה\"כ ארוחה\nטיפ\n125.28\n13.00\n\nסה\"כ לתשלום\n138.28\n\nכולל מע\"מ 18%\n21.09\n--------------------------------\nאשראי ויזה 8000\nמס' אישור\n138.28\n6583107\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":138.28,\"amount_text\":\"138.28\",\"currency\":\"ILS\",\"description\":\"המטבח של סבתא\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"03/10/26\",\"date_kind\":\"exact\",\"date_day\":3,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005973,
+      "readCostUsd": 0.0003638
     },
     {
       "id": "rcpt-he-30",
@@ -724,10 +783,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "קפה ברחוב\n\nרח' הרצל 12, רחובות\nעוסק מורשה 568450323 טל' 04-5282790\n--------------------------------\n\nקופה 5\nשולחן 28\nתאריך 30.09.2026\nקבלה 864025\nסועדים 5\nשעה 09:27\n--------------------------------\n\nשניצל בצלחת\n3 x 64.10\n192.30\n\nקפה הפוך\n12.79\n\nפיצה משפחתית\n73.39\n\nפסטה שמנת פטריות\n3 x 60.09\n180.27\n--------------------------------\n\nסה\"כ ארוחה\n458.75\nטיפ\n46.00\nסה\"כ לתשלום\n504.75\nכולל מע\"מ 18%\n77.00\n--------------------------------\n\nאשראי ויזה 0506\n504.75\nמס' אישור\n6344620\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":504.75,\"amount_text\":\"504.75\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":30,\"month\":9,\"year\":2026},\"date_text\":\"30.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"קפה ברחוב\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "קפה ברחוב\n\nרח' הרצל 12, רחובות\nעוסק מורשה 568450323 טל' 04-5282790\n--------------------------------\n\nקופה 5                           קבלה 864025\nשולחן 28                         סועדים 5\nתאריך 30.09.2026                 שעה 09:27\n--------------------------------\n\nשניצל בצלחת                      192.30\n3 x 64.10\nקפה הפוך                         12.79\nפיצה משפחתית                     73.39\nפסטה שמנת פטריות                 180.27\n3 x 60.09\n--------------------------------\n\nסה\"כ ארוחה                       458.75\nטיפ                               46.00\nסה\"כ לתשלום                      504.75\nכולל מע\"מ 18%                     77.00\n--------------------------------\n\nאשראי ויזה 0506                   504.75\nמס' אישור                        6344620\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":504.75,\"amount_text\":\"504.75\",\"currency\":\"ILS\",\"description\":\"קפה ברחוב\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"30.09.2026\",\"date_kind\":\"exact\",\"date_day\":30,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006681,
+      "readCostUsd": 0.000368
     },
     {
       "id": "rcpt-he-31",
@@ -748,10 +809,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "The document is upside down and the text appears to be in Hebrew with mixed orientation, making it very difficult to accurately transcribe character by character. \n\nI can see this is a receipt (קבלה) with:\n- A business name at top\n- An address line\n- A business ID number (03-6053203) and phone number\n- A receipt/invoice number (465255)\n- Date and time information (28/09/26)\n- Several line items with quantities, prices, and calculations (x symbols suggesting multiplication)\n- A subtotal\n- VAT (מע\"מ) at 18%\n- A total amount (488.07)\n- Payment method (מזומן - cash) with amount 500.00\n- Change (עודף) 11.93\n\nHowever, I cannot reliably copy this line by line with accurate character-level transcription because:\n1. The image is rotated/inverted making precise reading difficult\n2. Hebrew text combi…",
-      "read": "{\"items\":[{\"amount\":488.07,\"amount_text\":\"488.07\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":9,\"year\":2026},\"date_text\":\"28/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"קבלה 465255\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "The image is upside down. Rotating it mentally to read correctly, here is the text copied line by line, from top to bottom as it would appear right-side up:\n\nסופר ח.כהן\n\nמרכז העיר, 12 רחוב א'\n03-6053203 ח.פ 514057095 מספר רוטין\n\nקבלה מספר 465255\n5 פריטים\nשעה 15:46\n7 פריט מספר\n27 פריט\nתאריך 26/09/28\n\n1 חלמוני 220 ג'\n3 x 76.40\n229.20\n\nמחיר ליחידה\n2 x 41.70\n83.40\n\nיחידה למחיר\n17.00\n94.47\n\n3 x 31.49\n\nסה\"כ ביניים\n424.07\n64.00\nסה\"כ לתשלום\n488.07\n\nכולל מע\"מ 18% \n74.45\n\nתשלום\n500.00\nעודף\n11.93\n\nתודה רבה\nאנא תבדקו תשלום",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":488.07,\"amount_text\":\"488.07\",\"currency\":\"ILS\",\"description\":\"סופר ח.כהן\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"\",\"date_text\":\"26/09/28\",\"date_kind\":\"exact\",\"date_day\":28,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.008237,
+      "readCostUsd": 0.000367
     },
     {
       "id": "rcpt-he-32",
@@ -772,34 +835,38 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פיצה אחים\nרח' הנביאים 3, ירושלים\nעוסק מורשה טלי 531462263 09-8707164\n--------------------------------------------\nקופה 9                              קבלה 565670\nשולחן 25                            סועדים 4\nתאריך 08.10.2026                    שעה 21:44\n--------------------------------------------\nפסטה שמנת פטריות                    53.99\nסלט ישראלי                          38.19\nקולה                                12.40\nהמבורגר 220 ג'                      148.58\n2 x 74.29\n--------------------------------------------\nסה\"כ ארוחה                          253.16\nטיפ                                 30.00\nסה\"כ לתשלום                         283.16\nכולל מע\"מ 18%                       43.19\n--------------------------------------------\nמזומן                               500.00\nעודף                …",
-      "read": "{\"items\":[{\"amount\":283.16,\"amount_text\":\"283.16\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":8,\"month\":10,\"year\":2026},\"date_text\":\"08.10.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פיצה אחים\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "פיצה אחים\nרח' הנביאים 3, ירושלים\nעוסק מורשה טלי 531462263 09-8707164\n--------------------------------------------------\nקופה 9\nשולחן 25\nתאריך 08.10.2026\nקבלה 565670\nסועדים 4\nשעה 21:44\n--------------------------------------------------\nפסטה שמנת פטריות\n53.99\nסלט ישראלי\n38.19\nקולה\n12.40\nהמבורגר 220 ג'\n148.58\n2 x 74.29\n--------------------------------------------------\nסה\"כ ארוחה\n253.16\nטיפ\n30.00\nסה\"כ לתשלום\n283.16\nכולל מע\"מ 18%\n43.19\n--------------------------------------------------\nמזומן\n500.00\nעודף\n216.84\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 283.16, \"amount_text\": \"283.16\", \"currency\": \"ILS\", \"description\": \"פיצה אחים\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"cash\", \"date_text\": \"08.10.2026\", \"date_kind\": \"exact\", \"date_day\": 8, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006389,
+      "readCostUsd": 0.0003718
     },
     {
       "id": "rcpt-he-33",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בורגר בשכונה\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 591069240 טל' 08-8841139\n--------------------------------\n\nקבלה 463825                                קופה 3\nסועדים 6                                   שולחן 17\nשעה 10:49                              תאריך 21/09/26\n--------------------------------\n\nקפה הפוך                                      37.80\n3 x 12.60\nקולה                                          13.59\n--------------------------------\n\nסה\"כ ארוחה                                    51.39\nטיפ                                            8.00\nסה\"כ לתשלום                                   59.39\nכולל מע\"מ 18%                                  9.06\n--------------------------------\n\nאשראי מסטרקארד 8114                           59.39\nמס' אישור                                  8944632\n\nתודה ולהת…",
-      "read": "{\"items\":[{\"amount\":59.39,\"amount_text\":\"59.39\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":21,\"month\":9,\"year\":2026},\"date_text\":\"21/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בורגר בשכונה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "בורגר בשכונה\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 591069240 טל' 08-8841139\n--------------------------------\n\nקבלה 463825                    קופה 3\nסועדים 6                       שולחן 17\nשעה 10:49                      תאריך 21/09/26\n--------------------------------\n\n37.80                          קפה הפוך\n                                3 x 12.60\n13.59                           קולה\n--------------------------------\n\n51.39                          סה\"כ ארוחה\n8.00                            טיפ\n59.39                           סה\"כ לתשלום\n9.06                            כולל מע\"מ 18%\n--------------------------------\n\n59.39                          אשראי מסטרקארד 8114\n8944632                        מס' אישור\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"null\", \"rule_action\": \"null\", \"items\": [{\"amount\": 59.39, \"amount_text\": \"59.39\", \"currency\": \"\", \"description\": \"בורגר בשכונה\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"21/09/26\", \"date_kind\": \"exact\", \"date_day\": 21, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005993,
+      "readCostUsd": 0.000371
     },
     {
       "id": "rcpt-he-34",
@@ -821,9 +888,11 @@
         "checkAmounts": 0
       },
       "copy": "מסעדת הגפן\n\nרח' ויצמן 40, כפר סבא\n\nעוסק מורשה 532934778 טל' 08-6100408\n\n--------------------------------------------------\n\nקופה 9                           קבלה 817986\nשולחן 14                         סועדים 2\nתאריך 02/10/26                   שעה 11:34\n\n--------------------------------------------------\n\nפיצה משפחתית                     66.09\nשניצל בצלחת                      60.50\nפסטה שמנת פטריות                 54.69\nלימונדה גרוסה                    18.10\n\n--------------------------------------------------\n\nסה\"כ ארוחה                       199.38\nטיפ                               24.00\nסה\"כ לתשלום                      223.38\nכולל מע\"מ 18%                     34.07\n\n--------------------------------------------------\n\nאשראי ויזה 5810                  223.38\nמס' אישור                      …",
-      "read": "{\"items\":[{\"amount\":223.38,\"amount_text\":\"223.38\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":2,\"month\":10,\"year\":2026},\"date_text\":\"02/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מסעדת הגפן\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":223.38,\"amount_text\":\"223.38\",\"currency\":\"ILS\",\"description\":\"מסעדת הגפן\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"02/10/26\",\"date_kind\":\"exact\",\"date_day\":2,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006485,
+      "readCostUsd": 0.0003682
     },
     {
       "id": "rcpt-he-35",
@@ -844,10 +913,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "כלי בית המרכז\n\nשד' ירושלים 7, חולון\nעוסק מורשה טל' 529697511 08-7145196\n\n--------------------------------------------------------------\n\nקופה 3                                           קבלה 882151\nתאריך 16/09/26                                      שעה 10:08\n\n--------------------------------------------------------------\n\nמחבת 28 ס\"מ                                           119.99\nמברגה נטענת                                           420.49\nקופסאות אחסון 3 יח'                                    44.19\n\n--------------------------------------------------------------\n\nסכום ביניים                                           584.67\nהנחת מועדון                                           -58.47\nסה\"כ לתשלום                                           526.20\nכולל מע\"מ 18%                               …",
-      "read": "{\"items\":[{\"amount\":526.2,\"amount_text\":\"526.20\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":16,\"month\":9,\"year\":2026},\"date_text\":\"16/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"כלי בית המרכז\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "כלי בית המרכז\nשד' ירושלים 7, חולון\nעוסק מורשה 529697511 טל' 08-7145196\n--------------------------------------------------------------\n\nקופה 3                                           קבלה 882151\nתאריך 16/09/26                                      שעה 10:08\n--------------------------------------------------------------\n\nמחבת 28 ס\"מ                                           119.99\nמברגה נטענת                                           420.49\nקופסאות אחסון 3 יח'                                    44.19\n--------------------------------------------------------------\n\nסכום ביניים                                            584.67\nהנחת מועדון                                            -58.47\nסה\"כ לתשלום                                           526.20\n18% מע\"מ כולל                                 …",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 526.2, \"amount_text\": \"526.20\", \"currency\": \"ILS\", \"description\": \"כלי בית המרכז\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"16/09/26\", \"date_kind\": \"exact\", \"date_day\": 16, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006573,
+      "readCostUsd": 0.0003773
     },
     {
       "id": "rcpt-he-36",
@@ -868,10 +939,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בית ועוד\n\nשד' ירושלים 7, חולון\nעוסק מורשה 529921860 טל' 09-8603621\n--------------------------------------------------\n\nקופה 7                              קבלה 687148\nתאריך 22/09/26                           שעה 18:14\n--------------------------------------------------\n\nקופסאות אחסון 3 יח'                              43.89\nכבל מאריך 3 מ'                                   33.69\nמברגה נטענת                                     406.00\nמנורת שולחן                                     145.20\n--------------------------------------------------\n\nסכום ביניים                                     628.78\nהנחת מועדון                                     -31.44\nסה\"כ לתשלום                                     597.34\nכולל מע\"מ 18%                                    91.12\n--------------------------------------…",
-      "read": "{\"items\":[{\"amount\":597.34,\"amount_text\":\"597.34\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":9,\"year\":2026},\"date_text\":\"22/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית ועוד\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "בית ועוד\n\nשד' ירושלים 7, חולון\nעוסק מורשה 529921860 טל' 09-8603621\n--------------------------------------------------\n\nקופה 7                              קבלה 687148\nתאריך 22/09/26                      שעה 18:14\n--------------------------------------------------\n\nקופסאות אחסון 3 יח'                43.89\nכבל מאריך 3 מ'                     33.69\nמברגה נטענת                        406.00\nמנורת שולחן                        145.20\n--------------------------------------------------\n\nסכום ביניים                        628.78\nהנחת מועדון                        -31.44\nסה\"כ לתשלום                        597.34\nכולל מע\"מ 18%                       91.12\n--------------------------------------------------\n\nמזומן                              600.00\nעודף                                 2.66\n\nתודה ולהתראו…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 597.34, \"amount_text\": \"597.34\", \"currency\": \"ILS\", \"description\": \"בית ועוד\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"cash\", \"date_text\": \"22/09/26\", \"date_kind\": \"exact\", \"date_day\": 22, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006163,
+      "readCostUsd": 0.0003707
     },
     {
       "id": "rcpt-he-37",
@@ -892,10 +965,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "כלי בית המרכז\n\nרח' העצמאות 18, אשדוד\n\nעוסק מורשה 535415274 טל' 08-8066624\n\nקופה 8\nקבלה 762673\nתאריך 23/10/2026\nשעה 15:15\n\nמברגה נטענת 445.50\nכבל מאריך 3 מ' 39.29\nסוללות AA 8 יח' 33.49\nמחבת 28 ס\"מ 159.39\n\nסכום ביניים 677.67\nהנחת מועדון -67.77\nסה\"כ לתשלום 609.90\nכולל מע\"מ 18% 93.04\n\nאשראי ויזה 8938 609.90\nמס' אישור 8490993\nמספר תשלומים 2\n\nהחזרה עד 22/11/26 בצירוף קבלה\n\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":609.9,\"amount_text\":\"609.90\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":10,\"year\":2026},\"date_text\":\"23/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"כלי בית המרכז\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "כלי בית המרכז\n\nרח' העצמאות 18, אשדוד\n\nעוסק מורשה 535415274 טל' 08-8066624\n--------------------------------------------\nקופה 8                              קבלה 762673\nתאריך 23/10/2026                    שעה 15:15\n--------------------------------------------\nמברגה נטענת                              445.50\nכבל מאריך 3 מ'                           39.29\nסוללות AA 8 יח'                          33.49\nמחבת 28 ס\"מ                              159.39\n--------------------------------------------\nסכום ביניים                              677.67\nהנחת מועדון                              -67.77\nסה\"כ לתשלום                              609.90\nכולל מע\"מ 18%                            93.04\n--------------------------------------------\nאשראי ויזה 8938                          609.90\nמס' אישור              …",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 609.9, \"amount_text\": \"609.90\", \"currency\": \"ILS\", \"description\": \"כלי בית המרכז\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"23/10/2026\", \"date_kind\": \"exact\", \"date_day\": 23, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006859,
+      "readCostUsd": 0.0003785
     },
     {
       "id": "rcpt-he-38",
@@ -916,10 +991,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "Here is the document copied line by line:\n\n```\nמרכז השיפוצים\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 538615143 טל' 09-6889703\n--------------------------------\nקופה 2\nתאריך 25.09.2026\nקבלה 099216\nשעה 21:28\n--------------------------------\nמנורת שולחן                113.89\nכבל מאריך 3 מ'               43.69\nקופסאות אחסון 3 יח'          62.49\n--------------------------------\nסכום ביניים                220.07\nהנחת מועדון                -22.01\nסה\"כ לתשלום                198.06\nכולל מע\"מ 18%                30.21\n--------------------------------\nאשראי אמקס 0475\nמס' אישור                 198.06\n                          2935297\n\nתודה ולהתראות!\n```",
-      "read": "{\"items\":[{\"amount\":198.06,\"amount_text\":\"198.06\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":25,\"month\":9,\"year\":2026},\"date_text\":\"25.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכז השיפוצים\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "מרכז השיפוצים\n\nרח' הנביאים 3, ירושלים\n\nעוסק מורשה 538615143 טל' 09-6889703\n--------------------------------\nקופה 2\n099216 קבלה\n25.09.2026 תאריך\nשעה 21:28\n--------------------------------\nמנורת שולחן\nכבל מאריך 3 מ'\nקופסאות אחסון 3 יח'\n113.89\n43.69\n62.49\n--------------------------------\nסכום ביניים\nהנחת מועדון\nסה\"כ לתשלום\nכולל מע\"מ 18%\n220.07\n-22.01\n198.06\n30.21\n--------------------------------\nאשראי אמקס 0475\nמס' אישור\n198.06\n2935297\n\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 198.06, \"amount_text\": \"198.06\", \"currency\": \"\", \"description\": \"מרכז השיפוצים\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"25.09.2026\", \"date_kind\": \"exact\", \"date_day\": 25, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005819,
+      "readCostUsd": 0.0003707
     },
     {
       "id": "rcpt-he-39",
@@ -940,10 +1017,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "כלי בית המרכז\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 596530004 טל' 04-7578351\n--------------------------------------------------\n\nקופה 9                           קבלה 297718\nתאריך 12/10/26                   שעה 15:09\n--------------------------------------------------\n\nיח' AA 8 סוללות                           33.69\nמ\"ט 28 מחבת                              154.39\nיח' 3 אחסון קופסאות                       62.29\nשולחן מנורת                              131.70\nנטענת מברגה                              268.40\n--------------------------------------------------\n\nסה\"כ לתשלום                              650.47\n18% מע\"מ כולל                             99.22\n--------------------------------------------------\n\n2747 ויזה אשראי                          650.47\nאישור מס'                               0249840…",
-      "read": "{\"items\":[{\"amount\":650.47,\"amount_text\":\"650.47\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":12,\"month\":10,\"year\":2026},\"date_text\":\"12/10/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"כלי בית המרכז\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "כלי בית המרכז\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 596530004 טלי 04-7578351\n--------------------------------------------------\n\nקופה 9                           קבלה 297718\nתאריך 12/10/26                   שעה 15:09\n--------------------------------------------------\n\nיח' AA 8 סוללות                          33.69\nמ\"ט 28 מחבת                             154.39\nיח' 3 אחסון קופסאות                      62.29\nשולחן מנורת                             131.70\nנטענת מברגה                             268.40\n--------------------------------------------------\n\nסה\"כ לתשלום                             650.47\nכולל מע\"מ 18%                            99.22\n--------------------------------------------------\n\nאשראי ויזה 2747                          650.47\nמס' אישור                              0249840\nמספר תש…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":650.47,\"amount_text\":\"650.47\",\"currency\":\"\",\"description\":\"כלי בית המרכז\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"12/10/26\",\"date_kind\":\"exact\",\"date_day\":12,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006343,
+      "readCostUsd": 0.000366
     },
     {
       "id": "rcpt-he-40",
@@ -964,10 +1043,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בית ועוד\n\nדרך השלום 52, תל אביב\nעוסק מורשה 500485125 טל' 08-7216363\n--------------------------------------------------\n\nקופה 8\nקבלה 783986\nתאריך 25/09/26\nשעה 11:01\n--------------------------------------------------\n\nמברגה נטענת\n434.50\nקופסאות אחסון 3 יח'\n66.69\nסוללות AA 8 יח'\n25.79\nסט מגבות\n102.50\n--------------------------------------------------\n\nסה\"כ לתשלום\n629.48\nכולל מע\"מ 18%\n96.02\n--------------------------------------------------\n\nאשראי ישראכרט 7371\n629.48\nמס' אישור\n2479932\n\nהחזרה עד 25/10/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":629.48,\"amount_text\":\"629.48\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":25,\"month\":9,\"year\":2026},\"date_text\":\"25/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית ועוד\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "בית ועוד\nדרך השלום 52, תל אביב\nעוסק מורשה 500485125 טל' 08-7216363\n--------------------------------\nקופה 8\nקבלה 783986\nתאריך 25/09/26\nשעה 11:01\n--------------------------------\nמברגה נטענת 434.50\nקופסאות אחסון 3 יח' 66.69\nסוללות AA 8 יח' 25.79\nסט מגבות 102.50\n--------------------------------\nסה\"כ לתשלום 629.48\nכולל מע\"מ 18% 96.02\n--------------------------------\nאשראי ישראכרט 7371 629.48\nמס' אישור 2479932\nהחזרה עד 25/10/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 629.48, \"amount_text\": \"629.48\", \"currency\": \"\", \"description\": \"בית ועוד\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"25/09/26\", \"date_kind\": \"exact\", \"date_day\": 25, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005839,
+      "readCostUsd": 0.0003684
     },
     {
       "id": "rcpt-en-01",
@@ -988,10 +1069,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "GREEN VALLEY GROCERS\n1420 Maple St\nSpringfield, IL 62704\nTEL (284) 555-5716\n--------------------------------------------------\nRECEIPT #32092                              REG 2\n10/05/2026                                  13:00\n--------------------------------------------------\nMILK 1 GAL                                   3.69\nEGGS LG DOZ                                  3.59\nBANANAS                                      0.60\n  0.957 LB @ 0.63/LB\nCOFFEE 12OZ                                  8.30\n--------------------------------------------------\nSUBTOTAL                                    16.18\nTAX 6.25%                                    1.01\nTOTAL                                      $17.19\nCASH                                        20.00\nCHANGE                                       2.81\n…",
-      "read": "{\"items\":[{\"amount\":17.19,\"amount_text\":\"17.19\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":5,\"month\":10,\"year\":2026},\"date_text\":\"10/05/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"GREEN VALLEY GROCERS\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "GREEN VALLEY GROCERS\n\n1420 Maple St\nSpringfield, IL 62704\nTEL (284) 555-5716\n--------------------------------------------------\n\nRECEIPT #32092                    REG 2\n10/05/2026                        13:00\n--------------------------------------------------\n\nMILK 1 GAL                         3.69\nEGGS LG DOZ                        3.59\nBANANAS                            0.60\n  0.957 LB @ 0.63/LB\nCOFFEE 12OZ                        8.30\n--------------------------------------------------\n\nSUBTOTAL                          16.18\nTAX 6.25%                          1.01\nTOTAL                            $17.19\n\nCASH                               20.00\nCHANGE                              2.81\nRETURNS BY 11/04/2026 WITH RECEIPT\nTHANK YOU",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":17.19,\"amount_text\":\"17.19\",\"currency\":\"USD\",\"description\":\"GREEN VALLEY GROCERS\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"10/05/2026\",\"date_kind\":\"exact\",\"date_day\":5,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006155,
+      "readCostUsd": 0.0003664
     },
     {
       "id": "rcpt-en-02",
@@ -1012,10 +1095,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "GREEN VALLEY GROCERS\n720 Burnside St\nPortland, OR 97209\nTEL (358) 555-5117\n--------------------------------\nRECEIPT #30437                REG 1\n10/22/2026                    17:20\n--------------------------------\nOLIVE OIL                     33.87\n   3 x 11.29\nCOFFEE 12OZ                    9.60\nMILK 1 GAL                    12.30\n   3 x 4.10\n--------------------------------\nSUBTOTAL                      55.77\nTAX 0.00%                      0.00\nTOTAL                         $55.77\nMASTERCARD ****9136            55.77\nAUTH                           145395\nRETURNS BY 11/21/2026 WITH RECEIPT\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":55.77,\"amount_text\":\"55.77\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":10,\"year\":2026},\"date_text\":\"10/22/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"GREEN VALLEY GROCERS\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "GREEN VALLEY GROCERS\n720 Burnside St\nPortland, OR 97209\nTEL (358) 555-5117\n--------------------------------\nRECEIPT #30437                REG 1\n10/22/2026                    17:20\n--------------------------------\nOLIVE OIL                     33.87\n   3 x 11.29\nCOFFEE 12OZ                    9.60\nMILK 1 GAL                    12.30\n   3 x 4.10\n--------------------------------\nSUBTOTAL                      55.77\nTAX 0.00%                      0.00\nTOTAL                        $55.77\nMASTERCARD ****9136            55.77\nAUTH                          145395\nRETURNS BY 11/21/2026 WITH RECEIPT\nTHANK YOU",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":55.77,\"amount_text\":\"55.77\",\"currency\":\"USD\",\"description\":\"GREEN VALLEY GROCERS\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"10/22/2026\",\"date_kind\":\"exact\",\"date_day\":22,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005975,
+      "readCostUsd": 0.0003656
     },
     {
       "id": "rcpt-en-03",
@@ -1036,10 +1121,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "MAPLE STREET MARKET\n\n720 Burnside St\nPortland, OR 97209\nTEL (541) 555-7552\n--------------------------------------------------\n\nRECEIPT #78942                          REG 3\n10/27/2026                              20:40\n--------------------------------------------------\n\nPASTA                                     1.80\nOLIVE OIL                                11.39\nBANANAS                                   1.08\n  1.659 LB @ 0.65/LB\nEGGS LG DOZ                               3.39\nBREAD WHEAT                               4.00\nCOFFEE 12OZ                               9.90\n--------------------------------------------------\n\nSUBTOTAL                                 31.56\nTAX 0.00%                                 0.00\nTOTAL                                   $31.56\nAMEX ****7787                    …",
-      "read": "{\"items\":[{\"amount\":31.56,\"amount_text\":\"31.56\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":10,\"year\":2026},\"date_text\":\"10/27/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"MAPLE STREET MARKET\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "MAPLE STREET MARKET\n\n720 Burnside St\nPortland, OR 97209\nTEL (541) 555-7552\n--------------------------------------------------\n\nRECEIPT #78942                    REG 3\n10/27/2026                        20:40\n--------------------------------------------------\n\nPASTA                             1.80\nOLIVE OIL                         11.39\nBANANAS                           1.08\n  1.659 LB @ 0.65/LB\nEGGS LG DOZ                       3.39\nBREAD WHEAT                       4.00\nCOFFEE 12OZ                       9.90\n--------------------------------------------------\n\nSUBTOTAL                          31.56\nTAX 0.00%                         0.00\nTOTAL                             $31.56\nAMEX ****7787                     31.56\nAUTH                               724204\n   RETURNS BY 11/26/2026 WITH R…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 31.56, \"amount_text\": \"31.56\", \"currency\": \"USD\", \"description\": \"MAPLE STREET MARKET\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/27/2026\", \"date_kind\": \"exact\", \"date_day\": 27, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006631,
+      "readCostUsd": 0.0003765
     },
     {
       "id": "rcpt-en-04",
@@ -1060,10 +1147,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "CORNER PHARMACY\n720 Burnside St\nPortland, OR 97209\nTEL (265) 555-7560\n--------------------------------\nRECEIPT #15218                REG 4\n10/09/2026                    16:45\n--------------------------------\nBANDAGES                      12.80\n  2 x 6.40\nTOOTHPASTE                     4.99\nVITAMIN C                     13.60\nIBUPROFEN 100CT                11.09\nSHAMPOO                       12.20\n  2 x 6.10\n--------------------------------\nSUBTOTAL                      54.68\nTAX 0.00%                      0.00\nTOTAL                        $54.68\nMASTERCARD ****5671            54.68\nAUTH                          846911\n\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":54.68,\"amount_text\":\"54.68\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":9,\"month\":10,\"year\":2026},\"date_text\":\"10/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"CORNER PHARMACY\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "CORNER PHARMACY\n720 Burnside St\nPortland, OR 97209\nTEL (265) 555-7560\n--------------------------------\nRECEIPT #15218                REG 4\n10/09/2026                    16:45\n--------------------------------\nBANDAGES                      12.80\n  2 x 6.40\nTOOTHPASTE                    4.99\nVITAMIN C                     13.60\nIBUPROFEN 100CT                11.09\nSHAMPOO                        12.20\n  2 x 6.10\n--------------------------------\nSUBTOTAL                      54.68\nTAX 0.00%                     0.00\nTOTAL                         $54.68\nMASTERCARD ****5671             54.68\nAUTH                            846911\n\nTHANK YOU",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 54.68, \"amount_text\": \"54.68\", \"currency\": \"USD\", \"description\": \"CORNER PHARMACY receipt #15218\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/09/2026\", \"date_kind\": \"exact\", \"date_day\": 9, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006079,
+      "readCostUsd": 0.0003737
     },
     {
       "id": "rcpt-en-05",
@@ -1084,10 +1173,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "CORNER PHARMACY\n\n301 Congress Ave\nAustin, TX 78701\nTEL (675) 555-0971\n---------------------------------------------------------\nRECEIPT #50300                              REG 3\nSep 20, 2026                                17:37\n---------------------------------------------------------\n\nBANDAGES                                    4.40\nSHAMPOO                                     8.60\nVITAMIN C                                   37.77\n  3 x 12.59\nTOOTHPASTE                                  8.20\n  2 x 4.10\nIBUPROFEN 100CT                             9.99\n---------------------------------------------------------\n\nSUBTOTAL                                    68.96\nTAX 8.25%                                   5.69\nTOTAL                                       $74.65\nCASH                               …",
-      "read": "{\"items\":[{\"amount\":74.65,\"amount_text\":\"74.65\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":9,\"year\":2026},\"date_text\":\"Sep 20, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"CORNER PHARMACY\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "CORNER PHARMACY\n\n301 Congress Ave\nAustin, TX 78701\nTEL (675) 555-0971\n---------------------------------------------------\nRECEIPT #50300                          REG 3\nSep 20, 2026                            17:37\n---------------------------------------------------\n\nBANDAGES                                4.40\nSHAMPOO                                 8.60\nVITAMIN C                              37.77\n  3 x 12.59\nTOOTHPASTE                              8.20\n  2 x 4.10\nIBUPROFEN 100CT                         9.99\n---------------------------------------------------\n\nSUBTOTAL                               68.96\nTAX 8.25%                               5.69\nTOTAL                                 $74.65\nCASH                                   80.00\nCHANGE                                  5.35\n\n  RETU…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 74.65, \"amount_text\": \"$74.65\", \"currency\": \"USD\", \"description\": \"CORNER PHARMACY\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"cash\", \"date_text\": \"Sep 20, 2026\", \"date_kind\": \"exact\", \"date_day\": 20, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006561,
+      "readCostUsd": 0.0003758
     },
     {
       "id": "rcpt-en-06",
@@ -1108,10 +1199,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "BEAN & LEAF CAFE\n301 Congress Ave\nAustin, TX 78701\nTEL (256) 555-6673\n--------------------------------------------\nRECEIPT #54626\n10/13/2026\nREG 4\n13:06\n--------------------------------------------\nPANCAKES\nSODA\n11.09\n3 x 2.90\n8.70\nCHEESEBURGER\nFRIES\n13.70\n5.09\n--------------------------------------------\nSUBTOTAL\nTAX 8.25%\n38.58\n3.18\nTOTAL\n$41.76\nAMEX ****2129\nAUTH\n41.76\n754563\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":41.76,\"amount_text\":\"41.76\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":13,\"month\":10,\"year\":2026},\"date_text\":\"10/13/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"BEAN & LEAF CAFE\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "BEAN & LEAF CAFE\n301 Congress Ave\nAustin, TX 78701\nTEL (256) 555-6673\n--------------------------------\nRECEIPT #54626\n10/13/2026                    REG 4\n                               13:06\n--------------------------------\nPANCAKES\nSODA                           11.09\n  3 x 2.90                      8.70\nCHEESEBURGER\nFRIES                          13.70\n                                 5.09\n--------------------------------\nSUBTOTAL                       38.58\nTAX 8.25%                       3.18\nTOTAL\nAMEX ****2129                 $41.76\nAUTH                            41.76\n                               754563\n\nTHANK YOU",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 41.76, \"amount_text\": \"41.76\", \"currency\": \"USD\", \"description\": \"BEAN & LEAF CAFE\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/13/2026\", \"date_kind\": \"exact\", \"date_day\": 13, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005603,
+      "readCostUsd": 0.0003696
     },
     {
       "id": "rcpt-en-07",
@@ -1132,10 +1225,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "LAKESIDE DINER\n88 State St\nAlbany, NY 12207\nTEL (847) 555-4827\n--------------------------------------------\nRECEIPT #66581          REG 6\n10/01/2026               20:28\n--------------------------------------------\nSODA                      3.00\nAPPLE PIE                 6.30\nCLUB SANDWICH            12.69\n--------------------------------------------\nSUBTOTAL                 21.99\nTAX 8.00%                 1.76\nTIP                        4.00\nTOTAL                   $27.75\nAMEX ****7483             27.75\nAUTH                     563885\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":27.75,\"amount_text\":\"27.75\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":10,\"year\":2026},\"date_text\":\"10/01/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"LAKESIDE DINER\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "LAKESIDE DINER\n\n88 State St\nAlbany, NY 12207\nTEL (847) 555-4827\n--------------------------------------------------\n\nRECEIPT #66581                    REG 6\n10/01/2026                        20:28\n--------------------------------------------------\n\nSODA                               3.00\nAPPLE PIE                          6.30\nCLUB SANDWICH                     12.69\n--------------------------------------------------\n\nSUBTOTAL                          21.99\nTAX 8.00%                          1.76\nTIP                                 4.00\nTOTAL                             $27.75\nAMEX ****7483                      27.75\nAUTH                               563885\n\nTHANK YOU",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 27.75, \"amount_text\": \"$27.75\", \"currency\": \"USD\", \"description\": \"LAKESIDE DINER\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/01/2026\", \"date_kind\": \"exact\", \"date_day\": 1, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005441,
+      "readCostUsd": 0.0003677
     },
     {
       "id": "rcpt-en-08",
@@ -1156,10 +1251,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "LAKESIDE DINER\n15 Colfax Ave\nDenver, CO 80202\nTEL (403) 555-1489\n--------------------------------------------------\nRECEIPT #03915                    REG 3\n09/27/2026                        16:22\n--------------------------------------------------\nAPPLE PIE                          6.70\nPANCAKES                          11.00\nFRIES                             16.17\n  3 x 5.39\n--------------------------------------------------\nSUBTOTAL                          33.87\nTAX 8.81%                          2.98\nTOTAL                             $36.85\nVISA ****2189                     36.85\nAUTH                              394409\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":36.85,\"amount_text\":\"36.85\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":9,\"year\":2026},\"date_text\":\"09/27/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"LAKESIDE DINER\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "LAKESIDE DINER\n15 Colfax Ave\nDenver, CO 80202\nTEL (403) 555-1489\n------------------------------------------------\nRECEIPT #03915                    REG 3\n09/27/2026                        16:22\n------------------------------------------------\n\nAPPLE PIE                         6.70\nPANCAKES                          11.00\nFRIES                             16.17\n  3 x 5.39\n------------------------------------------------\n\nSUBTOTAL                          33.87\nTAX 8.81%                         2.98\nTOTAL                             $36.85\nVISA ****2189                     36.85\nAUTH                               394409\nTHANK YOU",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 36.85, \"amount_text\": \"36.85\", \"currency\": \"USD\", \"description\": \"LAKESIDE DINER\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"09/27/2026\", \"date_kind\": \"exact\", \"date_day\": 27, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005411,
+      "readCostUsd": 0.0003669
     },
     {
       "id": "rcpt-en-09",
@@ -1175,15 +1272,17 @@
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 0,
+        "dateCorrect": 1,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "QUICKFUEL #262\n720 Burnside St\nPortland, OR 97209\nTEL (786) 555-8979\n--------------------------------------------\nRECEIPT #75133\n10/15/2026\nREG 5\n14:57\n--------------------------------------------\nPUMP 8 UNLEADED\n15.450 GAL @ 3.500/GAL\n54.08\n--------------------------------------------\nTOTAL\n$54.08\nMASTERCARD ****4225\n54.08\nAUTH\n001545\nTHANK YOU",
-      "read": "{\"items\":[{\"amount\":54.08,\"amount_text\":\"54.08\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"10/15/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"QUICKFUEL #262 - pump 8 unleaded fuel\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "QUICKFUEL #262\n720 Burnside St\nPortland, OR 97209\nTEL (786) 555-8979\n--------------------------------------------\nRECEIPT #75133\n10/15/2026\nREG 5\n14:57\n--------------------------------------------\nPUMP 8 UNLEADED\n15.450 GAL @ 3.500/GAL\n54.08\n--------------------------------------------\nTOTAL\n$54.08\nMASTERCARD ****4225\n54.08\nAUTH\n001545\n\nTHANK YOU",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 54.08, \"amount_text\": \"54.08\", \"currency\": \"USD\", \"description\": \"QUICKFUEL #262 - PUMP 8 UNLEADED\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"10/15/2026\", \"date_kind\": \"exact\", \"date_day\": 15, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.004589,
+      "readCostUsd": 0.0003705
     },
     {
       "id": "rcpt-en-10",
@@ -1204,10 +1303,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "CITY PHARMACY\n\nVodickova 21, Prague\nVAT NO CZ23572040\n--------------------------------------------------------\n02/10/2026                                          11:29\nTABLE 2                                           NO 1738\n--------------------------------------------------------\n\nSandwich                                              8.89\nCroissant                                             3.00\nTiramisu                                              6.89\n--------------------------------------------------------\n\nTOTAL EUR                                            18.78\nincl. VAT 12%                                         2.01\nCASH                                                 18.78\n\nThank you!",
-      "read": "{\"items\":[{\"amount\":18.78,\"amount_text\":\"18.78\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":2,\"month\":10,\"year\":2026},\"date_text\":\"02/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"CITY PHARMACY\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "CITY PHARMACY\n\nVodickova 21, Prague\nVAT NO CZ23572040\n\n02/10/2026                 11:29\nTABLE 2                    NO 1738\n\nSandwich                     8.89\nCroissant                    3.00\nTiramisu                     6.89\n\nTOTAL EUR                   18.78\nincl. VAT 12%                2.01\nCASH                         18.78\n\nThank you!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":18.78,\"amount_text\":\"18.78\",\"currency\":\"EUR\",\"description\":\"CITY PHARMACY\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"02/10/2026\",\"date_kind\":\"exact\",\"date_day\":2,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.004229,
+      "readCostUsd": 0.0003509
     },
     {
       "id": "rcpt-en-11",
@@ -1228,10 +1329,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "OLD TOWN BISTRO\nVia Roma 8, Bologna\nVAT NO IT58140553\n--------------------------------------------------\n06/10/2026                                   12:22\nTABLE 3                                   NO 6600\n--------------------------------------------------\nSoup of the day                              7.29\nTiramisu                                     5.79\nSandwich                                     7.10\nCroissant                                    6.90\n  3 x 2.30\n--------------------------------------------------\nTOTAL EUR                                   27.08\nincl. VAT 10%                                2.46\nCARD ****8199                               27.08\n\nThank you!",
-      "read": "{\"items\":[{\"amount\":27.08,\"amount_text\":\"27.08\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":6,\"month\":10,\"year\":2026},\"date_text\":\"06/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"OLD TOWN BISTRO\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "OLD TOWN BISTRO\nVia Roma 8, Bologna\nVAT NO IT58140553\n----------------------------------------------------\n06/10/2026\nTABLE 3                                    12:22\n                                         NO 6600\n----------------------------------------------------\nSoup of the day                              7.29\nTiramisu                                     5.79\nSandwich                                     7.10\nCroissant                                    6.90\n  3 x 2.30\n----------------------------------------------------\nTOTAL EUR                                   27.08\nincl. VAT 10%                                2.46\nCARD ****8199                               27.08\n              Thank you!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 27.08, \"amount_text\": \"27.08\", \"currency\": \"EUR\", \"description\": \"OLD TOWN BISTRO\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"06/10/2026\", \"date_kind\": \"exact\", \"date_day\": 6, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005115,
+      "readCostUsd": 0.0003676
     },
     {
       "id": "rcpt-en-12",
@@ -1252,10 +1355,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "OLD TOWN BISTRO\nVia Roma 8, Bologna\nVAT NO IT77659818\n--------------------------------------------------\n16/09/2026                                   13:33\nTABLE 11                                   NO 4736\n--------------------------------------------------\nPasta                                        13.19\nSalad                                        11.09\nWater 0.5L                                    2.09\n--------------------------------------------------\nTOTAL EUR                                    26.37\nincl. VAT 10%                                 2.40\nCARD ****8782                                26.37\nThank you!",
-      "read": "{\"items\":[{\"amount\":26.37,\"amount_text\":\"26.37\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":16,\"month\":9,\"year\":2026},\"date_text\":\"16/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"OLD TOWN BISTRO\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "OLD TOWN BISTRO\nVia Roma 8, Bologna\nVAT NO IT77659818\n--------------------------------------------------\n16/09/2026                                   13:33\nTABLE 11                                  NO 4736\n--------------------------------------------------\nPasta                                        13.19\nSalad                                        11.09\nWater 0.5L                                    2.09\n--------------------------------------------------\nTOTAL EUR                                   26.37\nincl. VAT 10%                                2.40\nCARD ****8782                               26.37\nThank you!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 26.37, \"amount_text\": \"26.37\", \"currency\": \"EUR\", \"description\": \"OLD TOWN BISTRO\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"16/09/2026\", \"date_kind\": \"exact\", \"date_day\": 16, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.004659,
+      "readCostUsd": 0.0003652
     },
     {
       "id": "rcpt-en-13",
@@ -1276,10 +1381,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "MARKET HALL GROCER\nKade 14, Amsterdam\nVAT NO NL729389936\n--------------------------------------------------------------\n24/10/2026                                            20:46\nTABLE 5                                               ON 7917\n--------------------------------------------------------------\nCappuccino                                              3.59\nSoup of the day                                         6.90\nWater 0.5L                                              7.20\n3 x 2.40\nTiramisu                                                6.39\n--------------------------------------------------------------\nTOTAL EUR                                              24.08\nincl. VAT 9%                                            1.99\nCARD ****4843                                          24…",
-      "read": "{\"items\":[{\"amount\":24.08,\"amount_text\":\"24.08\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":24,\"month\":10,\"year\":2026},\"date_text\":\"24/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"MARKET HALL GROCER\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "MARKET HALL GROCER\n\nKade 14, Amsterdam\nVAT NO NL7293898936\n--------------------------------------------------------------\n24/10/2026                                            20:46\nTABLE 5                                              NO 7917\n--------------------------------------------------------------\nCappuccino                                              3.59\nSoup of the day                                         6.90\nWater 0.5L                                              7.20\n3 x 2.40\nTiramisu                                                6.39\n--------------------------------------------------------------\nTOTAL EUR                                             24.08\n\nincl. VAT 9%                                            1.99\nCARD ****4843                                          2…",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 24.08, \"amount_text\": \"24.08\", \"currency\": \"EUR\", \"description\": \"MARKET HALL GROCER\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"24/10/2026\", \"date_kind\": \"exact\", \"date_day\": 24, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006187,
+      "readCostUsd": 0.0003681
     },
     {
       "id": "rcpt-en-14",
@@ -1300,10 +1407,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "MARKET HALL GROCER\nKade 14, Amsterdam\nVAT NO NL69514296\n--------------------------------\n28 Oct 2026                09:43\nTABLE 5                  NO 4073\n--------------------------------\nCroissant\nPasta                       2.50\nCappuccino                 14.40\n                             3.70\n--------------------------------\nTOTAL EUR\nincl. VAT 9%                20.60\nCASH                         1.70\n                            20.60\n\nThank you!",
-      "read": "{\"items\":[{\"amount\":20.6,\"amount_text\":\"20.60\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":10,\"year\":2026},\"date_text\":\"28 Oct 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"MARKET HALL GROCER\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "MARKET HALL GROCER\n\nKade 14, Amsterdam\nVAT NO NL69514296\n--------------------------------\n\n28 Oct 2026                    09:43\nTABLE 5                        NO 4073\n--------------------------------\n\nCroissant                       2.50\nPasta                          14.40\nCappuccino                      3.70\n--------------------------------\n\nTOTAL EUR                      20.60\nincl. VAT 9%                    1.70\nCASH                            20.60\n\nThank you!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 20.6, \"amount_text\": \"20.60\", \"currency\": \"EUR\", \"description\": \"MARKET HALL GROCER\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"cash\", \"date_text\": \"28 Oct 2026\", \"date_kind\": \"exact\", \"date_day\": 28, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.004479,
+      "readCostUsd": 0.0003629
     },
     {
       "id": "rcpt-en-15",
@@ -1324,10 +1433,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "HARBOUR CAFE\n12 Quay Street, Dublin\nVAT NO IE46012187\n21/10/2026\nTABLE 12\n08:03\nNO 4251\nTiramisu\nCappuccino\n5.79\nSandwich\n3.99\n2 x 8.00\n16.00\nCroissant\n2.69\nTOTAL EUR\n28.47\nincl. VAT 14%\n3.39\nCARD ****9454\n28.47\nThank you!",
-      "read": "{\"items\":[{\"amount\":28.47,\"amount_text\":\"28.47\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":21,\"month\":10,\"year\":2026},\"date_text\":\"21/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"HARBOUR CAFE\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "HARBOUR CAFE\n12 Quay Street, Dublin\nVAT NO IE46012187\n\n21/10/2026\nTABLE 12\n08:03\nNO 4251\n\nTiramisu\nCappuccino\n5.79\nSandwich\n3.99\n2 x 8.00\n16.00\nCroissant\n2.69\n\nTOTAL EUR\n28.47\nincl. VAT 14%\n3.39\nCARD ****9454\n28.47\n\nThank you!",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 28.47, \"amount_text\": \"28.47\", \"currency\": \"EUR\", \"description\": \"HARBOUR CAFE\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"21/10/2026\", \"date_kind\": \"exact\", \"date_day\": 21, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.004615,
+      "readCostUsd": 0.0003616
     },
     {
       "id": "inv-he-01",
@@ -1349,9 +1460,11 @@
         "checkAmounts": 0
       },
       "copy": "חשמל בטוח - עוסק מורשה\nעוסק מורשה 508533886 | רח' ויצמן ,40 כפר סבא | טל' 06-5620271 | il.co.example@office\nחשבונית מס / קבלה מס' 20262624 מקור\nתאריך: 13/10/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\nתיאור כמות מחיר יחידה סה\"כ\nהתקנת שקעים 3 137.00 411.00\nהחלפת לוח חשמל 1 1,836.00 1,836.00\nסה\"כ לפני מע\"מ 2,247.00\nמע\"מ 18% 404.46\nסה\"כ כולל מע\"מ ₪ 2,651.46\nפרטי תשלום\nאמצעי תשלום תאריך סכום\nהעברה בנקאית 13/10/2026 2,651.46\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":2651.46,\"amount_text\":\"2,651.46\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":13,\"month\":10,\"year\":2026},\"date_text\":\"13/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חשמל בטוח - עוסק מורשה\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":2651.46,\"amount_text\":\"2,651.46\",\"currency\":\"ILS\",\"description\":\"התקנת שקעים והחלפת לוח חשמל\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"bank_transfer\",\"date_text\":\"13/10/2026\",\"date_kind\":\"exact\",\"date_day\":13,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007595,
+      "readCostUsd": 0.0003804
     },
     {
       "id": "inv-he-02",
@@ -1373,9 +1486,11 @@
         "checkAmounts": 0
       },
       "copy": "מוסך הדר\nעוסק מורשה 553155449 | רח' הנביאים ,3 ירושלים | טל' 03-1500868 | il.co.example@office\nחשבונית מס / קבלה מס' 20261138 מקור\nתאריך: 22/09/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\nתקופת השירות: 13/08/2026 – 12/09/2026\nתיאור כמות מחיר יחידה סה\"כ\nטיפול 30,000 ק\"מ 1 733.00 733.00\nרפידות בלמים קדמיות 1 316.00 316.00\nשמן מנוע 5 ל' 1 199.00 199.00\nסה\"כ לפני מע\"מ 1,248.00\nמע\"מ 18% 224.64\nסה\"כ כולל מע\"מ ₪ 1,472.64\nפרטי תשלום\nאמצעי תשלום תאריך סכום\nכרטיס אשראי המסתיים ב7025- 22/09/2026 1,472.64\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":1472.64,\"amount_text\":\"1,472.64\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":9,\"year\":2026},\"date_text\":\"22/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מוסך הדר\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":1472.64,\"amount_text\":\"1,472.64\",\"currency\":\"ILS\",\"description\":\"מוסך הדר - טיפול 30,000 ק\\\"מ, רפידות בלמים קדמיות, שמן מנוע 5 ל'\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"22/09/2026\",\"date_kind\":\"exact\",\"date_day\":22,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.008231,
+      "readCostUsd": 0.0004002
     },
     {
       "id": "inv-he-03",
@@ -1396,10 +1511,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "סטודיו גל לעיצוב\nעוסק מורשה 557717313 | דרך השלום ,52 תל אביב | טל' 04-0653265 | il.co.example@office\nחשבונית מס / קבלה מס' 20260025 מקור\nתאריך: 27/09/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\n\nתיאור כמות מחיר יחידה סה\"כ\nעיצוב לוגו 1 2,301.00 2,301.00\nכרטיסי ביקור 500 יח' 1 190.00 190.00\n\nסה\"כ לפני מע\"מ 2,491.00\nמע\"מ 18% 448.38\nסה\"כ כולל מע\"מ ₪ 2,939.38\n\nפרטי תשלום\n\nאמצעי תשלום תאריך סכום\nכרטיס אשראי המסתיים ב5535- 27/09/2026 2,939.38\n\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":2939.38,\"amount_text\":\"2,939.38\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":9,\"year\":2026},\"date_text\":\"27/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סטודיו גל לעיצוב\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "סטודיו גל לעיצוב\nעוסק מורשה 557717313 | דרך השלום ,52 תל אביב | טל' 04-0653265 | office@example.co.il\n\nחשבונית מס / קבלה מס' 20260025 מקור\n\nתאריך: 27/09/2026\n\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\n\nתיאור כמות מחיר יחידה סה\"כ\nעיצוב לוגו 1 2,301.00 2,301.00\nכרטיסי ביקור 500 יח' 1 190.00 190.00\n\nסה\"כ לפני מע\"מ 2,491.00\nמע\"מ 18% 448.38\nסה\"כ כולל מע\"מ ₪ 2,939.38\n\nפרטי תשלום\n\nאמצעי תשלום תאריך סכום\nכרטיס אשראי המסתיים ב-5535 27/09/2026 2,939.38\n\nמסמך ממוחשב. נחתם דיגיטלית.",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":2939.38,\"amount_text\":\"2,939.38\",\"currency\":\"ILS\",\"description\":\"סטודיו גל לעיצוב\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"27/09/2026\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007715,
+      "readCostUsd": 0.0003769
     },
     {
       "id": "inv-he-04",
@@ -1421,9 +1538,11 @@
         "checkAmounts": 0
       },
       "copy": "חשמל בטוח - עוסק מורשה\nעוסק מורשה 500372948 | רח' הרצל ,12 רחובות | טל' 03-8119766 | il.co.example@office\nחשבונית מס / קבלה מס' 20261027 מקור\nתאריך: 16/09/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\nתקופת השירות: 07/08/2026 – 06/09/2026\nתיאור כמות מחיר יחידה סה\"כ\nהתקנת שקעים 3 130.00 390.00\nהחלפת לוח חשמל 1 1,569.00 1,569.00\nסה\"כ לפני מע\"מ 1,959.00\nמע\"מ 18% 352.62\nסה\"כ כולל מע\"מ ₪ 2,311.62\nפרטי תשלום\nאמצעי תשלום תאריך סכום\nהעברה בנקאית 16/09/2026 2,311.62\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":2311.62,\"amount_text\":\"2,311.62\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":16,\"month\":9,\"year\":2026},\"date_text\":\"16/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חשמל בטוח - עוסק מורשה\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":2311.62,\"amount_text\":\"2,311.62\",\"currency\":\"ILS\",\"description\":\"חשמל בטוח - עוסק מורשה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"bank_transfer\",\"date_text\":\"16/09/2026\",\"date_kind\":\"exact\",\"date_day\":16,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007859,
+      "readCostUsd": 0.0003811
     },
     {
       "id": "inv-he-05",
@@ -1445,9 +1564,11 @@
         "checkAmounts": 0
       },
       "copy": "חשמל בטוח - עוסק מורשה\nעוסק מורשה 559014620 | דרך השלום ,52 תל אביב | טל' 04-1941834 | il.co.example@office\nחשבונית מס / קבלה מס' 20268997 מקור\nתאריך: 22/10/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\nתיאור כמות מחיר יחידה סה\"כ\nהתקנת שקעים 3 160.00 480.00\nהחלפת לוח חשמל 1 1,872.00 1,872.00\nסה\"כ לפני מע\"מ 2,352.00\nמע\"מ 18% 423.36\nסה\"כ כולל מע\"מ ₪ 2,775.36\nפרטי תשלום\nאמצעי תשלום תאריך סכום\nהעברה בנקאית 22/10/2026 2,775.36\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":2775.36,\"amount_text\":\"2,775.36\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":10,\"year\":2026},\"date_text\":\"22/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חשמל בטוח - עוסק מורשה\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":2775.36,\"amount_text\":\"2,775.36\",\"currency\":\"ILS\",\"description\":\"התקנת שקעים והחלפת לוח חשמל - חשמל בטוח\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"bank_transfer\",\"date_text\":\"22/10/2026\",\"date_kind\":\"exact\",\"date_day\":22,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007559,
+      "readCostUsd": 0.0003846
     },
     {
       "id": "inv-he-06",
@@ -1469,9 +1590,11 @@
         "checkAmounts": 0
       },
       "copy": "מוסך הדר\nעוסק מורשה 532100836 | רח' הנביאים ,3 ירושלים | טל' 08-8301454 | il.co.example@office\nחשבונית מס / קבלה מס' 20262662 מקור\nתאריך: 27/10/2026\nלכבוד: ישראל ישראלי, רח' הדוגמה ,1 עיר לדוגמה\nתיאור כמות מחיר יחידה סה\"כ\nטיפול 30,000 ק\"מ 1 800.00 800.00\nרפידות בלמים קדמיות 1 419.00 419.00\nשמן מנוע 5 ל' 1 191.00 191.00\nסה\"כ לפני מע\"מ 1,410.00\nמע\"מ 18% 253.80\nסה\"כ כולל מע\"מ ₪ 1,663.80\nפרטי תשלום\nאמצעי תשלום תאריך סכום\nצ'ק מס' 785956 27/10/2026 1,663.80\nמסמך ממוחשב. נחתם דיגיטלית.",
-      "read": "{\"items\":[{\"amount\":1663.8,\"amount_text\":\"1,663.80\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":10,\"year\":2026},\"date_text\":\"27/10/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מוסך הדר - טיפול 30,000 ק\\\"מ, רפידות בלמים קדמיות, שמן מנוע 5 ל'\",\"payment_method\":\"check\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":1663.80,\"amount_text\":\"1,663.80\",\"currency\":\"ILS\",\"description\":\"מוסך הדר - טיפול 30,000 ק\\\"מ, רפידות בלמים קדמיות, שמן מנוע 5 ל'\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"check\",\"date_text\":\"27/10/2026\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.007835,
+      "readCostUsd": 0.0003954
     },
     {
       "id": "inv-en-01",
@@ -1492,34 +1615,38 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "Atlas Bookkeeping\nbilling@example.com | Tax ID 00-5360309\nINVOICE #INV-2026-7928 PAID\nInvoice date: October 19, 2026\nDue date: November 18, 2026\nBill to: Israel Israeli\nDescription Qty Unit price Amount\nMonthly bookkeeping 1 $426.00 $426.00\nSubtotal $426.00\nTax 0% $0.00\nTotal USD $426.00\nPaid in full by bank transfer on October 19, 2026.\nThank you for your business.",
-      "read": "{\"items\":[{\"amount\":426,\"amount_text\":\"426.00\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":19,\"month\":10,\"year\":2026},\"date_text\":\"October 19, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Monthly bookkeeping\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "Atlas Bookkeeping\n\nbilling@example.com | Tax ID 00-5360309\n\nINVOICE #INV-2026-7928 PAID\n\nInvoice date: October 19, 2026\n\nDue date: November 18, 2026\n\nBill to: Israel Israeli\n\nDescription | Qty | Unit price | Amount\nMonthly bookkeeping | 1 | $426.00 | $426.00\n\nSubtotal | $426.00\nTax 0% | $0.00\nTotal USD | $426.00\n\nPaid in full by bank transfer on October 19, 2026.\n\nThank you for your business.",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 426.0, \"amount_text\": \"$426.00\", \"currency\": \"USD\", \"description\": \"Monthly bookkeeping\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"bank_transfer\", \"date_text\": \"October 19, 2026\", \"date_kind\": \"exact\", \"date_day\": 19, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005813,
+      "readCostUsd": 0.0003672
     },
     {
       "id": "inv-en-02",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
       "copy": "Pixel & Print\nbilling@example.com | Tax ID 00-7738537\nINVOICE #INV-2026-2565 PAID\nInvoice date: October 14, 2026\nDue date: November 13, 2026\nBill to: Israel Israeli\nDescription Qty Unit price Amount\nBrochure design 1 $804.00 $804.00\nPrinting 250 copies 1 $269.00 $269.00\nSubtotal $1,073.00\nTax 0% $0.00\nTotal USD $1,073.00\nPaid in full by bank transfer on October 14, 2026.\nThank you for your business.",
-      "read": "{\"items\":[{\"amount\":1073,\"amount_text\":\"1,073.00\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":14,\"month\":10,\"year\":2026},\"date_text\":\"October 14, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Pixel & Print - Brochure design and Printing 250 copies\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"null\", \"rule_action\": \"null\", \"items\": [{\"amount\": 1073, \"amount_text\": \"$1,073.00\", \"currency\": \"USD\", \"description\": \"Pixel & Print invoice INV-2026-2565: Brochure design; Printing 250 copies\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"bank_transfer\", \"date_text\": \"October 14, 2026\", \"date_kind\": \"exact\", \"date_day\": 14, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005915,
+      "readCostUsd": 0.0003809
     },
     {
       "id": "inv-en-03",
@@ -1540,58 +1667,64 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "Clearview Translations\nbilling@example.com | Tax ID 00-8523397\nINVOICE #INV-2026-2953 PAID\nInvoice date: October 6, 2026\nDue date: November 5, 2026\nBill to: Israel Israeli\nDescription Qty Unit price Amount\nTranslation, 3,200 words 1 $581.00 $581.00\nSubtotal $581.00\nTax 0% $0.00\nTotal USD $581.00\nPaid in full by bank transfer on October 6, 2026.\nThank you for your business.",
-      "read": "{\"items\":[{\"amount\":581,\"amount_text\":\"581.00\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":6,\"month\":10,\"year\":2026},\"date_text\":\"October 6, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Clearview Translations - Translation, 3,200 words\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "Clearview Translations\nbilling@example.com | Tax ID 00-8523397\n\nINVOICE #INV-2026-2953 PAID\n\nInvoice date: October 6, 2026\n\nDue date: November 5, 2026\n\nBill to: Israel Israeli\n\nDescription | Qty | Unit price | Amount\nTranslation, 3,200 words | 1 | $581.00 | $581.00\n\nSubtotal | $581.00\nTax 0% | $0.00\nTotal USD | $581.00\n\nPaid in full by bank transfer on October 6, 2026.\n\nThank you for your business.",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 581.0, \"amount_text\": \"581.00\", \"currency\": \"USD\", \"description\": \"Translation, 3,200 words\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"bank_transfer\", \"date_text\": \"October 6, 2026\", \"date_kind\": \"exact\", \"date_day\": 6, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005765,
+      "readCostUsd": 0.0003663
     },
     {
       "id": "inv-en-04",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "Pixel & Print\nbilling@example.com | Tax ID 00-5428108\nINVOICE #INV-2026-8501 PAID\nInvoice date: October 26, 2026\nDue date: November 25, 2026\nBill to: Israel Israeli\nDescription Qty Unit price Amount\nBrochure design 1 €924.00 €924.00\nPrinting 250 copies 1 €205.00 €205.00\nSubtotal €1,129.00\nTax 21% €237.09\nTotal EUR €1,366.09\nPaid in full by bank transfer on October 26, 2026.\nThank you for your business.",
-      "read": "{\"items\":[{\"amount\":1366.09,\"amount_text\":\"1,366.09\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":26,\"month\":10,\"year\":2026},\"date_text\":\"October 26, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Pixel & Print - Brochure design and printing 250 copies\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "Pixel & Print\n\nbilling@example.com | Tax ID 00-5428108\n\nINVOICE #INV-2026-8501 PAID\n\nInvoice date: October 26, 2026\n\nDue date: November 25, 2026\n\nBill to: Israel Israeli\n\nDescription | Qty | Unit price | Amount\nBrochure design | 1 | €924.00 | €924.00\nPrinting 250 copies | 1 | €205.00 | €205.00\n\nSubtotal | €1,129.00\nTax 21% | €237.09\nTotal EUR | €1,366.09\n\nPaid in full by bank transfer on October 26, 2026.\n\nThank you for your business.",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"null\", \"rule_action\": \"null\", \"items\": [{\"amount\": 1366.09, \"amount_text\": \"1,366.09\", \"currency\": \"EUR\", \"description\": \"Pixel & Print invoice INV-2026-8501\", \"type\": \"expense\", \"type_question\": \"\", \"payment_method\": \"bank_transfer\", \"date_text\": \"October 26, 2026\", \"date_kind\": \"exact\", \"date_day\": 26, \"date_month\": 10, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006047,
+      "readCostUsd": 0.0003757
     },
     {
       "id": "don-he-01",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "several",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 1,
+        "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 1,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 1,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "עמותת יד לחבר\n\n(ע\"ר 6022693-58)\nדרך השלום 52, תל אביב\n--------------------------------\n\nקבלה על תרומה מס' 78136 | מקור\nתאריך\n30/10/2026\nהתקבל מאת\nישראל ישראלי\n--------------------------------\n\nסכום\n₪ 500.00\nבמילים: חמש מאות שקלים חדשים\nאמצעי תשלום\nכרטיס אשראי המסתיים ב-4377\n--------------------------------\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
-      "read": "{\"items\":[{\"amount\":500,\"amount_text\":\"500.00\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":30,\"month\":10,\"year\":2026},\"date_text\":\"30/10/2026\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"עמותת יד לחבר\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "עמותת יד לחבר\n\n(ע\"ר 58-6022693)\nדרך השלום 52, תל אביב\n--------------------------------\n\nקבלה על תרומה מס' 78136 | מקור\nתאריך\n30/10/2026\nהתקבל מאת\nישראל ישראלי\n--------------------------------\n\nסכום\n₪ 500.00\nבמילים: חמש מאות שקלים חדשים\nאמצעי תשלום\nכרטיס אשראי המסתיים ב-4377\n--------------------------------\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"null\",\"rule_action\":\"null\",\"items\":[{\"amount\":500.0,\"amount_text\":\"500.00\",\"currency\":\"ILS\",\"description\":\"עמותת יד לחבר\",\"type\":\"donation\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"30/10/2026\",\"date_kind\":\"exact\",\"date_day\":30,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005403,
+      "readCostUsd": 0.0003637
     },
     {
       "id": "don-he-02",
@@ -1612,10 +1745,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "קרן חסד לעולם\n\n(ע\"ר 1767100-58)\n\nדרך השלום 52, תל אביב\n\nקבלה על תרומה מס' 34757 | מקור\n\nתאריך\n23/10/2026\n\nהתקבל מאת\nישראל ישראלי\n\nסכום\n360.00 ₪\n\nבמילים: שלוש מאות ושישים שקלים חדשים\n\nאמצעי תשלום\n\nצ'ק מס' 946015, בנק 13\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
-      "read": "{\"items\":[{\"amount\":360,\"amount_text\":\"360.00\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":10,\"year\":2026},\"date_text\":\"23/10/2026\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"קרן חסד לעולם\",\"payment_method\":\"check\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "קרן חסד לעולם\n\n(ע\"ר 1767100-58)\n\nדרך השלום 52, תל אביב\n\n----------------------------------------------------\n\nקבלה על תרומה מס' 34757 | מקור\n\nתאריך\n23/10/2026\n\nהתקבל מאת\nישראל ישראלי\n\n----------------------------------------------------\n\nסכום\n360.00 ₪\n\nבמילים: שלוש מאות ושישים שקלים חדשים\n\nאמצעי תשלום\n\nצ'ק מס' 946015, בנק 13\n\n----------------------------------------------------\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":360.00,\"amount_text\":\"360.00\",\"currency\":\"ILS\",\"description\":\"קרן חסד לעולם\",\"type\":\"donation\",\"type_question\":\"\",\"payment_method\":\"check\",\"date_text\":\"23/10/2026\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005523,
+      "readCostUsd": 0.0003624
     },
     {
       "id": "don-he-03",
@@ -1636,10 +1771,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "קרן חסד לעולם\n\n(ע\"ר 9980984-58)\nרח' העצמאות 18, אשדוד\n\nקבלה על תרומה מס' 48393 | מקור\n\nתאריך\n15/09/2026\n\nהתקבל מאת\nישראל ישראלי\n\nסכום\n₪ 1,800.00\n\nבמילים: אלף ושמונה מאות שקלים חדשים\n\nאמצעי תשלום\nצ'ק מס' 514782, בנק 13\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
-      "read": "{\"items\":[{\"amount\":1800,\"amount_text\":\"1,800.00\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":9,\"year\":2026},\"date_text\":\"15/09/2026\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"קרן חסד לעולם\",\"payment_method\":\"check\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "קרן חסד לעולם\n\n(ע\"ר 9980984-58)\nרח' העצמאות 18, אשדוד\n\n--------------------------------\n\nקבלה על תרומה מס' 48393 | מקור\n\nתאריך\n15/09/2026\nהתקבל מאת\nישראל ישראלי\n\n--------------------------------\n\nסכום\nש 1,800.00\n\nבמילים: אלף ושמונה מאות שקלים חדשים\nאמצעי תשלום\nצ'ק מס' 514782, בנק 13\n\n--------------------------------\n\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד 31/12/2026.\nתודה רבה על תרומתך!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":1800,\"amount_text\":\"1,800.00\",\"currency\":\"ILS\",\"description\":\"קרן חסד לעולם\",\"type\":\"donation\",\"type_question\":\"\",\"payment_method\":\"check\",\"date_text\":\"15/09/2026\",\"date_kind\":\"exact\",\"date_day\":15,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005463,
+      "readCostUsd": 0.0003623
     },
     {
       "id": "don-he-04",
@@ -1661,9 +1798,11 @@
         "checkAmounts": 0
       },
       "copy": "עמותת לב פתוח\n)ע\"ר 58-6851964(\nדרך השלום ,52 תל אביב\nקבלה על תרומה מס' 06799 | מקור\nתאריך 28/09/2026\nהתקבל מאת ישראל ישראלי\nסכום 1,800.00 ₪\nבמילים: אלף ושמונה מאות שקלים חדשים\nאמצעי תשלום\nצ'ק מס' ,388714 בנק 28\nהמוסד מוכר לעניין סעיף 46\nלפקודת מס הכנסה.\nהאישור בתוקף עד .31/12/2026\nתודה רבה על תרומתך!",
-      "read": "{\"items\":[{\"amount\":1800,\"amount_text\":\"1,800.00\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":9,\"year\":2026},\"date_text\":\"28/09/2026\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"קבלה על תרומה מס' 06799 - עמותת לב פתוח\",\"payment_method\":\"check\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":1800.00,\"amount_text\":\"1,800.00\",\"currency\":\"ILS\",\"description\":\"תרומה לעמותת לב פתוח\",\"type\":\"donation\",\"type_question\":\"\",\"payment_method\":\"check\",\"date_text\":\"28/09/2026\",\"date_kind\":\"exact\",\"date_day\":28,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.006157,
+      "readCostUsd": 0.0003636
     },
     {
       "id": "don-en-01",
@@ -1685,9 +1824,11 @@
         "checkAmounts": 0
       },
       "copy": "HOPE COMMUNITY FOOD BANK\nA 501(c)(3) nonprofit. EIN 00-0000000\n210 Oak Ave, Columbus, OH 43215\nDONATION RECEIPT #72271\nDate September 15, 2026\nReceived from Israel Israeli\nAmount $250.00\n(Two hundred fifty dollars)\nPayment Credit card ****0007\nNo goods or services were provided\nin exchange for this contribution.\nThank you for your generosity!",
-      "read": "{\"items\":[{\"amount\":250,\"amount_text\":\"250.00\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":9,\"year\":2026},\"date_text\":\"September 15, 2026\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"HOPE COMMUNITY FOOD BANK\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\": false, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": [{\"amount\": 250.0, \"amount_text\": \"$250.00\", \"currency\": \"USD\", \"description\": \"Hope Community Food Bank\", \"type\": \"donation\", \"type_question\": \"\", \"payment_method\": \"credit_card\", \"date_text\": \"September 15, 2026\", \"date_kind\": \"exact\", \"date_day\": 15, \"date_month\": 9, \"date_year\": 2026, \"recurrence_frequency\": \"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.005477,
+      "readCostUsd": 0.0003632
     },
     {
       "id": "multi-he-01",
@@ -1708,10 +1849,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "**קבלה 1:**\n\nסופר זול כאן\nרח' הגליל 9, כרמיאל\nעוסק מורשה 530077163 טל' 09-6658711\n\nקופה 5\nקבלה 655536\nתאריך 23/09/2026\nשעה 14:37\n\nיוגורט טבעי\n2 x 6.60\n13.20\n\nתפוחי אדמה\n0.790 ק\"ג x 4.11\n3.25\n\nאורז פרסי 1 ק\"ג\n13.29\n\nשמן קנולה 1 לי\n3 x 13.00\n39.00\n\nסכום ביניים\n68.74\nהנחת מועדון\n-6.87\nסה\"כ לתשלום\n61.87\nכולל מע\"מ 18%\n9.44\n\nאשראי אמקס 8287\nמס' אישור\n61.87\n6458016\nהחזרה עד 23/10/26 בצירוף קבלה\nתודה ולהתראות!\n\n**קבלה 2:**\n\nפארמה פלוס\nרח' הגליל 9, כרמיאל\nעוסק מורשה 592626620 טל' 08-8900162\n\nקופה 6\nקבלה 129931\nתאריך 27.09.2026\nשעה 15:42\n\nפלסטרים 20 יח'\n2 x 12.69\n25.38\n\nשמפו 700 מ\"ל\n29.79\n\nמשחת שיניים\n20.30\n\nויטמין D3\n51.59\n\nקרם ידיים\n24.50\n\nסה\"כ לתשלום\n151.56\nכולל מע\"מ 18%\n23.12\n\nמזומן\n200.00\nעודף\n48.44\n\nהחזרה עד 27/10/26 בצירוף קבלה\nתודה ולהתראות!",
-      "read": "{\"items\":[{\"amount\":61.87,\"amount_text\":\"61.87\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":9,\"year\":2026},\"date_text\":\"23/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר זול כאן\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":151.56,\"amount_text\":\"151.56\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":9,\"year\":2026},\"date_text\":\"27.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"פארמה פלוס\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "**Receipt 1 (left):**\n\nסופר זול כאן\nרח' הגליל 9, כרמיאל\nעוסק מורשה 530077163 טלי 09-6658711\n\nקופה 5\nקבלה 655536\nתאריך 23/09/2026\nשעה 14:37\n\nיוגורט טבעי\n2 x 6.60\n13.20\n\nתפוחי אדמה\n0.790 ק\"ג x 4.11\n3.25\n\nאורז פרסי 1 ק\"ג\n13.29\n\nשמן קנולה 1 לי\n3 x 13.00\n39.00\n\nסכום בינניים\n68.74\nהנחת מועדון\n-6.87\nסה\"כ לתשלום\n61.87\nכולל מע\"מ 18%\n9.44\n\nאשראי אמקס 8287\nמס' אישור 61.87\n6458016\nהחזרה עד 23/10/26 בצירוף קבלה\nתודה ולהתראות!\n\n**Receipt 2 (right):**\n\nפארמה פלוס\nרח' הגליל 9, כרמיאל\nעוסק מורשה 592626620 טלי 08-8900162\n\nקופה 6\nקבלה 129931\nתאריך 27.09.2026\nשעה 15:42\n\nפלסטרים 20 יח'\n2 x 12.69\n25.38\n\nשמפו 700 מ\"ל\n29.79\n\nמשחת שיניים\n20.30\n\nויטמין D3\n51.59\n\nקרם ידיים\n24.50\n\nסה\"כ לתשלום\n151.56\nכולל מע\"מ 18%\n23.12\n\nמזומן\n200.00\nעודף\n48.44\n\nהחזרה עד 27/10/26 בצירוף קבלה\nתודה ולהתראות!",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":61.87,\"amount_text\":\"61.87\",\"currency\":\"ILS\",\"description\":\"סופר זול כאן - קבלה 655536\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"23/09/2026\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":151.56,\"amount_text\":\"151.56\",\"currency\":\"ILS\",\"description\":\"פארמה פלוס - קבלה 129931\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"27.09.2026\",\"date_kind\":\"exact\",\"date_day\":27,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.011985,
+      "readCostUsd": 0.0004599
     },
     {
       "id": "multi-he-02",
@@ -1732,10 +1875,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "Here is the document copied line by line, as written:\n\n**Receipt 1:**\n```\nהמטבח של סבתא\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 550174928 טל' 03-7594717\n\nקבלה 048472                    קופה 8\nסועדים 5                       שולחן 8\nשעה 15:06                      תאריך 23/09/26\n\n26.58\nקפה הפוך\n\n70.99\n2 x 13.29\nפיצה משפחתית\n\n61.79\nפסטה שמנת פטריות\n\n159.36\nסה\"כ לתשלום\n\n24.31\nכולל מע\"מ 18%\n\n159.36\n7332722\nאשראי מסטרקארד 3018\nמס' אישור\n\nתודה ולהתראות!\n```\n\n**Receipt 2:**\n```\nתדלוק העמק\n\nשד' ירושלים 7, חולון\nעוסק מורשה 545806021 טל' 03-9148889\n\nקבלה 271089                    קופה 5\nשעה 16:37                      תאריך 29/09/2026\n\nמשאבה 4\n279.21                         בנזין 95\n                                7.61 x 36.69 ליטר\n75108\nק\"מ ברכב\n\n279.21\nסה\"כ לתשלום\n\n42.59\nכולל מע\"מ 18%\n\n279.21             …",
-      "read": "{\"items\":[{\"amount\":159.36,\"amount_text\":\"159.36\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":23,\"month\":9,\"year\":2026},\"date_text\":\"23/09/26\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"המטבח של סבתא\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":279.21,\"amount_text\":\"279.21\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":9,\"year\":2026},\"date_text\":\"29/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תדלוק העמק\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":43.24,\"amount_text\":\"43.24\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":5,\"m…",
+      "copy": "**קבלה 1:**\n\nהמטבח של סבתא\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 550174928 טל' 03-7594717\n\nקופה 8\nשולחן 8\nסועדים 5\nתאריך 23/09/26\nשעה 15:06\nקבלה 048472\n\nפיצה משפחתית\n2 x 13.29\n70.99\n\nפסטה שמנת פטריות\n61.79\n\nקפה הפוך\n26.58\n\nסה\"כ לתשלום\n159.36\nכולל מע\"מ 18%\n24.31\n\nאשראי מסטרקארד 3018\nמס' אישור\n159.36\n7332722\n\nתודה ולהתראות!\n\n**קבלה 2:**\n\nתדלוק העמק\n\nשד' ירושלים 7, חולון\nעוסק מורשה 545806021 טל' 03-9148889\n\nקופה 5\nתאריך 29/09/2026\nשעה 16:37\nקבלה 271089\n\nמשאבה 4\nבנזין 95\n7.61 x 36.69 ליטר\n279.21\n\nק\"מ ברכב\n75108\n\nסה\"כ לתשלום\n279.21\nכולל מע\"מ 18%\n42.59\n\nאשראי ויזה 4218\nמס' אישור\n279.21\n5574473\n\nתודה ולהתראות!\n\n**קבלה 3:**\n\nמרכז המזון בגבעה\n\nרח' הנביאים 3, ירושלים\nעוסק מורשה 570874967 טל' 03-9757733\n\nקופה 8\nתאריך 05.10.2026\nשעה 12:44\nקבלה 303964\n\nביצים L תבנית 12\n15.09\n\nמלפפונים\n8.47 x 1.696 ק\"ג\n14.…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":159.36,\"amount_text\":\"159.36\",\"currency\":\"\",\"description\":\"המטבח של סבתא\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"23/09/26\",\"date_kind\":\"exact\",\"date_day\":23,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":279.21,\"amount_text\":\"279.21\",\"currency\":\"\",\"description\":\"תדלוק העמק\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"29/09/2026\",\"date_kind\":\"exact\",\"date_day\":29,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":43.24,\"amount_text\":\"43.24\",\"currency\":\"\",\"description\":\"מרכז המזון בגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"05.10.2026\",\"date_kind\":\"exact\",\"dat…",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.015147,
+      "readCostUsd": 0.0005218
     },
     {
       "id": "multi-he-03",
@@ -1756,10 +1901,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "**קבלה 1:**\n\nכלי בית המרכז\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 577386293 טל' 04-7552561\n--------------------------------\nקופה 8 קבלה 426089\nתאריך 30.09.2026 שעה 14:02\n--------------------------------\nסט מגבות 96.19\nכבל מאריך 3 מ' 36.30\nמברגה נטענת 411.79\nמנורת שולחן 135.10\nמחבת 28 ס\"מ 143.19\n--------------------------------\nסה\"כ לתשלום 822.57\nכולל מע\"מ 18% 125.48\n--------------------------------\nאשראי אמקס 6075 822.57\nמס' אישור 3646228\nמספר תשלומים 2\nתודה ולהתראות!\n\n**קבלה 2:**\n\nמרכז המזון בגבעה\n\nרח' הרצל 12, רחובות\nעוסק מורשה 506057635 טל' 03-9323746\n--------------------------------\nקופה 4\nקבלה 629493 תאריך 20/09/2026\nשעה 18:48\n--------------------------------\nמלפפונים\n0.752 ק\"ג x 5.95 4.47\nרסק עגבניות\n2 x 5.50 11.00\nטחינה גולמית 500 ג'\n2 x 24.09 48.18\nחומוס מוכן\n2 x 10.00 20.00\nנייר טואלט …",
-      "read": "{\"items\":[{\"amount\":822.57,\"amount_text\":\"822.57\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":30,\"month\":9,\"year\":2026},\"date_text\":\"30.09.2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"כלי בית המרכז\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":145.45,\"amount_text\":\"145.45\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":9,\"year\":2026},\"date_text\":\"20/09/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מרכז המזון בגבעה\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "כלי בית המרכז\n\nרח' ויצמן 40, כפר סבא\nעוסק מורשה 577386293 טל' 04-7552561\n--------------------------------\nקופה 8                    קבלה 426089\nתאריך 30.09.2026          שעה 14:02\n--------------------------------\nסט מגבות                        96.19\nכבל מאריך 3 מ'                  36.30\nמברגה נטענת                    411.79\nמנורת שולחן                    135.10\nמחבת 28 ס\"מ                    143.19\n--------------------------------\nסה\"כ לתשלום              822.57\nכולל מע\"מ 18%             125.48\n--------------------------------\nאשראי אמקקט 6075          822.57\nמס' אישור                 3646228\nמספר תשלומים              2\nתודה ולהתראות!\n\n\nמרכז המזון בגבעה\n\nרח' הרצל 12, רחובות\nעוסק מורשה 506057635 טל' 03-9323746\n--------------------------------\nקופה 4                    קבלה 629493\nתאריך 20/…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":822.57,\"amount_text\":\"822.57\",\"currency\":\"ILS\",\"description\":\"כלי בית המרכז\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"30.09.2026\",\"date_kind\":\"exact\",\"date_day\":30,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":145.45,\"amount_text\":\"145.45\",\"currency\":\"ILS\",\"description\":\"מרכז המזון בגבעה\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"20/09/2026\",\"date_kind\":\"exact\",\"date_day\":20,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.014545,
+      "readCostUsd": 0.0004684
     },
     {
       "id": "multi-en-04",
@@ -1775,39 +1922,43 @@
         "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
+        "dateCorrect": 2,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "copy": "Here is the text copied line by line from both receipts:\n\n**Receipt 1:**\n\nMAPLE STREET MARKET\n\n88 State St\nAlbany, NY 12207\nTEL (594) 555-7496\n--------------------------------\nRECEIPT #99900          REG 1\nOct 26, 2026             11:34\n--------------------------------\n                           3.69\nBREAD WHEAT\n                          12.60\nMILK 1 GAL\n  3 x 4.20\n                           4.60\nEGGS LG DOZ\n                           0.18\nBANANAS\n  0.269 LB @ 0.67/LB\n--------------------------------\n                          21.07\nSUBTOTAL                   1.69\nTAX 8.00%\n                         $22.76\nTOTAL                     22.76\nAMEX ****0779            524763\nAUTH\n            THANK YOU\n\n**Receipt 2:**\n\nBEAN & LEAF CAFE\n\n301 Congress Ave\nAustin, TX 78701\nTEL (940) 555-6355\n---------…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[{\"amount\":22.76,\"amount_text\":\"22.76\",\"currency\":\"USD\",\"description\":\"MAPLE STREET MARKET\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"Oct 26, 2026\",\"date_kind\":\"exact\",\"date_day\":26,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":69.90,\"amount_text\":\"$69.90\",\"currency\":\"USD\",\"description\":\"BEAN & LEAF CAFE\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"Sep 28, 2026\",\"date_kind\":\"exact\",\"date_day\":28,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"}]}",
+      "copyReasoningTokens": 0,
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.011393,
+      "readCostUsd": 0.0004555
+    },
+    {
+      "id": "multi-en-05",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": true,
+        "amountChecked": 3,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 3,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 3,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "**Receipt 1:**\n\nMAPLE STREET MARKET\n88 State St\nAlbany, NY 12207\nTEL (594) 555-7496\n--------------------------------\nRECEIPT #99900                REG 1\nOct 26, 2026                   11:34\n--------------------------------\nBREAD WHEAT                     3.69\nMILK 1 GAL                     12.60\n  3 x 4.20\nEGGS LG DOZ                     4.60\nBANANAS                         0.18\n  0.269 LB @ 0.67/LB\n--------------------------------\nSUBTOTAL                       21.07\nTAX 8.00%                       1.69\nTOTAL                        $22.76\nAMEX ****0779                  22.76\nAUTH                           524763\n            THANK YOU\n\n**Receipt 2:**\n\nBEAN & LEAF CAFE\n301 Congress Ave\nAustin, TX 78701\nTEL (940) 555-6355\n--------------------------------\nRECEIPT #78739                REG 3\nS…",
-      "read": "{\"items\":[{\"amount\":22.76,\"amount_text\":\"22.76\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":10,\"year\":2026},\"date_text\":\"Oct 26, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"MAPLE STREET MARKET\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":69.9,\"amount_text\":\"69.90\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":9,\"year\":2026},\"date_text\":\"Sep 28, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"BEAN & LEAF CAFE\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "copy": "**Receipt 1:**\n\nCORNER PHARMACY\n88 State St\nAlbany, NY 12207\nTEL (963) 555-8775\n--------------------------------\nRECEIPT #63993                REG 2\nSep 25, 2026                   12:02\n--------------------------------\nTOOTHPASTE                      5.90\nBANDAGES                        5.09\nIBUPROFEN 100CT                 9.49\nVITAMIN C                      32.97\n  3 x 10.99\nSHAMPOO                          7.19\n--------------------------------\nSUBTOTAL                       60.64\nTAX 8.00%                       4.85\nTOTAL                         $65.49\nAMEX ****8341                  65.49\nAUTH                           283407\nRETURNS BY 10/25/2026 WITH RECEIPT\nTHANK YOU\n\n**Receipt 2:**\n\nMAPLE STREET MARKET\n88 State St\nAlbany, NY 12207\nTEL (858) 555-8140\n--------------------------------\nR…",
+      "read": "{\"more_than_five\":false,\"rule_match\":\"null\",\"rule_action\":\"null\",\"items\":[{\"amount\":65.49,\"amount_text\":\"$65.49\",\"currency\":\"USD\",\"description\":\"CORNER PHARMACY\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"Sep 25, 2026\",\"date_kind\":\"exact\",\"date_day\":25,\"date_month\":9,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":8.94,\"amount_text\":\"$8.94\",\"currency\":\"USD\",\"description\":\"MAPLE STREET MARKET\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"cash\",\"date_text\":\"10/13/2026\",\"date_kind\":\"exact\",\"date_day\":13,\"date_month\":10,\"date_year\":2026,\"recurrence_frequency\":\"\"},{\"amount\":50.52,\"amount_text\":\"$50.52\",\"currency\":\"USD\",\"description\":\"LAKESIDE DINER\",\"type\":\"expense\",\"type_question\":\"\",\"payment_method\":\"credit_card\",\"date_text\":\"10/24/2026\",\"da…",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
-    },
-    {
-      "id": "multi-en-05",
-      "kindOk": true,
-      "fields": {
-        "route": "several",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 3,
-        "amountCorrect": 3,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 3,
-        "typeCorrect": 3,
-        "specialTypeUnasked": false,
-        "dateChecked": 3,
-        "dateCorrect": 3,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false,
-        "checkAmounts": 0
-      },
-      "copy": "**RECEIPT 1**\n\nCORNER PHARMACY\n88 State St\nAlbany, NY 12207\nTEL (963) 555-8775\nRECEIPT #63993\nSep 25, 2026\nREG 2\n12:02\nTOOTHPASTE\n5.90\nBANDAGES\n5.09\nIBUPROFEN 100CT\n9.49\nVITAMIN C\n32.97\n3 x 10.99\nSHAMPOO\n7.19\nSUBTOTAL\n60.64\nTAX 8.00%\n4.85\nTOTAL\n$65.49\nAMEX ****8341\n65.49\nAUTH\n283407\nRETURNS BY 10/25/2026 WITH RECEIPT\nTHANK YOU\n\n**RECEIPT 2**\n\nMAPLE STREET MARKET\n88 State St\nAlbany, NY 12207\nTEL (858) 555-8140\nRECEIPT #40710\n10/13/2026\nREG 3\n17:26\nCHEDDAR 8OZ\n4.29\nEGGS LG DOZ\n3.99\nSUBTOTAL\n8.28\nTAX 8.00%\n0.66\nTOTAL\n$8.94\nCASH\n20.00\nCHANGE\n11.06\nRETURNS BY 11/12/2026 WITH RECEIPT\nTHANK YOU\n\n**RECEIPT 3**\n\nLAKESIDE DINER\n88 State St\nAlbany, NY 12207\nTEL (681) 555-3399\nRECEIPT #22759\n10/24/2026\nREG 2\n21:50\nPANCAKES\n3 x 11.20\n33.60\nAPPLE PIE\n6.70\nSUBTOTAL\n40.30\nTAX 8.00%\n3.22\nTIP\n7.00\nTOTAL\n$50…",
-      "read": "{\"items\":[{\"amount\":65.49,\"amount_text\":\"65.49\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":25,\"month\":9,\"year\":2026},\"date_text\":\"Sep 25, 2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"CORNER PHARMACY\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null},{\"amount\":8.94,\"amount_text\":\"8.94\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":13,\"month\":10,\"year\":2026},\"date_text\":\"10/13/2026\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"MAPLE STREET MARKET\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null},{\"amount\":50.52,\"amount_text\":\"50.52\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day…",
-      "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.015667,
+      "readCostUsd": 0.0005314
     },
     {
       "id": "stmt-he-01",
@@ -1829,9 +1980,11 @@
         "checkAmounts": 0
       },
       "copy": "בנק לדוגמה - סניף 687\n\nדף חשבון | חשבון 365949-146-74 | תקופה: 29/09/2026 – 30/10/2026\n\nתאריך | תיאור | חובה | זכות | יתרה\n\n30/09/2026 | העברה לישראל כהן | 500.28 | | 13,628.72\n02/10/2026 | תרומה - עמותת לב פתוח | 217.61 | | 13,411.11\n03/10/2026 | חברת החשמל | 748.32 | | 12,662.79\n06/10/2026 | הוראת קבע ועד בית | 517.07 | | 12,145.72\n09/10/2026 | ביטוח רכב | 850.27 | | 11,295.45\n11/10/2026 | תאגיד המים | 490.12 | | 10,805.33\n14/10/2026 | גן ילדים | 736.30 | | 10,069.03\n15/10/2026 | תאגיד המים | 754.84 | | 9,314.19\n18/10/2026 | עמלת פעולה | 58.34 | | 9,255.85\n19/10/2026 | פארם הגליל | 733.68 | | 8,522.17\n21/10/2026 | עמלת פעולה | 144.87 | | 8,377.30\n24/10/2026 | משיכת מזומן | 483.02 | | 7,894.28",
-      "read": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":true,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.011377,
+      "readCostUsd": 0.0003253
     },
     {
       "id": "stmt-he-02",
@@ -1852,17 +2005,19 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "פירוט חיובים לכרטיס המסתיים ב-3642\n\nמועד חיוב: 02/11/2026\n\nתאריך עסקה | בית עסק | סכום עסקה | סכום חיוב\n02/10/2026 | תחנת דלק צומת הגבעה | 518.64 | 518.64\n03/10/2026 | הוראת קבע ועד בית | 397.47 | 397.47\n06/10/2026 | עמלת פעולה | 521.43 | 521.43\n08/10/2026 | גן ילדים | 632.65 | 632.65\n10/10/2026 | תאגיד המים | 545.03 | 545.03\n12/10/2026 | סופר השכונה | 516.20 | 516.20\n13/10/2026 | עמלת פעולה | 493.49 | 493.49\n16/10/2026 | הוראת קבע ועד בית | 872.15 | 872.15\n17/10/2026 | עמלת פעולה | 415.39 | 415.39\n20/10/2026 | תאגיד המים | 325.10 | 325.10\n22/10/2026 | סופר השכונה | 834.39 | 834.39",
-      "read": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}",
+      "copy": "פירוט חיובים לכרטיס המסתיים ב-3642\n\nמועד חיוב: 02/11/2026\n\nתאריך עסקה | בית עסק | סכום עסקה | סכום חיוב\n\n02/10/2026 | תחנת דלק צומת הגבעה | 518.64 | 518.64\n03/10/2026 | הוראת קבע ועד בית | 397.47 | 397.47\n06/10/2026 | עמלת פעולה | 521.43 | 521.43\n08/10/2026 | גן ילדים | 632.65 | 632.65\n10/10/2026 | תאגיד המים | 545.03 | 545.03\n12/10/2026 | סופר השכונה | 516.20 | 516.20\n13/10/2026 | עמלת פעולה | 493.49 | 493.49\n16/10/2026 | הוראת קבע ועד בית | 872.15 | 872.15\n17/10/2026 | עמלת פעולה | 415.39 | 415.39\n20/10/2026 | תאגיד המים | 325.10 | 325.10\n22/10/2026 | סופר השכונה | 834.39 | 834.39",
+      "read": "{\"more_than_five\": true, \"rule_match\": \"\", \"rule_action\": \"\", \"items\": []}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.011187,
+      "readCostUsd": 0.0003187
     },
     {
       "id": "stmt-he-03",
-      "kindOk": true,
+      "kindOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1876,10 +2031,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "בנק לדוגמה - סניף 895\nדף חשבון | חשבון 28-119-658776 | תקופה: 29/09/2026 – 30/10/2026\nתאריך תיאור חובה זכות יתרה\n29/09/2026 גן ילדים 50.59 14,895.41\n30/09/2026 הוראת קבע ועד בית 169.80 14,725.61\n03/10/2026 פארם הגליל 240.77 14,484.84\n04/10/2026 עמלת פעולה 771.08 13,713.76\n06/10/2026 גן ילדים 157.48 13,556.28\n08/10/2026 העברה לישראל כהן 673.76 12,882.52\n10/10/2026 משכורת 7,653.00 20,535.52\n13/10/2026 סופר השכונה 585.40 19,950.12\n15/10/2026 עמלת פעולה 120.09 19,830.03\n18/10/2026 תאגיד המים 335.54 19,494.49\n19/10/2026 פארם הגליל 118.85 19,375.64\n20/10/2026 העברה לישראל כהן 759.36 18,616.28\n23/10/2026 תחנת דלק צומת הגבעה 347.77 18,268.51",
-      "read": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}",
+      "copy": "בנק לדוגמה - סניף 895\nדף חשבון | חשבון 28-119-658776 | תקופה: 29/09/2026 – 30/10/2026\n\nתאריך תיאור חובה זכות יתרה\n29/09/2026 גן ילדים 50.59 14,895.41\n30/09/2026 הוראת קבע ועד בית 169.80 14,725.61\n03/10/2026 פארם הגליל 240.77 14,484.84\n04/10/2026 עמלת פעולה 771.08 13,713.76\n06/10/2026 גן ילדים 157.48 13,556.28\n08/10/2026 העברה לישראל כהן 673.76 12,882.52\n10/10/2026 משכורת 7,653.00 20,535.52\n13/10/2026 סופר השכונה 585.40 19,950.12\n15/10/2026 עמלת פעולה 120.09 19,830.03\n18/10/2026 תאגיד המים 335.54 19,494.49\n19/10/2026 פארם הגליל 118.85 19,375.64\n20/10/2026 העברה לישראל כהן 759.36 18,616.28\n23/10/2026 תחנת דלק צומת הגבעה 347.77 18,268.51",
+      "read": "{\"more_than_five\":true,\"rule_match\":\"null\",\"rule_action\":\"null\",\"items\":[]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.008543,
+      "readCostUsd": 0.0003223
     },
     {
       "id": "stmt-en-04",
@@ -1900,10 +2057,12 @@
         "specialQuestionWrong": false,
         "checkAmounts": 0
       },
-      "copy": "SAMPLE BANK\n\nChecking account ****4043 | Statement period Sep 29, 2026 – Oct 30, 2026\n\nDate | Description | Debit | Credit | Balance\n09/30/2026 | PAYROLL DEPOSIT | | 10,555.00 | 25,697.00\n10/01/2026 | ONLINE PAYMENT | 572.32 | | 25,124.68\n10/04/2026 | PAYROLL DEPOSIT | | 9,021.00 | 34,145.68\n10/07/2026 | PAYROLL DEPOSIT | | 13,823.00 | 47,968.68\n10/08/2026 | GREEN VALLEY GROCERS | 627.65 | | 47,341.03\n10/11/2026 | PAYROLL DEPOSIT | | 5,849.00 | 53,190.03\n10/14/2026 | QUICKFUEL | 250.91 | | 52,939.12\n10/15/2026 | CORNER PHARMACY | 805.73 | | 52,133.39\n10/17/2026 | ONLINE PAYMENT | 57.42 | | 52,075.97\n10/20/2026 | ELECTRIC CO | 476.79 | | 51,599.18\n10/22/2026 | INTEREST | | 11,866.00 | 63,465.18\n10/25/2026 | WATER UTILITY | 601.86 | | 62,863.32\n10/26/2026 | WATER UTILITY | 591.67 | | 62,271.…",
-      "read": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}",
+      "copy": "SAMPLE BANK\n\nChecking account ****4043 | Statement period Sep 29, 2026 – Oct 30, 2026\n\nDate | Description | Debit | Credit | Balance\n\n09/30/2026 | PAYROLL DEPOSIT | | 10,555.00 | 25,697.00\n10/01/2026 | ONLINE PAYMENT | 572.32 | | 25,124.68\n10/04/2026 | PAYROLL DEPOSIT | | 9,021.00 | 34,145.68\n10/07/2026 | PAYROLL DEPOSIT | | 13,823.00 | 47,968.68\n10/08/2026 | GREEN VALLEY GROCERS | 627.65 | | 47,341.03\n10/11/2026 | PAYROLL DEPOSIT | | 5,849.00 | 53,190.03\n10/14/2026 | QUICKFUEL | 250.91 | | 52,939.12\n10/15/2026 | CORNER PHARMACY | 805.73 | | 52,133.39\n10/17/2026 | ONLINE PAYMENT | 57.42 | | 52,075.97\n10/20/2026 | ELECTRIC CO | 476.79 | | 51,599.18\n10/22/2026 | INTEREST | | 11,866.00 | 63,465.18\n10/25/2026 | WATER UTILITY | 601.86 | | 62,863.32\n10/26/2026 | WATER UTILITY | 591.67 | | 62,271…",
+      "read": "{\"more_than_five\":true,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.012687,
+      "readCostUsd": 0.0003332
     },
     {
       "id": "stmt-en-05",
@@ -1925,9 +2084,11 @@
         "checkAmounts": 0
       },
       "copy": "SAMPLE BANK\n\nChecking account ****7368 | Statement period Sep 29, 2026 – Oct 30, 2026\n\nDate | Description | Debit | Credit | Balance\n09/30/2026 | ATM WITHDRAWAL | 512.18 | | 12,975.82\n10/02/2026 | MONTHLY FEE | 555.78 | | 12,420.04\n10/03/2026 | ATM WITHDRAWAL | 507.70 | | 11,912.34\n10/05/2026 | TRANSFER TO SAVINGS | 332.63 | | 11,579.71\n10/07/2026 | QUICKFUEL | 225.49 | | 11,354.22\n10/09/2026 | ONLINE PAYMENT | 287.28 | | 11,066.94\n10/11/2026 | CORNER PHARMACY | 641.37 | | 10,425.57\n10/13/2026 | ELECTRIC CO | 253.06 | | 10,172.51\n10/16/2026 | QUICKFUEL | 897.65 | | 9,274.86\n10/19/2026 | ONLINE PAYMENT | 280.13 | | 8,994.73",
-      "read": "{\"more_than_five\":true,\"items\":[],\"rule\":null,\"question\":null}",
+      "read": "{\"more_than_five\":true,\"rule_match\":\"\",\"rule_action\":\"\",\"items\":[]}",
       "copyReasoningTokens": 0,
-      "readReasoningTokens": 0
+      "readReasoningTokens": null,
+      "copyCostUsd": 0.008159,
+      "readCostUsd": 0.000319
     }
   ]
 }
