@@ -1,7 +1,7 @@
 import { readModelText, receiptFilePart } from "./receipt-draft.ts";
-import { splitAnthropicBody, SPLIT_MESSAGES_URL, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
+import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { readModelUsage } from "./model-call.ts";
-import { readSplitResponse } from "./split-response.ts";
+import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
 import { scoreSplitFields, type SplitExpected, type SplitFieldScore } from "./split-score.ts";
 import { gatewayProviderOptions } from "./gateway-tags.ts";
 
@@ -133,12 +133,19 @@ for (const item of cases) {
     });
     const copied = readModelText(copiedPayload);
     const readable = copyHasDigits(copied);
-    const readPayload = readable
-      ? await post(key, SPLIT_MESSAGES_URL, {
-        ...splitAnthropicBody(copied, item.today, { receipt: true }, "eval"),
+    let readPayload: unknown = null;
+    if (readable) {
+      readPayload = await post(key, SPLIT_RESPONSES_URL, {
+        ...splitRequestBody(copied, item.today, { receipt: true }, "eval"),
         model: SPLIT_MODEL,
-      })
-      : null;
+      });
+      if (!parseSplitPayload(readModelText(readPayload))) {
+        readPayload = await post(key, SPLIT_RESPONSES_URL, {
+          ...splitRequestBody(copied, item.today, { receipt: true }, "eval"),
+          model: SPLIT_MODEL,
+        });
+      }
+    }
     const read = readPayload ? readModelText(readPayload) : "";
     const fields = scoreSplitFields(copied, read, item.today, item.expected);
     const actual = readSplitResponse(copied, read, item.today);

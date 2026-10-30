@@ -120,6 +120,7 @@ export interface SplitFieldScore {
   unnecessaryQuestion: boolean;
   specialQuestionWrong: boolean;
   checkAmounts: number;
+  specialAsked: number;
 }
 
 function emptyFields(route: SplitResponse["route"], parsed: boolean, clear: boolean): SplitFieldScore {
@@ -138,6 +139,7 @@ function emptyFields(route: SplitResponse["route"], parsed: boolean, clear: bool
     unnecessaryQuestion: false,
     specialQuestionWrong: false,
     checkAmounts: 0,
+    specialAsked: 0,
   };
 }
 
@@ -190,9 +192,25 @@ export function scoreSplitFields(
       else if (!got || got.amount === null) asked = true;
     }
     const type = got && got.typeHint !== "" ? got.typeHint : null;
+    const expectedSpecial = wanted.type !== null && SPECIAL_TYPES.has(wanted.type)
+      ? wanted.type
+      : wanted.type_question !== undefined && wanted.type_question !== null && SPECIAL_TYPES.has(wanted.type_question)
+        ? wanted.type_question
+        : null;
+    const baseOf = expectedSpecial === "exempt-income"
+      ? "income"
+      : expectedSpecial === "recognized-expense"
+        ? "expense"
+        : expectedSpecial === "non_tithe_donation"
+          ? "donation"
+          : null;
+    const specialAsked = expectedSpecial !== null && baseOf !== null
+      && got?.typeQuestion === expectedSpecial
+      && type === baseOf;
+    if (specialAsked) score.specialAsked += 1;
     if (wanted.type !== null) {
       score.typeChecked += 1;
-      if (type === wanted.type) score.typeCorrect += 1;
+      if (type === wanted.type || specialAsked) score.typeCorrect += 1;
       else if (type === null) asked = true;
     }
     if (type && SPECIAL_TYPES.has(type) && type !== wanted.type) score.specialTypeUnasked = true;
@@ -201,7 +219,7 @@ export function scoreSplitFields(
       if (got && got.date === wanted.date && !got.checkDate) score.dateCorrect += 1;
     }
     const expectedQuestion = wanted.type_question ?? null;
-    if (got?.typeQuestion && got.typeQuestion !== expectedQuestion) {
+    if (!specialAsked && got?.typeQuestion && got.typeQuestion !== expectedQuestion) {
       score.specialQuestionWrong = true;
       asked = true;
     }

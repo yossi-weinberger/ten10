@@ -129,6 +129,7 @@ Deno.test("a clear sentence is scored per field, and an asked sentence is not", 
     }],
   });
   assert(gift.amountCorrect === 1 && gift.typeCorrect === 1 && gift.dateCorrect === 1, "gift fields");
+  assert(gift.specialAsked === 1, "the gift question is counted");
   assert(gift.specialQuestionWrong === false && gift.specialTypeUnasked === false, "the gift question is allowed");
 
   const unread = scoreSplitFields("קניתי לחם ב־10", "not json", today, {

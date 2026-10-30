@@ -1,5 +1,5 @@
 import { readModelText } from "./receipt-draft.ts";
-import { splitAnthropicBody, SPLIT_MESSAGES_URL } from "./split-prompt.ts";
+import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { parseSplitPayload } from "./split-response.ts";
 import { scoreSplit, scoreSplitFields, type SplitExpected, type SplitFieldScore } from "./split-score.ts";
 import { buildIntentBody, JEV_SYSTEMONE_URL } from "./jev-intent.ts";
@@ -64,20 +64,30 @@ function reasoningTokens(payload: unknown): number | null {
   return typeof value === "number" ? value : null;
 }
 
-async function askReader(key: string, item: Case): Promise<unknown> {
-  const response = await fetch(SPLIT_MESSAGES_URL, {
+async function askReaderOnce(key: string, item: Case): Promise<unknown> {
+  const response = await fetch(SPLIT_RESPONSES_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...splitAnthropicBody(item.text, item.today, {}, "eval"), model: MODEL }),
+    body: JSON.stringify({ ...splitRequestBody(item.text, item.today, {}, "eval"), model: MODEL }),
   });
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(`${item.id} http ${response.status} ${detail.slice(0, 240)}`);
   }
   return response.json();
+}
+
+async function askReader(key: string, item: Case): Promise<unknown> {
+  const first = await askReaderOnce(key, item);
+  if (parseSplitPayload(readModelText(first))) return first;
+  try {
+    return await askReaderOnce(key, item);
+  } catch {
+    return first;
+  }
 }
 
 async function askJev(key: string, text: string): Promise<void> {
@@ -188,6 +198,7 @@ function fieldReport(rows: SentenceResult[]) {
     unnecessaryQuestions: rate(clearRows.filter((score) => score.unnecessaryQuestion).length, clearRows.length),
     specialQuestionWrong: scores.filter((score) => score.specialQuestionWrong).length,
     checkAmounts: sum((score) => score.checkAmounts),
+    specialAsked: sum((score) => score.specialAsked),
   };
 }
 
@@ -214,6 +225,7 @@ const summary = {
     unnecessaryQuestions: rate(fields.filter((score) => score.clear && score.unnecessaryQuestion).length, clear),
     specialQuestionWrong: fields.filter((score) => score.specialQuestionWrong).length,
     checkAmounts: sum((score) => score.checkAmounts),
+    specialAsked: sum((score) => score.specialAsked),
   },
   p50EndToEndMs: percentile(endToEnd, 0.5),
   p95EndToEndMs: percentile(endToEnd, 0.95),
@@ -224,4 +236,10 @@ const summary = {
 };
 
 console.log(JSON.stringify({ ...summary, sentences: sentences.length }, null, 2));
-if (OUT_PATH) await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+if (OUT_PATH) {
+  await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+  const saved = JSON.parse(await Deno.readTextFile(OUT_PATH)) as { sentences?: { model?: unknown }[] };
+  const kept = (saved.sentences ?? []).filter((sentence) => typeof sentence.model === "string" && sentence.model.length > 0);
+  if (kept.length !== sentences.length) throw new Error(`model text saved ${kept.length}/${sentences.length}`);
+  console.log(`saved model text ${kept.length}/${sentences.length}`);
+}

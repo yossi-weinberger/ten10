@@ -28,7 +28,7 @@
 
 ## הסכמה
 
-Responses API (`/v1/responses`, כמו היום ב־`ai-split-items`). היום הפרומפט רק מבקש JSON. במקום זה: `text.format` מסוג `json_schema` עם `strict: true`. בצד שלנו הפלט עובר Zod (§9.6). השדות `date_phrase` ו־`type_hint` מוחלפים בשדות שלמטה.
+Responses API (`/v1/responses`, כמו היום ב־`ai-split-items`). היום הפרומפט רק מבקש JSON. במקום זה: `text.format` מסוג `json_schema` עם `strict: true`. ה־Gateway לא אוכף את הסכמה הזו על Anthropic. Zod בודק את הפלט אצלנו (§9.6), וכשהבדיקה נכשלת יש ניסיון חוזר אחד. השדות `date_phrase` ו־`type_hint` מוחלפים בשדות שלמטה.
 
 **הבקשה כוללת:**
 - הטקסט.

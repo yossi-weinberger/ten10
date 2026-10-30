@@ -1,13 +1,10 @@
 /** The extraction request. The model is chosen by the split eval, not here. */
 
 import { gatewayProviderOptions, type GatewayProviderOptions } from "./gateway-tags.ts";
-import { SPLIT_ENFORCED_SCHEMA, SPLIT_JSON_SCHEMA } from "./split-schema.ts";
+import { SPLIT_JSON_SCHEMA } from "./split-schema.ts";
 import { weekdayName } from "./split-date.ts";
 
 export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
-
-/** Anthropic enforces a schema here. `/v1/responses` `text.format` does not. */
-export const SPLIT_MESSAGES_URL = "https://ai-gateway.vercel.sh/v1/messages";
 
 /**
  * Temporary. The 2026-10-30 exact-match run did not score fields,
@@ -89,7 +86,10 @@ export function splitGatewayOptions(source: "app" | "eval"): GatewayProviderOpti
   });
 }
 
-/** Thinking stays off. The set checks that accuracy does not drop. */
+/**
+ * The gateway does not enforce this schema for Anthropic.
+ * Zod checks the reply, and a failed check is asked once more.
+ */
 export function splitRequestBody(text: string, today: string, context: SplitPromptContext = {}, source: "app" | "eval" = "app") {
   return {
     model: SPLIT_MODEL,
@@ -106,25 +106,6 @@ export function splitRequestBody(text: string, today: string, context: SplitProm
     providerOptions: {
       gateway: splitGatewayOptions(source),
       anthropic: { thinking: { type: "disabled" } },
-    },
-  };
-}
-
-/** Messages API structured output. The schema is enforced by Anthropic, not by the Responses field. */
-export function splitAnthropicBody(text: string, today: string, context: SplitPromptContext = {}, source: "app" | "eval" = "app") {
-  return {
-    model: SPLIT_MODEL,
-    max_tokens: 1600,
-    messages: [{ role: "user", content: splitPrompt(text, today, context) }],
-    output_config: {
-      format: {
-        type: "json_schema",
-        schema: SPLIT_ENFORCED_SCHEMA,
-      },
-    },
-    thinking: { type: "disabled" },
-    providerOptions: {
-      gateway: splitGatewayOptions(source),
     },
   };
 }
