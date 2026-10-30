@@ -3,7 +3,7 @@ import { aiCallsAllowed } from "@/lib/ai/flags";
 import { ExchangeRateService } from "@/lib/services/exchange-rate.service";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
-import { buildCommitPayload } from "./build-commit-payload";
+import { buildCommitPayload, type CommitPayload } from "./build-commit-payload";
 import { textIntakePayload } from "./text-intake-payload";
 import type { SplitDraft } from "./split-cards";
 
@@ -44,7 +44,7 @@ export async function saveSplitDrafts(
   if (profileError || !profile?.default_currency) return { ok: false, reason: "SAVE_FAILED" };
   const defaultCurrency = String(profile.default_currency).toUpperCase();
 
-  const items = [];
+  const items: { key: string; payload: CommitPayload & { original_description: string; extracted_amount: number } }[] = [];
   for (const card of chosen) {
     const draft = asDraft(card);
     if (!draft) return { ok: false, reason: "SAVE_FAILED" };

@@ -9,6 +9,7 @@ import type {
   TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
 import type { SplitDraft } from "@/lib/ai/split-cards";
+import type { RecurringCard } from "@/lib/ai/recurring-card";
 
 export type StatusTone = "success" | "error" | "info";
 
