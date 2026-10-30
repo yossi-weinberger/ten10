@@ -1,0 +1,1612 @@
+{
+  "transcribeModel": "anthropic/claude-haiku-5.5",
+  "readerModel": "anthropic/claude-haiku-5.5",
+  "cases": 80,
+  "failed": 0,
+  "kind": 0.9,
+  "amount": 0.805,
+  "date": 0.866,
+  "wrongAnchoredAmount": 1,
+  "sentences": [
+    {
+      "id": "rcpt-he-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-02",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-05",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-06",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-07",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-08",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-09",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-10",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-11",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-12",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-13",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-14",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-15",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-16",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-17",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-18",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-19",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-20",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-21",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-22",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-23",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-24",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-25",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-26",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-27",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-28",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-29",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-30",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-31",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "The image is upside down and rotated, and the text appears to be in Armenian script with numbers. Transcribing line by line as written, reading from the top of the rotated page (the receipt is inverted, so I'm reading it as it appears in the photo's orientation):\n\nԱմփոփում (header, inverted)\nԱմսաթիվ 11.93 — 500.00\nԱպրանքներ — 74.45\nԱԱՀ 18% — 488.07\nՎճարում — 64.00\nԸնդամենը — 424.07\n3 x 31.49 — 94.47\nՄսի ապրանք — 17.00\nՁուկ — 83.40 (approx.)\n2 x 41.70 — 229.20\n3 x 76.40\nԴարակ 220 — (no value)\nԸնդամենը — 459.25 (approx.)\n28/09/26 — 15:46\n27 — 5 (approx.)\n7 — 46525 (approx.)\nՀեռ. 03-605320 — 551405709\nՏոմս ... (footer, inverted)\n\nNote: the image is rotated roughly 180° and tilted, so many characters are hard to read reliably. The transcription above is my best reading, and some digits and words may be inaccurate. If you can provide a upright, higher-resolution image, I can produce a more exact line-by-line copy."
+    },
+    {
+      "id": "rcpt-he-32",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-33",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-34",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-35",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-36",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-37",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-38",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-39",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-he-40",
+      "kindOk": false,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": true,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-02",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-05",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-06",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-07",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-08",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-09",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-10",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-11",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-12",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-13",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-14",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "rcpt-en-15",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-02",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-05",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-he-06",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-en-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-en-02",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-en-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "inv-en-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "don-he-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "don-he-02",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "don-he-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "don-he-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "don-en-01",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "multi-he-01",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "I can't reliably transcribe this image line by line with the exact original digits and Hebrew text. The image shows two Hebrew receipts, but the small and slanted text is too uncertain for me to reproduce every line faithfully without risking errors in the digits or characters.\n\nWhat I can see at a high level: the left receipt is from a store named \"סופר זול כאן\" dated 23/09/2026, and the right receipt is from \"פארמה פלוס\" dated 27.09.2026. Both contain item lines, subtotals, VAT (מע\"מ 18%), and totals.\n\nIf you can provide a higher-resolution or straighter image, or paste the text directly, I'll copy it exactly as written."
+    },
+    {
+      "id": "multi-he-02",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": true,
+        "amountChecked": 3,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 3,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 3,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "I can't reliably transcribe this line by line. The image shows three Hebrew receipts, but the text is small, rotated, and partially blurred, so I can't verify every digit and character with confidence. Reproducing it exactly would mean guessing at several values, which would defeat the purpose of a faithful copy.\n\nWhat I can see clearly is the structure: three receipts side by side, all in Hebrew, with store headers, addresses, phone numbers, item lines with quantities and prices, subtotals, VAT lines (\"כולל מע\"מ 18%\"), and payment/authorization lines at the bottom.\n\nIf you can send a higher-resolution or straighter image, or paste the text directly, I'll copy it exactly as written, keeping the Hebrew and the digits unchanged."
+    },
+    {
+      "id": "multi-he-03",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 2,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 2,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "multi-en-04",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 2,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 2,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "multi-en-05",
+      "kindOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 3,
+        "amountCorrect": 3,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 3,
+        "typeCorrect": 3,
+        "specialTypeUnasked": false,
+        "dateChecked": 3,
+        "dateCorrect": 3,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    },
+    {
+      "id": "stmt-he-01",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "בנק לדוגמה - סניף 687\nדף חשבון | חשבון 74-146-365949 | תקופה: 30/10/2026 – 29/09/2026\n\n| תאריך | תיאור | חובה | זכות | יתרה |\n|---|---|---|---|---|\n| 30/09/2026 | העברה לישראל כהן | 500.28 | | 13,628.72 |\n| 02/10/2026 | תרומה - עמותת לב פתוח | 217.61 | | 13,411.11 |\n| 03/10/2026 | חברת החשמל | 748.32 | | 12,662.79 |\n| 06/10/2026 | הוראת קבע ועד בית | 517.07 | | 12,145.72 |\n| 09/10/2026 | ביטוח רכב | 850.27 | | 11,295.45 |\n| 11/10/2026 | תאגיד המים | 490.12 | | 10,805.33 |\n| 14/10/2026 | גן ילדים | 736.30 | | 10,069.03 |\n| 15/10/2026 | תאגיד המים | 754.84 | | 9,314.19 |\n| 18/10/2026 | עמלת פעולה | 58.34 | | 9,255.85 |\n| 19/10/2026 | פארם הגליל | 733.68 | | 8,522.17 |\n| 21/10/2026 | עמלת פעולה | 144.87 | | 8,377.30 |\n| 24/10/2026 | משיכת מזומן | 483.02 | | 7,894.28 |"
+    },
+    {
+      "id": "stmt-he-02",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "פירוט חיובים לכרטיס המסתיים ב-3642\nמועד חיוב: 02/11/2026\n\n| תאריך עסקה | בית עסק | סכום עסקה | סכום חיוב |\n|---|---|---|---|\n| 02/10/2026 | תחנת דלק צומת הגבעה | 518.64 | 518.64 |\n| 03/10/2026 | הוראת קבע ועד בית | 397.47 | 397.47 |\n| 06/10/2026 | עמלת פעולה | 521.43 | 521.43 |\n| 08/10/2026 | גן ילדים | 632.65 | 632.65 |\n| 10/10/2026 | תאגיד המים | 545.03 | 545.03 |\n| 12/10/2026 | סופר השכונה | 516.20 | 516.20 |\n| 13/10/2026 | עמלת פעולה | 493.49 | 493.49 |\n| 16/10/2026 | הוראת קבע ועד בית | 872.15 | 872.15 |\n| 17/10/2026 | עמלת פעולה | 415.39 | 415.39 |\n| 20/10/2026 | תאגיד המים | 325.10 | 325.10 |\n| 22/10/2026 | סופר השכונה | 834.39 | 834.39 |"
+    },
+    {
+      "id": "stmt-he-03",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "בנק לדוגמה - סניף 895\nדף חשבון | חשבון 28-119-658776 | תקופה: 29/09/2026 – 30/10/2026\nתאריך תיאור חובה זכות יתרה\n29/09/2026 גן ילדים 50.59 14,895.41\n30/09/2026 הוראת קבע ועד בית 169.80 14,725.61\n03/10/2026 פארם הגליל 240.77 14,484.84\n04/10/2026 עמלת פעולה 771.08 13,713.76\n06/10/2026 גן ילדים 157.48 13,556.28\n08/10/2026 העברה לישראל כהן 673.76 12,882.52\n10/10/2026 משכורת 7,653.00 20,535.52\n13/10/2026 סופר השכונה 585.40 19,950.12\n15/10/2026 עמלת פעולה 120.09 19,830.03\n18/10/2026 תאגיד המים 335.54 19,494.49\n19/10/2026 פארם הגליל 118.85 19,375.64\n20/10/2026 העברה לישראל כהן 759.36 18,616.28\n23/10/2026 תחנת דלק צומת הגבעה 347.77 18,268.51"
+    },
+    {
+      "id": "stmt-en-04",
+      "kindOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": false,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": "SAMPLE BANK\nChecking account ****4043 | Statement period Sep 29, 2026 – Oct 30, 2026\n\n| Date | Description | Debit | Credit | Balance |\n|---|---|---|---|---|\n| 09/30/2026 | PAYROLL DEPOSIT | | 10,555.00 | 25,697.00 |\n| 10/01/2026 | ONLINE PAYMENT | 572.32 | | 25,124.68 |\n| 10/04/2026 | PAYROLL DEPOSIT | | 9,021.00 | 34,145.68 |\n| 10/07/2026 | PAYROLL DEPOSIT | | 13,823.00 | 47,968.68 |\n| 10/08/2026 | GREEN VALLEY GROCERS | 627.65 | | 47,341.03 |\n| 10/11/2026 | PAYROLL DEPOSIT | | 5,849.00 | 53,190.03 |\n| 10/14/2026 | QUICKFUEL | 250.91 | | 52,939.12 |\n| 10/15/2026 | CORNER PHARMACY | 805.73 | | 52,133.39 |\n| 10/17/2026 | ONLINE PAYMENT | 57.42 | | 52,075.97 |\n| 10/20/2026 | ELECTRIC CO | 476.79 | | 51,599.18 |\n| 10/22/2026 | INTEREST | | 11,866.00 | 63,465.18 |\n| 10/25/2026 | WATER UTILITY | 601.86 | | 62,863.32 |\n| 10/26/2026 | WATER UTILITY | 591.67 | | 62,271.65 |\n| 10/27/2026 | QUICKFUEL | 421.36 | | 61,850.29 |"
+    },
+    {
+      "id": "stmt-en-05",
+      "kindOk": true,
+      "fields": {
+        "route": "list",
+        "parsed": true,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false
+      },
+      "raw": null
+    }
+  ]
+}
