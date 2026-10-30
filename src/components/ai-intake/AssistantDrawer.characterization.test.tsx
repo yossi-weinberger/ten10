@@ -134,7 +134,83 @@ beforeEach(() => {
   ai.listDuplicateCandidates.mockResolvedValue([]);
   ai.rankDuplicateCandidates.mockResolvedValue(null);
   ai.recordShadowType.mockResolvedValue(undefined);
-  ai.splitItems.mockResolvedValue({ ok: true, route: "unreadable" });
+  ai.splitItems.mockImplementation(async (sentence: string) => {
+    if (sentence.includes("הוראת קבע")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "כולל",
+          amount: 200,
+          currency: "ILS",
+          date: "2026-11-01",
+          checkDate: false,
+          typeHint: "donation",
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: {
+            frequency: "monthly",
+            calendarType: "gregorian",
+            startDate: "2026-11-01",
+            dayOfMonth: 1,
+            weekday: null,
+            totalOccurrences: null,
+            alreadyCharged: false,
+          },
+        }],
+      };
+    }
+    if (sentence.includes("גן")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 0,
+        dropped: 0,
+        usageId: null,
+        items: [],
+        question: null,
+        rule: { match: "גן", action: "recognized-expense" },
+      };
+    }
+    if (sentence.includes("מאפים")) {
+      const amount = /\d/.test(sentence) ? 15 : null;
+      const typeHint = sentence.includes("קניתי") ? "expense" : "";
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "מאפים באליס",
+          amount,
+          currency: "ILS",
+          date: "2026-10-30",
+          checkDate: false,
+          typeHint,
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: null,
+        }],
+      };
+    }
+    return { ok: true, route: "unreadable", usageId: null };
+  });
 });
 
 afterEach(() => cleanup());
@@ -194,7 +270,7 @@ describe("AssistantDrawer characterization", () => {
     });
     const user = setup();
     await send(user, "50 במכולת ו־120 לישיבה");
-    expect(await screen.findByText("aiIntake.oneAtATime")).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.couldNotRead")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
   });

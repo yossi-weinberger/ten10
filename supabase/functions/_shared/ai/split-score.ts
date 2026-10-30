@@ -40,9 +40,13 @@ export function scoreSplit(source: string, payload: unknown, today: string, expe
   let extra = 0;
   let found = 0;
   for (const item of actual.items) {
+    if (item.amount === null || item.typeHint === "") {
+      extra += 1;
+      continue;
+    }
     const id = key({
       amount: item.amount,
-      currency: item.currency,
+      currency: item.currency === "" ? "ILS" : item.currency,
       date: item.date,
       type: item.typeHint,
     });
