@@ -79,6 +79,7 @@ export const splitQuestionSchema = z.object({
 
 export const splitPayloadSchema = z.object({
   items: z.array(splitItemSchema),
+  more_than_five: z.boolean().nullish().transform((value) => value === true),
   rule: splitRuleSchema.nullish().transform((value) => value ?? null),
   question: splitQuestionSchema.nullish().transform((value) => value ?? null),
 });
@@ -170,9 +171,10 @@ const itemSchema = {
 export const SPLIT_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["items", "rule", "question"],
+  required: ["items", "more_than_five", "rule", "question"],
   properties: {
     items: { type: "array", items: itemSchema },
+    more_than_five: { type: "boolean" },
     rule: nullable({
       type: "object",
       additionalProperties: false,

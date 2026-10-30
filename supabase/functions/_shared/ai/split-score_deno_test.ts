@@ -111,8 +111,7 @@ Deno.test("a clear sentence is scored per field, and an asked sentence is not", 
     }],
   });
   assert(special.specialTypeUnasked, "the sentence does not say exempt");
-  assert(special.specialQuestionWrong, "no special question on a purchase");
-  assert(special.unnecessaryQuestion, "the question was not needed");
+  assert(special.specialQuestionWrong === false, "a filled special type is not asked again");
 
   const gift = scoreSplitFields("קיבלתי 400 מתנה", {
     items: [row(400, "400", { description: "מתנה", type: "income", type_question: "exempt-income" })],
@@ -162,6 +161,22 @@ Deno.test("a clear sentence is scored per field, and an asked sentence is not", 
     }],
   });
   assert(asked.clear === false && asked.amountChecked === 0, "an asked sentence is outside the field rate");
+
+  const words = scoreSplitFields("קניתי תפוחים בשלושים שקל", {
+    items: [row(30, "שלושים", { description: "תפוחים", type: "expense" })],
+  }, today, {
+    route: "several",
+    ask: null,
+    items: [{
+      description: "תפוחים",
+      amount: 30,
+      amount_text: "שלושים",
+      currency: "ILS",
+      date: today,
+      type: "expense",
+    }],
+  });
+  assert(words.amountCorrect === 1 && words.checkAmounts === 1, "a correct word amount counts, and is reported");
 });
 
 Deno.test("more than five items is a list", () => {

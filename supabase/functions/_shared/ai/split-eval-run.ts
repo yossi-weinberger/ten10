@@ -38,17 +38,30 @@ interface SentenceResult {
   readerMs: number | null;
   endToEndMs: number | null;
   jev: "ok" | "failed";
-  raw: string | null;
+  reasoningTokens: number | null;
+  model: string | null;
 }
 
 function rate(correct: number, checked: number): number | null {
   return checked === 0 ? null : Math.round((correct / checked) * 1000) / 1000;
 }
 
-function percentile(values: number[]): number | null {
+function percentile(values: number[], ratio: number): number | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((left, right) => left - right);
-  return Math.round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]);
+  return Math.round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]);
+}
+
+function shorten(text: string): string {
+  const trimmed = text.trim();
+  return trimmed.length <= 800 ? trimmed : `${trimmed.slice(0, 800)}…`;
+}
+
+function reasoningTokens(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+  const usage = (payload as { usage?: { output_tokens_details?: { reasoning_tokens?: unknown } } }).usage;
+  const value = usage?.output_tokens_details?.reasoning_tokens;
+  return typeof value === "number" ? value : null;
 }
 
 async function askReader(key: string, item: Case): Promise<unknown> {
@@ -115,7 +128,8 @@ for (const item of cases) {
       readerMs: read.readerMs,
       endToEndMs,
       jev: jevResult,
-      raw: parsed ? null : text,
+      reasoningTokens: reasoningTokens(read.payload),
+      model: shorten(text),
     });
   } catch (error) {
     failed += 1;
@@ -130,7 +144,8 @@ for (const item of cases) {
       readerMs: null,
       endToEndMs: null,
       jev: "failed",
-      raw: error instanceof Error ? error.message : "failed",
+      reasoningTokens: null,
+      model: error instanceof Error ? error.message : "failed",
     });
   }
 }
@@ -156,9 +171,12 @@ const summary = {
     date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),
     unnecessaryQuestions: rate(fields.filter((score) => score.clear && score.unnecessaryQuestion).length, clear),
     specialQuestionWrong: fields.filter((score) => score.specialQuestionWrong).length,
+    checkAmounts: sum((score) => score.checkAmounts),
   },
-  p95EndToEndMs: percentile(endToEnd),
-  readerP95Ms: percentile(readerTimes),
+  p50EndToEndMs: percentile(endToEnd, 0.5),
+  p95EndToEndMs: percentile(endToEnd, 0.95),
+  readerP95Ms: percentile(readerTimes, 0.95),
+  reasoningTokens: sentences.map((sentence) => sentence.reasoningTokens).filter((value) => value !== null),
   failed,
   sentences,
 };

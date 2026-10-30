@@ -76,7 +76,7 @@ export function readSplitResponse(
   if (!context) return { route: "unreadable" };
   const parsed = parseSplitPayload(payload);
   if (!parsed) return { route: "unreadable" };
-  if (parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
+  if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
   const anchored = anchorSplitItems(source, parsed.items, context);
   const question = parsed.question ? questionInLists(parsed.question, context) : null;
   const rule = parsed.rule && parsed.rule.match.trim().length >= 2

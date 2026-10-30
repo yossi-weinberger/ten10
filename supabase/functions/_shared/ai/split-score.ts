@@ -119,6 +119,7 @@ export interface SplitFieldScore {
   dateCorrect: number;
   unnecessaryQuestion: boolean;
   specialQuestionWrong: boolean;
+  checkAmounts: number;
 }
 
 function emptyFields(route: SplitResponse["route"], parsed: boolean, clear: boolean): SplitFieldScore {
@@ -136,6 +137,7 @@ function emptyFields(route: SplitResponse["route"], parsed: boolean, clear: bool
     dateCorrect: 0,
     unnecessaryQuestion: false,
     specialQuestionWrong: false,
+    checkAmounts: 0,
   };
 }
 
@@ -172,6 +174,7 @@ export function scoreSplitFields(
       score.wrongAnchoredAmount = true;
     }
   }
+  score.checkAmounts = actual.items.filter((item) => item.checkAmount).length;
   const used = new Set<number>();
   let asked = false;
   for (const wanted of expected.items) {
@@ -183,7 +186,7 @@ export function scoreSplitFields(
     if (match >= 0) used.add(match);
     if (wanted.amount !== null) {
       score.amountChecked += 1;
-      if (got && got.amount === wanted.amount && !got.checkAmount) score.amountCorrect += 1;
+      if (got && got.amount === wanted.amount) score.amountCorrect += 1;
       else if (!got || got.amount === null) asked = true;
     }
     const type = got && got.typeHint !== "" ? got.typeHint : null;

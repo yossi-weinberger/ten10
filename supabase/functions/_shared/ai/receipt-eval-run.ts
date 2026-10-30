@@ -57,6 +57,18 @@ function rate(correct: number, checked: number): number | null {
   return checked === 0 ? null : Math.round((correct / checked) * 1000) / 1000;
 }
 
+function shorten(text: string): string {
+  const trimmed = text.trim();
+  return trimmed.length <= 800 ? trimmed : `${trimmed.slice(0, 800)}…`;
+}
+
+function reasoningTokens(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+  const usage = (payload as { usage?: { output_tokens_details?: { reasoning_tokens?: unknown } } }).usage;
+  const value = usage?.output_tokens_details?.reasoning_tokens;
+  return typeof value === "number" ? value : null;
+}
+
 async function post(key: string, body: unknown): Promise<unknown> {
   const response = await fetch(SPLIT_RESPONSES_URL, {
     method: "POST",
@@ -78,7 +90,10 @@ const sentences: {
   id: string;
   kindOk: boolean;
   fields: SplitFieldScore;
-  raw: string | null;
+  copy: string | null;
+  read: string | null;
+  copyReasoningTokens: number | null;
+  readReasoningTokens: number | null;
 }[] = [];
 let failed = 0;
 
@@ -88,7 +103,7 @@ for (const item of cases) {
     const bytes = Deno.readFileSync(new URL(item.file, root));
     const part = type ? receiptFilePart(type, encodeBase64(bytes)) : null;
     if (!part) throw new Error(`${item.id} unsupported file`);
-    const copied = readModelText(await post(key, {
+    const copiedPayload = await post(key, {
       model: TRANSCRIBE_MODEL,
       max_output_tokens: 4000,
       input: [{ role: "user", content: [{ type: "input_text", text: COPY_PROMPT }, part] }],
@@ -96,25 +111,38 @@ for (const item of cases) {
         gateway: gatewayProviderOptions({ source: "eval" }),
         anthropic: { thinking: { type: "disabled" } },
       },
-    }));
-    const read = readModelText(await post(key, {
-      ...splitRequestBody(copied, item.today, {}, "eval"),
+    });
+    const copied = readModelText(copiedPayload);
+    const readPayload = await post(key, {
+      ...splitRequestBody(copied, item.today, { receipt: true }, "eval"),
       model: SPLIT_MODEL,
-    }));
+    });
+    const read = readModelText(readPayload);
     const fields = scoreSplitFields(copied, read, item.today, item.expected);
     const actual = readSplitResponse(copied, read, item.today);
     const kindOk = item.kind === "statement"
       ? actual.route === "list"
       : actual.route === "several"
         && actual.items.length === (item.kind === "receipt" ? 1 : item.expected.items.length);
-    sentences.push({ id: item.id, kindOk, fields, raw: fields.parsed ? null : copied });
+    sentences.push({
+      id: item.id,
+      kindOk,
+      fields,
+      copy: shorten(copied),
+      read: shorten(read),
+      copyReasoningTokens: reasoningTokens(copiedPayload),
+      readReasoningTokens: reasoningTokens(readPayload),
+    });
   } catch (error) {
     failed += 1;
     sentences.push({
       id: item.id,
       kindOk: false,
       fields: scoreSplitFields("", "", item.today, item.expected),
-      raw: error instanceof Error ? error.message : "failed",
+      copy: null,
+      read: error instanceof Error ? error.message : "failed",
+      copyReasoningTokens: null,
+      readReasoningTokens: null,
     });
   }
 }
@@ -130,6 +158,7 @@ const summary = {
   amount: rate(sum((score) => score.amountCorrect), sum((score) => score.amountChecked)),
   date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),
   wrongAnchoredAmount: fields.filter((score) => score.wrongAnchoredAmount).length,
+  checkAmounts: sum((score) => score.checkAmounts),
   sentences,
 };
 

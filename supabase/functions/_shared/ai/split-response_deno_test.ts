@@ -26,6 +26,11 @@ function row(amount: number, amountText: string, extra: Partial<SplitItemInput> 
   };
 }
 
+Deno.test("more than five transactions is a list without items", () => {
+  const result = readSplitResponse("דף חשבון", { items: [], more_than_five: true }, TODAY);
+  assert(result.route === "list", "list");
+});
+
 Deno.test("a kept item and a dropped one are both counted", () => {
   const result = readSplitResponse("50 לכולל ו־120 לישיבה אתמול", {
     items: [

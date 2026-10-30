@@ -119,6 +119,30 @@ Deno.test("a date structure without its words is marked, and a rule clears the s
   assert(ruled.items[0]?.typeQuestion === null, "no extra question");
 });
 
+Deno.test("the amount is anchored by its number, not by the written string", () => {
+  const sign = anchor("קניתי בסופר ב־250 שקל", [item({
+    amount: 250,
+    amount_text: "₪250",
+    description: "סופר",
+    type: "expense",
+  })]);
+  assert(sign.items[0]?.amount === 250 && sign.items[0]?.checkAmount === false, "currency sign");
+  const cents = anchor("Paid 75 NIS", [item({
+    amount: 75,
+    amount_text: "75.00",
+    description: "parking",
+    type: "expense",
+  })]);
+  assert(cents.items[0]?.amount === 75 && cents.items[0]?.checkAmount === false, "trailing zeroes");
+  const stated = anchor("הוצאה מוכרת למעשר 220", [item({
+    amount: 220,
+    amount_text: "220",
+    type: "recognized-expense",
+    type_question: "recognized-expense",
+  })]);
+  assert(stated.items[0]?.typeQuestion === null, "a stated special type is not asked again");
+});
+
 Deno.test("digits in the message anchor when the currency word was left out of the evidence", () => {
   const standing = anchor("הוראת קבע 200 שקל לצדקה כל חודש", [item({
     amount: 200,

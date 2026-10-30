@@ -99,25 +99,31 @@ function mentionsThousand(text: string): boolean {
     || /(?:^|[^a-z])k(?:[^a-z]|$)/i.test(text);
 }
 
-/** Digits that equal the amount, or digits times 1000 when a thousand word is present. */
-function amountsMatch(amount: number, text: string): "anchored" | "check" | "miss" {
-  const digits = digitValue(text);
-  if (digits === null) return "check";
-  if (Math.abs(digits - amount) < 0.001) return "anchored";
-  if (mentionsThousand(text) && Math.abs(digits * 1000 - amount) < 0.001) return "anchored";
-  return "miss";
-}
-
 function textAppears(source: string, evidence: string): boolean {
   const needle = fold(evidence);
   if (needle.length === 0) return false;
   return occurrences(fold(source), needle) > 0;
 }
 
-function amountEvidence(item: SplitItemInput): string | null {
-  if (item.amount_text && item.amount_text.trim().length > 0) return item.amount_text;
-  if (item.amount === null || item.amount <= 0) return null;
-  return Number.isInteger(item.amount) ? String(item.amount) : String(item.amount);
+const SPECIAL_TYPES = new Set(["exempt-income", "recognized-expense", "non_tithe_donation"]);
+
+function numberKey(value: number): string {
+  return String(Math.round(value * 1000));
+}
+
+/** Numbers in the text. Separators, hyphens, and currency signs are not part of the number. */
+function numbersIn(text: string): number[] {
+  const stripped = text
+    .replace(/[₪$€]/g, " ")
+    .replace(/\u00a0/g, " ")
+    .replace(/[־–—-]/g, "");
+  const pattern = /\d{1,3}(?:[ ,]\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g;
+  const values: number[] = [];
+  for (const match of stripped.matchAll(pattern)) {
+    const value = Number(match[0].replace(/[ ,]/g, ""));
+    if (Number.isFinite(value)) values.push(value);
+  }
+  return values;
 }
 
 function anchoredAmount(
@@ -126,18 +132,44 @@ function anchoredAmount(
   alone: boolean,
   used: Map<string, number>,
 ): { amount: number | null; checkAmount: boolean } | "drop" {
-  const evidence = amountEvidence(item);
-  if (item.amount === null || item.amount <= 0 || evidence === null) {
+  if (item.amount === null || item.amount <= 0) {
     return alone ? { amount: null, checkAmount: false } : "drop";
   }
-  const needle = fold(evidence);
-  const seen = occurrences(fold(source), needle);
-  const taken = used.get(needle) ?? 0;
-  if (needle.length === 0 || taken >= seen) return alone ? { amount: null, checkAmount: false } : "drop";
-  const match = amountsMatch(item.amount, evidence);
-  if (match === "miss") return alone ? { amount: null, checkAmount: false } : "drop";
-  used.set(needle, taken + 1);
-  return { amount: item.amount, checkAmount: match === "check" };
+  const words = item.amount_text?.trim() ?? "";
+  if (words.length > 0 && digitValue(words) === null) {
+    const needle = fold(words);
+    const seen = occurrences(fold(source), needle);
+    const taken = used.get(`w:${needle}`) ?? 0;
+    if (needle.length === 0 || taken >= seen) {
+      return alone ? { amount: null, checkAmount: false } : "drop";
+    }
+    used.set(`w:${needle}`, taken + 1);
+    return { amount: item.amount, checkAmount: true };
+  }
+  const numbers = numbersIn(source);
+  const thousand = mentionsThousand(source) || mentionsThousand(words);
+  let base: number | null = null;
+  for (const value of numbers) {
+    if (Math.abs(value - item.amount) < 0.001) {
+      base = value;
+      break;
+    }
+  }
+  if (base === null && thousand) {
+    for (const value of numbers) {
+      if (Math.abs(value * 1000 - item.amount) < 0.001) {
+        base = value;
+        break;
+      }
+    }
+  }
+  if (base === null) return alone ? { amount: null, checkAmount: false } : "drop";
+  const key = numberKey(base);
+  const seen = numbers.filter((value) => Math.abs(value - base) < 0.001).length;
+  const taken = used.get(key) ?? 0;
+  if (taken >= seen) return alone ? { amount: null, checkAmount: false } : "drop";
+  used.set(key, taken + 1);
+  return { amount: item.amount, checkAmount: false };
 }
 
 function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
@@ -175,7 +207,7 @@ export function anchorSplitItems(
       checkDate: dated.checkDate,
       checkAmount: amount.checkAmount,
       typeHint: rule ? rule.type : item.type ?? "",
-      typeQuestion: rule ? null : item.type_question,
+      typeQuestion: rule || (item.type !== null && SPECIAL_TYPES.has(item.type)) ? null : item.type_question,
       requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
       paymentMethod: item.payment_method,
       category,
