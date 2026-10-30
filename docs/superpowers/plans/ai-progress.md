@@ -134,7 +134,7 @@
 | G | `2026-10-29-ai-review-wish.md` | מספרים במילים נכנסים לסכום | A1 | מוזג | [#613](https://github.com/yossi-weinberger/ten10/pull/613) |
 | D | `2026-10-29-ai-review-wish.md` | החרגות ספירה, בלי ריצת המודל | G | מוזג | [#615](https://github.com/yossi-weinberger/ten10/pull/615) |
 | B1 | `2026-10-29-ai-review-wish.md` | גם החודש, וכולל רק אחרי ל | A1 | מוזג | [#614](https://github.com/yossi-weinberger/ten10/pull/614) |
-| M2c | `2026-10-28-ai-multi-item.md` | פיצול במודל, ואז כרטיסים | M2b | נפתח | |
+| M2c | `2026-10-28-ai-multi-item.md` | פיצול במודל, ואז כרטיסים | M2b | נפתח | [#616](https://github.com/yossi-weinberger/ten10/pull/616) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
