@@ -114,20 +114,27 @@ function textAppears(source: string, evidence: string): boolean {
   return occurrences(fold(source), needle) > 0;
 }
 
+function amountEvidence(item: SplitItemInput): string | null {
+  if (item.amount_text && item.amount_text.trim().length > 0) return item.amount_text;
+  if (item.amount === null || item.amount <= 0) return null;
+  return Number.isInteger(item.amount) ? String(item.amount) : String(item.amount);
+}
+
 function anchoredAmount(
   source: string,
   item: SplitItemInput,
   alone: boolean,
   used: Map<string, number>,
 ): { amount: number | null; checkAmount: boolean } | "drop" {
-  if (item.amount === null || item.amount_text === null || item.amount <= 0) {
+  const evidence = amountEvidence(item);
+  if (item.amount === null || item.amount <= 0 || evidence === null) {
     return alone ? { amount: null, checkAmount: false } : "drop";
   }
-  const needle = fold(item.amount_text);
+  const needle = fold(evidence);
   const seen = occurrences(fold(source), needle);
   const taken = used.get(needle) ?? 0;
   if (needle.length === 0 || taken >= seen) return alone ? { amount: null, checkAmount: false } : "drop";
-  const match = amountsMatch(item.amount, item.amount_text);
+  const match = amountsMatch(item.amount, evidence);
   if (match === "miss") return alone ? { amount: null, checkAmount: false } : "drop";
   used.set(needle, taken + 1);
   return { amount: item.amount, checkAmount: match === "check" };

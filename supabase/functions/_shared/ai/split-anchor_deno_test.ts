@@ -119,6 +119,24 @@ Deno.test("a date structure without its words is marked, and a rule clears the s
   assert(ruled.items[0]?.typeQuestion === null, "no extra question");
 });
 
+Deno.test("digits in the message anchor when the currency word was left out of the evidence", () => {
+  const standing = anchor("הוראת קבע 200 שקל לצדקה כל חודש", [item({
+    amount: 200,
+    amount_text: null,
+    description: "צדקה",
+  })]);
+  assert(standing.items[0]?.amount === 200 && standing.items[0]?.checkAmount === false, "200 שקל");
+  const dated = anchor("ב-12/10 שילמתי 80 שקל חשמל", [item({
+    amount: 80,
+    amount_text: null,
+    description: "חשמל",
+    type: "expense",
+  })]);
+  assert(dated.items[0]?.amount === 80 && dated.items[0]?.checkAmount === false, "80 שקל");
+  const missing = anchor("תרמתי לצדקה", [item({ amount: 100, amount_text: null })]);
+  assert(missing.items[0]?.amount === null, "a number that was not said is still asked");
+});
+
 Deno.test("digit evidence ignores thousand separators", () => {
   assert(digitValue("1,250") === 1250, "comma");
   assert(digitValue("חמישים") === null, "words");

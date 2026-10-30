@@ -51,6 +51,7 @@ export function MultiDraftList({
                 {card.currency}
                 {" · "}
                 {card.date ?? t("aiIntake.splitCheckDate")}
+                {card.type ? ` · ${t(`aiIntake.types.${card.type}`)}` : ""}
               </span>
             </label>
             {card.type === null && card.transactionId === null ? (
