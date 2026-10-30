@@ -15,8 +15,10 @@ import { HalachaCard } from "./blocks/HalachaCard";
 import { ReceiptAttachment } from "./blocks/ReceiptAttachment";
 import { RuleCard } from "./blocks/RuleCard";
 import { RecurringDraftCard } from "./blocks/RecurringDraftCard";
+import { MultiDraftList } from "./blocks/MultiDraftList";
 import { StatusNote } from "./blocks/StatusNote";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
+import type { SplitDraft } from "@/lib/ai/split-cards";
 
 export interface ReplyHandlers {
   onChooseIntent: (intent: IntakeIntent) => void;
@@ -34,6 +36,9 @@ export interface ReplyHandlers {
   onSaveRecurring: () => void;
   onDismissRecurring: () => void;
   onCancelRecurring: () => void;
+  onSplitChange: (cards: SplitDraft[]) => void;
+  onSaveSplit: () => void;
+  onUndoSplit: (key: string) => void;
   onUndo: () => void;
   onAskDelete: (id: string) => void;
   onConfirmDelete: (id: string) => void;
@@ -165,6 +170,18 @@ export function ReplyBlockView({
           onCancel={handlers.onCancelRecurring}
         />
       );
+    case "drafts":
+      return (
+        <MultiDraftList
+          cards={block.cards}
+          dropped={block.dropped}
+          interactive={interactive}
+          saving={handlers.saving}
+          onChange={handlers.onSplitChange}
+          onSave={handlers.onSaveSplit}
+          onUndo={handlers.onUndoSplit}
+        />
+      );
     case "draft":
       return (
         <DraftCard
@@ -184,7 +201,7 @@ export function ReplyBlockView({
       return (
         <div className="grid gap-2">
           <StatusNote status={block.status} />
-          {block.status === "bankStatement" ? (
+          {block.status === "bankStatement" || block.status === "splitList" ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link to="/transactions-table/import">{t("aiIntake.openImport")}</Link>
             </Button>

@@ -10,7 +10,8 @@ export type GatewayFeature =
   | "receipt"
   | "speech"
   | "duplicates"
-  | "shadow";
+  | "shadow"
+  | "split";
 
 export type GatewaySource = "app" | "eval";
 

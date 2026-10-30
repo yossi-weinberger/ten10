@@ -58,6 +58,9 @@ import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { cardFromRecurringDraft, recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
+import { splitItems } from "@/lib/ai/split-items";
+import { cardsFromSplit, type SplitDraft } from "@/lib/ai/split-cards";
+import { saveSplitDrafts } from "@/lib/ai/save-split-drafts";
 import type { RecurringTransaction } from "@/types/transaction";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurring-draft.ts";
@@ -119,6 +122,7 @@ export function AssistantDrawer({
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const [recurring, setRecurring] = useState<RecurringCard | null>(null);
   const idempotency = useRef<DraftIdempotency | null>(null);
+  const splitKey = useRef<string | null>(null);
   const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
   const savedRecurring = useRef<RecurringTransaction | null>(null);
   const previewUrls = useRef<string[]>([]);
@@ -146,6 +150,8 @@ export function AssistantDrawer({
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusKey | null>(null);
+  const [splitDrafts, setSplitDrafts] = useState<SplitDraft[] | null>(null);
+  const [splitDropped, setSplitDropped] = useState(0);
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
   const [countAnswer, setCountAnswer] = useState<CountAnswer>(NO_COUNT);
@@ -548,13 +554,75 @@ export function AssistantDrawer({
       : null;
     savedRecurring.current = null;
     setRecurring(recurringDraft ? cardFromRecurringDraft(recurringDraft.draft) : null);
-    setStatus(oneAtATime ? "oneAtATime" : null);
+    setSplitDrafts(null);
+    setSplitDropped(0);
+    if (oneAtATime) {
+      setStatus(null);
+      const request = requestRef.current;
+      void loadSplit(source, today, request);
+    } else {
+      setStatus(null);
+    }
     setSavedItemId(null);
     setReceiptArtifactId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
     else setDuplicateScan(null);
+  }
+
+  async function loadSplit(source: string, today: string, request: number) {
+    const result = await splitItems(source, today);
+    if (requestRef.current !== request) return;
+    if (!result.ok || result.route === "unreadable") {
+      setStatus("oneAtATime");
+      return;
+    }
+    if (result.route === "list") {
+      setStatus("splitList");
+      return;
+    }
+    splitKey.current = crypto.randomUUID();
+    setSplitDropped(result.dropped);
+    setSplitDrafts(cardsFromSplit(result.items));
+  }
+
+  async function handleSaveSplit() {
+    if (!splitDrafts || saving) return;
+    const key = splitKey.current ?? crypto.randomUUID();
+    splitKey.current = key;
+    setSaving(true);
+    const result = await saveSplitDrafts(splitDrafts, key);
+    setSaving(false);
+    if (!result.ok) {
+      setStatus(result.reason === "NO_RATE" ? "noRateAvailable" : "saveFailed");
+      return;
+    }
+    setSplitDrafts(splitDrafts.map((card) => {
+      const saved = result.saved.find((row) => row.key === card.key);
+      return saved
+        ? { ...card, transactionId: saved.transactionId, itemId: saved.itemId, checked: false }
+        : card;
+    }));
+    setStatus("saved");
+    void refreshAfterIntakeSave();
+  }
+
+  async function handleUndoSplit(key: string) {
+    const card = splitDrafts?.find((item) => item.key === key);
+    if (!card?.itemId) return;
+    setUndoing(true);
+    const result = await undoTextIntake(card.itemId);
+    setUndoing(false);
+    if (!result.ok) {
+      setStatus(result.reason === "NOT_ALLOWED" ? "undoNotAllowed" : "undoFailed");
+      return;
+    }
+    setSplitDrafts((current) => current?.map((item) => (
+      item.key === key ? { ...item, transactionId: null, itemId: null, checked: true } : item
+    )) ?? null);
+    setStatus("undone");
+    void refreshAfterIntakeSave();
   }
 
   async function handleSaveRecurring() {
@@ -779,6 +847,8 @@ export function AssistantDrawer({
       receiptArtifactId,
       receiptLink,
       recurring,
+      splitDrafts,
+      splitDropped,
       draft: draft
         ? {
           draft,
@@ -1184,6 +1254,13 @@ export function AssistantDrawer({
           },
           onCancelRecurring: () => {
             void handleCancelRecurring();
+          },
+          onSplitChange: setSplitDrafts,
+          onSaveSplit: () => {
+            void handleSaveSplit();
+          },
+          onUndoSplit: (key) => {
+            void handleUndoSplit(key);
           },
           onUndo: () => {
             void handleUndo();
