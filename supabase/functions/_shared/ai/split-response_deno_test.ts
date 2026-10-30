@@ -29,6 +29,8 @@ function row(amount: number, amountText: string, extra: Partial<SplitItemInput> 
 Deno.test("more than five transactions is a list without items", () => {
   const result = readSplitResponse("דף חשבון", { items: [], more_than_five: true }, TODAY);
   assert(result.route === "list", "list");
+  const written = readSplitResponse("דף חשבון", "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}", TODAY);
+  assert(written.route === "list", "items written as text still counts");
 });
 
 Deno.test("a kept item and a dropped one are both counted", () => {

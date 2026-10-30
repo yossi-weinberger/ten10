@@ -44,6 +44,10 @@ function jsonValue(payload: unknown): unknown {
 
 export function parseSplitPayload(payload: unknown): ReturnType<typeof splitPayloadSchema.parse> | null {
   const value = jsonValue(payload);
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as { items?: unknown; more_than_five?: unknown };
+    if (record.more_than_five === true && !Array.isArray(record.items)) record.items = [];
+  }
   const parsed = splitPayloadSchema.safeParse(value);
   return parsed.success ? parsed.data : null;
 }

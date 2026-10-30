@@ -1,24 +1,157 @@
 {
   "model": "anthropic/claude-haiku-5.5",
   "cases": 129,
-  "exact": 86,
+  "exact": 97,
   "routes": {
-    "unreadable": 21,
-    "list": 19,
-    "several": 89
+    "unreadable": 18,
+    "list": 3,
+    "several": 108
   },
   "fields": {
     "clear": 99,
-    "amount": 0.577,
-    "wrongAnchoredAmount": 0,
-    "type": 0.72,
+    "amount": 0.96,
+    "wrongAnchoredAmount": 2,
+    "type": 0.937,
     "specialTypeUnasked": 1,
-    "date": 0.746,
-    "unnecessaryQuestions": 0.131,
-    "specialQuestionWrong": 6
+    "date": 0.971,
+    "unnecessaryQuestions": 0.071,
+    "specialQuestionWrong": 4,
+    "checkAmounts": 21
   },
-  "p95EndToEndMs": 4382,
-  "readerP95Ms": 4382,
+  "p50EndToEndMs": 2211,
+  "p95EndToEndMs": 2782,
+  "readerP95Ms": 2782,
+  "reasoningTokens": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
   "failed": 0,
   "sentences": [
     {
@@ -33,7 +166,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -41,12 +174,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2652,
-      "endToEndMs": 2652,
+      "readerMs": 2958,
+      "endToEndMs": 2958,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":180,\"amount_text\":\"מאה שמונים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":50,\"amount_text\":\"חמישים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"במכולת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-002",
@@ -60,7 +195,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -68,12 +203,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2391,
-      "endToEndMs": 2391,
+      "readerMs": 2121,
+      "endToEndMs": 2121,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":30,\"amount_text\":\"שלושים\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תפוחים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":70,\"amount_text\":\"שבעים\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מאפים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-003",
@@ -87,7 +224,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -95,12 +232,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2284,
-      "endToEndMs": 2284,
+      "readerMs": 2180,
+      "endToEndMs": 2180,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":1200,\"amount_text\":\"אלף מאתיים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"שכר לימוד שנתתי\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":100,\"amount_text\":\"מאה\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-004",
@@ -114,7 +253,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -122,15 +261,46 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2267,
-      "endToEndMs": 2267,
+      "readerMs": 2416,
+      "endToEndMs": 2416,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":200,\"amount_text\":\"מאתיים\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"צהרון\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":80,\"amount_text\":\"שמונים\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תרופות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-005",
+      "route": "unreadable",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": false,
+      "routeOk": false,
+      "fields": {
+        "route": "unreadable",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "readerMs": 2211,
+      "endToEndMs": 2211,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":40,\"amount_text\":\"40\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"נסיעה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":90,\"amount_text\":\"90\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית הכנסת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "split-he-006",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
@@ -141,47 +311,22 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
         "dateCorrect": 2,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 2104,
-      "endToEndMs": 2104,
-      "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "split-he-006",
-      "route": "several",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": false,
-      "routeOk": true,
-      "fields": {
-        "route": "several",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 2,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 2,
-        "typeCorrect": 1,
-        "specialTypeUnasked": true,
-        "dateChecked": 2,
-        "dateCorrect": 2,
         "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "specialQuestionWrong": true,
+        "checkAmounts": 2
       },
-      "readerMs": 2538,
-      "endToEndMs": 2538,
+      "readerMs": 2097,
+      "endToEndMs": 2097,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":500,\"amount_text\":\"חמש מאות\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":\"exempt-income\",\"recurrence\":null,\"description\":\"מתנה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":150,\"amount_text\":\"מאה חמישים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"צדקה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-001",
@@ -195,7 +340,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -203,39 +348,43 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2103,
-      "endToEndMs": 2103,
+      "readerMs": 2068,
+      "endToEndMs": 2068,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"fifty\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"kollel\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":100,\"amount_text\":\"one hundred\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"fuel\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-002",
-      "route": "several",
+      "route": "unreadable",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "several",
+        "route": "unreadable",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
         "amountCorrect": 0,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 2,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 2,
+        "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2472,
-      "endToEndMs": 2472,
+      "readerMs": 2464,
+      "endToEndMs": 2464,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":70,\"amount_text\":\"70\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"groceries\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"bus\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-007",
@@ -257,12 +406,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2232,
-      "endToEndMs": 2232,
+      "readerMs": 2925,
+      "endToEndMs": 2925,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל בוקר בחג\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה קטנה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-008",
@@ -284,12 +435,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2573,
-      "endToEndMs": 2573,
+      "readerMs": 2387,
+      "endToEndMs": 2388,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"גמ״ח חתונות\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"עזר מציון\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-009",
@@ -311,12 +464,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2070,
-      "endToEndMs": 2070,
+      "readerMs": 2133,
+      "endToEndMs": 2133,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":75,\"amount_text\":\"75\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"ספרים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":75,\"amount_text\":\"75\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"צעצועים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-010",
@@ -338,39 +493,43 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2383,
-      "endToEndMs": 2383,
+      "readerMs": 2704,
+      "endToEndMs": 2704,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"גז\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-011",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": true,
+      "exact": false,
       "routeOk": true,
       "fields": {
         "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 2,
+        "typeCorrect": 0,
         "specialTypeUnasked": false,
         "dateChecked": 2,
         "dateCorrect": 2,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2108,
-      "endToEndMs": 2108,
+      "readerMs": 2182,
+      "endToEndMs": 2183,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":80,\"amount_text\":\"שמונים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"למתנות לאביונים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":80,\"amount_text\":\"שמונים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"לקופת העיר\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-003",
@@ -392,12 +551,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2472,
-      "endToEndMs": 2472,
+      "readerMs": 2587,
+      "endToEndMs": 2587,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":40,\"amount_text\":\"40\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"parking\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":40,\"amount_text\":\"40\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"lunch\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-004",
@@ -418,13 +579,15 @@
         "specialTypeUnasked": false,
         "dateChecked": 2,
         "dateCorrect": 2,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2453,
-      "endToEndMs": 2453,
+      "readerMs": 2581,
+      "endToEndMs": 2581,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"gemach\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"synagogue\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-012",
@@ -438,7 +601,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -446,12 +609,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2135,
-      "endToEndMs": 2135,
+      "readerMs": 2238,
+      "endToEndMs": 2238,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"fifty\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל אברכים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":50,\"amount_text\":\"fifty\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבת נחלת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-013",
@@ -473,12 +638,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2079,
-      "endToEndMs": 2079,
+      "readerMs": 2500,
+      "endToEndMs": 2500,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":\"לפני כמה זמן\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"חב״ד\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":200,\"amount_text\":\"200\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מכולת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-014",
@@ -500,12 +667,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1899,
-      "endToEndMs": 1899,
+      "readerMs": 2052,
+      "endToEndMs": 2052,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":37.5,\"amount_text\":\"37.5\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אפליקציה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":16,\"amount_text\":\"16\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אחסון\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-015",
@@ -527,12 +696,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2128,
-      "endToEndMs": 2128,
+      "readerMs": 2409,
+      "endToEndMs": 2409,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":500,\"amount_text\":\"500\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"לקוח\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":50,\"amount_text\":\"50\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"גמ״ח\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-016",
@@ -554,12 +725,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1900,
-      "endToEndMs": 1900,
+      "readerMs": 2204,
+      "endToEndMs": 2204,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":30,\"amount_text\":\"30\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"ספר\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":280,\"amount_text\":\"280\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מעיל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-005",
@@ -581,12 +754,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2106,
-      "endToEndMs": 2106,
+      "readerMs": 2119,
+      "endToEndMs": 2119,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":30,\"amount_text\":\"30\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"books\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":45,\"amount_text\":\"45\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"lunch\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-006",
@@ -608,12 +783,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2282,
-      "endToEndMs": 2282,
+      "readerMs": 2149,
+      "endToEndMs": 2149,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":1500,\"amount_text\":\"1500\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"freelance work\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"charity\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-007",
@@ -635,12 +812,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2039,
-      "endToEndMs": 2039,
+      "readerMs": 2158,
+      "endToEndMs": 2158,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"parking\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":15,\"amount_text\":\"15\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"coffee\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-008",
@@ -662,12 +841,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3064,
-      "endToEndMs": 3064,
+      "readerMs": 2126,
+      "endToEndMs": 2126,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":70,\"amount_text\":\"70\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית חב״ד\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":90,\"amount_text\":\"90\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"groceries\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-017",
@@ -689,66 +870,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2595,
-      "endToEndMs": 2595,
+      "readerMs": 3070,
+      "endToEndMs": 3070,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מכולת\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-018",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2496,
-      "endToEndMs": 2497,
+      "readerMs": 2361,
+      "endToEndMs": 2361,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":210,\"amount_text\":\"210\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"דלק\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":85,\"amount_text\":\"85\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית מרקחת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-019",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2595,
-      "endToEndMs": 2595,
+      "readerMs": 2356,
+      "endToEndMs": 2356,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":400,\"amount_text\":\"400\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":9,\"year\":null},\"date_text\":\"ביום שלישי 29/09\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חוג\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אוטובוס\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-020",
@@ -770,93 +957,101 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2403,
-      "endToEndMs": 2403,
+      "readerMs": 2135,
+      "endToEndMs": 2136,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":850,\"amount_text\":\"850\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":7,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"לפני שבוע\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"עבודה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":450,\"amount_text\":\"450\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"יומיים לפני היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שולחן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-021",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2333,
-      "endToEndMs": 2333,
+      "readerMs": 2369,
+      "endToEndMs": 2369,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":36,\"amount_text\":\"36\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"מתנות לאביונים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":27,\"month\":11,\"year\":null},\"date_text\":\"27/11\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"הכנסת כלה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-009",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2196,
-      "endToEndMs": 2197,
+      "readerMs": 2685,
+      "endToEndMs": 2685,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":80,\"amount_text\":\"80\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"Yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"fuel\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"today\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"daycare\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-010",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2343,
-      "endToEndMs": 2343,
+      "readerMs": 2344,
+      "endToEndMs": 2344,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":900,\"amount_text\":\"900\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"Two days ago\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"consulting\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":55,\"amount_text\":\"55\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"groceries\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-022",
@@ -878,39 +1073,43 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2515,
-      "endToEndMs": 2515,
+      "readerMs": 2340,
+      "endToEndMs": 2341,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":95,\"amount_text\":\"95\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":5,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"last Friday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אוכל\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":70,\"amount_text\":\"70\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-023",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2299,
-      "endToEndMs": 2299,
+      "readerMs": 2200,
+      "endToEndMs": 2200,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":72,\"amount_text\":\"72\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית הכנסת\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":28,\"amount_text\":\"28\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"נסיעה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-024",
@@ -932,39 +1131,43 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2287,
-      "endToEndMs": 2287,
+      "readerMs": 2198,
+      "endToEndMs": 2198,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":2000,\"amount_text\":\"2,000\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"פרויקט\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":650,\"amount_text\":\"650\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":30,\"month\":10,\"year\":null},\"date_text\":\"30/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מדפסת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-025",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2347,
-      "endToEndMs": 2347,
+      "readerMs": 2321,
+      "endToEndMs": 2321,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"תלמוד תורה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":65,\"amount_text\":\"65\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אוכל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-026",
@@ -986,66 +1189,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2326,
-      "endToEndMs": 2326,
+      "readerMs": 2892,
+      "endToEndMs": 2892,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":140,\"amount_text\":\"140\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מנוי\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":210,\"amount_text\":\"210\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":9,\"year\":null},\"date_text\":\"15/09\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"ביטוח\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-027",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2372,
-      "endToEndMs": 2372,
+      "readerMs": 2341,
+      "endToEndMs": 2341,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חניה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":7,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"לפני שבוע\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"גמ״ח הלוואות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-011",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2527,
-      "endToEndMs": 2527,
+      "readerMs": 2301,
+      "endToEndMs": 2301,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"shoes\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":40,\"amount_text\":\"40\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"kollel\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-012",
@@ -1067,12 +1276,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2673,
-      "endToEndMs": 2673,
+      "readerMs": 2457,
+      "endToEndMs": 2457,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":1300,\"amount_text\":\"1,300\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"job\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":290,\"amount_text\":\"290\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":10,\"year\":null},\"date_text\":\"October 28\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"tuition\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-013",
@@ -1094,12 +1305,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2471,
-      "endToEndMs": 2471,
+      "readerMs": 2377,
+      "endToEndMs": 2377,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":35,\"amount_text\":\"35\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"taxi\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":35,\"amount_text\":\"35\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לצדקה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-028",
@@ -1121,12 +1334,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2399,
-      "endToEndMs": 2399,
+      "readerMs": 2484,
+      "endToEndMs": 2484,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":140,\"amount_text\":\"140\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":10,\"year\":null},\"date_text\":\"15/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תרופות\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":200,\"amount_text\":\"200\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":16,\"month\":10,\"year\":null},\"date_text\":\"16/10\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
     },
     {
       "id": "split-he-029",
@@ -1148,66 +1363,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2273,
-      "endToEndMs": 2273,
+      "readerMs": 2404,
+      "endToEndMs": 2404,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":1400,\"amount_text\":\"1,400\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":5,\"month\":10,\"year\":null},\"date_text\":\"5/10\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"מהעבודה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":225,\"amount_text\":\"225\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":6,\"month\":10,\"year\":null},\"date_text\":\"6/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לסופר\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-030",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2024,
-      "endToEndMs": 2024,
+      "readerMs": 2547,
+      "endToEndMs": 2547,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":9,\"year\":null},\"date_text\":\"28/09\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חשמל\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":30,\"month\":9,\"year\":null},\"date_text\":\"30/09\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-031",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2672,
-      "endToEndMs": 2672,
+      "readerMs": 2438,
+      "endToEndMs": 2438,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":36,\"amount_text\":\"36\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":2,\"month\":11,\"year\":null},\"date_text\":\"2/11\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"צדקה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":54,\"amount_text\":\"54\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":11,\"year\":null},\"date_text\":\"3/11\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית הכנסת\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-032",
@@ -1229,12 +1450,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2374,
-      "endToEndMs": 2375,
+      "readerMs": 2782,
+      "endToEndMs": 2782,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":3300,\"amount_text\":\"3,300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":20,\"month\":10,\"year\":null},\"date_text\":\"20/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שכר דירה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":450,\"amount_text\":\"450\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":22,\"month\":10,\"year\":null},\"date_text\":\"22/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"גן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-033",
@@ -1256,12 +1479,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2262,
-      "endToEndMs": 2262,
+      "readerMs": 2602,
+      "endToEndMs": 2602,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":8200,\"amount_text\":\"8,200\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":null},\"date_text\":\"ב-01/11\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"משכורת\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":190,\"amount_text\":\"190\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":11,\"year\":null},\"date_text\":\"ב־03/11\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מתנה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-034",
@@ -1283,12 +1508,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2378,
-      "endToEndMs": 2378,
+      "readerMs": 2360,
+      "endToEndMs": 2360,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":360,\"amount_text\":\"360\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":7,\"month\":10,\"year\":null},\"date_text\":\"07/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מעיל\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":150,\"amount_text\":\"150\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":9,\"month\":10,\"year\":null},\"date_text\":\"09/10\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"קרן הלוואות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-035",
@@ -1310,19 +1537,21 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2574,
-      "endToEndMs": 2574,
+      "readerMs": 2436,
+      "endToEndMs": 2436,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":88,\"amount_text\":\"88\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":25,\"month\":11,\"year\":null},\"date_text\":\"ב-25/11\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לאינטרנט\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":26,\"month\":11,\"year\":null},\"date_text\":\"וב־26/11\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לעזר מציון\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-036",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": true,
+      "exact": false,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -1330,19 +1559,21 @@
         "clear": true,
         "amountChecked": 2,
         "amountCorrect": 2,
-        "wrongAnchoredAmount": false,
+        "wrongAnchoredAmount": true,
         "typeChecked": 2,
         "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2043,
-      "endToEndMs": 2043,
+      "readerMs": 2365,
+      "endToEndMs": 2365,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"2 חולצות\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"3 לחמים\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"יחד\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-037",
@@ -1364,12 +1595,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2079,
-      "endToEndMs": 2079,
+      "readerMs": 5038,
+      "endToEndMs": 5038,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":3000,\"amount_text\":\"3000\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אייפון 15\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":80,\"amount_text\":\"80\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מגן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-038",
@@ -1391,66 +1624,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2083,
-      "endToEndMs": 2083,
+      "readerMs": 2462,
+      "endToEndMs": 2462,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חניה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":40,\"amount_text\":\"40\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"קפה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-039",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2164,
-      "endToEndMs": 2164,
+      "readerMs": 2326,
+      "endToEndMs": 2326,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":240,\"amount_text\":\"240\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"4 כרטיסים להצגה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":90,\"amount_text\":\"90\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"2 פיצות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-014",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2109,
-      "endToEndMs": 2109,
+      "readerMs": 2248,
+      "endToEndMs": 2248,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":45,\"amount_text\":\"45\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Bought three 500ml bottles\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":18,\"amount_text\":\"18\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"a 2L jug\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-015",
@@ -1472,12 +1711,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2034,
-      "endToEndMs": 2034,
+      "readerMs": 2536,
+      "endToEndMs": 2536,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":75,\"amount_text\":\"75\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"breakfast\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":200,\"amount_text\":\"200\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":null,\"weekday\":null,\"start_kind\":null,\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"monthly bus pass\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-016",
@@ -1499,12 +1740,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1854,
-      "endToEndMs": 1854,
+      "readerMs": 2182,
+      "endToEndMs": 2182,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"6 notebooks\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":350,\"amount_text\":\"350\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"model 2025 bicycle repair\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-040",
@@ -1526,12 +1769,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2213,
-      "endToEndMs": 2213,
+      "readerMs": 2090,
+      "endToEndMs": 2090,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":4100,\"amount_text\":\"4,100\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"iPhone 16\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":130,\"amount_text\":\"130\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"2 כיסויים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-041",
@@ -1553,66 +1798,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2252,
-      "endToEndMs": 2252,
+      "readerMs": 2212,
+      "endToEndMs": 2212,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":47,\"amount_text\":\"47\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מכולת\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":23,\"amount_text\":\"23\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מאפיה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-042",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2055,
-      "endToEndMs": 2055,
+      "readerMs": 2274,
+      "endToEndMs": 2274,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"דלק\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שטיפת רכב\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-017",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
       "exact": false,
-      "routeOk": false,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 3,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
+        "amountCorrect": 3,
+        "wrongAnchoredAmount": true,
         "typeChecked": 3,
-        "typeCorrect": 0,
+        "typeCorrect": 3,
         "specialTypeUnasked": false,
         "dateChecked": 3,
-        "dateCorrect": 0,
+        "dateCorrect": 3,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2232,
-      "endToEndMs": 2232,
+      "readerMs": 2710,
+      "endToEndMs": 2710,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":12,\"amount_text\":\"12\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"Bread\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":9,\"amount_text\":\"9\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"milk\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":19,\"amount_text\":\"19\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"eggs\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":40,\"amount_text\":\"40\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"…"
     },
     {
       "id": "split-en-018",
@@ -1634,12 +1885,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2030,
-      "endToEndMs": 2030,
+      "readerMs": 2510,
+      "endToEndMs": 2510,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"tutoring\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":150,\"amount_text\":\"150\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"school supplies\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-019",
@@ -1661,12 +1914,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2025,
-      "endToEndMs": 2025,
+      "readerMs": 2167,
+      "endToEndMs": 2167,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":80,\"amount_text\":\"80\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"books\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":20,\"amount_text\":\"20\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"coffee\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-020",
@@ -1688,66 +1943,72 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2045,
-      "endToEndMs": 2045,
+      "readerMs": 2169,
+      "endToEndMs": 2169,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":9000,\"amount_text\":\"9,000\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"Salary\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":900,\"amount_text\":\"900\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"maaser\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-021",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "dateCorrect": 2,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": true,
+        "checkAmounts": 0
       },
-      "readerMs": 1835,
-      "endToEndMs": 1835,
+      "readerMs": 2197,
+      "endToEndMs": 2197,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":700,\"amount_text\":\"700\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"tax refund\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"groceries\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-022",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2215,
-      "endToEndMs": 2215,
+      "readerMs": 2620,
+      "endToEndMs": 2620,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"gemach\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":450,\"amount_text\":\"450\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"freelance work\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-023",
@@ -1769,12 +2030,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2127,
-      "endToEndMs": 2127,
+      "readerMs": 2547,
+      "endToEndMs": 2547,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"design work\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":75,\"amount_text\":\"75\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"software\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-043",
@@ -1796,23 +2059,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4397,
-      "endToEndMs": 4397,
+      "readerMs": 1668,
+      "endToEndMs": 1668,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"more_than_five\":true,\"items\":[],\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-044",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1823,23 +2088,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3520,
-      "endToEndMs": 3520,
+      "readerMs": 1679,
+      "endToEndMs": 1679,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-045",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1850,23 +2117,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4212,
-      "endToEndMs": 4212,
+      "readerMs": 1389,
+      "endToEndMs": 1389,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-046",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1877,23 +2146,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3644,
-      "endToEndMs": 3644,
+      "readerMs": 1687,
+      "endToEndMs": 1687,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-047",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1904,23 +2175,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4583,
-      "endToEndMs": 4584,
+      "readerMs": 1749,
+      "endToEndMs": 1749,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-048",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1931,23 +2204,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4332,
-      "endToEndMs": 4332,
+      "readerMs": 1665,
+      "endToEndMs": 1665,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-049",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -1958,12 +2233,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3502,
-      "endToEndMs": 3502,
+      "readerMs": 2185,
+      "endToEndMs": 2185,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-050",
@@ -1985,23 +2262,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3634,
-      "endToEndMs": 3634,
+      "readerMs": 1743,
+      "endToEndMs": 1743,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"more_than_five\":true,\"items\":[],\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-051",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2012,23 +2291,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3548,
-      "endToEndMs": 3548,
+      "readerMs": 1748,
+      "endToEndMs": 1748,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-024",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2039,23 +2320,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4504,
-      "endToEndMs": 4504,
+      "readerMs": 1770,
+      "endToEndMs": 1770,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-025",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2066,23 +2349,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4278,
-      "endToEndMs": 4278,
+      "readerMs": 1419,
+      "endToEndMs": 1420,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-026",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2093,23 +2378,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3713,
-      "endToEndMs": 3713,
+      "readerMs": 1653,
+      "endToEndMs": 1654,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-027",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2120,23 +2407,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3536,
-      "endToEndMs": 3536,
+      "readerMs": 1559,
+      "endToEndMs": 1559,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-052",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2147,23 +2436,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4211,
-      "endToEndMs": 4211,
+      "readerMs": 1563,
+      "endToEndMs": 1563,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-028",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -2174,12 +2465,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4023,
-      "endToEndMs": 4023,
+      "readerMs": 1638,
+      "endToEndMs": 1638,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-053",
@@ -2201,15 +2494,46 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1893,
-      "endToEndMs": 1893,
+      "readerMs": 1854,
+      "endToEndMs": 1854,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":5000,\"amount_text\":\"5\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-en-029",
+      "route": "several",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": false,
+      "routeOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 1,
+        "specialTypeUnasked": false,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "readerMs": 2127,
+      "endToEndMs": 2127,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":\"2.5K\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"rent\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "split-he-054",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
@@ -2228,39 +2552,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 1
       },
-      "readerMs": 1897,
-      "endToEndMs": 1897,
+      "readerMs": 2088,
+      "endToEndMs": 2089,
       "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "split-he-054",
-      "route": "several",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
-      "fields": {
-        "route": "several",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 1,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 1,
-        "typeCorrect": 1,
-        "specialTypeUnasked": false,
-        "dateChecked": 1,
-        "dateCorrect": 1,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 1899,
-      "endToEndMs": 1899,
-      "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":2000,\"amount_text\":\"אלפיים\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שילמתי אלפיים שקל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "split-he-055",
@@ -2282,73 +2581,79 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2095,
-      "endToEndMs": 2095,
+      "readerMs": 1932,
+      "endToEndMs": 1932,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-001",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3263,
-      "endToEndMs": 3263,
+      "readerMs": 1982,
+      "endToEndMs": 1982,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"סופר\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-002",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1876,
-      "endToEndMs": 1876,
+      "readerMs": 2104,
+      "endToEndMs": 2104,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":130,\"amount_text\":\"130\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"רופא שיניים\",\"payment_method\":\"credit_card\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-003",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -2363,12 +2668,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2227,
-      "endToEndMs": 2227,
+      "readerMs": 2281,
+      "endToEndMs": 2281,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם וגבינה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-004",
@@ -2390,12 +2697,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1918,
-      "endToEndMs": 1918,
+      "readerMs": 1875,
+      "endToEndMs": 1875,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":80,\"amount_text\":\"80\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"השכן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-005",
@@ -2417,12 +2726,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1932,
-      "endToEndMs": 1932,
+      "readerMs": 2030,
+      "endToEndMs": 2030,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":480,\"amount_text\":\"480\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"ביטוח רכב\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-006",
@@ -2444,12 +2755,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1850,
-      "endToEndMs": 1850,
+      "readerMs": 2157,
+      "endToEndMs": 2157,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":120,\"amount_text\":\"120\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"בית הכנסת\",\"payment_method\":\"cash\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-007",
@@ -2471,12 +2784,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1839,
-      "endToEndMs": 1839,
+      "readerMs": 1971,
+      "endToEndMs": 1971,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"עזר מציון\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-008",
@@ -2498,19 +2813,21 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1797,
-      "endToEndMs": 1797,
+      "readerMs": 2229,
+      "endToEndMs": 2230,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":150,\"amount_text\":\"מאה חמישים\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"השכן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-009",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -2520,17 +2837,19 @@
         "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 0,
+        "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2010,
-      "endToEndMs": 2010,
+      "readerMs": 2181,
+      "endToEndMs": 2181,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":5000,\"amount_text\":\"5 אלף\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"income\",\"type_question\":\"exempt-income\",\"recurrence\":null,\"description\":\"סבא נתן\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-010",
@@ -2552,19 +2871,21 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1993,
-      "endToEndMs": 1993,
+      "readerMs": 2000,
+      "endToEndMs": 2000,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"תרופות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-011",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -2578,13 +2899,15 @@
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2070,
-      "endToEndMs": 2070,
+      "readerMs": 2057,
+      "endToEndMs": 2057,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":220,\"amount_text\":\"220\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":3,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"לפני 3 ימים\",\"type\":\"recognized-expense\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"חומרי עבודה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-012",
@@ -2598,7 +2921,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
         "typeCorrect": 1,
@@ -2606,12 +2929,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 1
       },
-      "readerMs": 2062,
-      "endToEndMs": 2062,
+      "readerMs": 2137,
+      "endToEndMs": 2137,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":3400,\"amount_text\":\"שלושת אלפים ארבע מאות\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":0,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"ביום ראשון שעבר\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"מהעסק\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-013",
@@ -2633,69 +2958,17 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1829,
-      "endToEndMs": 1829,
+      "readerMs": 2227,
+      "endToEndMs": 2227,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":450,\"amount_text\":\"450\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חומרי עבודה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-014",
-      "route": "several",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": false,
-      "routeOk": true,
-      "fields": {
-        "route": "several",
-        "parsed": true,
-        "clear": false,
-        "amountChecked": 0,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 0,
-        "typeCorrect": 0,
-        "specialTypeUnasked": false,
-        "dateChecked": 0,
-        "dateCorrect": 0,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 2056,
-      "endToEndMs": 2057,
-      "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "blind-he-015",
-      "route": "several",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": false,
-      "routeOk": true,
-      "fields": {
-        "route": "several",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 1,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 1,
-        "typeCorrect": 0,
-        "specialTypeUnasked": false,
-        "dateChecked": 1,
-        "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 1979,
-      "endToEndMs": 1979,
-      "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "blind-he-016",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
@@ -2714,12 +2987,72 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1998,
-      "endToEndMs": 1998,
+      "readerMs": 2261,
+      "endToEndMs": 2261,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"מול ועד הבית\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "blind-he-015",
+      "route": "several",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": false,
+      "routeOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 1,
+        "amountCorrect": 1,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 1,
+        "typeCorrect": 0,
+        "specialTypeUnasked": true,
+        "dateChecked": 1,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 1
+      },
+      "readerMs": 2146,
+      "endToEndMs": 2146,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":2000,\"amount_text\":\"אלפיים\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"exempt-income\",\"type_question\":\"exempt-income\",\"recurrence\":null,\"description\":\"ירושה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "blind-he-016",
+      "route": "several",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": false,
+      "routeOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": false,
+        "amountChecked": 0,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 0,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 0,
+        "dateCorrect": 0,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "readerMs": 2431,
+      "endToEndMs": 2431,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":3,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":3,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"לפני 3 ימים\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"גמ״ח חתונות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-017",
@@ -2741,19 +3074,21 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1901,
-      "endToEndMs": 1901,
+      "readerMs": 2222,
+      "endToEndMs": 2222,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":65,\"amount_text\":\"65\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":0,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"ביום ראשון שעבר\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"packaging\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-018",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -2768,19 +3103,21 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1920,
-      "endToEndMs": 1920,
+      "readerMs": 2366,
+      "endToEndMs": 2366,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":5,\"month\":null,\"year\":null},\"date_text\":\"ב־5 לחודש\",\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"מול חבר\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-019",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -2793,41 +3130,45 @@
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
-        "dateCorrect": 0,
+        "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2020,
-      "endToEndMs": 2020,
+      "readerMs": 2194,
+      "endToEndMs": 2194,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":70,\"amount_text\":\"70\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":12,\"month\":10,\"year\":2026},\"date_text\":\"2026-10-12\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"שיעור נהיגה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
     },
     {
       "id": "blind-he-020",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1944,
-      "endToEndMs": 1944,
+      "readerMs": 2345,
+      "endToEndMs": 2345,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":10,\"year\":2026},\"date_text\":\"ב־3 באוקטובר\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-021",
@@ -2849,12 +3190,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2186,
-      "endToEndMs": 2186,
+      "readerMs": 2064,
+      "endToEndMs": 2064,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"ב־2026-10-12\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"טיפול שיניים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-022",
@@ -2868,20 +3211,22 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
-        "typeCorrect": 0,
+        "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "specialQuestionWrong": true,
+        "checkAmounts": 0
       },
-      "readerMs": 2067,
-      "endToEndMs": 2067,
+      "readerMs": 2124,
+      "endToEndMs": 2124,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":420,\"amount_text\":\"420\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":14,\"month\":10,\"year\":null},\"date_text\":\"ב־14/10\",\"type\":\"income\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"החזר הוצאות מהעבודה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-023",
@@ -2903,12 +3248,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2106,
-      "endToEndMs": 2106,
+      "readerMs": 2219,
+      "endToEndMs": 2219,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":40,\"amount_text\":\"40\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":28,\"month\":10,\"year\":2026},\"date_text\":\"ב־28 באוקטובר\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"2 מחברות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-024",
@@ -2930,12 +3277,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1983,
-      "endToEndMs": 1983,
+      "readerMs": 2339,
+      "endToEndMs": 2339,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":8,\"amount_text\":\"8\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלב\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":12,\"amount_text\":\"12\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-025",
@@ -2949,7 +3298,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -2957,12 +3306,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 2
       },
-      "readerMs": 2119,
-      "endToEndMs": 2119,
+      "readerMs": 2170,
+      "endToEndMs": 2170,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"חמישים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לכולל\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":180,\"amount_text\":\"מאה שמונים\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-026",
@@ -2984,46 +3335,21 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2122,
-      "endToEndMs": 2122,
+      "readerMs": 2604,
+      "endToEndMs": 2604,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":1500,\"amount_text\":\"1,500\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"פרויקט\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":180,\"amount_text\":\"180\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"נעליים\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-027",
-      "route": "unreadable",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": false,
-      "routeOk": false,
-      "fields": {
-        "route": "unreadable",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 2,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 2,
-        "typeCorrect": 0,
-        "specialTypeUnasked": false,
-        "dateChecked": 2,
-        "dateCorrect": 0,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 2097,
-      "endToEndMs": 2097,
-      "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "blind-he-028",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -3037,67 +3363,102 @@
         "specialTypeUnasked": false,
         "dateChecked": 2,
         "dateCorrect": 2,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2309,
-      "endToEndMs": 2309,
+      "readerMs": 2422,
+      "endToEndMs": 2422,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":210,\"amount_text\":\"210\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"gas\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":90,\"amount_text\":\"90\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"אוכל\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "blind-he-028",
+      "route": "several",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": true,
+      "routeOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 2,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 2,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 2,
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "readerMs": 2436,
+      "endToEndMs": 2436,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":200,\"amount_text\":\"200\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"שלשום\",\"type\":\"recognized-expense\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"ציוד לעסק\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":900,\"amount_text\":\"900\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"היום\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"לקוח\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-029",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 8296,
-      "endToEndMs": 8296,
+      "readerMs": 2190,
+      "endToEndMs": 2190,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":0,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"ביום ראשון שעבר\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לבית הכנסת\",\"payment_method\":\"check\",\"category\":null,\"rule_id\":null},{\"amount\":30,\"amount_text\":\"30\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"אתמול\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלות\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-030",
-      "route": "unreadable",
+      "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
-      "routeOk": false,
+      "exact": true,
+      "routeOk": true,
       "fields": {
-        "route": "unreadable",
+        "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 0,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
-        "typeCorrect": 0,
+        "typeCorrect": 2,
         "specialTypeUnasked": false,
         "dateChecked": 2,
-        "dateCorrect": 0,
+        "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2456,
-      "endToEndMs": 2456,
+      "readerMs": 2480,
+      "endToEndMs": 2480,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":75,\"amount_text\":\"75\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":12,\"month\":10,\"year\":null},\"date_text\":\"ב־12/10\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חניה\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":600,\"amount_text\":\"600\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":15,\"month\":10,\"year\":null},\"date_text\":\"וב־15/10\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"שיעור פרטי\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-031",
@@ -3119,23 +3480,25 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2394,
-      "endToEndMs": 2394,
+      "readerMs": 2833,
+      "endToEndMs": 2833,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":400,\"amount_text\":\"400\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":10,\"year\":null},\"date_text\":\"ב־3 באוקטובר\",\"type\":\"income\",\"type_question\":\"exempt-income\",\"recurrence\":null,\"description\":\"מתנה מסבא\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":80,\"amount_text\":\"80\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":4,\"month\":10,\"year\":null},\"date_text\":\"וב־4 באוקטובר\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לעזר מציון\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-032",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -3146,12 +3509,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 3562,
-      "endToEndMs": 3562,
+      "readerMs": 1674,
+      "endToEndMs": 1674,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-he-033",
@@ -3173,19 +3538,21 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4429,
-      "endToEndMs": 4429,
+      "readerMs": 1728,
+      "endToEndMs": 1728,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"more_than_five\":true,\"items\":[],\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-001",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -3199,40 +3566,44 @@
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1886,
-      "endToEndMs": 1886,
+      "readerMs": 1902,
+      "endToEndMs": 1903,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":450,\"amount_text\":\"450\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"exempt-income\",\"type_question\":\"exempt-income\",\"recurrence\":null,\"description\":\"scholarship\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-002",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
         "parsed": true,
         "clear": true,
         "amountChecked": 1,
-        "amountCorrect": 0,
+        "amountCorrect": 1,
         "wrongAnchoredAmount": false,
         "typeChecked": 1,
         "typeCorrect": 1,
         "specialTypeUnasked": false,
         "dateChecked": 1,
         "dateCorrect": 1,
-        "unnecessaryQuestion": true,
-        "specialQuestionWrong": false
+        "unnecessaryQuestion": false,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1770,
-      "endToEndMs": 1770,
+      "readerMs": 2072,
+      "endToEndMs": 2072,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":75,\"amount_text\":\"75\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"parking\",\"payment_method\":\"bit_paybox\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-003",
@@ -3254,12 +3625,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2496,
-      "endToEndMs": 2496,
+      "readerMs": 2093,
+      "endToEndMs": 2093,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"a new desk for my study\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-004",
@@ -3281,19 +3654,21 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 1972,
-      "endToEndMs": 1972,
+      "readerMs": 2179,
+      "endToEndMs": 2179,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":2500,\"amount_text\":\"2.5K\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":0,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"Last Sunday\",\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"freelance work\",\"payment_method\":\"bank_transfer\",\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-005",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
-      "exact": false,
+      "exact": true,
       "routeOk": true,
       "fields": {
         "route": "several",
@@ -3308,12 +3683,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2228,
-      "endToEndMs": 2228,
+      "readerMs": 1837,
+      "endToEndMs": 1837,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":90,\"amount_text\":\"90\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":2,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"Two days ago\",\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"friend\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-006",
@@ -3335,12 +3712,14 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2865,
-      "endToEndMs": 2865,
+      "readerMs": 2287,
+      "endToEndMs": 2287,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":30,\"amount_text\":\"30\",\"currency\":\"EUR\",\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":3,\"month\":10,\"year\":null},\"date_text\":\"On October 3\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"books\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-007",
@@ -3362,15 +3741,46 @@
         "dateChecked": 1,
         "dateCorrect": 1,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2211,
-      "endToEndMs": 2211,
+      "readerMs": 2762,
+      "endToEndMs": 2762,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":120,\"amount_text\":\"120\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":29,\"month\":12,\"year\":null},\"date_text\":\"29/12\",\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"yeshiva\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-008",
+      "route": "several",
+      "expectedRoute": "several",
+      "parsed": true,
+      "exact": false,
+      "routeOk": true,
+      "fields": {
+        "route": "several",
+        "parsed": true,
+        "clear": true,
+        "amountChecked": 2,
+        "amountCorrect": 0,
+        "wrongAnchoredAmount": false,
+        "typeChecked": 2,
+        "typeCorrect": 0,
+        "specialTypeUnasked": false,
+        "dateChecked": 2,
+        "dateCorrect": 1,
+        "unnecessaryQuestion": true,
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
+      },
+      "readerMs": 2468,
+      "endToEndMs": 2468,
+      "jev": "ok",
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"כולל\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":120,\"amount_text\":\"120\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"fuel\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "blind-en-009",
       "route": "several",
       "expectedRoute": "several",
       "parsed": true,
@@ -3381,7 +3791,7 @@
         "parsed": true,
         "clear": true,
         "amountChecked": 2,
-        "amountCorrect": 1,
+        "amountCorrect": 2,
         "wrongAnchoredAmount": false,
         "typeChecked": 2,
         "typeCorrect": 2,
@@ -3389,39 +3799,14 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 2143,
-      "endToEndMs": 2143,
+      "readerMs": 2466,
+      "endToEndMs": 2466,
       "jev": "ok",
-      "raw": null
-    },
-    {
-      "id": "blind-en-009",
-      "route": "unreadable",
-      "expectedRoute": "several",
-      "parsed": true,
-      "exact": false,
-      "routeOk": false,
-      "fields": {
-        "route": "unreadable",
-        "parsed": true,
-        "clear": true,
-        "amountChecked": 2,
-        "amountCorrect": 0,
-        "wrongAnchoredAmount": false,
-        "typeChecked": 2,
-        "typeCorrect": 0,
-        "specialTypeUnasked": false,
-        "dateChecked": 2,
-        "dateCorrect": 0,
-        "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
-      },
-      "readerMs": 2365,
-      "endToEndMs": 2365,
-      "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"last_weekday\",\"n\":null,\"weekday\":0,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"Last Sunday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"2 shirts\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"yesterday\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"3 loaves\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-010",
@@ -3443,23 +3828,25 @@
         "dateChecked": 2,
         "dateCorrect": 2,
         "unnecessaryQuestion": true,
-        "specialQuestionWrong": true
+        "specialQuestionWrong": true,
+        "checkAmounts": 0
       },
-      "readerMs": 2350,
-      "endToEndMs": 2350,
+      "readerMs": 2331,
+      "endToEndMs": 2331,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":[{\"amount\":500,\"amount_text\":\"500\",\"currency\":\"USD\",\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":12,\"month\":10,\"year\":null},\"date_text\":\"October 12\",\"type\":\"income\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"expense reimbursement\",\"payment_method\":null,\"category\":null,\"rule_id\":null},{\"amount\":45,\"amount_text\":\"45\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":14,\"month\":10,\"year\":null},\"date_text\":\"October 14\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"lunch\",\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-011",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -3470,23 +3857,25 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4382,
-      "endToEndMs": 4382,
+      "readerMs": 1741,
+      "endToEndMs": 1741,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     },
     {
       "id": "blind-en-012",
-      "route": "list",
+      "route": "unreadable",
       "expectedRoute": "list",
-      "parsed": true,
-      "exact": true,
-      "routeOk": true,
+      "parsed": false,
+      "exact": false,
+      "routeOk": false,
       "fields": {
-        "route": "list",
-        "parsed": true,
+        "route": "unreadable",
+        "parsed": false,
         "clear": false,
         "amountChecked": 0,
         "amountCorrect": 0,
@@ -3497,12 +3886,14 @@
         "dateChecked": 0,
         "dateCorrect": 0,
         "unnecessaryQuestion": false,
-        "specialQuestionWrong": false
+        "specialQuestionWrong": false,
+        "checkAmounts": 0
       },
-      "readerMs": 4601,
-      "endToEndMs": 4601,
+      "readerMs": 1684,
+      "endToEndMs": 1684,
       "jev": "ok",
-      "raw": null
+      "reasoningTokens": 0,
+      "model": "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}"
     }
   ]
 }
