@@ -55,10 +55,6 @@
     "voiceUnheard": "Nothing was heard. Nothing was saved.",
     "providerFailed": "The service is unavailable. Nothing was saved.",
     "oneAtATime": "I record one transaction at a time. Send them one by one.",
-    "couldNotRead": "I couldn't read that. You can add it in the form.",
-    "openAddForm": "Open the form",
-    "askSpecialYes": "Yes",
-    "askSpecialNo": "No",
     "splitList": "This looks like a list. You can open import.",
     "splitDropped": "Found {{found}}. {{dropped}} was not read for certain.",
     "splitSave": "Save the checked ones ({{count}})",
@@ -73,11 +69,6 @@
     "noRate": "none",
     "save": "Approve and save",
     "askType": "What kind of transaction is this?",
-    "askSpecial": {
-      "exempt-income": "Is this income exempt from tithe?",
-      "recognized-expense": "Is this a recognized expense?",
-      "non_tithe_donation": "Is this a gift that is not from tithe?"
-    },
     "askIntent": "Not sure what you meant. What is this message?",
     "dataAnswer_one": "In {{year}}, 1 saved {{type}} transaction{{recipientClause}} totals {{amount}}.",
     "dataAnswer_other": "In {{year}}, {{count}} saved {{type}} transactions{{recipientClause}} total {{amount}}.",

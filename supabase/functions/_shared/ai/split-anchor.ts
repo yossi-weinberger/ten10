@@ -1,68 +1,23 @@
-import { resolveDateStruct, type DateStruct } from "./split-date.ts";
-import { resolveRecurrence, type ResolvedRecurrence } from "./split-recurrence.ts";
-import type { SplitItemInput } from "./split-schema.ts";
+import { amountsFromText, prepareText, resolveDatePhrase } from "./text-draft.ts";
 
-export type SplitCurrency = "ILS" | "USD" | "EUR" | "";
-export type SplitTypeHint =
-  | "income"
-  | "expense"
-  | "donation"
-  | "exempt-income"
-  | "recognized-expense"
-  | "non_tithe_donation"
-  | "";
-
-export type SpecialType = "exempt-income" | "recognized-expense" | "non_tithe_donation";
-export type SplitPayment = "credit_card" | "cash" | "bank_transfer" | "bit_paybox" | "check";
-
-export interface SplitRuleRef {
-  id: string;
-  name: string;
-  type: SpecialType;
+export interface SplitProposal {
+  description: string;
+  amount: number;
+  amount_text: string;
+  currency: string;
+  date_phrase: string;
+  type_hint: string;
 }
 
-export interface SplitReadContext {
-  today: string;
-  defaultCurrency: "ILS" | "USD" | "EUR";
-  categories: readonly string[];
-  rules: readonly SplitRuleRef[];
-  recipients: readonly string[];
-}
+type SplitCurrency = "ILS" | "USD" | "EUR" | "";
+type SplitTypeHint = "income" | "expense" | "donation" | "";
 
 export interface AnchoredSplitItem {
   description: string;
-  amount: number | null;
+  amount: number;
   currency: SplitCurrency;
   date: string | null;
-  checkDate: boolean;
   typeHint: SplitTypeHint;
-  typeQuestion: SpecialType | null;
-  requestedRate: number | null;
-  paymentMethod: SplitPayment | null;
-  category: string | null;
-  ruleId: string | null;
-  ruleName: string | null;
-  recurrence: ResolvedRecurrence | null;
-}
-
-export function splitReadContext(today: string, extra: Partial<SplitReadContext> = {}): SplitReadContext {
-  return {
-    today,
-    defaultCurrency: extra.defaultCurrency ?? "ILS",
-    categories: extra.categories ?? [],
-    rules: extra.rules ?? [],
-    recipients: extra.recipients ?? [],
-  };
-}
-
-function fold(value: string): string {
-  return value
-    .replace(/\u00a0/g, " ")
-    .replace(/[־–—-]/g, "")
-    .replace(/,/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
 }
 
 function occurrences(haystack: string, needle: string): number {
@@ -80,83 +35,52 @@ function occurrences(haystack: string, needle: string): number {
   return count;
 }
 
-/** Digits in the evidence, after thousand separators are removed. Words have none. */
-export function digitValue(text: string): number | null {
-  const compact = text.replace(/[\s\u00a0,']/g, "").replace(/[־–—-]/g, "");
-  if (!/\d/.test(compact)) return null;
-  const match = compact.match(/\d+(?:\.\d+)?/);
-  if (!match) return null;
-  const value = Number(match[0]);
-  return Number.isFinite(value) ? value : null;
+function currencyOf(value: string): SplitCurrency {
+  const upper = value.trim().toUpperCase();
+  if (upper === "ILS" || upper === "USD" || upper === "EUR") return upper;
+  return "";
 }
 
-function amountsMatch(amount: number, text: string): boolean {
-  const digits = digitValue(text);
-  if (digits === null) return true;
-  return Math.abs(digits - amount) < 0.001;
+function typeOf(value: string): SplitTypeHint {
+  if (value === "income" || value === "expense" || value === "donation") return value;
+  return "";
 }
 
-function textAppears(source: string, evidence: string): boolean {
-  const needle = fold(evidence);
-  if (needle.length === 0) return false;
-  return occurrences(fold(source), needle) > 0;
-}
-
-function anchoredAmount(source: string, item: SplitItemInput, alone: boolean, used: Map<string, number>): number | null | "drop" {
-  if (item.amount === null || item.amount_text === null || item.amount <= 0) {
-    return alone ? null : "drop";
+function parsedAmount(text: string): number | null {
+  for (const sample of [text, `${text} שקל`, `${text} shekels`]) {
+    const found = amountsFromText(sample);
+    if (found.length === 1) return found[0];
   }
-  const needle = fold(item.amount_text);
-  const seen = occurrences(fold(source), needle);
-  const taken = used.get(needle) ?? 0;
-  const ok = needle.length > 0 && amountsMatch(item.amount, item.amount_text) && taken < seen;
-  if (!ok) return alone ? null : "drop";
-  used.set(needle, taken + 1);
-  return item.amount;
+  return null;
 }
 
-function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
-  if (date === null) return { date: today, checkDate: false };
-  if (dateText === null || !textAppears(source, dateText)) return { date: today, checkDate: false };
-  const resolved = resolveDateStruct(date, today);
-  if (resolved === null) return { date: null, checkDate: true };
-  return { date: resolved, checkDate: false };
-}
-
-/** One item keeps an unanchored amount as null. Several items drop that item. */
+/** Drops a proposal whose amount text is missing, misread, or used more times than it appears. */
 export function anchorSplitItems(
   source: string,
-  items: readonly SplitItemInput[],
-  context: SplitReadContext,
+  proposals: readonly SplitProposal[],
+  today: string,
 ): { items: AnchoredSplitItem[]; dropped: number } {
-  const alone = items.length === 1;
+  const preparedSource = prepareText(source);
   const used = new Map<string, number>();
-  const kept: AnchoredSplitItem[] = [];
+  const items: AnchoredSplitItem[] = [];
   let dropped = 0;
-  for (const item of items) {
-    const amount = anchoredAmount(source, item, alone, used);
-    if (amount === "drop") {
+  for (const proposal of proposals) {
+    const needle = prepareText(proposal.amount_text);
+    const parsed = parsedAmount(proposal.amount_text);
+    const amountMatches = parsed === proposal.amount;
+    const taken = used.get(needle) ?? 0;
+    if (!amountMatches || taken >= occurrences(preparedSource, needle)) {
       dropped += 1;
       continue;
     }
-    const dated = anchoredDate(source, item.date, item.date_text, context.today);
-    const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
-    const category = item.category && context.categories.includes(item.category) ? item.category : null;
-    kept.push({
-      description: item.description.trim(),
-      amount,
-      currency: item.currency ?? context.defaultCurrency,
-      date: dated.date,
-      checkDate: dated.checkDate,
-      typeHint: rule ? rule.type : item.type ?? "",
-      typeQuestion: item.type_question,
-      requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
-      paymentMethod: item.payment_method,
-      category,
-      ruleId: rule?.id ?? null,
-      ruleName: rule?.name ?? null,
-      recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
+    used.set(needle, taken + 1);
+    items.push({
+      description: proposal.description.trim(),
+      amount: proposal.amount,
+      currency: currencyOf(proposal.currency),
+      date: resolveDatePhrase(proposal.date_phrase, today),
+      typeHint: typeOf(proposal.type_hint),
     });
   }
-  return { items: kept, dropped };
+  return { items, dropped };
 }

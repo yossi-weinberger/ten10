@@ -1,5 +1,4 @@
 import { scoreSplit } from "./split-score.ts";
-import type { SplitItemInput } from "./split-schema.ts";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
@@ -8,28 +7,12 @@ function assert(condition: boolean, message: string): void {
 const today = "2026-10-29";
 const source = "50 לכולל ו־120 לישיבה";
 
-function row(amount: number, amountText: string, extra: Partial<SplitItemInput> = {}): SplitItemInput {
-  return {
-    description: "כולל",
-    amount,
-    amount_text: amountText,
-    currency: "ILS",
-    requested_rate: null,
-    date: null,
-    date_text: null,
-    type: "donation",
-    type_question: null,
-    recurrence: null,
-    payment_method: null,
-    category: null,
-    rule_id: null,
-    ...extra,
-  };
-}
-
 Deno.test("an anchored pair matches and an invented amount does not", () => {
   const good = scoreSplit(source, {
-    items: [row(50, "50"), row(120, "120", { description: "ישיבה" })],
+    items: [
+      { description: "כולל", amount: 50, amount_text: "50", currency: "ILS", date_phrase: "", type_hint: "donation" },
+      { description: "ישיבה", amount: 120, amount_text: "120", currency: "ILS", date_phrase: "", type_hint: "donation" },
+    ],
   }, today, {
     route: "several",
     items: [
@@ -41,7 +24,10 @@ Deno.test("an anchored pair matches and an invented amount does not", () => {
   assert(good.extra === 0, "no extra");
 
   const invented = scoreSplit(source, {
-    items: [row(50, "50"), row(80, "80", { description: "אחר", type: "expense" })],
+    items: [
+      { description: "כולל", amount: 50, amount_text: "50", currency: "ILS", date_phrase: "", type_hint: "donation" },
+      { description: "אחר", amount: 80, amount_text: "80", currency: "ILS", date_phrase: "", type_hint: "expense" },
+    ],
   }, today, {
     route: "several",
     items: [
@@ -53,7 +39,14 @@ Deno.test("an anchored pair matches and an invented amount does not", () => {
 });
 
 Deno.test("more than five items is a list", () => {
-  const items = [1, 2, 3, 4, 5, 6].map((amount) => row(amount, String(amount), { type: "expense" }));
+  const items = [1, 2, 3, 4, 5, 6].map((amount) => ({
+    description: "x",
+    amount,
+    amount_text: String(amount),
+    currency: "ILS",
+    date_phrase: "",
+    type_hint: "expense",
+  }));
   const score = scoreSplit("1 2 3 4 5 6", { items }, today, { route: "list", items: [] });
   assert(score.routeOk && score.exact, "list");
 });

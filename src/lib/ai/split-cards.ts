@@ -1,4 +1,5 @@
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 
 export interface SplitDraft {
   key: string;
@@ -12,18 +13,11 @@ export interface SplitDraft {
   itemId: string | null;
 }
 
-export function cardsFromSplit(items: readonly {
-  description: string;
-  amount: number | null;
-  currency: TextTransactionDraft["currency"] | "";
-  date: string | null;
-  typeHint: TextTransactionDraft["type"] | "";
-}[]): SplitDraft[] {
-  return items.flatMap((item, index) => {
-    if (item.amount === null) return [];
+export function cardsFromSplit(items: readonly AnchoredSplitItem[]): SplitDraft[] {
+  return items.map((item, index) => {
     const type = item.typeHint === "" ? null : item.typeHint;
     const ready = type !== null && item.date !== null && item.currency !== "";
-    return [{
+    return {
       key: `${index}-${item.amount}-${item.description}`,
       description: item.description,
       amount: item.amount,
@@ -33,6 +27,6 @@ export function cardsFromSplit(items: readonly {
       checked: ready,
       transactionId: null,
       itemId: null,
-    }];
+    };
   });
 }

@@ -18,14 +18,12 @@ export type GatewaySource = "app" | "eval";
 export type GatewayTagInput = {
   source: GatewaySource;
   only?: readonly string[];
-  models?: readonly string[];
 };
 
 export type GatewayProviderOptions = {
   zeroDataRetention: true;
   tags?: string[];
   only?: string[];
-  models?: string[];
 };
 
 export const EVAL_SOURCE_TAG = "source:eval";
@@ -35,6 +33,5 @@ export function gatewayProviderOptions(input: GatewayTagInput): GatewayProviderO
     zeroDataRetention: true,
     ...(input.source === "eval" ? { tags: [EVAL_SOURCE_TAG] } : {}),
     ...(input.only ? { only: [...input.only] } : {}),
-    ...(input.models && input.models.length > 0 ? { models: [...input.models] } : {}),
   };
 }

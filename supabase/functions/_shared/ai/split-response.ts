@@ -1,94 +1,65 @@
 import { MAX_ITEMS_PER_MESSAGE } from "./multi-item.ts";
-import { periodBounds } from "./split-period.ts";
-import { anchorSplitItems, splitReadContext, type AnchoredSplitItem, type SplitReadContext } from "./split-anchor.ts";
-import { splitPayloadSchema, type SplitQuestionInput, type SplitRuleInput } from "./split-schema.ts";
-
-export interface ResolvedQuestion {
-  measure: SplitQuestionInput["measure"];
-  family: SplitQuestionInput["family"];
-  recipient: string | null;
-  category: string | null;
-  paymentMethod: SplitQuestionInput["payment_method"];
-  from: string | null;
-  to: string | null;
-}
+import { anchorSplitItems, type AnchoredSplitItem, type SplitProposal } from "./split-anchor.ts";
 
 export type SplitResponse =
   | { route: "list" }
   | { route: "unreadable" }
-  | {
-    route: "several";
-    items: AnchoredSplitItem[];
-    found: number;
-    dropped: number;
-    rule: SplitRuleInput | null;
-    question: ResolvedQuestion | null;
-  };
+  | { route: "several"; items: AnchoredSplitItem[]; found: number; dropped: number };
 
-function asContext(todayOrContext: string | SplitReadContext): SplitReadContext | null {
-  if (typeof todayOrContext === "string") {
-    return /^\d{4}-\d{2}-\d{2}$/.test(todayOrContext) ? splitReadContext(todayOrContext) : null;
+function readArray(payload: unknown): unknown[] | null {
+  let value = payload;
+  if (typeof value === "string") {
+    const trimmed = value.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    try {
+      value = JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
   }
-  return /^\d{4}-\d{2}-\d{2}$/.test(todayOrContext.today) ? todayOrContext : null;
-}
-
-function jsonValue(payload: unknown): unknown {
-  if (typeof payload !== "string") return payload;
-  const trimmed = payload.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    return null;
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object" && Array.isArray((value as { items?: unknown }).items)) {
+    return (value as { items: unknown[] }).items;
   }
+  return null;
 }
 
-export function parseSplitPayload(payload: unknown): ReturnType<typeof splitPayloadSchema.parse> | null {
-  const value = jsonValue(payload);
-  const parsed = splitPayloadSchema.safeParse(value);
-  return parsed.success ? parsed.data : null;
-}
-
-function questionInLists(question: SplitQuestionInput, context: SplitReadContext): ResolvedQuestion | null {
-  const recipient = question.recipient && context.recipients.includes(question.recipient) ? question.recipient : null;
-  const category = question.category && context.categories.includes(question.category) ? question.category : null;
-  if (question.recipient && recipient === null) return null;
-  if (question.category && category === null) return null;
-  const bounds = periodBounds(question.period, context.today);
-  if (!bounds) return null;
+function readProposal(value: unknown): SplitProposal | null {
+  if (!value || typeof value !== "object") return null;
+  const source = value as {
+    description?: unknown;
+    amount?: unknown;
+    amount_text?: unknown;
+    currency?: unknown;
+    date_phrase?: unknown;
+    type_hint?: unknown;
+  };
+  const amount = typeof source.amount === "number" ? source.amount : Number(source.amount);
+  if (typeof source.amount_text !== "string" || !Number.isFinite(amount)) return null;
   return {
-    measure: question.measure,
-    family: question.family,
-    recipient,
-    category,
-    paymentMethod: question.payment_method,
-    from: bounds.from,
-    to: bounds.to,
+    description: typeof source.description === "string" ? source.description : "",
+    amount,
+    amount_text: source.amount_text,
+    currency: typeof source.currency === "string" ? source.currency : "",
+    date_phrase: typeof source.date_phrase === "string" ? source.date_phrase : "",
+    type_hint: typeof source.type_hint === "string" ? source.type_hint : "",
   };
 }
 
-/** Schema first, then amount evidence. A single unanchored amount stays and is asked. */
-export function readSplitResponse(
-  source: string,
-  payload: unknown,
-  todayOrContext: string | SplitReadContext,
-): SplitResponse {
-  const context = asContext(todayOrContext);
-  if (!context) return { route: "unreadable" };
-  const parsed = parseSplitPayload(payload);
-  if (!parsed) return { route: "unreadable" };
-  if (parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
-  const anchored = anchorSplitItems(source, parsed.items, context);
-  const question = parsed.question ? questionInLists(parsed.question, context) : null;
-  const rule = parsed.rule && parsed.rule.match.trim().length >= 2
-    ? { match: parsed.rule.match.trim(), action: parsed.rule.action }
-    : null;
-  if (anchored.items.length === 0 && !question && !rule) return { route: "unreadable" };
-  return {
-    route: "several",
-    items: anchored.items,
-    found: anchored.items.length,
-    dropped: anchored.dropped,
-    rule,
-    question,
-  };
+/** More than the intake cap is a list. A reply that keeps nothing is unreadable. */
+export function readSplitResponse(source: string, payload: unknown, today: string): SplitResponse {
+  const rows = readArray(payload);
+  if (!rows || rows.length === 0) return { route: "unreadable" };
+  if (rows.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
+
+  const proposals: SplitProposal[] = [];
+  let dropped = 0;
+  for (const row of rows) {
+    const proposal = readProposal(row);
+    if (proposal) proposals.push(proposal);
+    else dropped += 1;
+  }
+  const anchored = anchorSplitItems(source, proposals, today);
+  dropped += anchored.dropped;
+  if (anchored.items.length === 0) return { route: "unreadable" };
+  return { route: "several", items: anchored.items, found: anchored.items.length, dropped };
 }

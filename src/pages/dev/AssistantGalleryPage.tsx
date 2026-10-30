@@ -12,7 +12,6 @@ const noop = () => {};
 const HANDLERS: ReplyHandlers = {
   onChooseIntent: noop,
   onChooseType: noop,
-  onChooseSpecial: noop,
   onChooseFamily: noop,
   onSearchDescriptions: noop,
   onChooseRule: noop,

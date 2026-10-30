@@ -23,7 +23,6 @@ import type { SplitDraft } from "@/lib/ai/split-cards";
 export interface ReplyHandlers {
   onChooseIntent: (intent: IntakeIntent) => void;
   onChooseType: (type: TextTransactionDraft["type"]) => void;
-  onChooseSpecial: (yes: boolean) => void;
   onChooseFamily: (family: "donation" | "expense" | "income", source: string) => void;
   onSearchDescriptions: (source: string) => void;
   onChooseRule: (type: RuleActionType) => void;
@@ -155,20 +154,6 @@ export function ReplyBlockView({
           onChoose={handlers.onChooseType}
         />
       );
-    case "askSpecial":
-      return (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">{t(`aiIntake.askSpecial.${block.type}`)}</p>
-          <div className="flex gap-2">
-            <Button type="button" size="sm" disabled={!interactive} onClick={() => handlers.onChooseSpecial(true)}>
-              {t("aiIntake.askSpecialYes")}
-            </Button>
-            <Button type="button" size="sm" variant="outline" disabled={!interactive} onClick={() => handlers.onChooseSpecial(false)}>
-              {t("aiIntake.askSpecialNo")}
-            </Button>
-          </div>
-        </div>
-      );
     case "askAmount":
       return <p className="text-sm font-medium">{t("aiIntake.askAmount")}</p>;
     case "receipt":
@@ -216,11 +201,9 @@ export function ReplyBlockView({
       return (
         <div className="grid gap-2">
           <StatusNote status={block.status} />
-          {block.status === "bankStatement" || block.status === "splitList" || block.status === "couldNotRead" ? (
+          {block.status === "bankStatement" || block.status === "splitList" ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
-              <Link to={block.status === "couldNotRead" ? "/add-transaction" : "/transactions-table/import"}>
-                {t(block.status === "couldNotRead" ? "aiIntake.openAddForm" : "aiIntake.openImport")}
-              </Link>
+              <Link to="/transactions-table/import">{t("aiIntake.openImport")}</Link>
             </Button>
           ) : null}
         </div>

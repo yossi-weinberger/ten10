@@ -38,7 +38,7 @@ ALL_FUNCTIONS=(
   get-posthog-analytics
   send-cron-alerts
   ai-rank-duplicates
-  ai-split-items
+  ai-shadow-type
   ai-classify-intent
   ai-read-question
   ai-read-receipt
@@ -61,7 +61,7 @@ SHARED_DEPENDENT=(
   get-posthog-analytics
   send-cron-alerts
   ai-rank-duplicates
-  ai-split-items
+  ai-shadow-type
   ai-classify-intent
   ai-read-question
   ai-read-receipt

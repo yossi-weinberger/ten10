@@ -1,6 +1,8 @@
 import { readModelText } from "./receipt-draft.ts";
-import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
+import { splitPrompt, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { scoreSplit, type SplitExpected } from "./split-score.ts";
+import { gatewayProviderOptions } from "./gateway-tags.ts";
+
 const MODEL = Deno.args[0] ?? "anthropic/claude-sonnet-5";
 const ENV_PATH = Deno.args[1] ?? "";
 
@@ -27,7 +29,12 @@ async function ask(key: string, item: Case): Promise<unknown> {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...splitRequestBody(item.text, item.today, {}, "eval"), model: MODEL }),
+    body: JSON.stringify({
+      model: MODEL,
+      max_output_tokens: 1200,
+      input: [{ role: "user", content: [{ type: "input_text", text: splitPrompt(item.text, item.today) }] }],
+      providerOptions: { gateway: gatewayProviderOptions({ source: "eval" }) },
+    }),
   });
   if (!response.ok) throw new Error(`${item.id} http ${response.status}`);
   return response.json();
