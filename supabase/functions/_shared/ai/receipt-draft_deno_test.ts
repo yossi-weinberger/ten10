@@ -106,4 +106,5 @@ Deno.test("model text is the message output, not the reasoning", () => {
   });
   assert(text === "{\"amount\":10}", "message only");
   assert(readModelText({ output_text: "{\"amount\":12}" }) === "{\"amount\":12}", "direct text");
+  assert(readModelText({ content: [{ type: "text", text: "{\"amount\":11}" }] }) === "{\"amount\":11}", "anthropic text");
 });

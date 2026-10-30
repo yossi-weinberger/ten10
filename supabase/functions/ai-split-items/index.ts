@@ -13,9 +13,9 @@ import { splitReadContext, type SplitRuleRef } from "../_shared/ai/split-anchor.
 import { todayInZone } from "../_shared/ai/split-date.ts";
 import {
   SPLIT_MODEL,
-  SPLIT_RESPONSES_URL,
+  SPLIT_MESSAGES_URL,
   SPLIT_TIMEOUT_MS,
-  splitRequestBody,
+  splitAnthropicBody,
   type SplitPromptContext,
 } from "../_shared/ai/split-prompt.ts";
 
@@ -151,14 +151,14 @@ Deno.serve(async (req: Request) => {
       userId: userData.user.id,
       operation: "split",
       model: SPLIT_MODEL,
-      url: SPLIT_RESPONSES_URL,
+      url: SPLIT_MESSAGES_URL,
       init: {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(splitRequestBody(text, today, promptContext, "app")),
+        body: JSON.stringify(splitAnthropicBody(text, today, promptContext, "app")),
       },
       timeoutMs: SPLIT_TIMEOUT_MS,
       record: serviceModelCallRecorder(),

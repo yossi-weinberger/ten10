@@ -180,6 +180,42 @@ function anchoredDate(source: string, date: DateStruct | null, dateText: string 
   return { date: resolved, checkDate: false };
 }
 
+function mentionsTotal(source: string): boolean {
+  return /סה["״']?כ/.test(source)
+    || source.includes("יחד")
+    || source.includes("ביחד")
+    || /\btotal\b/i.test(source);
+}
+
+function sumsTo(values: readonly number[], target: number): boolean {
+  const count = values.length;
+  if (count < 2) return false;
+  const limit = 1 << count;
+  for (let mask = 1; mask < limit; mask += 1) {
+    let parts = 0;
+    let sum = 0;
+    for (let bit = 0; bit < count; bit += 1) {
+      if ((mask & (1 << bit)) === 0) continue;
+      parts += 1;
+      sum += values[bit];
+    }
+    if (parts >= 2 && Math.abs(sum - target) < 0.02) return true;
+  }
+  return false;
+}
+
+function askedSpecial(type: SplitItemInput["type"]): AnchoredSplitItem["typeQuestion"] {
+  if (type === "exempt-income" || type === "recognized-expense" || type === "non_tithe_donation") return type;
+  return null;
+}
+
+function ordinaryType(type: SplitItemInput["type"]): AnchoredSplitItem["typeHint"] {
+  if (type === "exempt-income") return "income";
+  if (type === "recognized-expense") return "expense";
+  if (type === "non_tithe_donation") return "donation";
+  return type ?? "";
+}
+
 /** One item keeps an unanchored amount as null. Several items drop that item. */
 export function anchorSplitItems(
   source: string,
@@ -199,6 +235,7 @@ export function anchorSplitItems(
     const dated = anchoredDate(source, item.date, item.date_text, context.today);
     const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
+    const special = item.type !== null && SPECIAL_TYPES.has(item.type);
     kept.push({
       description: item.description.trim(),
       amount: amount.amount,
@@ -206,8 +243,8 @@ export function anchorSplitItems(
       date: dated.date,
       checkDate: dated.checkDate,
       checkAmount: amount.checkAmount,
-      typeHint: rule ? rule.type : item.type ?? "",
-      typeQuestion: rule || (item.type !== null && SPECIAL_TYPES.has(item.type)) ? null : item.type_question,
+      typeHint: rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
+      typeQuestion: rule ? null : askedSpecial(item.type) ?? item.type_question,
       requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
       paymentMethod: item.payment_method,
       category,
@@ -216,5 +253,18 @@ export function anchorSplitItems(
       recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
     });
   }
-  return { items: kept, dropped };
+  if (!mentionsTotal(source)) return { items: kept, dropped };
+  const totals = new Set<number>();
+  kept.forEach((item, index) => {
+    if (item.amount === null || item.checkAmount) return;
+    const others = kept.flatMap((other, otherIndex) => (
+      otherIndex !== index && other.amount !== null && !other.checkAmount ? [other.amount] : []
+    ));
+    if (sumsTo(others, item.amount)) totals.add(index);
+  });
+  if (totals.size === 0) return { items: kept, dropped };
+  return {
+    items: kept.filter((_, index) => !totals.has(index)),
+    dropped: dropped + totals.size,
+  };
 }

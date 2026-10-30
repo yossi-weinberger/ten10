@@ -1,5 +1,5 @@
 import { readModelText } from "./receipt-draft.ts";
-import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
+import { splitAnthropicBody, SPLIT_MESSAGES_URL } from "./split-prompt.ts";
 import { parseSplitPayload } from "./split-response.ts";
 import { scoreSplit, scoreSplitFields, type SplitExpected, type SplitFieldScore } from "./split-score.ts";
 import { buildIntentBody, JEV_SYSTEMONE_URL } from "./jev-intent.ts";
@@ -65,15 +65,18 @@ function reasoningTokens(payload: unknown): number | null {
 }
 
 async function askReader(key: string, item: Case): Promise<unknown> {
-  const response = await fetch(SPLIT_RESPONSES_URL, {
+  const response = await fetch(SPLIT_MESSAGES_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...splitRequestBody(item.text, item.today, {}, "eval"), model: MODEL }),
+    body: JSON.stringify({ ...splitAnthropicBody(item.text, item.today, {}, "eval"), model: MODEL }),
   });
-  if (!response.ok) throw new Error(`${item.id} http ${response.status}`);
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`${item.id} http ${response.status} ${detail.slice(0, 240)}`);
+  }
   return response.json();
 }
 
@@ -150,6 +153,44 @@ for (const item of cases) {
   }
 }
 
+function blindGroup(id: string): "old" | "new" | null {
+  const hebrew = /^blind-he-(\d+)$/.exec(id);
+  const english = /^blind-en-(\d+)$/.exec(id);
+  if (hebrew) return Number(hebrew[1]) <= 33 ? "old" : "new";
+  if (english) return Number(english[1]) <= 12 ? "old" : "new";
+  return null;
+}
+
+function routeCounts(rows: SentenceResult[]) {
+  return {
+    n: rows.length,
+    unreadable: rows.filter((row) => row.route === "unreadable").length,
+    list: rows.filter((row) => row.route === "list").length,
+    several: rows.filter((row) => row.route === "several").length,
+  };
+}
+
+function fieldReport(rows: SentenceResult[]) {
+  const scores = rows.map((row) => row.fields);
+  const sum = (pick: (score: SplitFieldScore) => number) => scores.reduce((total, score) => total + pick(score), 0);
+  const clearRows = scores.filter((score) => score.clear);
+  return {
+    cases: rows.length,
+    exact: rows.filter((row) => row.exact).length,
+    routes: routeCounts(rows),
+    expectedList: routeCounts(rows.filter((row) => row.expectedRoute === "list")),
+    clear: clearRows.length,
+    amount: rate(sum((score) => score.amountCorrect), sum((score) => score.amountChecked)),
+    wrongAnchoredAmount: scores.filter((score) => score.wrongAnchoredAmount).length,
+    type: rate(sum((score) => score.typeCorrect), sum((score) => score.typeChecked)),
+    specialTypeUnasked: scores.filter((score) => score.specialTypeUnasked).length,
+    date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),
+    unnecessaryQuestions: rate(clearRows.filter((score) => score.unnecessaryQuestion).length, clearRows.length),
+    specialQuestionWrong: scores.filter((score) => score.specialQuestionWrong).length,
+    checkAmounts: sum((score) => score.checkAmounts),
+  };
+}
+
 const fields = sentences.map((sentence) => sentence.fields);
 const sum = (pick: (score: SplitFieldScore) => number) => fields.reduce((total, score) => total + pick(score), 0);
 const clear = fields.filter((score) => score.clear).length;
@@ -157,10 +198,11 @@ const summary = {
   model: MODEL,
   cases: cases.length,
   exact: sentences.filter((sentence) => sentence.exact).length,
-  routes: {
-    unreadable: fields.filter((score) => score.route === "unreadable").length,
-    list: fields.filter((score) => score.route === "list").length,
-    several: fields.filter((score) => score.route === "several").length,
+  routes: routeCounts(sentences),
+  expectedList: routeCounts(sentences.filter((row) => row.expectedRoute === "list")),
+  groups: {
+    blindOld: fieldReport(sentences.filter((row) => blindGroup(row.id) === "old")),
+    blindNew: fieldReport(sentences.filter((row) => blindGroup(row.id) === "new")),
   },
   fields: {
     clear,

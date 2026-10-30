@@ -167,6 +167,126 @@ const itemSchema = {
   },
 };
 
+const enforcedDate = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind", "n", "weekday", "day", "month", "year"],
+  properties: {
+    kind: { type: "string", enum: [...DATE_KINDS] },
+    n: { type: "integer" },
+    weekday: { type: "integer" },
+    day: { type: "integer" },
+    month: { type: "integer" },
+    year: { type: "integer" },
+  },
+};
+
+const enforcedItem = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "amount",
+    "amount_text",
+    "currency",
+    "requested_rate",
+    "date",
+    "date_text",
+    "type",
+    "type_question",
+    "recurrence",
+    "description",
+    "payment_method",
+    "category",
+    "rule_id",
+  ],
+  properties: {
+    amount: nullable({ type: "number" }),
+    amount_text: nullable({ type: "string" }),
+    currency: nullable({ type: "string", enum: [...CURRENCIES] }),
+    requested_rate: { type: "number" },
+    date: nullable(enforcedDate),
+    date_text: nullable({ type: "string" }),
+    type: nullable({ type: "string", enum: [...TYPES] }),
+    type_question: nullable({ type: "string", enum: [...SPECIAL_TYPES] }),
+    recurrence: nullable({
+      type: "object",
+      additionalProperties: false,
+      required: ["frequency", "calendar", "day_of_month", "weekday", "start_kind", "start", "end_kind", "end_count", "end", "already_charged"],
+      properties: {
+        frequency: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"] },
+        calendar: { type: "string", enum: ["gregorian", "hebrew"] },
+        day_of_month: { type: "integer" },
+        weekday: { type: "integer" },
+        start_kind: { type: "string" },
+        start: enforcedDate,
+        end_kind: { type: "string" },
+        end_count: { type: "integer" },
+        end: enforcedDate,
+        already_charged: { type: "boolean" },
+      },
+    }),
+    description: { type: "string" },
+    payment_method: nullable({ type: "string", enum: [...PAYMENTS] }),
+    category: { type: "string" },
+    rule_id: { type: "string" },
+  },
+};
+
+/**
+ * Sent to Anthropic. At most 16 nullable unions.
+ * Zero and an empty string stand in for null on the fields that are not unions.
+ */
+const textOrEmpty = { type: "string" };
+const whole = { type: "integer" };
+
+export const SPLIT_ENFORCED_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["items", "more_than_five", "rule_match", "rule_action"],
+  properties: {
+    more_than_five: { type: "boolean" },
+    rule_match: textOrEmpty,
+    rule_action: textOrEmpty,
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "amount",
+          "amount_text",
+          "currency",
+          "description",
+          "type",
+          "type_question",
+          "payment_method",
+          "date_text",
+          "date_kind",
+          "date_day",
+          "date_month",
+          "date_year",
+          "recurrence_frequency",
+        ],
+        properties: {
+          amount: nullable({ type: "number" }),
+          amount_text: textOrEmpty,
+          currency: { type: "string", enum: ["", ...CURRENCIES] },
+          description: textOrEmpty,
+          type: { type: "string", enum: ["", ...TYPES] },
+          type_question: { type: "string", enum: ["", ...SPECIAL_TYPES] },
+          payment_method: { type: "string", enum: ["", ...PAYMENTS] },
+          date_text: textOrEmpty,
+          date_kind: { type: "string", enum: ["", ...DATE_KINDS] },
+          date_day: whole,
+          date_month: whole,
+          date_year: whole,
+          recurrence_frequency: { type: "string", enum: ["", "daily", "weekly", "monthly", "yearly"] },
+        },
+      },
+    },
+  },
+} as const;
+
 /** Responses API `text.format`. Strict: the model may not add fields. */
 export const SPLIT_JSON_SCHEMA = {
   type: "object",

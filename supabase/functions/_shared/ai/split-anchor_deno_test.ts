@@ -140,7 +140,23 @@ Deno.test("the amount is anchored by its number, not by the written string", () 
     type: "recognized-expense",
     type_question: "recognized-expense",
   })]);
-  assert(stated.items[0]?.typeQuestion === null, "a stated special type is not asked again");
+  assert(stated.items[0]?.typeHint === "expense" && stated.items[0]?.typeQuestion === "recognized-expense", "a special type asks once");
+});
+
+Deno.test("a total that is the sum of the other items is dropped", () => {
+  const hebrew = anchor("2 חולצות ב־100 ו־3 לחמים ב־20, יחד 120", [
+    item({ amount: 100, amount_text: "100", description: "חולצות", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "לחמים", type: "expense" }),
+    item({ amount: 120, amount_text: "120", description: "יחד", type: "expense" }),
+  ]);
+  assert(hebrew.items.map((entry) => entry.amount).join(",") === "100,20", "120 is the total");
+  const english = anchor("Bread 12, milk 9, eggs 19 — total 40 shekels", [
+    item({ amount: 12, amount_text: "12", description: "bread", type: "expense" }),
+    item({ amount: 9, amount_text: "9", description: "milk", type: "expense" }),
+    item({ amount: 19, amount_text: "19", description: "eggs", type: "expense" }),
+    item({ amount: 40, amount_text: "40", description: "total", type: "expense" }),
+  ]);
+  assert(english.items.map((entry) => entry.amount).join(",") === "12,9,19", "40 is the total");
 });
 
 Deno.test("digits in the message anchor when the currency word was left out of the evidence", () => {

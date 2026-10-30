@@ -110,8 +110,8 @@ Deno.test("a clear sentence is scored per field, and an asked sentence is not", 
       type: "expense",
     }],
   });
-  assert(special.specialTypeUnasked, "the sentence does not say exempt");
-  assert(special.specialQuestionWrong === false, "a filled special type is not asked again");
+  assert(special.specialTypeUnasked === false, "the special type is not filled in");
+  assert(special.specialQuestionWrong, "a filled special type is asked, not saved");
 
   const gift = scoreSplitFields("קיבלתי 400 מתנה", {
     items: [row(400, "400", { description: "מתנה", type: "income", type_question: "exempt-income" })],

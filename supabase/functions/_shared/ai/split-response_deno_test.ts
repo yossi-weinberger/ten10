@@ -30,7 +30,7 @@ Deno.test("more than five transactions is a list without items", () => {
   const result = readSplitResponse("דף חשבון", { items: [], more_than_five: true }, TODAY);
   assert(result.route === "list", "list");
   const written = readSplitResponse("דף חשבון", "{\"items\":\"null\",\"more_than_five\":true,\"rule\":null,\"question\":null}", TODAY);
-  assert(written.route === "list", "items written as text still counts");
+  assert(written.route === "unreadable", "a string items field is not a list");
 });
 
 Deno.test("a kept item and a dropped one are both counted", () => {

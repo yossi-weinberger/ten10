@@ -1,10 +1,13 @@
 /** The extraction request. The model is chosen by the split eval, not here. */
 
 import { gatewayProviderOptions, type GatewayProviderOptions } from "./gateway-tags.ts";
-import { SPLIT_JSON_SCHEMA } from "./split-schema.ts";
+import { SPLIT_ENFORCED_SCHEMA, SPLIT_JSON_SCHEMA } from "./split-schema.ts";
 import { weekdayName } from "./split-date.ts";
 
 export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
+
+/** Anthropic enforces a schema here. `/v1/responses` `text.format` does not. */
+export const SPLIT_MESSAGES_URL = "https://ai-gateway.vercel.sh/v1/messages";
 
 /**
  * Temporary. The 2026-10-30 exact-match run did not score fields,
@@ -49,13 +52,14 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     ...(context.receipt
       ? [
         "This text was copied from one image.",
-        "Each receipt is one transaction. The amount is the total that was paid, not a line on the receipt.",
+        "Each receipt is one transaction. The amount is the total that was paid, not a line on the receipt, not the cash handed over, and not the change.",
         "Several receipts in the image are several transactions.",
         "A bank or card statement sets more_than_five and does not list the rows.",
+        "10/15/2026 on a US receipt, or Oct 15, 2026, is exact with day 15, month 10, year 2026.",
       ]
       : []),
-    "amount is the number that was said. Copy that number into amount_text, digits only, even when a currency word follows it.",
-    "When it is written in words, put that number in amount and copy the words into amount_text.",
+    "amount is the number that was said.",
+    "amount_text is the digits when the amount is written in digits, and the words when it is written in words.",
     "amount_text and date_text are copied from the message.",
     "Do not convert currencies and do not calculate dates.",
     "date.kind is days_ago, last_weekday, day_of_month, or exact.",
@@ -102,6 +106,25 @@ export function splitRequestBody(text: string, today: string, context: SplitProm
     providerOptions: {
       gateway: splitGatewayOptions(source),
       anthropic: { thinking: { type: "disabled" } },
+    },
+  };
+}
+
+/** Messages API structured output. The schema is enforced by Anthropic, not by the Responses field. */
+export function splitAnthropicBody(text: string, today: string, context: SplitPromptContext = {}, source: "app" | "eval" = "app") {
+  return {
+    model: SPLIT_MODEL,
+    max_tokens: 1600,
+    messages: [{ role: "user", content: splitPrompt(text, today, context) }],
+    output_config: {
+      format: {
+        type: "json_schema",
+        schema: SPLIT_ENFORCED_SCHEMA,
+      },
+    },
+    thinking: { type: "disabled" },
+    providerOptions: {
+      gateway: splitGatewayOptions(source),
     },
   };
 }

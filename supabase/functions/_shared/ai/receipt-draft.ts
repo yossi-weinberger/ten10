@@ -135,6 +135,17 @@ export function readModelText(payload: unknown): string {
     }
     if (parts.length > 0) return parts.join("");
   }
+  const content = (payload as { content?: unknown }).content;
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const block of content) {
+      if (!block || typeof block !== "object") continue;
+      if ((block as { type?: unknown }).type !== "text") continue;
+      const text = (block as { text?: unknown }).text;
+      if (typeof text === "string") parts.push(text);
+    }
+    if (parts.length > 0) return parts.join("");
+  }
   const direct = (payload as { output_text?: unknown }).output_text;
   return typeof direct === "string" ? direct : "";
 }
