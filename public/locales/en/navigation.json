@@ -63,6 +63,7 @@
     "splitDropped": "Found {{found}}. {{dropped}} was not read for certain.",
     "splitSave": "Save the checked ones ({{count}})",
     "splitCheckDate": "Check the date",
+    "checkAmount": "Check the amount",
     "splitUntitled": "No description",
     "severalReceipts": "I see several receipts in this image. Send each one separately?",
     "bankStatement": "This looks like a bank statement. You can import a CSV or Excel file.",

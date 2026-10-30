@@ -63,6 +63,7 @@
     "splitDropped": "מצאתי {{found}}. {{dropped}} לא זיהיתי בוודאות.",
     "splitSave": "שמור את המסומנים ({{count}})",
     "splitCheckDate": "בדוק תאריך",
+    "checkAmount": "בדוק סכום",
     "splitUntitled": "בלי תיאור",
     "severalReceipts": "ראיתי כמה קבלות בתמונה. אפשר לשלוח כל אחת בנפרד?",
     "bankStatement": "זה נראה כמו דף בנק. אפשר לייבא קובץ CSV או Excel.",

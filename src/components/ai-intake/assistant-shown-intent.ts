@@ -12,18 +12,18 @@ type Decided =
   | { ok: false };
 
 /**
- * A published halacha page is a local match. It wins when the classifier
- * is unsure or says the sentence is out of scope. A confident transaction,
- * data question, rule, or duplicate scan still wins.
- * When the classifier does not answer, the user is asked. The local intent parser stays unused.
+ * A published halacha page wins when Jev names one at or above the confidence floor.
+ * Below that floor the page is treated as unanswered, and the local page list is used.
+ * When the classifier does not answer the intent, the user is asked.
  */
 export function shownIntent(source: string, _today: string, decided: Decided): ShownIntent {
-  const modelPage = decided.ok ? decided.halachaPage ?? null : null;
-  const page = modelPage === "personal"
-    ? null
-    : modelPage && modelPage !== "none"
-      ? modelPage
-      : selectHalachaPage(source);
+  const answered = decided.ok && decided.halachaPage !== undefined;
+  const modelPage = answered ? decided.halachaPage ?? null : null;
+  const page = !answered
+    ? selectHalachaPage(source)
+    : modelPage === "personal" || modelPage === "none" || modelPage === null
+      ? null
+      : modelPage;
   const confident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
 
   if (!confident && isBareCapabilityQuestion(source) && !page) return "help";

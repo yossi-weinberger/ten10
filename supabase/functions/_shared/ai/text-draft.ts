@@ -47,7 +47,7 @@ export interface TextTransactionDraft {
     | "non_tithe_donation";
   requestedRate: number | null;
   description: string;
-  category: "food" | "transportation" | null;
+  category: string | null;
   paymentMethod: "credit_card" | "cash" | "bank_transfer" | "bit_paybox" | "check" | null;
 }
 

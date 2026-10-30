@@ -63,9 +63,9 @@ Deno.test("a single misread amount is asked, and a word amount is kept", () => {
   assert(misread.items.length === 1 && misread.items[0]?.amount === null, "one item asks for the amount");
   assert(misread.dropped === 0, "the only item is not dropped");
   const words = anchor("חמישים לכולל", [item({ amount_text: "חמישים" })]);
-  assert(words.items.length === 1 && words.items[0]?.amount === 50, "a word amount is kept");
+  assert(words.items.length === 1 && words.items[0]?.amount === 50 && words.items[0]?.checkAmount === true, "a word amount stays for review");
   const wrongWords = anchor("חמישים לכולל", [item({ amount: 60, amount_text: "חמישים" })]);
-  assert(wrongWords.items[0]?.amount === 60, "words are not re-parsed");
+  assert(wrongWords.items[0]?.amount === 60 && wrongWords.items[0]?.checkAmount === true, "words are not re-parsed");
   const inside = anchor("150 לישיבה", [item()]);
   assert(inside.items[0]?.amount === null, "50 is not inside 150");
 });
@@ -82,6 +82,41 @@ Deno.test("a future date is marked for review and a saved rule overrides the typ
   assert(ruled.items[0]?.category === "מזון", "known category");
   const unknown = anchor("50 לגן", [item({ category: "לא קיים" })]);
   assert(unknown.items[0]?.category === null, "unknown category");
+});
+
+Deno.test("a word that is not an amount is kept and marked for review", () => {
+  const result = anchor("שילמתי בסופר באשראי", [item({
+    description: "סופר",
+    amount: 250,
+    amount_text: "בסופר",
+    type: "expense",
+  })]);
+  assert(result.items.length === 1, "kept");
+  assert(result.items[0]?.amount === 250 && result.items[0]?.checkAmount === true, "not anchored");
+});
+
+Deno.test("a thousand word scales the digits", () => {
+  const hebrew = anchor("שילמתי 5 אלף", [item({ amount: 5000, amount_text: "5 אלף", type: "expense" })]);
+  assert(hebrew.items[0]?.amount === 5000 && hebrew.items[0]?.checkAmount === false, "5 אלף");
+  const kilo = anchor("paid 2.5K", [item({ amount: 2500, amount_text: "2.5K", type: "expense" })]);
+  assert(kilo.items[0]?.amount === 2500 && kilo.items[0]?.checkAmount === false, "2.5K");
+  const dual = anchor("שילמתי אלפיים", [item({ amount: 2000, amount_text: "אלפיים", type: "expense" })]);
+  assert(dual.items[0]?.checkAmount === true, "אלפיים has no digits");
+});
+
+Deno.test("a date structure without its words is marked, and a rule clears the special question", () => {
+  const dated = anchor("50 לכולל", [item({
+    date: { kind: "days_ago", n: 1, weekday: null, day: null, month: null, year: null },
+    date_text: null,
+  })]);
+  assert(dated.items[0]?.date === null && dated.items[0]?.checkDate === true, "missing date text");
+  const ruled = anchor("50 לגן", [item({
+    type: "expense",
+    type_question: "exempt-income",
+    rule_id: "rule-1",
+  })]);
+  assert(ruled.items[0]?.typeHint === "recognized-expense", "rule type");
+  assert(ruled.items[0]?.typeQuestion === null, "no extra question");
 });
 
 Deno.test("digit evidence ignores thousand separators", () => {

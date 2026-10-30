@@ -3,6 +3,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { mayReleaseRecentTextUsage } from "../_shared/ai/usage-gate.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -116,8 +117,13 @@ Deno.serve(async (req: Request) => {
 
   if (typeof body?.release === "string") {
     if (!admin || !USAGE_ID.test(body.release)) return json(origin, { released: false }, 200);
-    const { data } = await admin.schema("ai").from("usage_events").select("user_id").eq("id", body.release).maybeSingle();
-    if (data?.user_id !== userData.user.id) return json(origin, { released: false }, 200);
+    const { data } = await admin.schema("ai").from("usage_events")
+      .select("user_id, kind, created_at, released_at")
+      .eq("id", body.release)
+      .maybeSingle();
+    if (!mayReleaseRecentTextUsage(data, userData.user.id, Date.now())) {
+      return json(origin, { released: false }, 200);
+    }
     await usage.release(body.release);
     return json(origin, { released: true }, 200);
   }

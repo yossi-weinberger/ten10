@@ -86,6 +86,7 @@ Deno.serve(async (req: Request) => {
       count: count?.count ?? null,
       count_confidence: count?.confidence ?? null,
       halacha_page: page?.page ?? null,
+      halacha_page_confidence: page?.confidence ?? null,
     }, 200);
   } catch {
     logger.error("jev intent failed");

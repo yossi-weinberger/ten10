@@ -10,6 +10,7 @@ export type IntentFallbackResult =
     count: IntakeCount | null;
     countConfidence: number | null;
     halachaPage: string | null;
+    halachaPageConfidence: number | null;
   }
   | { ok: false; reason: "UNAVAILABLE" };
 
@@ -30,11 +31,12 @@ export async function classifyIntentFallback(text: string): Promise<IntentFallba
     count?: unknown;
     count_confidence?: unknown;
     halacha_page?: unknown;
+    halacha_page_confidence?: unknown;
   };
   if (record.reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
   const intent = record.intent;
   if (typeof intent !== "string" || !(INTAKE_INTENTS as readonly string[]).includes(intent)) {
-    return { ok: true, intent: null, confidence: null, count: null, countConfidence: null, halachaPage: null };
+    return { ok: true, intent: null, confidence: null, count: null, countConfidence: null, halachaPage: null, halachaPageConfidence: null };
   }
   const count = typeof record.count === "string" && (INTAKE_COUNTS as readonly string[]).includes(record.count)
     ? record.count as IntakeCount
@@ -46,5 +48,6 @@ export async function classifyIntentFallback(text: string): Promise<IntentFallba
     count,
     countConfidence: count === null ? null : readConfidence(record.count_confidence),
     halachaPage: typeof record.halacha_page === "string" ? record.halacha_page : null,
+    halachaPageConfidence: readConfidence(record.halacha_page_confidence),
   };
 }

@@ -18,7 +18,7 @@
 | המרת מטבע | `currency-rules.ts` (`applyConversion`), `exchange-rates.ts` | הטופס, יתרת פתיחה, עריכת הוראת קבע והשירות בלקוח קוראים ל-`applyConversion`. ה-cron של הוראות הקבע לא עבר למודול הזה |
 | חוזה טיוטה | `supabase/functions/_shared/intake/contracts.ts` | `TransactionDraftV1`. הלקוח מייצא מחדש מ-`src/lib/intake/contracts.ts` |
 | סיווג כוונות | `supabase/functions/_shared/ai/intent.ts` | `classifyIntent` מחזיר תווית בלבד, בלי רשת ובלי כתיבה |
-| החלטת סוג מרשימה סגורה | `supabase/functions/_shared/ai/decision.ts` | `decide()` לסוג עדיין מתאם כללים. דירוג "אותו אירוע" קורא ל-Jev מ-`ai-rank-duplicates`. בחירת סוג בצל נרשמת מ-`ai-shadow-type` בלי לשנות את השמירה |
+| החלטת סוג מרשימה סגורה | `supabase/functions/_shared/ai/decision.ts` | `decide()` לסוג עדיין מתאם כללים. דירוג "אותו אירוע" קורא ל-Jev מ-`ai-rank-duplicates`. סוג הטיוטה מגיע מהחילוץ, לא מקריאת צל |
 | סכמה | `ai` ב-testing | טבלאות intake. משתמש מחובר יכול רק לקרוא את השורות שלו |
 | רישום | `ai.commit_intake_items` ב-testing | כותב תנועה אחת או יותר. כשל אחד מבטל את כל הקריאה |
 | עמודה בטבלת התנועות | `public.transactions.origin` | `NULL`, `ai`, או `ai_auto`. קיימת ב-testing. האייקון, מסנן המקור וביטול מהשורה מופיעים רק ב-Web כשדגל `ai_intake_web` דולק. המסנן שולח `p_origin` רק כשהוא לא "הכל". ב-Desktop אין אייקון ואין מסנן |

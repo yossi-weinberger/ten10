@@ -14,6 +14,7 @@ export interface HeldDraft {
   paymentMethod: TextTransactionDraft["paymentMethod"];
   ruleName: string | null;
   checkDate: boolean;
+  checkAmount: boolean;
   typeQuestion: SpecialType | null;
 }
 
@@ -30,9 +31,9 @@ function paymentOf(value: AnchoredSplitItem["paymentMethod"]): TextTransactionDr
   return PAYMENTS.has(value) ? value : null;
 }
 
-function categoryOf(value: string | null): TextTransactionDraft["category"] {
-  if (value === "food" || value === "transportation") return value;
-  return null;
+function categoryOf(value: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 export function heldFromItem(
@@ -53,6 +54,7 @@ export function heldFromItem(
     paymentMethod: paymentOf(item.paymentMethod),
     ruleName: item.ruleName,
     checkDate: item.checkDate,
+    checkAmount: item.checkAmount === true,
     typeQuestion: item.typeQuestion,
   };
 }

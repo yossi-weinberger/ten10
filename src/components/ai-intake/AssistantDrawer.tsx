@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDonationStore } from "@/lib/store";
 import {
-  halachaNamespace,
+  halachaNamespace as namespaceForHalachaPage,
+  intentIsConfident,
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
@@ -134,7 +135,6 @@ export function AssistantDrawer({
   const splitRef = useRef<SplitItemsResult | null>(null);
   const halachaRef = useRef<string | null>(null);
   const [pendingText, setPendingText] = useState("");
-  const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
   const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
   const [amountReply, setAmountReply] = useState("");
   const [rules, setRules] = useState<ActiveUserRule[]>([]);
@@ -247,7 +247,6 @@ export function AssistantDrawer({
     setDuplicatesRanked(false);
     setClarification(null);
     setPendingText("");
-    setChosenType(null);
     setReceiptFields(null);
     setAmountReply("");
     setParsedRule(null);
@@ -428,7 +427,6 @@ export function AssistantDrawer({
     }
     setIntent("add_transaction");
     setPendingText("");
-    setChosenType(null);
     setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
@@ -553,7 +551,8 @@ export function AssistantDrawer({
     const draft = draftFromHeld(next);
     setClarification(null);
     showDraft(draft, next.ruleName);
-    if (next.checkDate) setStatus("checkDate");
+    if (next.checkAmount) setStatus("checkAmount");
+    else if (next.checkDate) setStatus("checkDate");
   }
 
   function releaseUnused(nextIntent: IntakeIntent | "ask") {
@@ -564,18 +563,17 @@ export function AssistantDrawer({
 
   function pageNamespace(source: string, pageId: string | null): string | null {
     if (pageId === "personal" || pageId === "none") return null;
-    if (pageId) return halachaNamespace(pageId);
+    if (pageId) return namespaceForHalachaPage(pageId);
     return selectHalachaPage(source)?.namespace ?? null;
   }
 
-  function showIntent(source: string, _today: string, nextIntent: IntakeIntent, _counted: CountAnswer) {
+  function showIntent(source: string, nextIntent: IntakeIntent) {
     const split = splitRef.current;
     const several = split && split.ok && split.route === "several" ? split : null;
     setAskIntent(false);
     setIntent(nextIntent);
     setReceiptFields(null);
     setPendingText(source);
-    setChosenType(null);
     setAmountReply("");
     setClarification(null);
     setSpecialType(null);
@@ -929,7 +927,6 @@ export function AssistantDrawer({
     setDuplicatesRanked(false);
     setClarification(null);
     setPendingText("");
-    setChosenType(null);
     setReceiptFields(null);
     setAmountReply("");
     setParsedRule(null);
@@ -970,12 +967,20 @@ export function AssistantDrawer({
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;
-    halachaRef.current = decided.ok ? decided.halachaPage : null;
+    const pageAnswered = decided.ok && intentIsConfident(decided.halachaPageConfidence);
+    halachaRef.current = pageAnswered ? decided.halachaPage : null;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     const counted = decided.ok ? { count: decided.count, confidence: decided.countConfidence } : NO_COUNT;
     setCountAnswer(counted);
     setChecking(false);
-    const next = shownIntent(source, today, { ...decided, halachaPage: halachaRef.current });
+    const next = decided.ok
+      ? shownIntent(source, today, {
+        ok: true,
+        intent: decided.intent,
+        confidence: decided.confidence,
+        halachaPage: pageAnswered ? decided.halachaPage : undefined,
+      })
+      : shownIntent(source, today, { ok: false });
     releaseUnused(next);
     if (next === "ask") {
       setAskIntent(true);
@@ -984,7 +989,6 @@ export function AssistantDrawer({
       setClarification(null);
       setSpecialType(null);
       setPendingText(source);
-      setChosenType(null);
       setParsedRule(null);
       setRuleChoice(null);
       setHalachaNamespace(null);
@@ -995,25 +999,23 @@ export function AssistantDrawer({
       setSavedItemId(null);
       return;
     }
-    showIntent(source, today, next, counted);
+    showIntent(source, next);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
     const source = pendingText;
     releaseUnused(nextIntent);
-    showIntent(source, todayIso(), nextIntent, countAnswer);
+    showIntent(source, nextIntent);
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
     if (receiptFields) {
-      setChosenType(type);
       showDraft(receiptAsDraft(receiptFields, type));
       setReceiptFields(null);
       setClarification(null);
       return;
     }
     const next = held.current;
-    setChosenType(type);
     if (!next) {
       setClarification("amount");
       return;
@@ -1032,23 +1034,30 @@ export function AssistantDrawer({
   function handleAmountReply(reply = amountReply) {
     const trimmed = reply.trim();
     if (!trimmed) return;
+    const previous = held.current;
+    const source = `${pendingText} ${trimmed}`.trim();
+    const request = ++requestRef.current;
+    beginTurn({ kind: "text", text: trimmed });
+    setText("");
+    setIntent("add_transaction");
+    setPendingText(source);
+    held.current = previous;
     const digits = digitsOnlyAmount(trimmed);
-    const next = held.current;
-    if (digits !== null && next) {
-      showHeld({ ...next, amount: digits });
-      setAmountReply("");
+    if (digits !== null && previous) {
+      showHeld({ ...previous, amount: digits, checkAmount: false });
       return;
     }
-    const source = `${pendingText} ${trimmed}`.trim();
-    setPendingText(source);
-    setAmountReply("");
+    setPendingPhase("reading");
+    setChecking(true);
     void splitItems(source, todayIso(), {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       receivedAt: new Date().toISOString(),
       defaultCurrency,
     }).then((split) => {
+      if (requestRef.current !== request) return;
+      setChecking(false);
       splitRef.current = split;
-      showIntent(source, todayIso(), "add_transaction", countAnswer);
+      showIntent(source, "add_transaction");
     });
   }
 

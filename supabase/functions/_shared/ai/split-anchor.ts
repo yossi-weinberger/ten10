@@ -35,6 +35,7 @@ export interface AnchoredSplitItem {
   currency: SplitCurrency;
   date: string | null;
   checkDate: boolean;
+  checkAmount: boolean;
   typeHint: SplitTypeHint;
   typeQuestion: SpecialType | null;
   requestedRate: number | null;
@@ -90,10 +91,21 @@ export function digitValue(text: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-function amountsMatch(amount: number, text: string): boolean {
+function mentionsThousand(text: string): boolean {
+  const lower = text.toLowerCase();
+  return lower.includes("אלף")
+    || lower.includes("אלפים")
+    || lower.includes("thousand")
+    || /(?:^|[^a-z])k(?:[^a-z]|$)/i.test(text);
+}
+
+/** Digits that equal the amount, or digits times 1000 when a thousand word is present. */
+function amountsMatch(amount: number, text: string): "anchored" | "check" | "miss" {
   const digits = digitValue(text);
-  if (digits === null) return true;
-  return Math.abs(digits - amount) < 0.001;
+  if (digits === null) return "check";
+  if (Math.abs(digits - amount) < 0.001) return "anchored";
+  if (mentionsThousand(text) && Math.abs(digits * 1000 - amount) < 0.001) return "anchored";
+  return "miss";
 }
 
 function textAppears(source: string, evidence: string): boolean {
@@ -102,22 +114,28 @@ function textAppears(source: string, evidence: string): boolean {
   return occurrences(fold(source), needle) > 0;
 }
 
-function anchoredAmount(source: string, item: SplitItemInput, alone: boolean, used: Map<string, number>): number | null | "drop" {
+function anchoredAmount(
+  source: string,
+  item: SplitItemInput,
+  alone: boolean,
+  used: Map<string, number>,
+): { amount: number | null; checkAmount: boolean } | "drop" {
   if (item.amount === null || item.amount_text === null || item.amount <= 0) {
-    return alone ? null : "drop";
+    return alone ? { amount: null, checkAmount: false } : "drop";
   }
   const needle = fold(item.amount_text);
   const seen = occurrences(fold(source), needle);
   const taken = used.get(needle) ?? 0;
-  const ok = needle.length > 0 && amountsMatch(item.amount, item.amount_text) && taken < seen;
-  if (!ok) return alone ? null : "drop";
+  if (needle.length === 0 || taken >= seen) return alone ? { amount: null, checkAmount: false } : "drop";
+  const match = amountsMatch(item.amount, item.amount_text);
+  if (match === "miss") return alone ? { amount: null, checkAmount: false } : "drop";
   used.set(needle, taken + 1);
-  return item.amount;
+  return { amount: item.amount, checkAmount: match === "check" };
 }
 
 function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
   if (date === null) return { date: today, checkDate: false };
-  if (dateText === null || !textAppears(source, dateText)) return { date: today, checkDate: false };
+  if (dateText === null || !textAppears(source, dateText)) return { date: null, checkDate: true };
   const resolved = resolveDateStruct(date, today);
   if (resolved === null) return { date: null, checkDate: true };
   return { date: resolved, checkDate: false };
@@ -144,12 +162,13 @@ export function anchorSplitItems(
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     kept.push({
       description: item.description.trim(),
-      amount,
+      amount: amount.amount,
       currency: item.currency ?? context.defaultCurrency,
       date: dated.date,
       checkDate: dated.checkDate,
+      checkAmount: amount.checkAmount,
       typeHint: rule ? rule.type : item.type ?? "",
-      typeQuestion: item.type_question,
+      typeQuestion: rule ? null : item.type_question,
       requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
       paymentMethod: item.payment_method,
       category,
