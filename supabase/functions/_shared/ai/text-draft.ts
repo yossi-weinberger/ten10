@@ -156,6 +156,8 @@ interface AmountHit {
   stripStart: number;
   stripEnd: number;
   strength: AmountStrength;
+  /** False when the number only restates an earlier amount (שזה, =, נטו). */
+  countsSeparately: boolean;
 }
 
 function currencyAlternation(): string {
@@ -185,6 +187,17 @@ const NOT_AMOUNT_PATTERNS: readonly RegExp[] = (() => {
       "giu",
     ),
     new RegExp(`(?:^|\\s)on\\s+the\\s+(${DAY_SRC})${NUMBER_END}`, "giu"),
+    new RegExp(`(?:^|\\s)ב\\s?((?:19|20)\\d{2})${NUMBER_END}`, "giu"),
+    new RegExp(
+      `(?:^|\\s)(?:ב|at)\\s?(${DAY_SRC})(?=\\s*(?:בבוקר|בצהריים|בערב|בלילה|am|pm|in the morning|in the evening|at night|o'clock))`,
+      "giu",
+    ),
+    new RegExp(`(?:^|\\s)at\\s+(${DAY_SRC})(?=\\s*$)`, "giu"),
+    new RegExp(
+      `((?:3[01]|[12]\\d|0?[1-9])[./](?:0?[1-9]|1[0-2]))(?![./\\d])(?!\\s*(?:${currencyAlternation()}))`,
+      "giu",
+    ),
+    new RegExp(`(?<![\\d])(0\\d{1,2}[-\\s]?\\d{7,8})(?!\\d)`, "g"),
   ];
 })();
 
@@ -215,7 +228,7 @@ function amountCandidates(original: string): AmountHit[] {
     `(?:^|\\s)(${NUMBER_SRC})\\s*(?:%|(?:${wordsPattern(PERCENT_WORDS)})(?!\\p{L}))\\s*(?:(?:${wordsPattern(PERCENT_OF_WORDS)})\\s+|מ\\s*[-–]?\\s*)$`,
     "iu",
   );
-  const hits: (AmountHit & { startsItem: boolean })[] = [];
+  const hits: (AmountHit & { startsItem: boolean; countsSeparately: boolean })[] = [];
   for (const match of text.matchAll(new RegExp(NUMBER_SRC, "g"))) {
     const raw = match[0];
     const start = match.index ?? 0;
@@ -242,22 +255,45 @@ function amountCandidates(original: string): AmountHit[] {
       : share.index + (share[0].length - share[0].trimStart().length);
     const starts = [markerStart, currencyStart, shareStart].filter((value): value is number => value !== null);
     const strength: AmountStrength = currencyBefore !== null || currencyAfter !== null ? 2 : marker !== null ? 1 : 0;
+    if (strength === 0 && /(?:^|\s)(?:על|on)\s+[^\s,]+\s+$/i.test(before)) continue;
+    const countsSeparately = !/(?:שזה|במקום|נטו|ברוטו|=|\()\s*$/.test(before);
+    const stripEnd = end + (currencyAfter?.[0].length ?? 0);
+    if (!countsSeparately) {
+      const previous = hits[hits.length - 1];
+      if (previous) previous.stripEnd = stripEnd;
+    }
     hits.push({
       amount,
       stripStart: starts.length > 0 ? Math.min(...starts) : start,
-      stripEnd: end + (currencyAfter?.[0].length ?? 0),
+      stripEnd,
       strength,
       startsItem: separators.test(before),
+      countsSeparately,
     });
   }
   const kept = hits.some((hit) => hit.strength > 0)
     ? hits.filter((hit) => hit.strength > 0 || hit.startsItem)
     : hits;
-  return splitTotal(kept) ?? kept;
+  return paymentSplit(text) ? (splitTotal(kept) ?? kept) : kept;
+}
+
+const PAYMENT_SPLIT_MARKERS = [
+  ...CASH_MARKERS,
+  ...CREDIT_MARKERS,
+  ...BIT_MARKERS,
+  ...CHECK_MARKERS,
+  ...TRANSFER_MARKERS,
+].map((marker) => marker.trim()).filter((marker) => marker.length > 0);
+
+function paymentSplit(text: string): boolean {
+  return PAYMENT_SPLIT_MARKERS.some((marker) => {
+    const pattern = new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(marker)}(?![\\p{L}\\p{N}])`, "iu");
+    return pattern.test(text);
+  });
 }
 
 /** "250, 100 במזומן ו־150 באשראי": one amount that is the sum of the others is one payment split in parts. */
-function splitTotal(hits: AmountHit[]): AmountHit[] | null {
+function splitTotal<T extends AmountHit>(hits: T[]): T[] | null {
   if (hits.length < 3) return null;
   const sum = hits.reduce((total, hit) => total + hit.amount, 0);
   const total = hits.find((hit) => Math.abs(hit.amount * 2 - sum) < 0.005);
@@ -266,7 +302,7 @@ function splitTotal(hits: AmountHit[]): AmountHit[] | null {
 
 /** The strongest hit wins: a currency beside it, then a price word, then a bare number. Ties take the last. */
 function findAmount(text: string): AmountHit | null {
-  const candidates = amountCandidates(text);
+  const candidates = amountCandidates(text).filter((hit) => hit.countsSeparately);
   const strongest = Math.max(-1, ...candidates.map((hit) => hit.strength));
   const pool = candidates.filter((hit) => hit.strength === strongest);
   return pool[pool.length - 1] ?? null;
@@ -287,13 +323,15 @@ function textForAmounts(text: string): string {
 
 /** Every amount in the text, in order. `draftFromText` picks one of them. */
 export function amountsFromText(text: string): number[] {
-  return amountCandidates(maskRate(textForAmounts(text))).map((hit) => hit.amount);
+  return amountCandidates(maskRate(textForAmounts(text)))
+    .filter((hit) => hit.countsSeparately)
+    .map((hit) => hit.amount);
 }
 
 /** Only the amounts with a currency word or sign beside them. */
 export function currencyAmountsFromText(text: string): number[] {
   return amountCandidates(maskRate(textForAmounts(text)))
-    .filter((hit) => hit.strength === 2)
+    .filter((hit) => hit.countsSeparately && hit.strength === 2)
     .map((hit) => hit.amount);
 }
 

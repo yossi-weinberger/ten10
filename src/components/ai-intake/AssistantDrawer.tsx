@@ -925,7 +925,7 @@ export function AssistantDrawer({
     setIntent("add_transaction");
     setText("");
     const source = `${pendingText} ${trimmed}`;
-    if (recordsOneAtATime("add_transaction", source, null, null)) {
+    if (recordsOneAtATime("add_transaction", source, countAnswer.count, countAnswer.confidence)) {
       setClarification(null);
       setStatus("oneAtATime");
       return;
