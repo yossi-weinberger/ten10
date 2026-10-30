@@ -9,6 +9,24 @@ export type UsageDecision =
   | { allowed: false; reason: UsageBlockReason; resetsAt: string | null };
 
 const BLOCK_REASONS: readonly UsageBlockReason[] = ["quota_exhausted", "rate_limited", "daily_limit"];
+const RELEASE_WINDOW_MS = 60_000;
+
+/**
+ * A client may release only its own text unit from the last minute.
+ * Anything else would let a caller reset the quota.
+ */
+export function mayReleaseRecentTextUsage(
+  row: { user_id?: unknown; kind?: unknown; created_at?: unknown; released_at?: unknown } | null,
+  callerId: string,
+  now: number,
+): boolean {
+  if (!row || row.user_id !== callerId || row.kind !== "text" || row.released_at) return false;
+  if (typeof row.created_at !== "string") return false;
+  const created = Date.parse(row.created_at);
+  if (!Number.isFinite(created)) return false;
+  const age = now - created;
+  return age >= 0 && age <= RELEASE_WINDOW_MS;
+}
 
 /** A failed or unreadable check blocks the call: the provider is never reached without a count. */
 export function readUsageDecision(data: unknown, error: unknown): UsageDecision {

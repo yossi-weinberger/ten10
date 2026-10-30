@@ -1,23 +1,69 @@
-import { amountsFromText, prepareText, resolveDatePhrase } from "./text-draft.ts";
+import { resolveDateStruct, type DateStruct } from "./split-date.ts";
+import { resolveRecurrence, type ResolvedRecurrence } from "./split-recurrence.ts";
+import type { SplitItemInput } from "./split-schema.ts";
 
-export interface SplitProposal {
-  description: string;
-  amount: number;
-  amount_text: string;
-  currency: string;
-  date_phrase: string;
-  type_hint: string;
+export type SplitCurrency = "ILS" | "USD" | "EUR" | "";
+export type SplitTypeHint =
+  | "income"
+  | "expense"
+  | "donation"
+  | "exempt-income"
+  | "recognized-expense"
+  | "non_tithe_donation"
+  | "";
+
+export type SpecialType = "exempt-income" | "recognized-expense" | "non_tithe_donation";
+export type SplitPayment = "credit_card" | "cash" | "bank_transfer" | "bit_paybox" | "check";
+
+export interface SplitRuleRef {
+  id: string;
+  name: string;
+  type: SpecialType;
 }
 
-type SplitCurrency = "ILS" | "USD" | "EUR" | "";
-type SplitTypeHint = "income" | "expense" | "donation" | "";
+export interface SplitReadContext {
+  today: string;
+  defaultCurrency: "ILS" | "USD" | "EUR";
+  categories: readonly string[];
+  rules: readonly SplitRuleRef[];
+  recipients: readonly string[];
+}
 
 export interface AnchoredSplitItem {
   description: string;
-  amount: number;
+  amount: number | null;
   currency: SplitCurrency;
   date: string | null;
+  checkDate: boolean;
+  checkAmount: boolean;
   typeHint: SplitTypeHint;
+  typeQuestion: SpecialType | null;
+  requestedRate: number | null;
+  paymentMethod: SplitPayment | null;
+  category: string | null;
+  ruleId: string | null;
+  ruleName: string | null;
+  recurrence: ResolvedRecurrence | null;
+}
+
+export function splitReadContext(today: string, extra: Partial<SplitReadContext> = {}): SplitReadContext {
+  return {
+    today,
+    defaultCurrency: extra.defaultCurrency ?? "ILS",
+    categories: extra.categories ?? [],
+    rules: extra.rules ?? [],
+    recipients: extra.recipients ?? [],
+  };
+}
+
+function fold(value: string): string {
+  return value
+    .replace(/\u00a0/g, " ")
+    .replace(/[־–—-]/g, "")
+    .replace(/,/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function occurrences(haystack: string, needle: string): number {
@@ -35,52 +81,190 @@ function occurrences(haystack: string, needle: string): number {
   return count;
 }
 
-function currencyOf(value: string): SplitCurrency {
-  const upper = value.trim().toUpperCase();
-  if (upper === "ILS" || upper === "USD" || upper === "EUR") return upper;
-  return "";
+/** Digits in the evidence, after thousand separators are removed. Words have none. */
+export function digitValue(text: string): number | null {
+  const compact = text.replace(/[\s\u00a0,']/g, "").replace(/[־–—-]/g, "");
+  if (!/\d/.test(compact)) return null;
+  const match = compact.match(/\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const value = Number(match[0]);
+  return Number.isFinite(value) ? value : null;
 }
 
-function typeOf(value: string): SplitTypeHint {
-  if (value === "income" || value === "expense" || value === "donation") return value;
-  return "";
+function mentionsThousand(text: string): boolean {
+  const lower = text.toLowerCase();
+  return lower.includes("אלף")
+    || lower.includes("אלפים")
+    || lower.includes("thousand")
+    || /(?:^|[^a-z])k(?:[^a-z]|$)/i.test(text);
 }
 
-function parsedAmount(text: string): number | null {
-  for (const sample of [text, `${text} שקל`, `${text} shekels`]) {
-    const found = amountsFromText(sample);
-    if (found.length === 1) return found[0];
+function textAppears(source: string, evidence: string): boolean {
+  const needle = fold(evidence);
+  if (needle.length === 0) return false;
+  return occurrences(fold(source), needle) > 0;
+}
+
+const SPECIAL_TYPES = new Set(["exempt-income", "recognized-expense", "non_tithe_donation"]);
+
+function numberKey(value: number): string {
+  return String(Math.round(value * 1000));
+}
+
+/** Numbers in the text. Separators, hyphens, and currency signs are not part of the number. */
+function numbersIn(text: string): number[] {
+  const stripped = text
+    .replace(/[₪$€]/g, " ")
+    .replace(/\u00a0/g, " ")
+    .replace(/[־–—-]/g, "");
+  const pattern = /\d{1,3}(?:[ ,]\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g;
+  const values: number[] = [];
+  for (const match of stripped.matchAll(pattern)) {
+    const value = Number(match[0].replace(/[ ,]/g, ""));
+    if (Number.isFinite(value)) values.push(value);
   }
+  return values;
+}
+
+function anchoredAmount(
+  source: string,
+  item: SplitItemInput,
+  alone: boolean,
+  used: Map<string, number>,
+): { amount: number | null; checkAmount: boolean } | "drop" {
+  if (item.amount === null || item.amount <= 0) {
+    return alone ? { amount: null, checkAmount: false } : "drop";
+  }
+  const words = item.amount_text?.trim() ?? "";
+  if (words.length > 0 && digitValue(words) === null) {
+    const needle = fold(words);
+    const seen = occurrences(fold(source), needle);
+    const taken = used.get(`w:${needle}`) ?? 0;
+    if (needle.length === 0 || taken >= seen) {
+      return alone ? { amount: null, checkAmount: false } : "drop";
+    }
+    used.set(`w:${needle}`, taken + 1);
+    return { amount: item.amount, checkAmount: true };
+  }
+  const numbers = numbersIn(source);
+  const thousand = mentionsThousand(source) || mentionsThousand(words);
+  let base: number | null = null;
+  for (const value of numbers) {
+    if (Math.abs(value - item.amount) < 0.001) {
+      base = value;
+      break;
+    }
+  }
+  if (base === null && thousand) {
+    for (const value of numbers) {
+      if (Math.abs(value * 1000 - item.amount) < 0.001) {
+        base = value;
+        break;
+      }
+    }
+  }
+  if (base === null) return alone ? { amount: null, checkAmount: false } : "drop";
+  const key = numberKey(base);
+  const seen = numbers.filter((value) => Math.abs(value - base) < 0.001).length;
+  const taken = used.get(key) ?? 0;
+  if (taken >= seen) return alone ? { amount: null, checkAmount: false } : "drop";
+  used.set(key, taken + 1);
+  return { amount: item.amount, checkAmount: false };
+}
+
+function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
+  if (date === null) return { date: today, checkDate: false };
+  if (dateText === null || !textAppears(source, dateText)) return { date: null, checkDate: true };
+  const resolved = resolveDateStruct(date, today);
+  if (resolved === null) return { date: null, checkDate: true };
+  return { date: resolved, checkDate: false };
+}
+
+function mentionsTotal(source: string): boolean {
+  return /סה["״']?כ/.test(source)
+    || source.includes("יחד")
+    || source.includes("ביחד")
+    || /\btotal\b/i.test(source);
+}
+
+function sumsTo(values: readonly number[], target: number): boolean {
+  const count = values.length;
+  if (count < 2) return false;
+  const limit = 1 << count;
+  for (let mask = 1; mask < limit; mask += 1) {
+    let parts = 0;
+    let sum = 0;
+    for (let bit = 0; bit < count; bit += 1) {
+      if ((mask & (1 << bit)) === 0) continue;
+      parts += 1;
+      sum += values[bit];
+    }
+    if (parts >= 2 && Math.abs(sum - target) < 0.02) return true;
+  }
+  return false;
+}
+
+function askedSpecial(type: SplitItemInput["type"]): AnchoredSplitItem["typeQuestion"] {
+  if (type === "exempt-income" || type === "recognized-expense" || type === "non_tithe_donation") return type;
   return null;
 }
 
-/** Drops a proposal whose amount text is missing, misread, or used more times than it appears. */
+function ordinaryType(type: SplitItemInput["type"]): AnchoredSplitItem["typeHint"] {
+  if (type === "exempt-income") return "income";
+  if (type === "recognized-expense") return "expense";
+  if (type === "non_tithe_donation") return "donation";
+  return type ?? "";
+}
+
+/** One item keeps an unanchored amount as null. Several items drop that item. */
 export function anchorSplitItems(
   source: string,
-  proposals: readonly SplitProposal[],
-  today: string,
+  items: readonly SplitItemInput[],
+  context: SplitReadContext,
 ): { items: AnchoredSplitItem[]; dropped: number } {
-  const preparedSource = prepareText(source);
+  const alone = items.length === 1;
   const used = new Map<string, number>();
-  const items: AnchoredSplitItem[] = [];
+  const kept: AnchoredSplitItem[] = [];
   let dropped = 0;
-  for (const proposal of proposals) {
-    const needle = prepareText(proposal.amount_text);
-    const parsed = parsedAmount(proposal.amount_text);
-    const amountMatches = parsed === proposal.amount;
-    const taken = used.get(needle) ?? 0;
-    if (!amountMatches || taken >= occurrences(preparedSource, needle)) {
+  for (const item of items) {
+    const amount = anchoredAmount(source, item, alone, used);
+    if (amount === "drop") {
       dropped += 1;
       continue;
     }
-    used.set(needle, taken + 1);
-    items.push({
-      description: proposal.description.trim(),
-      amount: proposal.amount,
-      currency: currencyOf(proposal.currency),
-      date: resolveDatePhrase(proposal.date_phrase, today),
-      typeHint: typeOf(proposal.type_hint),
+    const dated = anchoredDate(source, item.date, item.date_text, context.today);
+    const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
+    const category = item.category && context.categories.includes(item.category) ? item.category : null;
+    const special = item.type !== null && SPECIAL_TYPES.has(item.type);
+    kept.push({
+      description: item.description.trim(),
+      amount: amount.amount,
+      currency: item.currency ?? context.defaultCurrency,
+      date: dated.date,
+      checkDate: dated.checkDate,
+      checkAmount: amount.checkAmount,
+      typeHint: rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
+      typeQuestion: rule ? null : askedSpecial(item.type) ?? item.type_question,
+      requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
+      paymentMethod: item.payment_method,
+      category,
+      ruleId: rule?.id ?? null,
+      ruleName: rule?.name ?? null,
+      recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
     });
   }
-  return { items, dropped };
+  if (!mentionsTotal(source)) return { items: kept, dropped };
+  const totals = new Set<number>();
+  kept.forEach((item, index) => {
+    if (item.amount === null || item.checkAmount) return;
+    const others = kept.flatMap((other, otherIndex) => (
+      otherIndex !== index && other.amount !== null && !other.checkAmount ? [other.amount] : []
+    ));
+    if (sumsTo(others, item.amount)) totals.add(index);
+  });
+  if (totals.size === 0) return { items: kept, dropped };
+  return {
+    items: kept.filter((_, index) => !totals.has(index)),
+    dropped: dropped + totals.size,
+  };
 }
