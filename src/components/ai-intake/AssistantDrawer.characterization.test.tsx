@@ -30,6 +30,7 @@ const ai = vi.hoisted(() => ({
   deleteTransaction: vi.fn(),
   createRecurringTransaction: vi.fn(),
   updateRecurringTransaction: vi.fn(),
+  splitItems: vi.fn(),
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -59,6 +60,7 @@ vi.mock("@/lib/ai/user-rules", () => ({
 vi.mock("@/lib/ai/duplicate-candidates", () => ({ listDuplicateCandidates: ai.listDuplicateCandidates }));
 vi.mock("@/lib/ai/rank-duplicates", () => ({ rankDuplicateCandidates: ai.rankDuplicateCandidates }));
 vi.mock("@/lib/ai/shadow-type", () => ({ recordShadowType: ai.recordShadowType }));
+vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems }));
 vi.mock("@/lib/ai/read-receipt", () => ({ readReceiptImage: ai.readReceiptImage }));
 vi.mock("@/lib/ai/open-receipt", () => ({ openAiReceipt: ai.openAiReceipt }));
 vi.mock("@/lib/ai/load-duplicate-scan", () => ({
@@ -132,6 +134,7 @@ beforeEach(() => {
   ai.listDuplicateCandidates.mockResolvedValue([]);
   ai.rankDuplicateCandidates.mockResolvedValue(null);
   ai.recordShadowType.mockResolvedValue(undefined);
+  ai.splitItems.mockResolvedValue({ ok: true, route: "unreadable" });
 });
 
 afterEach(() => cleanup());
@@ -194,6 +197,29 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.oneAtATime")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+  });
+
+  it("shows a card for each split item", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+      count: "one",
+      countConfidence: 0.5,
+    });
+    ai.splitItems.mockResolvedValue({
+      ok: true,
+      route: "several",
+      found: 2,
+      dropped: 0,
+      items: [
+        { description: "מכולת", amount: 50, currency: "ILS", date: "2026-10-29", typeHint: "expense" },
+        { description: "ישיבה", amount: 120, currency: "ILS", date: "2026-10-29", typeHint: "donation" },
+      ],
+    });
+    const user = setup();
+    await send(user, "50 במכולת ו־120 לישיבה");
+    expect(await screen.findByRole("button", { name: "aiIntake.splitSave" })).toBeInTheDocument();
   });
 
   it("still drafts a sentence with one amount when Jev says one", async () => {

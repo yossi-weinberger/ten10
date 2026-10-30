@@ -8,6 +8,7 @@ import type {
   RuleActionType,
   TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
+import type { SplitDraft } from "@/lib/ai/split-cards";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 
 export type StatusTone = "success" | "error" | "info";
@@ -35,6 +36,7 @@ export const STATUS_MESSAGES = {
   receiptUnavailable: { key: "aiIntake.receiptUnavailable", tone: "error" },
   providerFailed: { key: "aiIntake.providerFailed", tone: "error" },
   oneAtATime: { key: "aiIntake.oneAtATime", tone: "info" },
+  splitList: { key: "aiIntake.splitList", tone: "info" },
   severalReceipts: { key: "aiIntake.severalReceipts", tone: "info" },
   bankStatement: { key: "aiIntake.bankStatement", tone: "info" },
   voiceDenied: { key: "aiIntake.voiceDenied", tone: "error" },
@@ -108,6 +110,7 @@ export type ReplyBlock =
   | { kind: "askAmount" }
   | { kind: "receipt"; artifactId: string; link: string | null }
   | { kind: "draft"; view: DraftView }
+  | { kind: "drafts"; cards: SplitDraft[]; dropped: number }
   | { kind: "status"; status: StatusKey }
   | { kind: "undo" };
 
@@ -135,6 +138,8 @@ export interface ReplyState {
   receiptLink: string | null;
   draft: Omit<DraftView, "locked"> | null;
   recurring: RecurringCard | null;
+  splitDrafts: SplitDraft[] | null;
+  splitDropped: number;
   status: StatusKey | null;
   savedItemId: string | null;
 }
@@ -158,6 +163,8 @@ export function emptyReplyState(): ReplyState {
     receiptLink: null,
     draft: null,
     recurring: null,
+    splitDrafts: null,
+    splitDropped: 0,
     status: null,
     savedItemId: null,
   };
@@ -168,7 +175,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.checking) blocks.push({ kind: "thinking", phase: state.pendingPhase ?? "reading" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
   if (state.intent) {
-    if (state.status !== "oneAtATime") {
+    if (state.status !== "oneAtATime" && state.status !== "splitList") {
       blocks.push({
         kind: "intent",
         intent: state.intent,
@@ -216,6 +223,9 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
           locked: state.savedItemId !== null,
         },
       });
+    }
+    if (state.splitDrafts && state.splitDrafts.length > 0) {
+      blocks.push({ kind: "drafts", cards: state.splitDrafts, dropped: state.splitDropped });
     }
   }
   if (state.status) blocks.push({ kind: "status", status: state.status });

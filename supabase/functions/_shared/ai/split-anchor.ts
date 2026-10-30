@@ -46,6 +46,14 @@ function typeOf(value: string): SplitTypeHint {
   return "";
 }
 
+function parsedAmount(text: string): number | null {
+  for (const sample of [text, `${text} שקל`, `${text} shekels`]) {
+    const found = amountsFromText(sample);
+    if (found.length === 1) return found[0];
+  }
+  return null;
+}
+
 /** Drops a proposal whose amount text is missing, misread, or used more times than it appears. */
 export function anchorSplitItems(
   source: string,
@@ -58,8 +66,8 @@ export function anchorSplitItems(
   let dropped = 0;
   for (const proposal of proposals) {
     const needle = prepareText(proposal.amount_text);
-    const parsed = amountsFromText(proposal.amount_text);
-    const amountMatches = parsed.length === 1 && parsed[0] === proposal.amount;
+    const parsed = parsedAmount(proposal.amount_text);
+    const amountMatches = parsed === proposal.amount;
     const taken = used.get(needle) ?? 0;
     if (!amountMatches || taken >= occurrences(preparedSource, needle)) {
       dropped += 1;
