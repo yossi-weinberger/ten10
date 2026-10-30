@@ -198,15 +198,16 @@ export function recurrenceRule(card: RecurringCard): RecurrenceRule | null {
   };
 }
 
-/** The next charges, at most three, and fewer when the order ends sooner. */
-export function upcomingRecurringDates(card: RecurringCard, limit = 3): string[] {
-  if (!card.startDate) return [];
+/** The next charges from the date a save would write, at most three, and fewer when the order ends sooner. */
+export function upcomingRecurringDates(card: RecurringCard, today: string, limit = 3): string[] {
+  const start = saveStartDate(card, today);
+  if (!start) return [];
   const rule = recurrenceRule(card);
   if (!rule) return [];
   const count = card.totalOccurrences === null ? limit : Math.min(limit, card.totalOccurrences);
   if (count <= 0) return [];
   const dates: string[] = [];
-  let due = firstRecurringDueDate(card.startDate, card.calendarType, rule.dayOfMonth);
+  let due = start;
   while (dates.length < count) {
     dates.push(due);
     due = advanceRecurringDate(due, rule);
@@ -231,6 +232,22 @@ function lookbackDays(frequency: RecurrenceFrequency): number {
   }
 }
 
+/**
+ * The charge "גם החודש" writes. When this month's day is still ahead, that day,
+ * even though it is after today. When it has passed, the latest due on or before today.
+ * The form's catch-up math stays on `currentPeriodDueDate`.
+ */
+export function includedMonthDueDate(card: RecurringCard, today: string): string | null {
+  const rule = recurrenceRule(card);
+  if (!rule) return null;
+  const upcoming = firstRecurringDueDate(today, card.calendarType, rule.dayOfMonth);
+  const adapter = getCalendarAdapter(card.calendarType);
+  const upcomingMonth = adapter.fromIsoDate(upcoming);
+  const todayMonth = adapter.fromIsoDate(today);
+  if (upcomingMonth.year === todayMonth.year && upcomingMonth.month === todayMonth.month) return upcoming;
+  return currentPeriodDueDate(card, today);
+}
+
 /** Latest due date on or before today. Null when the schedule cannot be read. */
 export function currentPeriodDueDate(card: RecurringCard, today: string): string | null {
   const rule = recurrenceRule(card);
@@ -246,10 +263,10 @@ export function currentPeriodDueDate(card: RecurringCard, today: string): string
 
 /** Start date written on save. Including this month uses the current period. */
 export function saveStartDate(card: RecurringCard, today: string): string | null {
-  if (card.includeThisMonth === "yes") return currentPeriodDueDate(card, today);
+  if (card.includeThisMonth === "yes") return includedMonthDueDate(card, today);
   if (card.includeThisMonth === "no" && card.alreadyCharged) {
     const rule = recurrenceRule(card);
-    const current = currentPeriodDueDate(card, today);
+    const current = includedMonthDueDate(card, today);
     if (!rule || !current) return card.startDate;
     if (card.startDate && card.startDate > current) return card.startDate;
     return advanceRecurringDate(current, rule);

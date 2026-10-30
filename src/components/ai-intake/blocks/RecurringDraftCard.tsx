@@ -12,6 +12,7 @@ import {
   recurringCancelOpen,
   recurringCardReady,
   recurringShortDate,
+  saveStartDate,
   recurringSummaryPieces,
   unsupportedRecurringFrequency,
   upcomingRecurringDates,
@@ -86,7 +87,8 @@ export function RecurringDraftCard({
   const [picking, setPicking] = useState(false);
   const today = todayIso();
   const locked = !interactive || card.saved || saving;
-  const dates = upcomingRecurringDates(card);
+  const start = saveStartDate(card, today);
+  const dates = upcomingRecurringDates(card, today);
   const ready = recurringCardReady(card, today);
   const question = nextRecurringQuestion(card);
   const blocked = unsupportedRecurringFrequency(card.frequency);
@@ -98,7 +100,7 @@ export function RecurringDraftCard({
   const labels = {
     type: card.type ? t(`aiIntake.types.${card.type}`) : "",
     currency: currencySymbol(card.currency),
-    start: card.startDate ? recurringShortDate(card.startDate, card.calendarType) : "",
+    start: start ? recurringShortDate(start, card.calendarType) : "",
     lead: t("aiIntake.recurring.summaryLead"),
     payeePrefix: t("aiIntake.recurring.summaryPayee"),
     monthly: t("aiIntake.recurring.summaryMonthly"),
@@ -227,7 +229,7 @@ export function RecurringDraftCard({
           </Button>
         </div>
       ) : null}
-      {card.includeThisMonth === "yes" && !card.monthDuplicate && showSummary ? (
+      {card.includeThisMonth === "yes" && !card.monthDuplicate && showSummary && start !== null && start >= today ? (
         <p className="text-sm text-muted-foreground">{t("aiIntake.recurring.appearsTomorrow")}</p>
       ) : null}
       {showSummary && !openField && !picking ? (
