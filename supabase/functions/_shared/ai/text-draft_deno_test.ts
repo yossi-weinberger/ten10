@@ -150,6 +150,8 @@ Deno.test("every amount is listed, marked or bare", () => {
   sameAmounts("20 לקפה, 35 לאוטובוס", [20, 35]);
   sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
   sameAmounts("50 לכולל", [50]);
+  sameAmounts("תרמתי מאה שמונים לישיבה ושילמתי חמישים במכולת", [180, 50]);
+  sameAmounts("במאה שערים", []);
   sameAmounts("1,234.56 בסופר", [1234.56]);
   sameAmounts("תרמתי 2000 לישיבה", [2000]);
   sameAmounts("אתמול קיבלתי 200 דולר לפי שער 3.5", [200]);
@@ -213,6 +215,20 @@ Deno.test("a total split in parts is one payment of the total", () => {
   assert(draftFromText("Paid $250 for the hotel, $100 cash and $150 by credit card", TODAY)?.amount === 250, "english");
   assert(draftFromText("שילמתי 300 על קניות, 100 במזומן ו־200 באשראי", TODAY)?.amount === 300, "hebrew");
   assert(amountsFromText("שילמתי 300 על קניות, 100 במזומן ו־200 באשראי").length === 1, "one amount");
+  assert(amountsFromText("50, 50 ו־100").length === 3, "no payment word");
+  assert(amountsFromText("שילמתי 100 דולר שזה 370 שקל").length === 1, "conversion");
+  const converted = draftFromText("שילמתי 100 דולר שזה 370 שקל", TODAY);
+  assert(converted?.amount === 100, "conversion amount");
+  assert(converted?.currency === "USD", "conversion currency");
+  assert(!converted?.description.includes("370") && !converted?.description.includes("שזה"), "conversion leftover");
+  assert(amountsFromText("ב-9 בבוקר שילמתי 40").length === 1, "hour");
+  assert(draftFromText("ב-9 בבוקר שילמתי 40", TODAY)?.amount === 40, "hour amount");
+  assert(amountsFromText("ב-2025 תרמתי 300").length === 1, "year");
+  assert(draftFromText("ב-2025 תרמתי 300", TODAY)?.amount === 300, "year amount");
+  assert(amountsFromText("שילמתי ב־12/10 80 שקל").length === 1, "date");
+  assert(draftFromText("שילמתי ב־12/10 80 שקל", TODAY)?.amount === 80, "date amount");
+  assert(amountsFromText("על אייפון 15").length === 0, "model");
+  assert(amountsFromText("התקשרו 050-1234567 ושילמתי 40").length === 1, "phone");
 });
 
 Deno.test("only amounts beside a currency are currency amounts", () => {

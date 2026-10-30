@@ -3,6 +3,7 @@
  * Words live in number-word-aliases.ts. Text outside a converted phrase stays byte-identical.
  */
 
+import { TRANSACTION_VERBS } from "./phrase-aliases.ts";
 import {
   ENGLISH_AND,
   ENGLISH_HUNDRED,
@@ -63,6 +64,7 @@ const HE_MULTIPLIERS = new Set<string>(HEBREW_THOUSANDS_MULTIPLIERS);
 const DAY_WORDS = new Set<string>(HEBREW_DAY_WORDS);
 const WEEKDAY_NUMBER_WORDS = new Set<string>(HEBREW_WEEKDAY_NUMBER_WORDS);
 const PREFIXES = new Set<string>(HEBREW_NUMBER_PREFIXES);
+const PAYMENT_VERBS = new Set<string>(TRANSACTION_VERBS);
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -75,16 +77,28 @@ const CURRENCY_AFTER = new RegExp(
   "iu",
 );
 
-/** Hebrew letters only, so a maqaf or gershayim splits words. English may be hyphenated. */
+/** Hebrew letters only, so a maqaf or gershayim splits words. A maqaf or hyphen between them still joins the phrase. English may be hyphenated. */
 function tokenize(text: string): Token[] {
   let previousEnd = -1;
   return [...text.matchAll(/[a-z]+(?:-[a-z]+)*|[\u05D0-\u05EA]+/gi)].map((match) => {
     const start = match.index ?? 0;
     const end = start + match[0].length;
-    const joined = previousEnd >= 0 && /^\s+$/.test(text.slice(previousEnd, start));
+    const between = previousEnd >= 0 ? text.slice(previousEnd, start) : "";
+    const joined = previousEnd >= 0 && /^[\s־\-–]+$/.test(between);
     previousEnd = end;
     return { word: match[0].toLowerCase(), start, end, joined };
   });
+}
+
+function verbBefore(tokens: readonly Token[], index: number): boolean {
+  for (let i = 0; i < index; i++) {
+    const word = tokens[i].word;
+    if (PAYMENT_VERBS.has(word)) return true;
+    if (word.startsWith(HEBREW_CONJUNCTION) && PAYMENT_VERBS.has(word.slice(HEBREW_CONJUNCTION.length))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Value of `words[i]` in `values`. With `conj`, a leading ו is allowed: «ושתיים». */
@@ -223,13 +237,15 @@ function phraseAt(text: string, tokens: readonly Token[], index: number): Phrase
   if (!hit) return null;
 
   const end = tokens[index + hit.next - 1].end;
-  if (hit.value < 20 && !CURRENCY_AFTER.test(text.slice(end))) return null;
+  const currency = CURRENCY_AFTER.test(text.slice(end));
+  if (!currency && (hit.value < 20 || !verbBefore(tokens, index))) return null;
   return { prefix, value: hit.value, next: index + hit.next };
 }
 
 /**
- * Replaces each number-word phrase with digits. A phrase below 20 stays as words
- * unless a currency word follows it: «פעם אחת», «שלוש חולצות», "one month".
+ * Replaces each number-word phrase with digits. A phrase stays as words unless a
+ * currency word follows it, or it is at least 20 and a payment verb comes before
+ * it. «פעם אחת», «שלוש חולצות», «במאה שערים», "one month" stay words.
  * A kept Hebrew prefix is joined with a maqaf, «ב־300», because the amount
  * parser skips digits glued to letters.
  */

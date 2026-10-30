@@ -320,10 +320,10 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
     text: "make my fifty dollar pledge to the kollel recurring every month until the end of the year",
     expected: {
       draft: {
-        amount: null,
-        currency: null,
+        amount: 50,
+        currency: "USD",
         type: "donation",
-        description: null,
+        description: "pledge to the kollel",
         category: null,
         paymentMethod: null,
         requestedRate: null,
@@ -335,7 +335,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
         totalOccurrences: 3,
         alreadyCharged: false,
       },
-      missing: ["amount"],
+      missing: [],
     },
   },
 ];
