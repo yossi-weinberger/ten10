@@ -163,6 +163,18 @@ Deno.test("a total that is the sum of the other items is dropped", () => {
     item({ amount: 20, amount_text: "20", description: "הכל", type: "expense" }),
   ]);
   assert(all.items.map((entry) => entry.amount).join(",") === "8,12", "הכל is the total");
+  const dishes = anchor("קניתי את הכלים ב-30, מגבות ב-20 וסדין ב-50", [
+    item({ amount: 30, amount_text: "30", description: "כלים", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "מגבות", type: "expense" }),
+    item({ amount: 50, amount_text: "50", description: "סדין", type: "expense" }),
+  ]);
+  assert(dishes.items.map((entry) => entry.amount).join(",") === "30,20,50", "הכלים is not a total");
+  const dog = anchor("הכלב 30, הכלה 20 ועצם 50", [
+    item({ amount: 30, amount_text: "30", description: "הכלב", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "הכלה", type: "expense" }),
+    item({ amount: 50, amount_text: "50", description: "עצם", type: "expense" }),
+  ]);
+  assert(dog.items.map((entry) => entry.amount).join(",") === "30,20,50", "הכלב and הכלה are not a total");
 });
 
 Deno.test("digits in the message anchor when the currency word was left out of the evidence", () => {

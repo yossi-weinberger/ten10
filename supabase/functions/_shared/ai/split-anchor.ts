@@ -180,11 +180,30 @@ function anchoredDate(source: string, date: DateStruct | null, dateText: string 
   return { date: resolved, checkDate: false };
 }
 
+function isHebrewLetter(char: string): boolean {
+  if (char === "") return false;
+  const code = char.charCodeAt(0);
+  return code >= 0x05d0 && code <= 0x05ea;
+}
+
+function mentionsHebrewPhrase(source: string, phrase: string): boolean {
+  let from = 0;
+  while (from < source.length) {
+    const at = source.indexOf(phrase, from);
+    if (at < 0) return false;
+    const before = at === 0 ? "" : source.charAt(at - 1);
+    const after = source.charAt(at + phrase.length);
+    if (!isHebrewLetter(before) && !isHebrewLetter(after)) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
 function mentionsTotal(source: string): boolean {
   return /סה["״']?כ/.test(source)
-    || source.includes("בסך הכל")
-    || source.includes("סך הכל")
-    || source.includes("הכל")
+    || mentionsHebrewPhrase(source, "בסך הכל")
+    || mentionsHebrewPhrase(source, "סך הכל")
+    || mentionsHebrewPhrase(source, "הכל")
     || source.includes("יחד")
     || source.includes("ביחד")
     || /\btotal\b/i.test(source);
