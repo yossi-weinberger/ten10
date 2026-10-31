@@ -11,7 +11,7 @@ import { gatewayProviderOptions } from "./gateway-tags.ts";
  * The copy prompt is the generic instruction. It is not fitted to this set.
  */
 
-const TRANSCRIBE_MODEL = Deno.args[0] ?? "anthropic/claude-haiku-5.5";
+const TRANSCRIBE_MODEL = Deno.args[0] ?? "anthropic/claude-sonnet-5";
 const ENV_PATH = Deno.args[1] ?? "";
 const OUT_PATH = Deno.args[2] ?? "";
 

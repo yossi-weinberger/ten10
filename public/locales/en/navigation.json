@@ -181,7 +181,7 @@
       "askMonthly": "Create a monthly standing order?",
       "askDay": "Which day of the month?",
       "summaryLead": "Standing order: ",
-      "summaryPayee": " to ",
+      "summaryPayee": " · ",
       "summaryMonthly": ", every month on the ",
       "summaryFrom": ", from ",
       "openTable": "Standing orders",

@@ -182,6 +182,9 @@ function anchoredDate(source: string, date: DateStruct | null, dateText: string 
 
 function mentionsTotal(source: string): boolean {
   return /סה["״']?כ/.test(source)
+    || source.includes("בסך הכל")
+    || source.includes("סך הכל")
+    || source.includes("הכל")
     || source.includes("יחד")
     || source.includes("ביחד")
     || /\btotal\b/i.test(source);

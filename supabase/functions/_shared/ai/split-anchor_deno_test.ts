@@ -157,6 +157,12 @@ Deno.test("a total that is the sum of the other items is dropped", () => {
     item({ amount: 40, amount_text: "40", description: "total", type: "expense" }),
   ]);
   assert(english.items.map((entry) => entry.amount).join(",") === "12,9,19", "40 is the total");
+  const all = anchor("חניה 8 ודלק 12, הכל 20", [
+    item({ amount: 8, amount_text: "8", description: "חניה", type: "expense" }),
+    item({ amount: 12, amount_text: "12", description: "דלק", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "הכל", type: "expense" }),
+  ]);
+  assert(all.items.map((entry) => entry.amount).join(",") === "8,12", "הכל is the total");
 });
 
 Deno.test("digits in the message anchor when the currency word was left out of the evidence", () => {

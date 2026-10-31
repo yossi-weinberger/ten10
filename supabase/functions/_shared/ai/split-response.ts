@@ -74,6 +74,10 @@ export function readSplitResponse(
 ): SplitResponse {
   const context = asContext(todayOrContext);
   if (!context) return { route: "unreadable" };
+  const raw = jsonValue(payload);
+  if (raw && typeof raw === "object" && !Array.isArray(raw) && (raw as { more_than_five?: unknown }).more_than_five === true) {
+    return { route: "list" };
+  }
   const parsed = parseSplitPayload(payload);
   if (!parsed) return { route: "unreadable" };
   if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };

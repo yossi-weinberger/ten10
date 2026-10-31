@@ -69,6 +69,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",
     "category and rule_id must be copied from the lists below, or null.",
     "description is the item or the payee, in the message language. Do not copy the whole message and do not translate.",
+    "When no item or recipient was said, description is empty. Do not use the verb, such as שילמתי or קניתי.",
     ...TYPE_LINES,
     `Today is ${today}, ${weekday}. Time zone: ${context.timeZone ?? "unknown"}.`,
     `Categories: ${categories.length > 0 ? categories.join(", ") : "none"}.`,

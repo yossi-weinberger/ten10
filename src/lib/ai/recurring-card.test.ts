@@ -130,7 +130,7 @@ describe("recurring card dates", () => {
     currency: "₪",
     start: "10/11",
     lead: "הוראת קבע: ",
-    payeePrefix: " ל",
+    payeePrefix: " · ",
     monthly: ", כל חודש ב-",
     from: ", החל מ-",
   };
@@ -140,8 +140,17 @@ describe("recurring card dates", () => {
     expect(nextRecurringQuestion(complete)).toBeNull();
     expect(recurringShortDate("2026-11-10", "gregorian")).toBe("10/11");
     expect(recurringSummarySentence(complete, hebrewSummary)).toBe(
-      "הוראת קבע: תרומה 100 ₪ לכולל, כל חודש ב-10, החל מ-10/11",
+      "הוראת קבע: תרומה 100 ₪ · כולל, כל חודש ב-10, החל מ-10/11",
     );
+  });
+
+  it("uses the start date's day when the monthly day is empty", () => {
+    const open = card({ amount: 200, description: "לבית כנסת", dayOfMonth: null, startDate: "2026-10-30" });
+    expect(nextRecurringQuestion(open)).toBeNull();
+    expect(recurringSummarySentence(open, { ...hebrewSummary, start: "30/10" })).toBe(
+      "הוראת קבע: תרומה 200 ₪ · לבית כנסת, כל חודש ב-30, החל מ-30/10",
+    );
+    expect(nextRecurringQuestion(card({ startDate: null, dayOfMonth: null }))).toBe("day");
   });
 
   it("asks one missing field at a time, amount first", () => {
