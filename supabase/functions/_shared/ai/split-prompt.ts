@@ -32,6 +32,7 @@ export interface SplitPromptContext {
   rules?: readonly { id: string; name: string; examples?: readonly string[] }[];
   recipients?: readonly string[];
   timeZone?: string;
+  calendar?: "gregorian" | "hebrew";
   receipt?: boolean;
 }
 
@@ -70,6 +71,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
     "A day named on the Hebrew calendar, including the first day of a Hebrew month, uses calendar hebrew.",
+    `The user's calendar is ${context.calendar ?? "gregorian"}. A numbered day of the month uses that calendar, unless the message names a Hebrew date or a Hebrew month.`,
     "A payee that is a place of Torah study is a donation.",
     "unsupported_frequency is true only when the user asked for a repeating payment whose frequency is not daily, weekly, monthly, or yearly. recurrence is then null. Do not record that request as monthly. Otherwise unsupported_frequency is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",

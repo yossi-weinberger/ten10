@@ -81,9 +81,10 @@ function periodPrompt(text: string, today: string, calendar: "gregorian" | "hebr
     `The user's calendar is ${calendar}. On that calendar today is year ${getCalendarAdapter(calendar).fromIsoDate(today).year}, month ${getCalendarAdapter(calendar).fromIsoDate(today).month}. This month and this year use that calendar, unless the question names the other one.`,
     "The last N months is last_n_months with that n. A span from one date to another is range, and from and to are exact dates with day, month, and year.",
     "A maaser year is kind maaser_year only when the question names that year, such as שנת המעשר or maaser year. offset 0 is the current one. offset -1 is the previous one. A numbered gregorian year is not a maaser year. A donation to מעשר during השנה is kind year, not maaser_year.",
-    "A gregorian year next to a maaser year is ambiguous. period is null.",
     "When the question names no period, kind is all.",
-    "name_text is the one name the question asks about, copied from the question without a prefix letter such as ל or to, or null. A name that belongs to a transaction in the same message is not the question's name.",
+    "name_text is the recipient or the subject the question asks about, copied from the question without a prefix letter, or null.",
+    "A generic word for a donation or an expense is not a name. A payment method is not a name.",
+    "A name that belongs to a transaction in the same message is not the question's name.",
     `Today is ${today}.`,
     "Question:",
     text,
@@ -129,13 +130,6 @@ function unwrapPeriod(value: unknown): unknown {
     return { period: (inner as { period: unknown }).period };
   }
   return value;
-}
-
-/** A gregorian year beside a maaser year does not name one period. */
-export function ambiguousMaaserYear(text: string): boolean {
-  if (!/שנת המעשר|שנת מעשר|maaser year|tithe year/i.test(text)) return false;
-  const year = text.match(/(?:^|[^\d])(1\d{3}|20\d{2})(?!\d)/);
-  return year !== null && Number(year[1]) < 5000;
 }
 
 export function boundsFromPeriod(period: QuestionPeriod | null, today: string): PeriodBounds | null {

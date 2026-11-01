@@ -1,4 +1,4 @@
-import { ambiguousMaaserYear, boundsFromPeriod, readPeriodPayload } from "./question-period.ts";
+import { boundsFromPeriod, readPeriodPayload } from "./question-period.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -54,7 +54,4 @@ Deno.test("a year period becomes the calendar bounds", () => {
     calendar: "hebrew",
   }, "2026-10-19");
   assert(maaser?.from === "2026-09-12" && maaser.to === "2026-10-19", "current maaser year");
-  assert(ambiguousMaaserYear("כמה תרמתי בשנת המעשר 2025"), "gregorian year");
-  assert(!ambiguousMaaserYear("כמה תרמתי בשנת המעשר 5786"), "hebrew year");
-  assert(!ambiguousMaaserYear("כמה תרמתי השנה"), "no maaser year");
 });

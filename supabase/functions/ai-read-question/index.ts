@@ -17,7 +17,6 @@ import { saveQuestionMeasurement } from "./measurement.ts";
 import { readModelText } from "../_shared/ai/receipt-draft.ts";
 import { anchoredQuestionName } from "../_shared/ai/data-question.ts";
 import {
-  ambiguousMaaserYear,
   boundsFromPeriod,
   periodRequestBody,
   readPeriodPayload,
@@ -149,7 +148,6 @@ Deno.serve(async (req: Request) => {
       const raw = readPeriodPayload(readModelText(result.payload));
       if (!raw) return { period: null, nameText: null as string | null };
       const nameText = raw.name_text ?? null;
-      if (ambiguousMaaserYear(text)) return { period: null, nameText };
       if (raw.kind === "all") return { period: { kind: "all" as const }, nameText };
       const bounds = boundsFromPeriod(raw, today);
       const period = bounds?.from && bounds.to

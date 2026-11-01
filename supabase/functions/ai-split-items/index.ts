@@ -53,6 +53,7 @@ Deno.serve(async (req: Request) => {
     timeZone?: unknown;
     receivedAt?: unknown;
     defaultCurrency?: unknown;
+    calendar?: unknown;
     release?: unknown;
   } | null;
 
@@ -90,7 +91,8 @@ Deno.serve(async (req: Request) => {
       return { context: {}, rules: [] as SplitRuleRef[] };
     })
     : { context: {}, rules: [] as SplitRuleRef[] };
-  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone };
+  const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
+  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar };
 
   async function ask(): Promise<{ payload: unknown; usageId: string | null } | null> {
     const allowed = await usage.consumeCall(userData.user.id);
