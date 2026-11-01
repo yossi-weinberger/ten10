@@ -28,6 +28,16 @@ import {
 import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
+import { INSPIRATION_LIBRARY } from "@/lib/ai/inspiration-library";
+import {
+  browserIdStorage,
+  itemsForLanguage,
+  pickInspiration,
+  readRecentIds,
+  rememberInspiration,
+  type InspirationView,
+} from "@/lib/ai/inspiration-pick";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { readReceiptImage, type ReadReceiptResult } from "@/lib/ai/read-receipt";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { isIsoDate, receiptAsDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
@@ -96,7 +106,7 @@ export function AssistantDrawer({
   receiveRef,
 }: AssistantDrawerProps) {
   const { platform } = usePlatform();
-  const { t } = useTranslation([
+  const { t, i18n } = useTranslation([
     "navigation",
     "transactions",
     "halacha-expenses",
@@ -110,6 +120,7 @@ export function AssistantDrawer({
   const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
+  const [inspiration, setInspiration] = useState<InspirationView | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const [recurring, setRecurring] = useState<RecurringCard | null>(null);
   const idempotency = useRef<DraftIdempotency | null>(null);
@@ -629,6 +640,18 @@ export function AssistantDrawer({
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
     else setDuplicateScan(null);
+    if (nextIntent === "inspiration") presentInspiration();
+    else setInspiration(null);
+  }
+
+  function presentInspiration() {
+    const pool = itemsForLanguage(INSPIRATION_LIBRARY, i18n.language);
+    const storage = browserIdStorage();
+    const next = pickInspiration(pool, readRecentIds(storage), Math.random);
+    setInspiration(next);
+    if (!next) return;
+    rememberInspiration(storage, next.id);
+    trackProductEvent("ai_inspiration_shown", { id: next.id });
   }
 
   async function handleSaveSplit() {
@@ -964,6 +987,7 @@ export function AssistantDrawer({
       confirmDeleteId,
       duplicateActionFailed,
       halachaNamespace,
+      inspiration,
       rabbiText,
       rabbiTicket,
       parsedRule,
@@ -1089,7 +1113,7 @@ export function AssistantDrawer({
       }, movement)
       : shownIntent(source, today, { ok: false }, movement);
     const dataCandidate = decided.ok && (decided.intent === "ask_data" || readerQuestion !== null);
-    if (movement && (next === "ask" || next === "ask_data" || next === "ask_rabbi" || next === "add_transaction")) {
+    if (movement && (next === "ask" || next === "ask_data" || next === "ask_rabbi" || next === "add_transaction" || next === "inspiration")) {
       releaseUnused("add_transaction");
       showIntent(source, "add_transaction", dataCandidate);
       return;
@@ -1466,6 +1490,7 @@ export function AssistantDrawer({
           },
           onRabbiSent: setRabbiTicket,
           onRabbiDismiss: () => setRabbiText(null),
+          onAnotherInspiration: presentInspiration,
           saving,
           undoing,
           questionCalendar,

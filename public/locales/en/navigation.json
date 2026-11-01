@@ -179,7 +179,8 @@
       "add_transaction": "Transaction",
       "ask_data": "Question",
       "create_rule": "Rule",
-      "create_recurring": "Standing order"
+      "create_recurring": "Standing order",
+      "inspiration": "Encouragement"
     },
     "openRecurringForm": "Open the form",
     "recurring": {
@@ -239,9 +240,16 @@
       "create_recurring": "This is a standing order.",
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",
-      "help": "You can send a transaction, a rule, a data question, or a duplicate search.",
+      "help": "You can send a transaction, a rule, a data question, a duplicate search, or ask for encouragement or a story.",
+      "inspiration": "Here is some encouragement.",
       "out_of_scope": "I only handle your transactions and your data.",
       "domain_adjacent": "This is what Ten10's halacha page says."
+    },
+    "inspiration": {
+      "more": "Read more",
+      "less": "Show less",
+      "another": "Another",
+      "empty": "There is no encouragement in this language yet."
     }
   },
   "user": {

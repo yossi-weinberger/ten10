@@ -9,6 +9,7 @@ export const INTAKE_INTENTS = [
   "ask_data",
   "find_duplicates",
   "help",
+  "inspiration",
   "domain_adjacent",
   "out_of_scope",
 ] as const;
