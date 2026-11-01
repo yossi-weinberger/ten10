@@ -148,7 +148,13 @@ export function ReplyBlockView({
     case "halacha":
       return <HalachaCard namespace={block.namespace} />;
     case "inspiration":
-      return <InspirationCard item={block.item} onAnother={handlers.onAnotherInspiration} />;
+      return (
+        <InspirationCard
+          key={block.item?.id ?? "empty"}
+          item={block.item}
+          onAnother={handlers.onAnotherInspiration}
+        />
+      );
     case "rule":
       return (
         <RuleCard
