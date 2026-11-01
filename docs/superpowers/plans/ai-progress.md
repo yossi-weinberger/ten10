@@ -148,6 +148,7 @@
 | 629 | — | נפתח בטעות מול `main` | — | נסגר, לא מוזג | [#629](https://github.com/yossi-weinberger/ten10/pull/629) |
 | 630 | שתי הריצות האחרונות ומעקב תקופה | תוצאות, בלי שינוי התנהגות | #628 | מוזג ל־`feat/ai-intake` | [#630](https://github.com/yossi-weinberger/ten10/pull/630) |
 | 631 | חישוב תקופה יחסית בקוד | קוד, בלי מודל | #630 | מוזג ל־`feat/ai-intake` | [#631](https://github.com/yossi-weinberger/ten10/pull/631) |
+| C | `2026-11-01-ai-conversation-memory.md` | תיעוד, תוכנית בלבד | — | נפתח, ממתין לאישור | `docs/ai-conversation-memory` |
 
 **צורת העבודה (מ־28/10/2026):**
 - **שלב הוא PR קטן.** ענף `feat/ai-<קוד>-<תיאור>` מהגרסה העדכנית של `feat/ai-intake`, ו־base תמיד `feat/ai-intake`. לא ממזגים ל־`main` עד הודעה. ממזגים מ־`main` לענף מדי פעם.
@@ -603,3 +604,7 @@
 - **2026-11-01:** [#635](https://github.com/yossi-weinberger/ten10/pull/635) מוזג ל־`feat/ai-intake`. `ai-classify-intent` נפרס לפרויקט testing `bbcllewcotypedqsnwmi`. לא ל־`main`.
 - **2026-11-01:** [#638](https://github.com/yossi-weinberger/ten10/pull/638) מוזג ל־`feat/ai-intake`. «עוד אחד» אחרי «קרא עוד» פותח את הפריט הבא מקופל. במסך הפתיחה נוסף «תן לי חיזוק». הטקסט של המאגר נשאר ב־`content/library`. בלי ריצת מודל. לא ל־`main`.
 - **2026-11-01:** [#636](https://github.com/yossi-weinberger/ten10/pull/636). אנגלית לכל 83 הבלוקים. 3 פסוקים הם JPS 1917, רשות הציבור. 80 האחרים סומנו כטיוטה. הייצוא נשאר 75 פריטים בלי `halakha`, עם `title_en`, `body_en` ו־`source_en`. יוסי ביקש למזג. בלי ריצת מודל. לא ל־`main`.
+- **2026-11-01:** תוכנית בלבד לזיכרון בשיחה: `docs/superpowers/plans/2026-11-01-ai-conversation-memory.md`, על `feat/ai-intake` (`e2e41e7c`). יוסי אישר את הכיוון. בלי קוד ובלי ריצת מודל. לא ל־`main`.
+- **2026-11-01:** נשארים Jev, הקורא, הכרטיסים, הבדיקות בקוד, השמירה וה־RPC. משתנים חמישה דברים: זיכרון, הקשר למודלים, החלטה לפי התוכן, תשובות חסרות וניסוח.
+- **2026-11-01:** ההקשר למודלים הוא רק מילות המשתמש, טקסט שהועתק מקבלה, וסיכום שהקוד כותב. שמירה רק בלחיצה. הטקסטים של העוזר קבועים בקבצי התרגום.
+- **2026-11-01:** שלבים C1–C6, PR לכל שלב מול `feat/ai-intake`. ספים: `wrong_save` ‏0, `recurring_as_one_time` ‏0, `dead_end` ‏0, `turn_correct` לפחות 90%, `unnecessary_question` עד 10%. הצעד הבא: אישור יוסי, ואז C1.
