@@ -22,6 +22,7 @@ function item(overrides: Partial<SplitItemInput> = {}): SplitItemInput {
     payment_method: null,
     category: null,
     rule_id: null,
+    is_total: false,
     ...overrides,
   };
 }
@@ -98,6 +99,8 @@ Deno.test("a word that is not an amount is kept and marked for review", () => {
 Deno.test("a thousand word scales the digits", () => {
   const hebrew = anchor("שילמתי 5 אלף", [item({ amount: 5000, amount_text: "5 אלף", type: "expense" })]);
   assert(hebrew.items[0]?.amount === 5000 && hebrew.items[0]?.checkAmount === false, "5 אלף");
+  const elsewhere = anchor("שילמתי 5 אלף", [item({ amount: 5000, amount_text: "5", type: "expense" })]);
+  assert(elsewhere.items[0]?.amount === null, "אלף outside amount_text does not scale");
   const kilo = anchor("paid 2.5K", [item({ amount: 2500, amount_text: "2.5K", type: "expense" })]);
   assert(kilo.items[0]?.amount === 2500 && kilo.items[0]?.checkAmount === false, "2.5K");
   const dual = anchor("שילמתי אלפיים", [item({ amount: 2000, amount_text: "אלפיים", type: "expense" })]);
@@ -143,26 +146,25 @@ Deno.test("the amount is anchored by its number, not by the written string", () 
   assert(stated.items[0]?.typeHint === "expense" && stated.items[0]?.typeQuestion === "recognized-expense", "a special type asks once");
 });
 
-Deno.test("a total that is the sum of the other items is dropped", () => {
+Deno.test("a summary row is dropped only when the model marks it and the amount adds up", () => {
   const hebrew = anchor("2 חולצות ב־100 ו־3 לחמים ב־20, יחד 120", [
+    item({ amount: 100, amount_text: "100", description: "חולצות", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "לחמים", type: "expense" }),
+    item({ amount: 120, amount_text: "120", description: "יחד", type: "expense", is_total: true }),
+  ]);
+  assert(hebrew.items.map((entry) => entry.amount).join(",") === "100,20", "120 is the total");
+  const unmarked = anchor("2 חולצות ב־100 ו־3 לחמים ב־20, יחד 120", [
     item({ amount: 100, amount_text: "100", description: "חולצות", type: "expense" }),
     item({ amount: 20, amount_text: "20", description: "לחמים", type: "expense" }),
     item({ amount: 120, amount_text: "120", description: "יחד", type: "expense" }),
   ]);
-  assert(hebrew.items.map((entry) => entry.amount).join(",") === "100,20", "120 is the total");
-  const english = anchor("Bread 12, milk 9, eggs 19 — total 40 shekels", [
-    item({ amount: 12, amount_text: "12", description: "bread", type: "expense" }),
-    item({ amount: 9, amount_text: "9", description: "milk", type: "expense" }),
-    item({ amount: 19, amount_text: "19", description: "eggs", type: "expense" }),
-    item({ amount: 40, amount_text: "40", description: "total", type: "expense" }),
+  assert(unmarked.items.map((entry) => entry.amount).join(",") === "100,20,120", "an unmarked sum stays");
+  const mismatch = anchor("2 חולצות ב־100 ו־3 לחמים ב־20, יחד 90", [
+    item({ amount: 100, amount_text: "100", description: "חולצות", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "לחמים", type: "expense" }),
+    item({ amount: 90, amount_text: "90", description: "יחד", type: "expense", is_total: true }),
   ]);
-  assert(english.items.map((entry) => entry.amount).join(",") === "12,9,19", "40 is the total");
-  const all = anchor("חניה 8 ודלק 12, הכל 20", [
-    item({ amount: 8, amount_text: "8", description: "חניה", type: "expense" }),
-    item({ amount: 12, amount_text: "12", description: "דלק", type: "expense" }),
-    item({ amount: 20, amount_text: "20", description: "הכל", type: "expense" }),
-  ]);
-  assert(all.items.map((entry) => entry.amount).join(",") === "8,12", "הכל is the total");
+  assert(mismatch.items.map((entry) => entry.amount).join(",") === "100,20,90", "a marked row that is not the sum stays");
   const dishes = anchor("קניתי את הכלים ב-30, מגבות ב-20 וסדין ב-50", [
     item({ amount: 30, amount_text: "30", description: "כלים", type: "expense" }),
     item({ amount: 20, amount_text: "20", description: "מגבות", type: "expense" }),
