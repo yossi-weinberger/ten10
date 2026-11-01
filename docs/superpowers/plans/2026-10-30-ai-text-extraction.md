@@ -1,6 +1,6 @@
 # חילוץ טקסט במודל במקום ה־parser
 
-נכתב ב־30/10/2026, על `feat/ai-intake` עד `6a7bc83e` (כולל #616). עודכן באותו יום אחרי `c703c18d` (סעיף «תיקונים ל־`c703c18d`»). התוכנית מחליפה את הפענוח הדטרמיניסטי של טקסט (כ־2,800 שורות ב־`_shared/ai`, ועוד כ־900 שורות בדיקות) בקריאה אחת למודל עם סכמה קשיחה. הקוד נשאר בודק ושומר. העיקרון של `RULE.md` לא משתנה: ה־AI כותב בעיפרון, Ten10 כותב בעט.
+נכתב ב־30/10/2026, על `feat/ai-intake` עד `6a7bc83e` (כולל #616). עודכן באותו יום אחרי `c703c18d` (סעיף «תיקונים ל־`c703c18d`»). ב־1/11/2026 סומנו התיבות שנעשו, עם ה־PR. התוכנית מחליפה את הפענוח הדטרמיניסטי של טקסט (כ־2,800 שורות ב־`_shared/ai`, ועוד כ־900 שורות בדיקות) בקריאה אחת למודל עם סכמה קשיחה. הקוד נשאר בודק ושומר. העיקרון של `RULE.md` לא משתנה: ה־AI כותב בעיפרון, Ten10 כותב בעט.
 
 ## למה
 
@@ -193,29 +193,31 @@ Responses API (`/v1/responses`, כמו היום ב־`ai-split-items`). היום 
 
 T1 ו־T2 נכנסו ב־`c703c18d`, בלי ריצת הסט. בבדיקה נמצאו הדברים הבאים. את שלושת הראשונים אימתנו בהרצה על הקוד של הקומיט. PR אחד, לפני T3.
 
-- [ ] **סכום בלי ספרות:** «בדוק סכום» (סעיף «הבדיקה בקוד»). היום `amountsMatch` מחזיר true כשאין ספרות, ולכן במשפט «שילמתי בסופר באשראי» המודל יכול להחזיר 250 עם `amount_text` «בסופר», והסכום עובר.
-- [ ] **«5 אלף»:** ספרות כפול 1000 כשיש מילת אלפים. היום התוצאה היא null, והעוזר שואל «כמה?».
-- [ ] **`date_text` חסר או לא בטקסט:** null ו«בדוק תאריך» (`anchoredDate`). היום «שלשום» שהמודל ניסח «לפני יומיים» נשמר כהיום, בלי סימון.
-- [ ] **`handleAmountReply`:** להחזיר את `beginTurn` ואת הבדיקה של `requestRef`, בשני המסלולים, ולהציג טעינה בזמן הקריאה החוזרת.
-- [ ] **שחרור המכסה:** מוגבל כמו בסעיף «מהירות».
-- [ ] **קטגוריה:** `categoryOf` ב־`split-draft.ts` זורק כל קטגוריה חוץ מ־`food` ו־`transportation`, ולכן הקטגוריה שהמודל בוחר מהרשימה לא מגיעה לכרטיס. מרחיבים את הטיפוס של הטיוטה לשם קטגוריה של המשתמש, ובודקים שהשמירה מקבלת אותו.
-- [ ] **כלל שמור** מאפס את `type_question` (`anchorSplitItems`).
-- [ ] **דף הלכה מ־Jev** עם הסף 0.7 (`readHalachaChoice` מחזיר כבר `confidence`).
-- [ ] **`ai-shadow-type`:** למחוק את התיקייה ואת `src/lib/ai/shadow-type.ts`. T2 ביקש מחיקה, ובקומיט רק רשימת הפריסה השתנתה.
-- [ ] **בדיקות:** `deno test` לכל תיקון בשרת, כולל שלושת המקרים שלמעלה, ובדיקת מגירה ל־`handleAmountReply`.
-- [ ] **ב־`model_calls`:** שורה אחת מ־testing שמראה שהחשיבה כבויה (זמן ו־tokens), ושה־Gateway מקבל את השדה `models`. אלה סעיפים מ«לבדוק לפני T1» שעוד לא נסגרו.
+- [x] **סכום בלי ספרות:** «בדוק סכום» (סעיף «הבדיקה בקוד»). [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **«5 אלף»:** ספרות כפול 1000 כשיש מילת אלפים ב־`amount_text`. [#617](https://github.com/yossi-weinberger/ten10/pull/617), וההגבלה ל־`amount_text` ב־[#618](https://github.com/yossi-weinberger/ten10/pull/618).
+- [x] **`date_text` חסר או לא בטקסט:** null ו«בדוק תאריך». [#617](https://github.com/yossi-weinberger/ten10/pull/617). «היום» כ־`days_ago` עם `n` 0 נשאר היום, כמו בסכמה. קבלה בלי תאריך נשארת לבדיקה ([#623](https://github.com/yossi-weinberger/ten10/pull/623)).
+- [x] **`handleAmountReply`:** `beginTurn`, בדיקת `requestRef`, וטעינה בזמן הקריאה החוזרת. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **שחרור המכסה:** רק יחידת `text` של אותו משתמש מהדקה האחרונה. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **קטגוריה:** שם קטגוריה של המשתמש מגיע לכרטיס. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **כלל שמור** מאפס את `type_question`. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **דף הלכה מ־Jev** עם הסף 0.7. [#617](https://github.com/yossi-weinberger/ten10/pull/617). מתחת לסף נשאל המשתמש, בלי רשימת מילים ([#619](https://github.com/yossi-weinberger/ten10/pull/619)).
+- [x] **`ai-shadow-type`:** התיקייה ו־`src/lib/ai/shadow-type.ts` נמחקו. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [x] **בדיקות:** `deno test` לשלושת המקרים, ובדיקת המגירה לתשובת «כמה?» שמאחרת. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [ ] **ב־`model_calls`:** שורה אחת מ־testing שמראה שהחשיבה כבויה (זמן ו־tokens), ושה־Gateway מקבל את השדה `models`.
+
+לא נעשה. החשיבה כבויה בקוד ([#617](https://github.com/yossi-weinberger/ten10/pull/617)), וריצות eval הראו `reasoning_tokens` 0, אבל אין שורה כזו מ־testing. השדה `models` נשלח רק כשהרשימה לא ריקה, והרשימה עדיין ריקה.
 
 ## שלבים
 
 PR קטן לכל שלב, מ־`feat/ai-intake` ואליו. גם תיקון נכנס דרך PR, ולא נדחף ישר לענף. בכל שלב מוסיפים שורה בטבלת המצב וביומן של `ai-progress.md`.
 
-- [ ] **T1: `ai-split-items` בגרסה החדשה.**
+- [x] **T1: `ai-split-items` בגרסה החדשה.** [#617](https://github.com/yossi-weinberger/ten10/pull/617). הסט רץ על Haiku ועל Sonnet ונרשם ביומן. Haiku נשאר הקורא.
   - הסכמה הקשיחה, הבדיקה, עיגון בלי ה־parser, ושרשרת הגיבוי.
   - השערים, המכסה ו־`model_calls` כבר קיימים ולא משתנים.
   - בלי שינוי במסך.
   - `deno test` לבדיקה ולעיגון בלבד.
   - ריצת הסט על שני המודלים ביומן, כולל זמנים, ו־Edge על testing.
-- [ ] **T2: המגירה.** `add_transaction`, תנועה אחת או כמה, עובר ל־`ai-split-items`. תנועה אחת מוצגת בכרטיס הקיים, וכמה תנועות ב־`MultiDraftList` הקיים.
+- [x] **T2: המגירה.** `add_transaction`, תנועה אחת או כמה, עובר ל־`ai-split-items`. תנועה אחת מוצגת בכרטיס הקיים, וכמה תנועות ב־`MultiDraftList` הקיים. [#617](https://github.com/yossi-weinberger/ten10/pull/617). `intake-count.ts` נמחק ב־[#628](https://github.com/yossi-weinberger/ten10/pull/628).
   - Jev ו־`ai-split-items` יוצאים יחד (סעיף «מהירות»).
   - `draftFromText`, `clarificationField` ו־`fallbackIntent` יוצאים מהמגירה, וגם ההתאמה של כללים לפי מחרוזת.
   - בחירת סוג ידנית דורסת את הטיוטה שכבר התקבלה, בלי קריאה נוספת.
@@ -223,15 +225,19 @@ PR קטן לכל שלב, מ־`feat/ai-intake` ואליו. גם תיקון נכנ
   - מספר התנועות נקבע לפי `items.length`. רשת הביטחון של M1 (`intake-count.ts`, שני סכומים ב־parser) יורדת. `count` של Jev נשאר בינתיים, ויורד אם אחרי T2 אף אחד לא קורא אותו.
   - `ai-shadow-type` והקריאה אליו נמחקים. הוא מדד את הסוג והקטגוריה של Jev, ועכשיו שניהם מגיעים מהחילוץ. מוציאים אותו מ־`ALL_FUNCTIONS` ומ־`SHARED_DEPENDENT` ב־`deploy-changed-functions.sh`. הטבלאות שלו נשארות, בלי migration.
   - במסמכים: שורת «Text parsing» ב־§9.1. ב־§9.9, «ב־parser דטרמיניסטי» הופך ל«בקוד, מתוך מבנה שהמודל מחזיר», והמשפט «אם Jev לא עונה, הכללים רצים» יורד. וגם `llm-instructions/features/ai/ai-intake-how-it-works.md`.
-- [ ] **T3a: הוראת קבע.** `recurrence` בקורא, החישוב בקוד, וסט (סעיף «שאר המסלולים»).
-- [ ] **T3b: שאלה על הנתונים.** החלק `question` ו־`period`, מול סטי `question-slot-eval`.
-- [ ] **T3c: כלל, הלכה וקבלות.** החלק `rule`, שאלת הדף ב־Jev, שליחת שאלה אישית לרב מהצ'אט אחרי אישור, וקבלות שמועתקות לטקסט ועוברות את אותו מסלול.
+- [x] **T3a: הוראת קבע.** `recurrence` בקורא, החישוב בקוד, וסט (סעיף «שאר המסלולים»). [#617](https://github.com/yossi-weinberger/ten10/pull/617). משפטי סעיף 2 נוספו ב־[#621](https://github.com/yossi-weinberger/ten10/pull/621).
+- [x] **T3b: שאלה על הנתונים.** החלק `question` ו־`period`, מול סטי `question-slot-eval`. התקופה מחושבת בקוד ([#623](https://github.com/yossi-weinberger/ten10/pull/623), [#631](https://github.com/yossi-weinberger/ten10/pull/631)). שדה `question` של הקורא לא עבר את הסט ([#619](https://github.com/yossi-weinberger/ten10/pull/619)), ולכן הייצור נשאר על `ai-read-question`, כמו שכתוב בסעיף «שאר המסלולים».
+- [x] **T3c: כלל, הלכה וקבלות.** החלק `rule` ([#617](https://github.com/yossi-weinberger/ten10/pull/617), [#620](https://github.com/yossi-weinberger/ten10/pull/620), [#625](https://github.com/yossi-weinberger/ten10/pull/625)), שאלת הדף ב־Jev ([#617](https://github.com/yossi-weinberger/ten10/pull/617)), שליחת שאלה אישית לרב מהצ'אט אחרי אישור ([#619](https://github.com/yossi-weinberger/ten10/pull/619)), וקבלות שמועתקות לטקסט ועוברות את אותו מסלול ([#619](https://github.com/yossi-weinberger/ten10/pull/619)). כלל מוכן אחרי סוג מיוחד: [#621](https://github.com/yossi-weinberger/ten10/pull/621).
 - [ ] **T4: מחיקה.**
+
+נעשה ב־[#628](https://github.com/yossi-weinberger/ten10/pull/628): רשימת המילים, `number-words.ts`, `number-word-aliases.ts`, `recurring-draft.ts`, `recurring-aliases.ts`, `intake-count.ts`, ופונקציות הפרסר. אין import לרשימת המילים. נשארו קבצים רזים עם טיפוסים ועם עוזרי שם (`text-draft.ts`, `recipient-draft.ts`, `data-question.ts`, `intent.ts`, `rule-draft.ts`), כי המגירה והשמירה עדיין קוראות להם. `halacha-page.ts` נשאר עם רשימת הדפים.
+
+לא נעשתה השורה שכתבה ש־`ai-read-question` ו־`question-slots.ts` יורדים. החלטה מ־1/11/2026: הם נשארים, כי קריאת התקופה ו־Jev יושבים שם. זה שונה ממה שנכתב כאן.
   - הקבצים: `text-draft.ts` (הטיפוס `TextTransactionDraft` עובר ל־`split-response.ts`), `the word list`, `number-words.ts`, `number-word-aliases.ts`, `recipient-draft.ts`, `recipient-aliases.ts` ו־`recurring-aliases.ts`.
   - ה־parser שבתוך `recurring-draft.ts`, `data-question.ts`, `rule-draft.ts`, `intent.ts` ו־`classify-intake.ts`, והבדיקות של כולם.
   - `halacha-page.ts` נשאר רק עם רשימת הדפים, כי Jev בוחר את הדף. `sum-year-type.ts` מפסיק לייבא את `recipient-draft.ts`.
-  - אם הקורא עבר את סטי `question-slot-eval`, גם `ai-read-question` ו־`question-slots.ts` יורדים, ו־`ai-read-question` יוצא מ־`ALL_FUNCTIONS` ומ־`SHARED_DEPENDENT`.
-  - בסוף T4 אין import ל־`the word list` בשום מקום.
+  - אם הקורא עבר את סטי `question-slot-eval`, גם `ai-read-question` ו־`question-slots.ts` יורדים, ו־`ai-read-question` יוצא מ־`ALL_FUNCTIONS` ומ־`SHARED_DEPENDENT`. לא נעשה. ראו את ההחלטה מעל.
+  - בסוף T4 אין import ל־`the word list` בשום מקום. נעשה ב־[#628](https://github.com/yossi-weinberger/ten10/pull/628).
 
 ## לא בתוכנית
 
@@ -243,9 +249,17 @@ PR קטן לכל שלב, מ־`feat/ai-intake` ואליו. גם תיקון נכנ
 
 ## לבדוק לפני T1
 
-- **זמנים של היום:** p50 ו־p95 של `intent` ושל `split` מ־`get_admin_ai_calls`, כבסיס להשוואה.
-- **ב־Gateway:** איך מכבים חשיבה, או קובעים `effort`, למודל של Anthropic דרך `/v1/responses`.
-- **ב־Gateway:** השם המדויק של שדה מודלי הגיבוי, ושהוא עובד עם `/v1/responses` ועם `json_schema`.
-- **ב־Gateway:** שהתשובה אומרת איזה מודל ואיזה ספק ענו, בשביל `model_calls`.
-- **מודל הגיבוי:** אילו מודלים דומים של חברות אחרות זמינים ב־Gateway עם ZDR ועם schema קשיח. מריצים עליהם את הסט.
-- **בדגל:** ש־`ai_intake_web` מכוון רק למשתמשי הניסיון. אחרת משתמש אחר יקבל רק את הטופס. זו פעולה של יוסי, לא קוד.
+- [ ] **זמנים של היום:** p50 ו־p95 של `intent` ושל `split` מ־`get_admin_ai_calls`, כבסיס להשוואה.
+
+לא נעשה. לא נרשם בסיס כזה לפני T1. נקודת ההתחלה היא המדידה שאחרי החפיפה, ב־[#628](https://github.com/yossi-weinberger/ten10/pull/628): p95 פיצול 4.1 שנ׳, שאלות 3.1, קבלות 8.2.
+
+- [x] **ב־Gateway:** איך מכבים חשיבה, או קובעים `effort`, למודל של Anthropic דרך `/v1/responses`. `anthropic.thinking.type` הוא `disabled`. [#617](https://github.com/yossi-weinberger/ten10/pull/617).
+- [ ] **ב־Gateway:** השם המדויק של שדה מודלי הגיבוי, ושהוא עובד עם `/v1/responses` ועם `json_schema`.
+
+שם השדה הוא `models`, והוא נשלח רק כשהרשימה לא ריקה ([#617](https://github.com/yossi-weinberger/ten10/pull/617)). הרשימה ריקה, אז לא אומת שהשדה עובד מול ה־Gateway. ה־Gateway גם לא אוכף `json_schema` על Anthropic. Zod בודק אצלנו.
+
+- [x] **ב־Gateway:** שהתשובה אומרת איזה מודל ואיזה ספק ענו, בשביל `model_calls`. מזהה המודל שענה נשמר ([#594](https://github.com/yossi-weinberger/ten10/pull/594)). אין עמודת ספק נפרדת. המזהה כולל את הספק.
+- [x] **מודל הגיבוי:** אילו מודלים דומים של חברות אחרות זמינים ב־Gateway עם ZDR ועם schema קשיח. מריצים עליהם את הסט. Gemini 2.5 Flash ו־DeepSeek V4.1 Flash רצו על 264 המשפטים. אף אחד לא עבר, והרשימה נשארה ריקה. [#628](https://github.com/yossi-weinberger/ten10/pull/628).
+- [ ] **בדגל:** ש־`ai_intake_web` מכוון רק למשתמשי הניסיון. אחרת משתמש אחר יקבל רק את הטופס. זו פעולה של יוסי, לא קוד.
+
+לא נעשה כאן. זו פעולה של יוסי, ולא נבדק בדגל.
