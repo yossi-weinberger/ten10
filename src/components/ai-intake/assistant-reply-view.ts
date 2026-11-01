@@ -217,7 +217,6 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       });
     }
     if (state.halachaNamespace) blocks.push({ kind: "halacha", namespace: state.halachaNamespace });
-    if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });
     if (state.parsedRule) blocks.push({ kind: "rule", rule: state.parsedRule, choice: state.ruleChoice });
     if (state.clarification === "special" && state.specialType) {
       blocks.push({ kind: "askSpecial", type: state.specialType });
@@ -243,6 +242,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       blocks.push({ kind: "drafts", cards: state.splitDrafts, dropped: state.splitDropped });
     }
   }
+  if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });
   if (state.status) blocks.push({ kind: "status", status: state.status });
   if (state.savedItemId) blocks.push({ kind: "undo" });
   return blocks;

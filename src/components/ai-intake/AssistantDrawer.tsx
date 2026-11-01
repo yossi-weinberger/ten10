@@ -8,7 +8,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useDonationStore } from "@/lib/store";
 import {
   halachaNamespace as namespaceForHalachaPage,
-  intentIsConfident,
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
@@ -72,7 +71,7 @@ import {
   type StatusKey,
   type UserTurn,
 } from "./assistant-reply-view";
-import { shownIntent, type ShownIntent } from "./assistant-shown-intent";
+import { namedHalachaPage, shownIntent, type ShownIntent } from "./assistant-shown-intent";
 import { levelFromSamples } from "./assistant-audio-level";
 
 export interface AssistantDrawerHandle {
@@ -980,8 +979,8 @@ export function AssistantDrawer({
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;
-    const pageAnswered = decided.ok && intentIsConfident(decided.halachaPageConfidence);
-    halachaRef.current = pageAnswered ? decided.halachaPage : null;
+    const namedPage = decided.ok ? namedHalachaPage(decided.halachaPage, decided.halachaPageConfidence) : null;
+    halachaRef.current = namedPage === "personal" ? null : namedPage;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
     const next = decided.ok
@@ -989,7 +988,7 @@ export function AssistantDrawer({
         ok: true,
         intent: decided.intent,
         confidence: decided.confidence,
-        halachaPage: pageAnswered ? decided.halachaPage : undefined,
+        halachaPage: namedPage ?? undefined,
       })
       : shownIntent(source, today, { ok: false });
     releaseUnused(next);

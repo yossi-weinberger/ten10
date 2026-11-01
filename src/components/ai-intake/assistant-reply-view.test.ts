@@ -51,6 +51,12 @@ describe("buildReplyBlocks", () => {
     });
   });
 
+  it("shows the rabbi card when there is no intent", () => {
+    expect(buildReplyBlocks(state({ rabbiText: "האם אני חייב מעשר?", rabbiTicket: null }))).toEqual([
+      { kind: "rabbi", text: "האם אני חייב מעשר?", ticket: null },
+    ]);
+  });
+
   it("shows calculating while a data answer is still loading", () => {
     const blocks = buildReplyBlocks(state({ intent: "ask_data" }));
     expect(blocks).toEqual([
