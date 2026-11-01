@@ -197,14 +197,6 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
       blocks.push({ kind: "thinking", phase: "data" });
     }
-    if ((state.intent === "ask_data" || state.intent === "add_transaction") && state.dataReply) {
-      const reply = state.dataReply;
-      if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
-      else if (reply.status === "family_missing") blocks.push({ kind: "askFamily", source: reply.source });
-      else if (reply.status === "category_missing") {
-        blocks.push({ kind: "nameMissing", nameKind: reply.kind, topic: reply.topic, source: reply.source });
-      } else blocks.push({ kind: "dataNotice", status: reply.status });
-    }
     if (state.intent === "find_duplicates" && state.duplicateScan?.status === "pending" && !state.checking) {
       blocks.push({ kind: "thinking", phase: "duplicates" });
     }
@@ -240,6 +232,14 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     }
     if (state.splitDrafts && state.splitDrafts.length > 0) {
       blocks.push({ kind: "drafts", cards: state.splitDrafts, dropped: state.splitDropped });
+    }
+    if ((state.intent === "ask_data" || state.intent === "add_transaction") && state.dataReply) {
+      const reply = state.dataReply;
+      if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
+      else if (reply.status === "family_missing") blocks.push({ kind: "askFamily", source: reply.source });
+      else if (reply.status === "category_missing") {
+        blocks.push({ kind: "nameMissing", nameKind: reply.kind, topic: reply.topic, source: reply.source });
+      } else blocks.push({ kind: "dataNotice", status: reply.status });
     }
   }
   if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });

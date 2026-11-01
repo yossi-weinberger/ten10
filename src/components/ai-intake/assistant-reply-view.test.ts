@@ -95,7 +95,7 @@ describe("buildReplyBlocks", () => {
       },
       dataReply: { status: "family_missing", source: "כמה" },
     }));
-    expect(blocks.map((block) => block.kind)).toEqual(["intent", "askFamily", "draft"]);
+    expect(blocks.map((block) => block.kind)).toEqual(["intent", "draft", "askFamily"]);
   });
 
   it("asks which family without claiming nothing was saved", () => {

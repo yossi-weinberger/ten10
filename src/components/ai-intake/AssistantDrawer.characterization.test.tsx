@@ -742,7 +742,7 @@ describe("AssistantDrawer characterization", () => {
       family: "expense",
       measure: "sum",
       recipient: null,
-      category: null,
+      category: "food",
       paymentMethod: null,
     });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
@@ -781,8 +781,11 @@ describe("AssistantDrawer characterization", () => {
     });
     const user = setup();
     await send(user, "קניתי לחם ב-15 וכמה הוצאתי החודש?");
-    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
-    expect(await screen.findByText("answer:sum:1")).toBeInTheDocument();
+    const amount = await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
+    const answer = await screen.findByText("answer:sum:1");
+    expect(amount).toHaveValue("15");
+    expect(amount.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(ai.sumYearType.mock.calls[0]?.[0]).toMatchObject({ type: "expense", topic: null, recipient: null });
     expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
   });

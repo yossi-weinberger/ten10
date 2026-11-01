@@ -839,11 +839,14 @@ export function AssistantDrawer({
           paymentMethod: base?.paymentMethod ?? null,
         }
         : read;
+      const asked = slots && splitMovement(splitRef.current)
+        ? { ...slots, category: null, recipient: null }
+        : slots;
       if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
-      const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
+      const composed = questionFromSlots(source, todayIso(), questionCalendar, asked);
       if (composed === "ask_family") {
-        if (slots) setSlotHold(slots);
+        if (asked) setSlotHold(asked);
         setDataReply({ status: "family_missing", source });
         return;
       }
@@ -853,7 +856,10 @@ export function AssistantDrawer({
       const reader = splitRef.current;
       const readQuestion = reader && reader.ok && reader.route === "several" ? reader.question : null;
       if (readQuestion) {
-        const filled = family && !readQuestion.family ? { ...readQuestion, family } : readQuestion;
+        const bare = splitMovement(splitRef.current)
+          ? { ...readQuestion, category: null, recipient: null }
+          : readQuestion;
+        const filled = family && !bare.family ? { ...bare, family } : bare;
         const built = yearSumFromReader(filled);
         if (built === "ask_family") {
           setDataReply({ status: "family_missing", source });
