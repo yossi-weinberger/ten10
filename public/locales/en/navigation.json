@@ -42,7 +42,8 @@
       "transaction": "I bought coffee for 12 ILS",
       "question": "How much did I donate this year?",
       "duplicates": "Any duplicates?",
-      "rule": "From now on, daycare is a recognized expense"
+      "rule": "From now on, daycare is a recognized expense",
+      "inspiration": "Give me some encouragement"
     },
     "send": "Send",
     "receipt": "Receipt",

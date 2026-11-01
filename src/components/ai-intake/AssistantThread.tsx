@@ -1,4 +1,4 @@
-import { ArrowDown, ChartColumn, CopyCheck, CreditCard, FileText, ListChecks, Mic } from "lucide-react";
+import { ArrowDown, ChartColumn, CopyCheck, CreditCard, FileText, ListChecks, Mic, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,6 +29,7 @@ const SUGGESTIONS = [
   { key: "question", icon: ChartColumn },
   { key: "duplicates", icon: CopyCheck },
   { key: "rule", icon: ListChecks },
+  { key: "inspiration", icon: Sparkles },
 ] as const;
 
 function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
