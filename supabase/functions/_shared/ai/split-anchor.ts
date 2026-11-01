@@ -182,7 +182,12 @@ function anchoredDate(
   today: string,
   missingDate: "today" | "check",
 ): { date: string | null; checkDate: boolean } {
-  if (date?.kind === "days_ago" && date.n === 0 && (dateText === null || dateText.trim() === "")) {
+  if (
+    missingDate === "today"
+    && date?.kind === "days_ago"
+    && date.n === 0
+    && (dateText === null || dateText.trim() === "")
+  ) {
     return { date: today, checkDate: false };
   }
   if (date === null) {

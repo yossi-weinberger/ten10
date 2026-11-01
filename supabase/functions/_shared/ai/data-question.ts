@@ -450,8 +450,30 @@ export function parseYearTypeSum(
 
 type QuestionPeriod = Pick<YearTypeSum, "year" | "month" | "months" | "from" | "to">;
 
+function boundsAsQuestionPeriod(from: string, to: string, calendar: QuestionCalendar): QuestionPeriod {
+  const sameMonth = from.slice(0, 7) === to.slice(0, 7);
+  if (calendar === "hebrew") {
+    const hebrew = getCalendarAdapter("hebrew");
+    const start = hebrew.fromIsoDate(from);
+    return {
+      from,
+      to,
+      year: start.year,
+      month: sameMonth ? start.month : null,
+      months: hebrewMonthsBetween(from, to),
+    };
+  }
+  return {
+    from,
+    to,
+    year: Number(from.slice(0, 4)),
+    month: sameMonth ? Number(from.slice(5, 7)) : null,
+    months: monthsBetween(from, to),
+  };
+}
+
 /** Dates and counts only. Family, measure, and names stay with the caller. */
-function parseQuestionPeriod(
+export function parseQuestionPeriod(
   normalized: string,
   today: string,
   calendar: QuestionCalendar,
@@ -644,10 +666,13 @@ export function questionFromSlots(
   today: string,
   calendar: QuestionCalendar,
   slots: QuestionSlots | null,
+  readerPeriod?: { from: string | null; to: string | null } | null,
 ): YearTypeSum | "ask_family" | null {
   if (!slots) return parseYearTypeSum(text, today, calendar);
   const normalized = normalize(text);
-  const period = parseQuestionPeriod(normalized, today, calendar);
+  const period = readerPeriod?.from && readerPeriod.to
+    ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
+    : parseQuestionPeriod(normalized, today, calendar);
   if (!period) return null;
   if (!slots.family) return "ask_family";
   let recipient: string | null = null;

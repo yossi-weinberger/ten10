@@ -118,6 +118,12 @@ export function resolveDateStruct(date: DateStruct, today: string): string | nul
   return unreachable;
 }
 
+/** An exact calendar date for a question range. No transaction window. */
+export function resolveExactDate(date: DateStruct): string | null {
+  if (date.kind !== "exact" || date.year === null || date.month === null || date.day === null) return null;
+  return isoFromParts(date.year, date.month, date.day);
+}
+
 /** The calendar day of `instant` in `timeZone`. Null when the zone is not real. */
 export function todayInZone(instant: Date, timeZone: string): string | null {
   try {

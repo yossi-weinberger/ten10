@@ -828,7 +828,10 @@ export function AssistantDrawer({
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
-      const read = family && slotHold ? null : await readQuestionSlots(source);
+      const read = family && slotHold ? null : await readQuestionSlots(source, {
+        calendar: questionCalendar,
+        today: todayIso(),
+      });
       const base = family && slotHold ? slotHold : read;
       const slots = family
         ? {
@@ -844,7 +847,7 @@ export function AssistantDrawer({
         : slots;
       if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
-      const composed = questionFromSlots(source, todayIso(), questionCalendar, asked);
+      const composed = questionFromSlots(source, todayIso(), questionCalendar, asked, read?.period ?? null);
       if (composed === "ask_family") {
         if (asked) setSlotHold(asked);
         setDataReply({ status: "family_missing", source });

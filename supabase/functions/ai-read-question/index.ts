@@ -14,6 +14,14 @@ import {
   slotConfidence,
 } from "../_shared/ai/question-slots.ts";
 import { saveQuestionMeasurement } from "./measurement.ts";
+import { readModelText } from "../_shared/ai/receipt-draft.ts";
+import {
+  boundsFromPeriod,
+  periodRequestBody,
+  readPeriodPayload,
+  SPLIT_RESPONSES_URL,
+} from "../_shared/ai/question-period.ts";
+import { SPLIT_MODEL } from "../_shared/ai/split-prompt.ts";
 
 const CATEGORY_TYPES = ["income", "exempt-income", "expense", "recognized-expense"] as const;
 
@@ -54,8 +62,12 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
+  const today = typeof body?.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today)
+    ? body.today
+    : new Date().toISOString().slice(0, 10);
   if (!text) return json(origin, { reason: "unavailable" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
@@ -119,6 +131,30 @@ Deno.serve(async (req: Request) => {
     );
     if (!measurementId) logger.error("slot confidence was not saved");
   }
-  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId }, 200);
-  return json(origin, { ...slots, measurement_id: measurementId }, 200);
+  let period: { from: string | null; to: string | null } | null = null;
+  try {
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "question_period",
+      model: SPLIT_MODEL,
+      url: SPLIT_RESPONSES_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(periodRequestBody(text, today, "app", calendar)),
+      },
+      timeoutMs: 8000,
+      record: serviceModelCallRecorder(),
+    });
+    if (result.ok) period = boundsFromPeriod(readPeriodPayload(readModelText(result.payload)), today);
+    else logger.error(`question period failed: ${result.status ?? result.errorCode}`);
+  } catch {
+    logger.error("question period failed");
+  }
+
+  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period }, 200);
+  return json(origin, { ...slots, measurement_id: measurementId, period }, 200);
 });
