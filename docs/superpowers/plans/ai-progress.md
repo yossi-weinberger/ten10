@@ -150,7 +150,7 @@
 | 631 | חישוב תקופה יחסית בקוד | קוד, בלי מודל | #630 | מוזג ל־`feat/ai-intake` | [#631](https://github.com/yossi-weinberger/ten10/pull/631) |
 | C1 | `2026-11-01-ai-conversation-memory.md` | החלטת תור טהורה, בלי שינוי התנהגות | — | נפתח | [#640](https://github.com/yossi-weinberger/ten10/pull/640) |
 | C2 | `2026-11-01-ai-conversation-memory.md` | החלטה לפי מה שנקרא | C1 | נפתח | [#641](https://github.com/yossi-weinberger/ten10/pull/641) |
-| C3 | `2026-11-01-ai-conversation-memory.md` | זיכרון והקשר למודלים | C2 | נפתח | `feat/ai-c3-conversation-memory` |
+| C3 | `2026-11-01-ai-conversation-memory.md` | זיכרון והקשר למודלים | C2 | נפתח | [#642](https://github.com/yossi-weinberger/ten10/pull/642) |
 
 **צורת העבודה (מ־28/10/2026):**
 - **שלב הוא PR קטן.** ענף `feat/ai-<קוד>-<תיאור>` מהגרסה העדכנית של `feat/ai-intake`, ו־base תמיד `feat/ai-intake`. לא ממזגים ל־`main` עד הודעה. ממזגים מ־`main` לענף מדי פעם.
