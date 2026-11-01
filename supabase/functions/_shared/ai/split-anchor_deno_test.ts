@@ -119,6 +119,8 @@ Deno.test("an explicit date is date_iso and today is days ago zero", () => {
     date_text: "היום",
   })]);
   assert(spoken.items[0]?.date === TODAY && spoken.items[0]?.checkDate === false, "היום");
+  const receipt = anchorSplitItems("סופר 40", [item()], splitReadContext(TODAY, { missingDate: "check" }));
+  assert(receipt.items[0]?.date === null && receipt.items[0]?.checkDate === true, "a receipt without a date is checked");
 });
 
 Deno.test("a date structure without its words is marked, and a rule clears the special question", () => {

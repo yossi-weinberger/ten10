@@ -3,6 +3,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { gatewayProviderOptions } from "../_shared/ai/gateway-tags.ts";
 import { readSplitResponse } from "../_shared/ai/split-response.ts";
+import { splitReadContext } from "../_shared/ai/split-anchor.ts";
 import { todayInZone } from "../_shared/ai/split-date.ts";
 import { SPLIT_MODEL, SPLIT_RESPONSES_URL, SPLIT_TIMEOUT_MS, splitRequestBody } from "../_shared/ai/split-prompt.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
@@ -205,7 +206,7 @@ Deno.serve(async (req: Request) => {
       await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
-    const split = readSplitResponse(text, readModelText(read.payload), today);
+    const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, { missingDate: "check" }));
     const draft = receiptDraftFromItems(
       split.route,
       split.route === "several"
