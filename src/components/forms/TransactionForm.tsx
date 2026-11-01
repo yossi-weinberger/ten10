@@ -74,6 +74,7 @@ export function TransactionForm({
   // Track form open and abandon
   const formOpenedRef = useRef(false);
   const formSavedSuccessRef = useRef(false);
+  const mountedRef = useRef(false);
   const dateInputStatusRef = useRef<GregorianDateParseResult["status"] | null>(null);
   const dateInputMethodRef = useRef<"typed" | "calendar">("typed");
 
@@ -84,16 +85,16 @@ export function TransactionForm({
       trackProductEvent("add_transaction_form_opened");
     }
 
+    // Mark as mounted
+    mountedRef.current = true;
+
     // Track abandon on unmount
     return () => {
-      if (!isEditMode && formOpenedRef.current && !formSavedSuccessRef.current) {
-        // Use setTimeout to avoid double-firing in StrictMode
-        setTimeout(() => {
-          if (!formSavedSuccessRef.current) {
-            trackProductEvent("add_transaction_form_abandoned");
-          }
-        }, 0);
+      // Only fire if truly unmounting (not StrictMode re-mount)
+      if (mountedRef.current && !isEditMode && formOpenedRef.current && !formSavedSuccessRef.current) {
+        trackProductEvent("add_transaction_form_abandoned");
       }
+      mountedRef.current = false;
     };
   }, [isEditMode]);
 
