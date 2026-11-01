@@ -147,6 +147,31 @@ describe("decideTurn", () => {
       reader: { ok: true, route: "several", items: [item({ unsupportedFrequency: true })], rule: null, question: null },
     }));
     expect(decision.card.type).toBe("frequency_unsupported");
+    expect(decision.frequencyBlocked).toBe(true);
+  });
+
+  it("keeps the rule card beside the frequency notice", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "create_rule", confidence: 0.95 },
+      reader: {
+        ok: true,
+        route: "several",
+        items: [item({ unsupportedFrequency: true })],
+        rule: { match: "בית הכנסת", action: "non_tithe_donation" },
+        question: null,
+      },
+    }));
+    expect(decision.card).toEqual({ type: "rule", name: "בית הכנסת", action: "non_tithe_donation" });
+    expect(decision.frequencyBlocked).toBe(true);
+  });
+
+  it("still loads the data answer beside the frequency notice", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "ask_data", confidence: 0.95 },
+      reader: { ok: true, route: "several", items: [item({ amount: null, unsupportedFrequency: true })], rule: null, question: null },
+    }));
+    expect(decision.frequencyBlocked).toBe(true);
+    expect(decision.needsQuestion).toBe(true);
   });
 
   it("shows a rule only when Jev says create_rule and the reader returned one", () => {
@@ -241,6 +266,26 @@ describe("decideTurn", () => {
       periodHold: { kind: "all" },
     }));
     expect(decision.data.status).toBe("ready");
+  });
+
+  it("prefers the held slots over a new read when the user picks a family", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+      forcedIntent: "ask_data",
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: {
+        slots: { family: null, measure: "count", recipient: "כולל", category: null, paymentMethod: null },
+        period: { kind: "all" },
+        nameText: null,
+      },
+      chosenFamily: "donation",
+      slotHold: { family: null, measure: null, recipient: "ישיבה", category: null, paymentMethod: null },
+    }));
+    expect(decision.data.status).toBe("ready");
+    const question = decision.data.status === "ready" ? decision.data.question : null;
+    expect(question?.recipient).toBe("ישיבה");
+    expect(question?.measure).toBe("sum");
   });
 
   it("marks a missing saved name after the filter", () => {

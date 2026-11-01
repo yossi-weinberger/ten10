@@ -85,6 +85,11 @@ async function post(key: string, url: string, body: unknown): Promise<unknown> {
   return response.json();
 }
 
+function statusOf(payload: unknown): number {
+  const status = (payload as { http_status?: unknown } | null)?.http_status;
+  return typeof status === "number" ? status : 200;
+}
+
 async function askJev(key: string, text: string): Promise<unknown> {
   return post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildIntentBody(text), { source: "eval" }));
 }
@@ -114,14 +119,14 @@ async function askQuestion(
   const slots = readQuestionSlots(slotsPayload, lists);
   const raw = readPeriodPayload(readModelText(periodPayload));
   const nameText = raw?.name_text ?? null;
-  const emptySlots = { family: null, measure: null, recipient: null, category: null, paymentMethod: null };
-  if (!slots && !raw) return { question: null, costUsd };
+  // Like ai-read-question: no slots means unavailable, and the drawer falls back to the reader.
+  if (!slots) return { question: null, costUsd };
   if (raw?.kind === "all") {
-    return { question: { slots: slots ?? emptySlots, period: { kind: "all" }, nameText }, costUsd };
+    return { question: { slots, period: { kind: "all" }, nameText }, costUsd };
   }
   const bounds = boundsFromPeriod(raw, fixture.today);
   const period = bounds?.from && bounds.to ? { kind: "span" as const, from: bounds.from, to: bounds.to } : null;
-  return { question: { slots: slots ?? emptySlots, period, nameText }, costUsd };
+  return { question: { slots, period, nameText }, costUsd };
 }
 
 function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
@@ -228,6 +233,7 @@ async function runConversation(
       },
       // ponytail: the model's text only, cut at 2000 characters, so a run stays well under 1MB.
       readerText: readModelText(readerRaw).slice(0, 2000),
+      httpStatus: { jev: statusOf(jevRaw), reader: statusOf(readerRaw) },
       question,
       decision,
       reason,

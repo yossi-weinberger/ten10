@@ -671,6 +671,7 @@ export function AssistantDrawer({
         return unreachable;
       }
     }
+    if (decision.frequencyBlocked) setStatus("frequencyUnsupported");
     if (decision.side === "duplicates") void loadScan();
     else setDuplicateScan(null);
     if (decision.side === "inspiration") presentInspiration();

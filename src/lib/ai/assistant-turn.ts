@@ -124,6 +124,8 @@ export interface TurnDecision {
   needsNameCheck: boolean;
   pending: { kind: PendingKind; sourceText: string } | null;
   preferRabbi: boolean;
+  /** The frequency notice, which can sit beside a rule card or a data answer. */
+  frequencyBlocked: boolean;
   nextState: ConversationState;
 }
 
@@ -262,17 +264,18 @@ function transactionCard(reader: TurnReader | null): TurnCard {
   return { type: "draft", checkAmount: item.checkAmount === true, checkDate: item.checkDate === true };
 }
 
+function frequencyBlocked(reader: TurnReader | null): boolean {
+  return severalOf(reader)?.items.some((item) => item.unsupportedFrequency) === true;
+}
+
 function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCard {
   const several = severalOf(reader);
-  if (several?.items.some((item) => item.unsupportedFrequency) === true) return { type: "frequency_unsupported" };
+  const rule = intent === "create_rule" ? several?.rule ?? null : null;
+  if (rule) return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
+  if (frequencyBlocked(reader)) return { type: "frequency_unsupported" };
   if (intent === "create_recurring") {
     if (several?.items[0]) return { type: "recurring" };
     return { type: "none" };
-  }
-  if (intent === "create_rule") {
-    const rule = severalOf(reader)?.rule ?? null;
-    if (!rule) return { type: "none" };
-    return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
   }
   if (intent === "add_transaction") return transactionCard(reader);
   return { type: "none" };
@@ -382,6 +385,7 @@ export function decideTurn(input: TurnInput): TurnDecision {
     needsNameCheck: data.needsNameCheck,
     pending: pendingFor(input.message, card, data.data),
     preferRabbi: routed.preferRabbi,
+    frequencyBlocked: routed.mode === "show" && frequencyBlocked(input.reader),
     nextState: copyState(input.state),
   };
 }
@@ -413,7 +417,7 @@ function summaryKind(decision: TurnDecision): TurnAnswerKind {
   if (decision.mode === "ask") return "question";
   if (decision.mode === "rabbi" || decision.data.status === "rabbi") return "rabbi";
   if (decision.card.type === "could_not_read") return "could_not_read";
-  if (decision.card.type === "frequency_unsupported") return "frequency_unsupported";
+  if (decision.card.type === "frequency_unsupported" && decision.data.status !== "ready") return "frequency_unsupported";
   if (decision.card.type === "split_list" || decision.card.type === "drafts") return "drafts";
   if (decision.card.type === "clarify") return "question";
   if (decision.card.type === "draft") return "draft";
