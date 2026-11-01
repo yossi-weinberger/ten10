@@ -147,7 +147,7 @@ function anchoredAmount(
     return { amount: item.amount, checkAmount: true };
   }
   const numbers = numbersIn(source);
-  const thousand = mentionsThousand(source) || mentionsThousand(words);
+  const thousand = mentionsThousand(words);
   let base: number | null = null;
   for (const value of numbers) {
     if (Math.abs(value - item.amount) < 0.001) {
@@ -178,35 +178,6 @@ function anchoredDate(source: string, date: DateStruct | null, dateText: string 
   const resolved = resolveDateStruct(date, today);
   if (resolved === null) return { date: null, checkDate: true };
   return { date: resolved, checkDate: false };
-}
-
-function isHebrewLetter(char: string): boolean {
-  if (char === "") return false;
-  const code = char.charCodeAt(0);
-  return code >= 0x05d0 && code <= 0x05ea;
-}
-
-function mentionsHebrewPhrase(source: string, phrase: string): boolean {
-  let from = 0;
-  while (from < source.length) {
-    const at = source.indexOf(phrase, from);
-    if (at < 0) return false;
-    const before = at === 0 ? "" : source.charAt(at - 1);
-    const after = source.charAt(at + phrase.length);
-    if (!isHebrewLetter(before) && !isHebrewLetter(after)) return true;
-    from = at + 1;
-  }
-  return false;
-}
-
-function mentionsTotal(source: string): boolean {
-  return /סה["״']?כ/.test(source)
-    || mentionsHebrewPhrase(source, "בסך הכל")
-    || mentionsHebrewPhrase(source, "סך הכל")
-    || mentionsHebrewPhrase(source, "הכל")
-    || source.includes("יחד")
-    || source.includes("ביחד")
-    || /\btotal\b/i.test(source);
 }
 
 function sumsTo(values: readonly number[], target: number): boolean {
@@ -246,7 +217,7 @@ export function anchorSplitItems(
 ): { items: AnchoredSplitItem[]; dropped: number } {
   const alone = items.length === 1;
   const used = new Map<string, number>();
-  const kept: AnchoredSplitItem[] = [];
+  const kept: { item: AnchoredSplitItem; total: boolean }[] = [];
   let dropped = 0;
   for (const item of items) {
     const amount = anchoredAmount(source, item, alone, used);
@@ -259,34 +230,35 @@ export function anchorSplitItems(
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     const special = item.type !== null && SPECIAL_TYPES.has(item.type);
     kept.push({
-      description: item.description.trim(),
-      amount: amount.amount,
-      currency: item.currency ?? context.defaultCurrency,
-      date: dated.date,
-      checkDate: dated.checkDate,
-      checkAmount: amount.checkAmount,
-      typeHint: rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
-      typeQuestion: rule ? null : askedSpecial(item.type) ?? item.type_question,
-      requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
-      paymentMethod: item.payment_method,
-      category,
-      ruleId: rule?.id ?? null,
-      ruleName: rule?.name ?? null,
-      recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
+      total: item.is_total,
+      item: {
+        description: item.description.trim(),
+        amount: amount.amount,
+        currency: item.currency ?? context.defaultCurrency,
+        date: dated.date,
+        checkDate: dated.checkDate,
+        checkAmount: amount.checkAmount,
+        typeHint: rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
+        typeQuestion: rule ? null : askedSpecial(item.type) ?? item.type_question,
+        requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
+        paymentMethod: item.payment_method,
+        category,
+        ruleId: rule?.id ?? null,
+        ruleName: rule?.name ?? null,
+        recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
+      },
     });
   }
-  if (!mentionsTotal(source)) return { items: kept, dropped };
   const totals = new Set<number>();
-  kept.forEach((item, index) => {
-    if (item.amount === null || item.checkAmount) return;
+  kept.forEach((entry, index) => {
+    if (!entry.total || entry.item.amount === null || entry.item.checkAmount) return;
     const others = kept.flatMap((other, otherIndex) => (
-      otherIndex !== index && other.amount !== null && !other.checkAmount ? [other.amount] : []
+      otherIndex !== index && other.item.amount !== null && !other.item.checkAmount ? [other.item.amount] : []
     ));
-    if (sumsTo(others, item.amount)) totals.add(index);
+    if (sumsTo(others, entry.item.amount)) totals.add(index);
   });
-  if (totals.size === 0) return { items: kept, dropped };
   return {
-    items: kept.filter((_, index) => !totals.has(index)),
+    items: kept.filter((_, index) => !totals.has(index)).map((entry) => entry.item),
     dropped: dropped + totals.size,
   };
 }

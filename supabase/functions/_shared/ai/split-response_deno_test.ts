@@ -22,6 +22,7 @@ function row(amount: number, amountText: string, extra: Partial<SplitItemInput> 
     payment_method: null,
     category: null,
     rule_id: null,
+    is_total: false,
     ...extra,
   };
 }
