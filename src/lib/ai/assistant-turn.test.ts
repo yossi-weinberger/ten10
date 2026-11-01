@@ -215,20 +215,20 @@ describe("decideTurn", () => {
     expect(decision.mode).toBe("show");
   });
 
-  it("asks which period when the question reader has no period", () => {
+  it("answers for all time when a data question names no period", () => {
     const decision = decideTurn(base({
-      message: "כמה הוצאות?",
+      message: "כמה תרמתי?",
       jev: { ok: true, intent: "ask_data", confidence: 0.9 },
       reader: { ok: true, route: "unreadable" },
       questionAttempted: true,
       question: {
-        slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null },
+        slots: { family: "donation", measure: "sum", recipient: null, category: null, paymentMethod: null },
         period: null,
         nameText: null,
       },
     }));
-    expect(decision.pending?.kind).toBe("period");
-    expect(decision.data.status).toBe("period_missing");
+    expect(decision.pending).toBeNull();
+    expect(decision.data.status).toBe("ready");
   });
 
   it("asks which family when the slots have none", () => {
