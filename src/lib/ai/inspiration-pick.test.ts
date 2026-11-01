@@ -55,10 +55,11 @@ describe("inspiration pick", () => {
     expect(() => rememberInspiration(broken, "a")).not.toThrow();
   });
 
-  it("shows Hebrew from the master and English only from the email text", () => {
+  it("shows Hebrew from the master and English from the library fields", () => {
     expect(itemsForLanguage(INSPIRATION_LIBRARY, "he")).toHaveLength(75);
     const english = itemsForLanguage(INSPIRATION_LIBRARY, "en");
-    expect(english).toHaveLength(12);
-    expect(english.every((item) => item.body.length > 0)).toBe(true);
+    expect(english).toHaveLength(75);
+    expect(english.every((item) => item.body.length > 0 && item.title.length > 0)).toBe(true);
+    expect(english.find((item) => item.id === "TN10-0002")?.title).toBe("Test Me now in this");
   });
 });

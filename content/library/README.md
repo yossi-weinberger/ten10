@@ -25,7 +25,7 @@ node content/library/build-index.mjs
 node content/library/export-inspiration.mjs
 ```
 
-The inspiration export keeps every record except `halakha`, and folds a monthly email encouragement into its `contentId`. An email row without `contentId` becomes its own item. English email text is stored as `body_en` and `source_en` until the master file has its own English fields.
+The inspiration export keeps every record except `halakha`, and folds a monthly email encouragement into its `contentId`. An email row without `contentId` becomes its own item. `title_en`, `source_en`, and `content_en` in the master are the English text. A monthly email fills `body_en` only when the master has no English yet. Verse English is JPS 1917 (public domain). Every other English field is a draft for review, not a published translation.
 
 ## Stable ids
 
