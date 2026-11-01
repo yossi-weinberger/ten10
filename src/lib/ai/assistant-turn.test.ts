@@ -171,6 +171,17 @@ describe("decideTurn", () => {
     expect(ruled.card.type).toBe("rule");
   });
 
+  it("asks when an unsure Jev leans to a standing order the reader could not read", () => {
+    const reader: TurnReader = { ok: true, route: "several", items: [item({ amount: 100 })], rule: null, question: null };
+    const unsure = decideTurn(base({ jev: { ok: true, intent: "create_recurring", confidence: 0.57 }, reader }));
+    expect(unsure.mode).toBe("ask");
+    expect(unsure.card.type).toBe("none");
+    const sure = decideTurn(base({ jev: { ok: true, intent: "create_recurring", confidence: 0.95 }, reader }));
+    expect(sure.card.type).toBe("recurring");
+    const otherLabel = decideTurn(base({ jev: { ok: true, intent: "create_rule", confidence: 0.4 }, reader }));
+    expect(otherLabel.intent).toBe("add_transaction");
+  });
+
   it("keeps a standing order behind an out-of-scope label as no card", () => {
     const reader: TurnReader = {
       ok: true,

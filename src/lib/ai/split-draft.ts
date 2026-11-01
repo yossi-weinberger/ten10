@@ -74,9 +74,10 @@ export function draftFromHeld(held: HeldDraft): TextTransactionDraft | null {
   };
 }
 
-export function recurringCardFromItem(item: AnchoredSplitItem, fallbackCurrency: TextTransactionDraft["currency"]): RecurringCard | null {
-  if (!item.recurrence) return null;
+/** Without a recurrence read, the card starts with no frequency or day and asks for them. */
+export function recurringCardFromItem(item: AnchoredSplitItem, fallbackCurrency: TextTransactionDraft["currency"]): RecurringCard {
   const held = heldFromItem(item, fallbackCurrency);
+  const recurrence = item.recurrence;
   return cardFromRecurringDraft({
     amount: held.amount,
     currency: held.currency,
@@ -85,13 +86,14 @@ export function recurringCardFromItem(item: AnchoredSplitItem, fallbackCurrency:
     description: held.description,
     category: held.category,
     paymentMethod: held.paymentMethod,
-    frequency: item.recurrence.frequency,
-    calendarType: item.recurrence.calendarType,
-    startDate: item.recurrence.startDate,
-    dayOfMonth: item.recurrence.dayOfMonth,
+    frequency: recurrence?.frequency ?? null,
+    // ponytail: gregorian until the user's calendar reaches this card; the summary shows the dates before saving.
+    calendarType: recurrence?.calendarType ?? "gregorian",
+    startDate: recurrence?.startDate ?? null,
+    dayOfMonth: recurrence?.dayOfMonth ?? null,
     anchorMonthCode: null,
-    totalOccurrences: item.recurrence.totalOccurrences,
-    alreadyCharged: item.recurrence.alreadyCharged,
+    totalOccurrences: recurrence?.totalOccurrences ?? null,
+    alreadyCharged: recurrence?.alreadyCharged ?? false,
   });
 }
 

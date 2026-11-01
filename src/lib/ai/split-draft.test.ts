@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+import { nextRecurringQuestion } from "./recurring-card";
 import { heldFromItem, recurringCardFromItem } from "./split-draft";
 
 const MONTHLY: AnchoredSplitItem["recurrence"] = {
@@ -55,5 +56,11 @@ describe("special types on cards", () => {
       type: "income",
       typeQuestion: "exempt-income",
     });
+  });
+
+  it("starts a standing order with no frequency when none was read, and asks for it", () => {
+    const card = recurringCardFromItem(item({ specialStated: true, recurrence: null }), "ILS");
+    expect(card).toMatchObject({ amount: 250, frequency: null, dayOfMonth: null, startDate: null });
+    expect(nextRecurringQuestion(card)).toBe("frequency");
   });
 });

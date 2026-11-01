@@ -212,6 +212,12 @@ function route(input: TurnInput): Routed {
     }, movement)
     : shownIntent(input.message, input.today, { ok: false }, movement);
   const dataCandidate = input.jev.ok && (input.jev.intent === "ask_data" || readerQuestion(input.reader) !== null);
+  // An unsure Jev leaning to a standing order, with no recurrence read, asks rather than guessing a one-time draft.
+  const leansRecurring = shown === "ask" && input.jev.ok && input.jev.intent === "create_recurring"
+    && !severalOf(input.reader)?.items.some((item) => item.recurrence);
+  if (movement && leansRecurring) {
+    return { releaseAs: shown, mode: "ask", intent: null, withData: false, preferRabbi: false, publishedPage: null };
+  }
   if (
     movement
     && (shown === "ask" || shown === "ask_data" || shown === "ask_rabbi" || shown === "add_transaction" || shown === "inspiration")

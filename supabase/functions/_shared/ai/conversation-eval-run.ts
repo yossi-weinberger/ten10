@@ -42,6 +42,7 @@ interface Fixture {
 
 const TOPIC_COUNTS: Record<string, number> = {
   real_chat: 1,
+  recurring_no_frequency: 1,
   draft_fix: 6,
   assistant_answer: 8,
   data_followup: 5,

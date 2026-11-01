@@ -1247,6 +1247,30 @@
           }
         }
       ]
+    },
+    {
+      "id": "conv-055",
+      "topic": "recurring_no_frequency",
+      "note": "From the QA run on #640: a standing order with no frequency.",
+      "turns": [
+        {
+          "user": "הוראת קבע של 100 שקל לעמותה",
+          "expect": {
+            "kind": "question",
+            "alsoOk": [
+              "recurring"
+            ]
+          }
+        },
+        {
+          "user": "כל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "frequency": "monthly"
+          }
+        }
+      ]
     }
   ]
 }
