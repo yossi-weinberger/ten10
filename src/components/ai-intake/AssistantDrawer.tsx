@@ -44,7 +44,7 @@ import {
   type MeasurementHold,
   type QuestionOutcomeEvent,
 } from "@/lib/ai/question-outcome";
-import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
+import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
@@ -152,7 +152,7 @@ export function AssistantDrawer({
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
-    | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
+    | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient"; suggestions: string[]; family: "donation" | "expense" | "income" }
     | { status: "family_missing"; source: string }
     | { status: "mixed" | "unsupported" | "failed" | "period_missing" }
     | null
@@ -893,9 +893,20 @@ export function AssistantDrawer({
     const filter = await resolveQuestionFilter(question, searchDescriptions);
     if (requestRef.current !== request) return;
     if ("missing" in filter) {
-      setDataReply({ status: "category_missing", topic: filter.name, source, kind: filter.missing });
+      setDataReply({
+        status: "category_missing",
+        topic: filter.name,
+        source,
+        kind: filter.missing,
+        suggestions: filter.suggestions,
+        family: question.type,
+      });
       return;
     }
+    await showFiltered(question, filter, request);
+  }
+
+  async function showFiltered(question: YearTypeSum, filter: QuestionFilter, request: number) {
     const result = await sumYearType(question, filter);
     if (requestRef.current !== request) return;
     if (!result.ok) {
@@ -918,6 +929,27 @@ export function AssistantDrawer({
       currency: result.currency,
     });
     armAnswered();
+  }
+
+  async function answerWithName(name: string) {
+    if (!askedQuestion) return;
+    const question = askedQuestion.type === "donation"
+      ? { ...askedQuestion, recipient: name, topic: null }
+      : { ...askedQuestion, topic: name, recipient: null };
+    const filter = askedQuestion.type === "donation"
+      ? { category: null, description: null, recipient: name }
+      : { category: name, description: null, recipient: null };
+    setAskedQuestion(question);
+    setDataReply(null);
+    await showFiltered(question, filter, requestRef.current);
+  }
+
+  async function answerWithoutName() {
+    if (!askedQuestion) return;
+    const question = { ...askedQuestion, recipient: null, topic: null };
+    setAskedQuestion(question);
+    setDataReply(null);
+    await showFiltered(question, { category: null, description: null, recipient: null }, requestRef.current);
   }
 
   function replyState(): ReplyState {
@@ -1353,6 +1385,12 @@ export function AssistantDrawer({
           },
           onSearchDescriptions: (source) => {
             void loadDataAnswer(source, true);
+          },
+          onChooseSavedName: (name) => {
+            void answerWithName(name);
+          },
+          onAllInPeriod: () => {
+            void answerWithoutName();
           },
           onChooseRule: setRuleChoice,
           onApproveRule: () => {

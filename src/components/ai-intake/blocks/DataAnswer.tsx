@@ -84,13 +84,21 @@ export function DataAnswer({
 export function NameMissing({
   nameKind,
   topic,
+  family,
+  suggestions,
   interactive,
   onSearch,
+  onChooseName,
+  onAllInPeriod,
 }: {
   nameKind: "category" | "recipient";
   topic: string;
+  family: "donation" | "expense" | "income";
+  suggestions: string[];
   interactive: boolean;
   onSearch: () => void;
+  onChooseName: (name: string) => void;
+  onAllInPeriod: () => void;
 }) {
   const { t } = useTranslation("navigation");
   return (
@@ -99,10 +107,20 @@ export function NameMissing({
         {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic })}
       </p>
       {interactive ? (
-        <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onSearch}>
-          <Search aria-hidden />
-          {t("aiIntake.categorySearch")}
-        </Button>
+        <div className="flex flex-col items-start gap-2">
+          {suggestions.map((name) => (
+            <Button key={name} type="button" variant="outline" size="sm" className="w-fit" onClick={() => onChooseName(name)}>
+              {name}
+            </Button>
+          ))}
+          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onAllInPeriod}>
+            {t(`aiIntake.allInPeriod.${family}`)}
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onSearch}>
+            <Search aria-hidden />
+            {t("aiIntake.categorySearch")}
+          </Button>
+        </div>
       ) : null}
     </div>
   );

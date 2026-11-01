@@ -1,5 +1,5 @@
-import he from "../../../public/locales/he/transactions.json";
-import en from "../../../public/locales/en/transactions.json";
+import he from "../../../public/locales/he/transactions.json" with { type: "json" };
+import en from "../../../public/locales/en/transactions.json" with { type: "json" };
 
 /** Spoken words that are not the form label but mean a built-in category. */
 const SPOKEN_ALIASES: Record<string, string> = {

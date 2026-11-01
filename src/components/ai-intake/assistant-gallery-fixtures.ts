@@ -124,10 +124,17 @@ export const ASSISTANT_GALLERY: GalleryScenario[] = [
     id: "recipient",
     title: "נמען לא נמצא",
     history: [],
-    active: { kind: "text", text: "כמה תרמתי לפינת חי?" },
+    active: { kind: "text", text: "מה הסכום הכולל שנתתי לבית חב״ד השנה?" },
     activeBlocks: blocks({
       intent: "ask_data",
-      dataReply: { status: "category_missing", kind: "recipient", topic: "פינת חי", source: "כמה תרמתי לפינת חי?" },
+      dataReply: {
+        status: "category_missing",
+        kind: "recipient",
+        topic: "בית חב״ד",
+        source: "מה הסכום הכולל שנתתי לבית חב״ד השנה?",
+        suggestions: ["בית חב״ד רעננה"],
+        family: "donation",
+      },
     }),
   },
   {

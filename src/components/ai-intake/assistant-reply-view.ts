@@ -75,7 +75,7 @@ export type ReadyDataReply = {
 
 export type DataReply =
   | ReadyDataReply
-  | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
+  | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient"; suggestions: string[]; family: "donation" | "expense" | "income" }
   | { status: "family_missing"; source: string }
   | { status: "mixed" | "unsupported" | "failed" | "period_missing" };
 
@@ -106,7 +106,7 @@ export type ReplyBlock =
   | { kind: "recurring"; card: RecurringCard }
   | { kind: "dataAnswer"; reply: ReadyDataReply }
   | { kind: "askFamily"; source: string }
-  | { kind: "nameMissing"; nameKind: "category" | "recipient"; topic: string; source: string }
+  | { kind: "nameMissing"; nameKind: "category" | "recipient"; topic: string; source: string; suggestions: string[]; family: "donation" | "expense" | "income" }
   | { kind: "dataNotice"; status: "unsupported" | "mixed" | "failed" | "period_missing" }
   | { kind: "duplicateScan"; scan: DuplicateScanState; confirmDeleteId: string | null; actionFailed: boolean }
   | { kind: "halacha"; namespace: string }
@@ -240,7 +240,14 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
       else if (reply.status === "family_missing") blocks.push({ kind: "askFamily", source: reply.source });
       else if (reply.status === "category_missing") {
-        blocks.push({ kind: "nameMissing", nameKind: reply.kind, topic: reply.topic, source: reply.source });
+        blocks.push({
+          kind: "nameMissing",
+          nameKind: reply.kind,
+          topic: reply.topic,
+          source: reply.source,
+          suggestions: reply.suggestions,
+          family: reply.family,
+        });
       } else blocks.push({ kind: "dataNotice", status: reply.status });
     }
   }

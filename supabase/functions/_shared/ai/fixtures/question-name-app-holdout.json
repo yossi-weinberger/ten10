@@ -1,0 +1,516 @@
+{
+  "cases": 61,
+  "rightFilter": 46,
+  "neededAsk": 3,
+  "unnecessaryAsk": 3,
+  "buttonMiss": 3,
+  "wrongFilter": 6,
+  "rightFilterIds": [
+    "slot-hold-he-001 כמה נתתי לכולל בוקר מתחילת אלול?",
+    "slot-hold-he-002 כמה פעמים תרמתי לכולל אברכים השנה?",
+    "slot-hold-he-004 מה התרומה הכי גדולה שלי לישיבה קטנה בתשפ״ז?",
+    "slot-hold-he-007 כמה תרמתי לאור שמח ב־2025?",
+    "slot-hold-he-009 כמה פעמים נתתי לגמ״ח תרופות בחצי השנה האחרונה?",
+    "slot-hold-he-011 כמה נתתי לעניי העיר לפני ראש השנה?",
+    "slot-hold-he-012 כמה תרומות היו לי לעזר מציון השנה?",
+    "slot-hold-he-014 מה מצב התרומות שלי מאז ראש השנה?",
+    "slot-hold-he-015 כמה אני מפריש בממוצע לחודש?",
+    "slot-hold-he-016 מה היתה ההוצאה הכי כבדה שלי בחודש שעבר?",
+    "slot-hold-he-017 מה הכי יקר שהיה לי מאז סוכות?",
+    "slot-hold-he-018 כמה פעולות היו בצ׳קים בתשפ״ז?",
+    "slot-hold-he-019 מה הסכום הכולל במזומן בחודש הזה?",
+    "slot-hold-he-020 מה היה הממוצע החודשי בפייפאל השנה?",
+    "slot-hold-he-022 כמה הוצאתי על ארוחות צהריים בעבודה החודש?",
+    "slot-hold-he-023 כמה שילמתי על חוג השנה?",
+    "slot-hold-he-024 כמה יוצא לי בערך כל חודש על חוגים?",
+    "slot-hold-he-026 מה התשלום הכי גבוה שהיה לי על ביטוח רכב?",
+    "slot-hold-he-028 כמה פעמים שילמתי על בריאות השנה?",
+    "slot-hold-he-029 כמה עלה לי מנוי לבריכה השנה?",
+    "slot-hold-he-031 כמה שילמתי בכרטיס על אוכל בחודש שעבר?",
+    "slot-hold-he-035 כמה פעמים שילמתי במזומן על תחבורה בחודש האחרון",
+    "slot-hold-he-036 מה הסכום הכי גבוה שקיבלתי ממשכורת בהעברה בנקאית השנה",
+    "slot-hold-en-037 How much did I earn from freelance work since January?",
+    "slot-hold-en-038 How many salary payments did I get this year?",
+    "slot-hold-en-039 What was my largest business payment in 2024?",
+    "slot-hold-en-040 How much investment income do I get on average per month?",
+    "slot-hold-en-041 What was the biggest payment I had last week?",
+    "slot-hold-en-042 How many payments were made with PayPal this quarter?",
+    "slot-hold-en-043 How much did I donate to Ohr Sameach this year?",
+    "slot-hold-en-044 How many times did I give to Beit Chabad Raanana since Pesach?",
+    "slot-hold-en-047 How much did I spend on education this school year?",
+    "slot-hold-en-048 How many צהרון payments did I make this month?",
+    "slot-hold-en-049 How much did I spend on the pool this summer?",
+    "slot-hold-en-050 How much did I spend on healthcare by pay pal?",
+    "slot-hold-en-051 How much did I pay straight from my account for housing last month?",
+    "slot-hold-en-052 How much did I donate to Ezras Mizion by bank transfer this year?",
+    "slot-hold-en-053 how many times did i pay cash for medicines in the last three months",
+    "slot-hold-en-054 how much did i give to talmud torah by check during the last year",
+    "slot-hold-he-055 כמה did I give to כולל אברכים דרך PayBox השנה?",
+    "slot-hold-en-056 How much did I give to ישיבת נחלת last month?",
+    "slot-hold-he-057 כמה פעמים paid by debit card על מנוי לבריכה השנה",
+    "slot-hold-en-058 what was the biggest תרומה I gave to גמ״ח חתונות this year",
+    "slot-hold-he-059 כמה I usually spend per month על חוגים",
+    "slot-hold-en-060 how many payments היו באשראי בחודש שעבר בלי קשר אם זה הכנסה הוצאה או תרומה",
+    "mixed-donation תרמתי 50 לבית כנסת וכמה תרמתי השנה?"
+  ],
+  "neededAskIds": [
+    "slot-hold-he-008 מה הסכום הכולל שנתתי לבית חב״ד השנה?",
+    "slot-hold-he-025 כמה שילמתי על ביטוח השנה?",
+    "slot-hold-he-030 כמה הוצאתי בבריכה הקיץ?"
+  ],
+  "unnecessaryAskIds": [
+    "slot-hold-he-013 כמה נתתי לצדקה בחודש האחרון?",
+    "slot-hold-he-033 כמה שילמתי בהוראת קבע על חשבונות השנה?",
+    "slot-hold-en-045 How much did I give to the kollel last month?"
+  ],
+  "buttonMissIds": [
+    "slot-hold-he-003 כמה נתתי לכולל בחודש שעבר?",
+    "slot-hold-he-006 כמה נתתי לישיבה השנה?",
+    "slot-hold-he-010 כמה כסף נתתי לגמ״ח בסך הכול?"
+  ],
+  "wrongFilterIds": [
+    "slot-hold-he-005 כמה הפרשתי לישיבת נחלת מאז פסח?",
+    "slot-hold-he-021 כמה עלה לי הצהרון מתחילת שנת הלימודים?",
+    "slot-hold-he-027 כמה הוצאתי על תרופות מאז החורף?",
+    "slot-hold-he-032 כמה תרמתי לגמ״ח חתונות בצ׳ק דחוי?",
+    "slot-hold-he-034 כמה הוצאתי בפייבוקס על קניות בשבוע שעבר?",
+    "slot-hold-en-046 What was my largest donation to Keren Halvaot?"
+  ],
+  "rows": [
+    {
+      "id": "slot-hold-he-001",
+      "text": "כמה נתתי לכולל בוקר מתחילת אלול?",
+      "outcome": "right_filter",
+      "used": "כולל בוקר",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-002",
+      "text": "כמה פעמים תרמתי לכולל אברכים השנה?",
+      "outcome": "right_filter",
+      "used": "כולל אברכים",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-003",
+      "text": "כמה נתתי לכולל בחודש שעבר?",
+      "outcome": "button_miss",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-004",
+      "text": "מה התרומה הכי גדולה שלי לישיבה קטנה בתשפ״ז?",
+      "outcome": "right_filter",
+      "used": "ישיבה קטנה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-005",
+      "text": "כמה הפרשתי לישיבת נחלת מאז פסח?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-006",
+      "text": "כמה נתתי לישיבה השנה?",
+      "outcome": "button_miss",
+      "used": null,
+      "suggestions": [
+        "ישיבה קטנה"
+      ]
+    },
+    {
+      "id": "slot-hold-he-007",
+      "text": "כמה תרמתי לאור שמח ב־2025?",
+      "outcome": "right_filter",
+      "used": "Ohr Somayach",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-008",
+      "text": "מה הסכום הכולל שנתתי לבית חב״ד השנה?",
+      "outcome": "needed_ask",
+      "used": null,
+      "suggestions": [
+        "בית חב״ד רעננה"
+      ]
+    },
+    {
+      "id": "slot-hold-he-009",
+      "text": "כמה פעמים נתתי לגמ״ח תרופות בחצי השנה האחרונה?",
+      "outcome": "right_filter",
+      "used": "גמ״ח תרופות",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-010",
+      "text": "כמה כסף נתתי לגמ״ח בסך הכול?",
+      "outcome": "button_miss",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-011",
+      "text": "כמה נתתי לעניי העיר לפני ראש השנה?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-012",
+      "text": "כמה תרומות היו לי לעזר מציון השנה?",
+      "outcome": "right_filter",
+      "used": "עזר מציון",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-013",
+      "text": "כמה נתתי לצדקה בחודש האחרון?",
+      "outcome": "unnecessary_ask",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-014",
+      "text": "מה מצב התרומות שלי מאז ראש השנה?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-015",
+      "text": "כמה אני מפריש בממוצע לחודש?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-016",
+      "text": "מה היתה ההוצאה הכי כבדה שלי בחודש שעבר?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-017",
+      "text": "מה הכי יקר שהיה לי מאז סוכות?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-018",
+      "text": "כמה פעולות היו בצ׳קים בתשפ״ז?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-019",
+      "text": "מה הסכום הכולל במזומן בחודש הזה?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-020",
+      "text": "מה היה הממוצע החודשי בפייפאל השנה?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-021",
+      "text": "כמה עלה לי הצהרון מתחילת שנת הלימודים?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-022",
+      "text": "כמה הוצאתי על ארוחות צהריים בעבודה החודש?",
+      "outcome": "right_filter",
+      "used": "food",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-023",
+      "text": "כמה שילמתי על חוג השנה?",
+      "outcome": "right_filter",
+      "used": "חוגים",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-024",
+      "text": "כמה יוצא לי בערך כל חודש על חוגים?",
+      "outcome": "right_filter",
+      "used": "חוגים",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-025",
+      "text": "כמה שילמתי על ביטוח השנה?",
+      "outcome": "needed_ask",
+      "used": null,
+      "suggestions": [
+        "ביטוח רכב"
+      ]
+    },
+    {
+      "id": "slot-hold-he-026",
+      "text": "מה התשלום הכי גבוה שהיה לי על ביטוח רכב?",
+      "outcome": "right_filter",
+      "used": "ביטוח רכב",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-027",
+      "text": "כמה הוצאתי על תרופות מאז החורף?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-028",
+      "text": "כמה פעמים שילמתי על בריאות השנה?",
+      "outcome": "right_filter",
+      "used": "healthcare",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-029",
+      "text": "כמה עלה לי מנוי לבריכה השנה?",
+      "outcome": "right_filter",
+      "used": "מנוי לבריכה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-030",
+      "text": "כמה הוצאתי בבריכה הקיץ?",
+      "outcome": "needed_ask",
+      "used": null,
+      "suggestions": [
+        "מנוי לבריכה"
+      ]
+    },
+    {
+      "id": "slot-hold-he-031",
+      "text": "כמה שילמתי בכרטיס על אוכל בחודש שעבר?",
+      "outcome": "right_filter",
+      "used": "food",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-032",
+      "text": "כמה תרמתי לגמ״ח חתונות בצ׳ק דחוי?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-033",
+      "text": "כמה שילמתי בהוראת קבע על חשבונות השנה?",
+      "outcome": "unnecessary_ask",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-034",
+      "text": "כמה הוצאתי בפייבוקס על קניות בשבוע שעבר?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-035",
+      "text": "כמה פעמים שילמתי במזומן על תחבורה בחודש האחרון",
+      "outcome": "right_filter",
+      "used": "transportation",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-036",
+      "text": "מה הסכום הכי גבוה שקיבלתי ממשכורת בהעברה בנקאית השנה",
+      "outcome": "right_filter",
+      "used": "salary",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-037",
+      "text": "How much did I earn from freelance work since January?",
+      "outcome": "right_filter",
+      "used": "freelance",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-038",
+      "text": "How many salary payments did I get this year?",
+      "outcome": "right_filter",
+      "used": "salary",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-039",
+      "text": "What was my largest business payment in 2024?",
+      "outcome": "right_filter",
+      "used": "business",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-040",
+      "text": "How much investment income do I get on average per month?",
+      "outcome": "right_filter",
+      "used": "investment",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-041",
+      "text": "What was the biggest payment I had last week?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-042",
+      "text": "How many payments were made with PayPal this quarter?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-043",
+      "text": "How much did I donate to Ohr Sameach this year?",
+      "outcome": "right_filter",
+      "used": "Ohr Somayach",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-044",
+      "text": "How many times did I give to Beit Chabad Raanana since Pesach?",
+      "outcome": "right_filter",
+      "used": "בית חב״ד רעננה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-045",
+      "text": "How much did I give to the kollel last month?",
+      "outcome": "unnecessary_ask",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-046",
+      "text": "What was my largest donation to Keren Halvaot?",
+      "outcome": "wrong_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-047",
+      "text": "How much did I spend on education this school year?",
+      "outcome": "right_filter",
+      "used": "education",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-048",
+      "text": "How many צהרון payments did I make this month?",
+      "outcome": "right_filter",
+      "used": "צהרון",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-049",
+      "text": "How much did I spend on the pool this summer?",
+      "outcome": "right_filter",
+      "used": "מנוי לבריכה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-050",
+      "text": "How much did I spend on healthcare by pay pal?",
+      "outcome": "right_filter",
+      "used": "healthcare",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-051",
+      "text": "How much did I pay straight from my account for housing last month?",
+      "outcome": "right_filter",
+      "used": "housing",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-052",
+      "text": "How much did I donate to Ezras Mizion by bank transfer this year?",
+      "outcome": "right_filter",
+      "used": "עזר מציון",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-053",
+      "text": "how many times did i pay cash for medicines in the last three months",
+      "outcome": "right_filter",
+      "used": "תרופות",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-054",
+      "text": "how much did i give to talmud torah by check during the last year",
+      "outcome": "right_filter",
+      "used": "תלמוד תורה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-055",
+      "text": "כמה did I give to כולל אברכים דרך PayBox השנה?",
+      "outcome": "right_filter",
+      "used": "כולל אברכים",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-056",
+      "text": "How much did I give to ישיבת נחלת last month?",
+      "outcome": "right_filter",
+      "used": "ישיבת נחלת",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-057",
+      "text": "כמה פעמים paid by debit card על מנוי לבריכה השנה",
+      "outcome": "right_filter",
+      "used": "מנוי לבריכה",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-058",
+      "text": "what was the biggest תרומה I gave to גמ״ח חתונות this year",
+      "outcome": "right_filter",
+      "used": "גמ״ח חתונות",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-he-059",
+      "text": "כמה I usually spend per month על חוגים",
+      "outcome": "right_filter",
+      "used": "חוגים",
+      "suggestions": []
+    },
+    {
+      "id": "slot-hold-en-060",
+      "text": "how many payments היו באשראי בחודש שעבר בלי קשר אם זה הכנסה הוצאה או תרומה",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    },
+    {
+      "id": "mixed-donation",
+      "text": "תרמתי 50 לבית כנסת וכמה תרמתי השנה?",
+      "outcome": "right_filter",
+      "used": null,
+      "suggestions": []
+    }
+  ]
+}

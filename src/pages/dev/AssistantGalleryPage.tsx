@@ -15,6 +15,8 @@ const HANDLERS: ReplyHandlers = {
   onChooseSpecial: noop,
   onChooseFamily: noop,
   onSearchDescriptions: noop,
+  onChooseSavedName: noop,
+  onAllInPeriod: noop,
   onChooseRule: noop,
   onApproveRule: noop,
   onOpenReceipt: noop,

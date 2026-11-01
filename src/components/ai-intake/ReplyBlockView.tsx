@@ -27,6 +27,8 @@ export interface ReplyHandlers {
   onChooseSpecial: (yes: boolean) => void;
   onChooseFamily: (family: "donation" | "expense" | "income", source: string) => void;
   onSearchDescriptions: (source: string) => void;
+  onChooseSavedName: (name: string) => void;
+  onAllInPeriod: () => void;
   onChooseRule: (type: RuleActionType) => void;
   onApproveRule: () => void;
   onOpenReceipt: () => void;
@@ -118,8 +120,12 @@ export function ReplyBlockView({
         <NameMissing
           nameKind={block.nameKind}
           topic={block.topic}
+          family={block.family}
+          suggestions={block.suggestions}
           interactive={interactive}
           onSearch={() => handlers.onSearchDescriptions(block.source)}
+          onChooseName={handlers.onChooseSavedName}
+          onAllInPeriod={handlers.onAllInPeriod}
         />
       );
     case "dataNotice":

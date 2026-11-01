@@ -7,6 +7,7 @@ import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import { type QuestionSlots } from "./question-slots.ts";
+import { NAME_PREFIX_LETTERS } from "./split-anchor.ts";
 import {
   DONATION_TYPE_MARKERS,
   EXPENSE_TYPE_MARKERS,
@@ -670,11 +671,32 @@ function prefixRemainder(text: string): string | null {
   return null;
 }
 
+function suggestionNeedles(text: string): string[] {
+  const needles = [text];
+  const english = text.toLowerCase().startsWith("to ") ? text.slice(3).trim() : "";
+  if (english.length > 1) needles.push(english);
+  const first = text[0] ?? "";
+  if (NAME_PREFIX_LETTERS.includes(first) && text.length > 2) needles.push(text.slice(1));
+  return [...new Set(needles)];
+}
+
+function containsName(name: string, needle: string): boolean {
+  return name.includes(needle) || name.toLowerCase().includes(needle.toLowerCase());
+}
+
+/** Saved names that contain the spoken name, or the name after one prefix letter. At most three. */
+export function nameSuggestions(spoken: string, names: readonly string[]): string[] {
+  const text = spoken.trim();
+  if (!text || names.length === 0) return [];
+  const needles = suggestionNeedles(text).filter((needle) => needle.length > 1);
+  const hits = names.filter((name) => needles.some((needle) => containsName(name, needle)) && !needles.some((needle) => sameName(name, needle)));
+  return [...new Set(hits)].slice(0, 3);
+}
+
 /**
- * Keep the model's name when it appears in the question.
- * An empty list never strips a letter. A prefix drops only when the full
- * name is not saved and the remainder is exactly one saved name.
- * One saved name that contains the spoken name is used. Several stay spoken.
+ * Exact saved name, or one saved name after dropping ל or "to ".
+ * An empty list never strips. A longer saved name that merely contains the
+ * spoken name is not chosen here.
  */
 export function anchoredQuestionName(
   question: string,
@@ -686,14 +708,11 @@ export function anchoredQuestionName(
   if (names.length === 0) return text;
   const exact = names.filter((name) => sameName(name, text));
   if (exact.length === 1) return exact[0];
-  if (exact.length > 1) return text;
   const remainder = prefixRemainder(text);
   if (remainder && question.includes(remainder)) {
     const stripped = names.filter((name) => sameName(name, remainder));
     if (stripped.length === 1) return stripped[0];
   }
-  const contained = names.filter((name) => name.includes(text) || name.toLowerCase().includes(text.toLowerCase()));
-  if (contained.length === 1) return contained[0];
   return text;
 }
 

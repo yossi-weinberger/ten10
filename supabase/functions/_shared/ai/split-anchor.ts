@@ -200,7 +200,7 @@ function anchoredDate(
   return { date: resolved, checkDate: false };
 }
 
-const USE_LETTERS = "ובלהשכ";
+export const NAME_PREFIX_LETTERS = "ובלהשכ";
 
 function isLetter(char: string): boolean {
   return /\p{L}|\p{N}/u.test(char);
@@ -219,7 +219,7 @@ export function nameStands(text: string, name: string): boolean {
     const before = at === 0 ? "" : source[at - 1];
     const afterOk = after === "" || !isLetter(after);
     const beforeOk = before === "" || !isLetter(before)
-      || (USE_LETTERS.includes(before) && (at === 1 || !isLetter(source[at - 2] ?? "")));
+      || (NAME_PREFIX_LETTERS.includes(before) && (at === 1 || !isLetter(source[at - 2] ?? "")));
     if (afterOk && beforeOk) return true;
     from = at + word.length;
   }
