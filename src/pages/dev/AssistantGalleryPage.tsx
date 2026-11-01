@@ -38,6 +38,7 @@ const HANDLERS: ReplyHandlers = {
   onDismissPair: noop,
   onRabbiSent: noop,
   onRabbiDismiss: noop,
+  onAnotherInspiration: noop,
   saving: false,
   undoing: false,
   questionCalendar: "gregorian",

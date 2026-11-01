@@ -37,7 +37,8 @@ export type ProductAnalyticsEvent =
   | "onboarding_step_completed"
   | "onboarding_skipped"
   | "onboarding_completed"
-  | "onboarding_restarted";
+  | "onboarding_restarted"
+  | "ai_inspiration_shown";
 
 type ProductAnalyticsProperties = Record<
   string,

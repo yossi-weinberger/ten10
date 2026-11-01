@@ -10,6 +10,7 @@ import type {
 } from "@/lib/ai/classify-intake";
 import type { SplitDraft } from "@/lib/ai/split-cards";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
+import type { InspirationView } from "@/lib/ai/inspiration-pick";
 
 export type StatusTone = "success" | "error" | "info";
 
@@ -110,6 +111,7 @@ export type ReplyBlock =
   | { kind: "dataNotice"; status: "unsupported" | "mixed" | "failed" | "period_missing" }
   | { kind: "duplicateScan"; scan: DuplicateScanState; confirmDeleteId: string | null; actionFailed: boolean }
   | { kind: "halacha"; namespace: string }
+  | { kind: "inspiration"; item: InspirationView | null }
   | { kind: "rabbi"; text: string; ticket: string | null }
   | { kind: "rule"; rule: ParsedUserRule; choice: RuleActionType | null }
   | { kind: "askType"; receipt: ReceiptFields | null }
@@ -137,6 +139,7 @@ export interface ReplyState {
   confirmDeleteId: string | null;
   duplicateActionFailed: boolean;
   halachaNamespace: string | null;
+  inspiration: InspirationView | null;
   rabbiText: string | null;
   rabbiTicket: string | null;
   parsedRule: ParsedUserRule | null;
@@ -165,6 +168,7 @@ export function emptyReplyState(): ReplyState {
     confirmDeleteId: null,
     duplicateActionFailed: false,
     halachaNamespace: null,
+    inspiration: null,
     rabbiText: null,
     rabbiTicket: null,
     parsedRule: null,
@@ -192,7 +196,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       blocks.push({
         kind: "intent",
         intent: state.intent,
-        showNotSaved: state.status === null && state.intent !== "ask_data",
+        showNotSaved: state.status === null && state.intent !== "ask_data" && state.intent !== "inspiration",
         formLink: state.intent === "create_recurring" && state.recurring === null,
       });
     }
@@ -211,6 +215,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       });
     }
     if (state.halachaNamespace) blocks.push({ kind: "halacha", namespace: state.halachaNamespace });
+    if (state.intent === "inspiration") blocks.push({ kind: "inspiration", item: state.inspiration });
     if (state.parsedRule) blocks.push({ kind: "rule", rule: state.parsedRule, choice: state.ruleChoice });
     if (state.clarification === "special" && state.specialType) {
       blocks.push({ kind: "askSpecial", type: state.specialType });

@@ -12,6 +12,7 @@ import { DataAnswer, DataNotice, NameMissing } from "./blocks/DataAnswer";
 import { DraftCard } from "./blocks/DraftCard";
 import { DuplicateScanCard } from "./blocks/DuplicateScanCard";
 import { HalachaCard } from "./blocks/HalachaCard";
+import { InspirationCard } from "./blocks/InspirationCard";
 import { RabbiCard } from "./blocks/RabbiCard";
 import { ReceiptAttachment } from "./blocks/ReceiptAttachment";
 import { RuleCard } from "./blocks/RuleCard";
@@ -50,6 +51,7 @@ export interface ReplyHandlers {
   onDismissPair: (pair: DuplicatePair) => void;
   onRabbiSent: (ticket: string) => void;
   onRabbiDismiss: () => void;
+  onAnotherInspiration: () => void;
   saving: boolean;
   undoing: boolean;
   questionCalendar: "hebrew" | "gregorian";
@@ -79,7 +81,7 @@ export function ReplyBlockView({
           prompt={t("aiIntake.askIntent")}
           disabled={!interactive}
           onChoose={handlers.onChooseIntent}
-          options={(["add_transaction", "ask_data", "create_rule", "create_recurring"] as const).map((intent) => ({
+          options={(["add_transaction", "ask_data", "create_rule", "create_recurring", "inspiration"] as const).map((intent) => ({
             value: intent,
             label: t(`aiIntake.intentChoices.${intent}`),
           }))}
@@ -145,6 +147,14 @@ export function ReplyBlockView({
       );
     case "halacha":
       return <HalachaCard namespace={block.namespace} />;
+    case "inspiration":
+      return (
+        <InspirationCard
+          key={block.item?.id ?? "empty"}
+          item={block.item}
+          onAnother={handlers.onAnotherInspiration}
+        />
+      );
     case "rule":
       return (
         <RuleCard
