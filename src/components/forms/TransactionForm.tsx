@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,10 +31,12 @@ import {
 } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useTrackAddFormLifecycle } from "./useTrackAddFormLifecycle";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
+import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -73,6 +75,13 @@ export function TransactionForm({
   const { platform } = usePlatform();
   const { search, getInitialType } =
     useTransactionFormInitialization(isEditMode);
+
+  const formSavedSuccessRef = useRef(false);
+  const dateInputStatusRef = useRef<GregorianDateParseResult["status"] | null>(null);
+  const dateInputMethodRef = useRef<"typed" | "calendar">("typed");
+  const wasFormSaved = useCallback(() => formSavedSuccessRef.current, []);
+
+  useTrackAddFormLifecycle(isEditMode, wasFormSaved);
 
   // Labels are handled where rendered
 
@@ -418,6 +427,7 @@ export function TransactionForm({
       if (Object.keys(updatePayload).length > 0) {
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
+          formSavedSuccessRef.current = true; // Mark as successfully saved
           onMutationSuccess?.();
           setIsSuccess(true);
           toast.success(t("transactionForm.messages.updateSuccess"));
@@ -434,6 +444,7 @@ export function TransactionForm({
       // Logic for creating a new transaction
       try {
         await handleTransactionSubmit(submissionValues);
+        formSavedSuccessRef.current = true; // Mark as successfully saved
         setIsSuccess(true);
         toast.success(t("transactionForm.messages.success"));
         scheduleSubmitSuccess(() => {
@@ -483,11 +494,19 @@ export function TransactionForm({
     );
 
     // Measure blocked submits so we can track this beyond session recordings.
-    trackProductEvent("transaction_validation_failed", {
+    const properties: Record<string, string | number | boolean> = {
       fields: Object.keys(errors).join(","),
       field_count: Object.keys(errors).length,
       is_edit_mode: isEditMode,
-    });
+    };
+
+    // Add enhanced date field telemetry from callback data
+    if (errors.date && dateInputStatusRef.current) {
+      properties.date_reason = dateInputStatusRef.current;
+      properties.date_input_method = dateInputMethodRef.current;
+    }
+
+    trackProductEvent("transaction_validation_failed", properties);
   }
 
   return (
@@ -508,7 +527,14 @@ export function TransactionForm({
           defaultIncomeChomesh={autoCalcChomesh}
         />
 
-        <AmountCurrencyDateFields form={form} isRecurring={isRecurringChecked} />
+        <AmountCurrencyDateFields 
+          form={form} 
+          isRecurring={isRecurringChecked}
+          onDateInputStatusChange={(status, inputMethod) => {
+            dateInputStatusRef.current = status;
+            dateInputMethodRef.current = inputMethod;
+          }}
+        />
 
         <DescriptionCategoryFields form={form} selectedType={selectedType} />
         </div>

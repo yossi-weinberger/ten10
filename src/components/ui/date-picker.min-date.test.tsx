@@ -125,7 +125,7 @@ async function typeOverField(
 }
 
 describe("DatePicker typed dates", () => {
-  it("types 15/03/2026 character by character without rewriting the field", async () => {
+  it("types 15/03/2026 character by character with auto-inserted slashes", async () => {
     useGregorian();
     const user = userEvent.setup();
     const setDate = vi.fn();
@@ -134,26 +134,117 @@ describe("DatePicker typed dates", () => {
     );
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
-    const typed = "15/03/2026";
-    await user.click(input);
-    for (let index = 0; index < typed.length; index += 1) {
-      const options =
-        index === 0
-          ? {
-              initialSelectionStart: 0,
-              initialSelectionEnd: (input as HTMLInputElement).value.length,
-            }
-          : undefined;
-      await user.type(input, typed[index]!, options);
-      expect(input).toHaveValue(typed.slice(0, index + 1));
-      if (typed.slice(0, index + 1) === "15/03/20") {
-        expect(setDate).toHaveBeenLastCalledWith(undefined);
-      }
-    }
-
+    
+    // Clear and type digit by digit
+    await user.clear(input);
+    
+    await user.type(input, "1");
+    expect(input).toHaveValue("1");
+    
+    await user.type(input, "5");
+    expect(input).toHaveValue("15/"); // Auto-inserted slash
+    
+    await user.type(input, "0");
+    expect(input).toHaveValue("15/0");
+    
+    await user.type(input, "3");
+    expect(input).toHaveValue("15/03/"); // Auto-inserted slash
+    
+    await user.type(input, "2");
+    expect(input).toHaveValue("15/03/2");
+    expect(setDate).toHaveBeenLastCalledWith(undefined); // Partial date
+    
+    await user.type(input, "0");
+    expect(input).toHaveValue("15/03/20");
+    expect(setDate).toHaveBeenLastCalledWith(undefined); // Still partial
+    
+    await user.type(input, "2");
+    expect(input).toHaveValue("15/03/202");
+    
+    await user.type(input, "6");
     expect(input).toHaveValue("15/03/2026");
+
     const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
     expect(formatLocalDate(committed)).toBe("2026-03-15");
+  });
+
+  it("types digits one by one with auto-inserted slashes (31102026)", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={undefined} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    
+    await user.type(input, "3");
+    expect(input).toHaveValue("3");
+    
+    await user.type(input, "1");
+    expect(input).toHaveValue("31/");
+    
+    await user.type(input, "1");
+    expect(input).toHaveValue("31/1");
+    
+    await user.type(input, "0");
+    expect(input).toHaveValue("31/10");
+    
+    await user.type(input, "2026");
+    expect(input).toHaveValue("31/10/2026");
+    
+    await user.tab();
+    
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-10-31");
+  });
+
+  it("backspace over slash does not re-insert it", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-31")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    
+    // Position at end and backspace several times
+    await user.keyboard("{End}");
+    await user.keyboard("{Backspace}");
+    expect(input).toHaveValue("31/10/202");
+    
+    await user.keyboard("{Backspace}");
+    expect(input).toHaveValue("31/10/20");
+    
+    await user.keyboard("{Backspace}");
+    expect(input).toHaveValue("31/10/2");
+    
+    // Verify slash wasn't re-inserted
+    expect(input).not.toHaveValue("31/10/2/");
+  });
+
+  it("mid-text edit preserves value without auto-formatting", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-31")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    expect(input).toHaveValue("31/10/2026");
+    
+    // Type digits only (which will auto-format)
+    await user.clear(input);
+    await user.type(input, "21102026");
+    
+    // Should auto-format to DD/MM/YYYY
+    expect(input).toHaveValue("21/10/2026");
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-10-21");
   });
 
   it("normalizes 01/01/26 on blur to 01/01/2026", async () => {
@@ -175,6 +266,244 @@ describe("DatePicker typed dates", () => {
     expect(input).toHaveValue("01/01/2026");
     const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
     expect(formatLocalDate(committed)).toBe("2026-01-01");
+  });
+
+  it("auto-formats pasted 8 digits to DD/MM/YYYY", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    // Select all before pasting
+    await user.keyboard("{Control>}a{/Control}");
+    await user.paste("31102026");
+
+    expect(input).toHaveValue("31/10/2026");
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-10-31");
+  });
+
+  it("auto-formats pasted 6 digits to DD/MM/YY and normalizes on blur", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    // Select all before pasting
+    await user.keyboard("{Control>}a{/Control}");
+    await user.paste("311026");
+
+    expect(input).toHaveValue("31/10/26");
+
+    await user.tab();
+
+    expect(input).toHaveValue("31/10/2026");
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-10-31");
+  });
+
+  it("shows invalid error on blur for malformed input", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "abc");
+    
+    await user.tab();
+    
+    // setDate should have been called with NaN
+    const lastCall = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(Number.isNaN(lastCall.getTime())).toBe(true);
+  });
+
+  it("tracks input method correctly when switching typed to calendar to typed", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    const onInputStatusChange = vi.fn();
+    render(
+      <DatePicker 
+        date={parseLocalDate("2026-10-08")} 
+        setDate={setDate}
+        onInputStatusChange={onInputStatusChange}
+      />,
+    );
+
+    // Type a date
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "15/03/2026");
+    await user.tab();
+    
+    expect(onInputStatusChange).toHaveBeenCalledWith("parsed", "typed");
+    
+    // Open calendar and select a date
+    const calendarButton = screen.getByRole("button", { name: /open calendar/i });
+    await user.click(calendarButton);
+    
+    // Find and click any day button (using getAll to find all day buttons)
+    const dayButtons = screen.getAllByRole("button").filter(button => 
+      /^\d+$/.test(button.textContent || "")
+    );
+    expect(dayButtons.length).toBeGreaterThan(0);
+    await user.click(dayButtons[5]!); // Click the 6th day button available
+    
+    expect(onInputStatusChange).toHaveBeenCalledWith("parsed", "calendar");
+    
+    // Type again
+    await user.click(input);
+    await typeOverField(user, input, "01/01/2026");
+    await user.tab();
+    
+    expect(onInputStatusChange).toHaveBeenCalledWith("parsed", "typed");
+  });
+
+  it("out-of-range commit (pre-2000) emits the real parsed Date", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "31/12/1999");
+
+    await user.tab();
+
+    const lastCall = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(lastCall)).toBe("1999-12-31");
+  });
+
+  it("accepts dates with dot separator", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "15.03.2026");
+
+    await user.tab();
+
+    expect(input).toHaveValue("15/03/2026");
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-03-15");
+  });
+
+  it("accepts dates with dash separator", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "15-03-2026");
+
+    await user.tab();
+
+    expect(input).toHaveValue("15/03/2026");
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-03-15");
+  });
+
+  it("has inputMode numeric and enterKeyHint next on the input", () => {
+    useGregorian();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={vi.fn()} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    expect(input).toHaveAttribute("inputMode", "numeric");
+    expect(input).toHaveAttribute("enterKeyHint", "next");
+  });
+
+  it("commits 05/11/2026 when 5112026 is typed on a numeric keypad", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    await user.type(input, "5112026");
+    expect(input).toHaveValue("05/11/2026");
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-11-05");
+  });
+
+  it("commits 05/01/2026 when 512026 is typed on a numeric keypad", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    await user.type(input, "512026");
+    await user.tab();
+    expect(input).toHaveValue("05/01/2026");
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-01-05");
+  });
+
+  it("types 15/03/2026 with slashes and keeps the caret after each key", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY") as HTMLInputElement;
+    await user.click(input);
+
+    const expected: Array<{ value: string; caret: number }> = [
+      { value: "1", caret: 1 },
+      { value: "15/", caret: 3 },
+      { value: "15/", caret: 3 },
+      { value: "15/0", caret: 4 },
+      { value: "15/03/", caret: 6 },
+      { value: "15/03/", caret: 6 },
+      { value: "15/03/2", caret: 7 },
+      { value: "15/03/20", caret: 8 },
+      { value: "15/03/202", caret: 9 },
+      { value: "15/03/2026", caret: 10 },
+    ];
+
+    for (const [index, char] of Array.from("15/03/2026").entries()) {
+      await user.type(input, char);
+      expect(input).toHaveValue(expected[index]!.value);
+      expect(input.selectionStart).toBe(expected[index]!.caret);
+    }
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-03-15");
+  });
+
+  it("has data-ph-unmask-date attribute for session replay", () => {
+    useGregorian();
+    render(
+      <DatePicker date={parseLocalDate("2026-10-08")} setDate={vi.fn()} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    expect(input).toHaveAttribute("data-ph-unmask-date", "true");
   });
 });
 
