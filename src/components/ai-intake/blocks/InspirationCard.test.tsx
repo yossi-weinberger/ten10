@@ -6,6 +6,7 @@ import { INSPIRATION_FOLD_AT, type InspirationView } from "@/lib/ai/inspiration-
 import { ReplyBlockView, type ReplyHandlers } from "../ReplyBlockView";
 import { InspirationCard } from "./InspirationCard";
 
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({ t: (key: string) => key }),
