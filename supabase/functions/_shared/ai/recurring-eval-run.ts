@@ -2,7 +2,7 @@ import { readModelText } from "./receipt-draft.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
 
-/** The six standing-order sentences already in the repo. Not fitted to a model. */
+/** Standing-order sentences from the plan, including review-wish section 2. Not fitted to a model. */
 
 const TODAY = "2026-10-28";
 
@@ -16,6 +16,8 @@ interface RecurringCase {
   calendar?: "gregorian" | "hebrew";
   day?: number;
   count?: number;
+  notRecurring?: boolean;
+  startMonth?: string;
 }
 
 const CASES: RecurringCase[] = [
@@ -71,6 +73,42 @@ const CASES: RecurringCase[] = [
     type: "donation",
     frequency: "monthly",
   },
+  {
+    id: "he-this-month",
+    text: "200 ש״ח לכולל בכל 30 לחודש, גם החודש",
+    amount: 200,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    day: 30,
+    startMonth: "2026-10",
+  },
+  {
+    id: "he-next-month",
+    text: "200 ש״ח לכולל בכל 10 לחודש, מהחודש הבא",
+    amount: 200,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    day: 10,
+    startMonth: "2026-11",
+  },
+  {
+    id: "en-bimonthly",
+    text: "Pay 40 dollars bimonthly for the gym",
+    amount: 40,
+    currency: "USD",
+    notRecurring: true,
+    frequency: "monthly",
+  },
+  {
+    id: "en-non",
+    text: "This is a non-recurring expense of 15 dollars for coffee",
+    amount: 15,
+    currency: "USD",
+    notRecurring: true,
+    frequency: "monthly",
+  },
 ];
 
 function readKey(path: string): string {
@@ -103,15 +141,18 @@ for (const item of CASES) {
   const read = readSplitResponse(item.text, readModelText(payload), TODAY);
   const row = read.route === "several" ? read.items[0] : null;
   const recurrence = row?.recurrence ?? null;
-  const checks = [
-    row?.amount === item.amount,
-    row?.currency === item.currency,
-    item.type === undefined || row?.typeHint === item.type,
-    recurrence?.frequency === item.frequency,
-    item.calendar === undefined || recurrence?.calendarType === item.calendar,
-    item.day === undefined || recurrence?.dayOfMonth === item.day,
-    item.count === undefined || recurrence?.totalOccurrences === item.count,
-  ];
+  const checks = item.notRecurring
+    ? [row?.amount === item.amount, recurrence === null]
+    : [
+      row?.amount === item.amount,
+      row?.currency === item.currency,
+      item.type === undefined || row?.typeHint === item.type,
+      recurrence?.frequency === item.frequency,
+      item.calendar === undefined || recurrence?.calendarType === item.calendar,
+      item.day === undefined || recurrence?.dayOfMonth === item.day,
+      item.count === undefined || recurrence?.totalOccurrences === item.count,
+      item.startMonth === undefined || recurrence?.startDate?.slice(0, 7) === item.startMonth,
+    ];
   const ok = checks.every(Boolean);
   if (ok) passed += 1;
   console.log(JSON.stringify({
@@ -124,6 +165,7 @@ for (const item of CASES) {
     calendar: recurrence?.calendarType ?? null,
     day: recurrence?.dayOfMonth ?? null,
     count: recurrence?.totalOccurrences ?? null,
+    start: recurrence?.startDate ?? null,
   }));
 }
 console.log(`recurring ${passed}/${CASES.length}`);
