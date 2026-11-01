@@ -277,6 +277,10 @@ function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCa
     if (several?.items[0]) return { type: "recurring" };
     return { type: "none" };
   }
+  // A standing order the reader read is one, whatever Jev's label. Several items stay drafts, as before.
+  if (intent === "add_transaction" && several?.items.length === 1 && several.items[0]?.recurrence) {
+    return { type: "recurring" };
+  }
   if (intent === "add_transaction") return transactionCard(reader);
   return { type: "none" };
 }
@@ -368,19 +372,20 @@ function copyState(state: ConversationState): ConversationState {
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
   const routed = route(input);
-  const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
   const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
+  const intent = card.type === "recurring" ? "create_recurring" : routed.intent;
+  const wantsData = intent === "ask_data" || (routed.withData && intent === "add_transaction");
   const data = routed.mode === "show"
     ? dataFor(input, wantsData, routed.preferRabbi)
     : { data: { status: "skip" as const }, needsQuestion: false, needsNameCheck: false };
   return {
-    releaseAs: routed.releaseAs,
+    releaseAs: card.type === "recurring" ? "create_recurring" : routed.releaseAs,
     mode: routed.mode,
-    intent: routed.intent,
+    intent,
     publishedPage: routed.publishedPage,
     card,
     data: data.data,
-    side: routed.mode === "show" ? sideFor(routed.intent) : "none",
+    side: routed.mode === "show" ? sideFor(intent) : "none",
     needsQuestion: data.needsQuestion,
     needsNameCheck: data.needsNameCheck,
     pending: pendingFor(input.message, card, data.data),

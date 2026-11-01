@@ -119,27 +119,39 @@ describe("decideTurn", () => {
     }), decision).kind).toBe("recurring");
   });
 
-  it("does not show a standing order when Jev says add_transaction", () => {
+  it("shows the standing order the reader read when Jev says add_transaction", () => {
+    const monthly = item({
+      recurrence: {
+        frequency: "monthly",
+        calendarType: "gregorian",
+        startDate: "2026-11-01",
+        dayOfMonth: 10,
+        weekday: null,
+        totalOccurrences: null,
+        alreadyCharged: false,
+      },
+    });
+    const reader: TurnReader = { ok: true, route: "several", items: [monthly], rule: null, question: null };
+    const decision = decideTurn(base({ reader }));
+    expect(decision.card.type).toBe("recurring");
+    expect(decision.intent).toBe("create_recurring");
+    expect(decision.releaseAs).toBe("create_recurring");
+    expect(summarizeTurn(base({ reader }), decision).kind).toBe("recurring");
+
+    const several: TurnReader = { ok: true, route: "several", items: [monthly, item({ amount: 30 })], rule: null, question: null };
+    expect(decideTurn(base({ reader: several })).card.type).toBe("drafts");
+  });
+
+  it("keeps a standing order behind an out-of-scope label as no card", () => {
     const reader: TurnReader = {
       ok: true,
       route: "several",
-      items: [item({
-        recurrence: {
-          frequency: "monthly",
-          calendarType: "gregorian",
-          startDate: "2026-11-01",
-          dayOfMonth: 10,
-          weekday: null,
-          totalOccurrences: null,
-          alreadyCharged: false,
-        },
-      })],
+      items: [item({ amount: null, recurrence: { frequency: "monthly", calendarType: "gregorian", startDate: "2026-11-01", dayOfMonth: 10, weekday: null, totalOccurrences: null, alreadyCharged: false } })],
       rule: null,
       question: null,
     };
-    const decision = decideTurn(base({ reader }));
-    expect(decision.card.type).toBe("draft");
-    expect(summarizeTurn(base({ reader }), decision).kind).toBe("draft");
+    const decision = decideTurn(base({ jev: { ok: true, intent: "out_of_scope", confidence: 0.95 }, reader }));
+    expect(decision.card.type).not.toBe("recurring");
   });
 
   it("blocks an unsupported frequency whatever Jev's label", () => {

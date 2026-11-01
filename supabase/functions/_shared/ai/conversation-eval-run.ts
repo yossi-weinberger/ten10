@@ -11,6 +11,8 @@ import { decideTurn, emptyConversation, summarizeTurn, type TurnQuestion, type T
 
 interface ExpectTurn {
   kind: string;
+  /** Another answer that is also right, such as a published page instead of the rabbi card. */
+  alsoOk?: string[];
   amount?: number;
   type?: string;
   date?: string;
@@ -214,7 +216,8 @@ async function runConversation(
       calendar: fixture.calendar,
     }, decision);
     const flags = flagsFor(turn.expect, summary);
-    const turnCorrect = summary.kind === turn.expect.kind && fieldsMatch(turn.expect, summary) && flags.length === 0;
+    const kindOk = summary.kind === turn.expect.kind || (turn.expect.alsoOk ?? []).includes(summary.kind);
+    const turnCorrect = kindOk && fieldsMatch(turn.expect, summary) && flags.length === 0;
     const reason = turnCorrect ? "turn_correct" : flags[0] ?? "wrong_kind";
     const usage = [readModelUsage(jevRaw), readModelUsage(readerRaw)];
     rows.push({

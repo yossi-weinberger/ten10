@@ -29,7 +29,10 @@
         {
           "user": "האם מותר לשלם שכר לימוד מכספי מעשרות?",
           "expect": {
-            "kind": "rabbi"
+            "kind": "rabbi",
+            "alsoOk": [
+              "halacha"
+            ]
           }
         },
         {
@@ -811,7 +814,10 @@
         {
           "user": "האם מותר לשלם שכר לימוד מכספי מעשרות?",
           "expect": {
-            "kind": "rabbi"
+            "kind": "rabbi",
+            "alsoOk": [
+              "halacha"
+            ]
           }
         },
         {
