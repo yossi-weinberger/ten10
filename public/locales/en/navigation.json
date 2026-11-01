@@ -99,6 +99,11 @@
     "categoryMissing": "I did not find a category named \"{{topic}}\". Search transaction descriptions?",
     "recipientMissing": "I did not find a recipient named \"{{topic}}\". Search transaction descriptions?",
     "categorySearch": "Search descriptions",
+    "allInPeriod": {
+      "donation": "All donations in this period",
+      "expense": "All expenses in this period",
+      "income": "All income in this period"
+    },
     "duplicateScanPending": "Searching…",
     "duplicateScanCountOne": "Found 1 similar pair among saved transactions.",
     "duplicateScanCount": "Found {{count}} similar pairs among saved transactions.",

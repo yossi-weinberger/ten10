@@ -2,23 +2,13 @@ import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "@/lib/category-registry";
 import { typesForFamily, type YearTypeSum } from "@/lib/ai/classify-intake";
-import { matchUserCategory } from "./match-category";
-import { matchSavedName } from "../../../supabase/functions/_shared/ai/recipient-draft.ts";
+import { decideQuestionFilter, type MissingName, type QuestionFilter } from "./question-filter";
+
+export type { MissingName, QuestionFilter };
 
 export type YearTypeSumResult =
   | { ok: true; total: number; count: number; currency: string | null }
   | { ok: false; reason: "MIXED" | "FAILED" };
-
-export type QuestionFilter = {
-  category: string | null;
-  description: string | null;
-  recipient: string | null;
-};
-
-export type MissingName = {
-  missing: "category" | "recipient";
-  name: string;
-};
 
 async function categoriesForFamily(type: YearTypeSum["type"]): Promise<string[]> {
   if (!aiCallsAllowed()) return [];
@@ -63,17 +53,10 @@ export async function resolveQuestionFilter(
   question: YearTypeSum,
   searchDescriptions: boolean,
 ): Promise<QuestionFilter | MissingName> {
-  if (question.recipient) {
-    const matched = matchSavedName(question.recipient, await recipientsForUser());
-    if (matched) return { category: null, description: null, recipient: matched };
-    if (searchDescriptions) return { category: null, description: question.recipient, recipient: null };
-    return { missing: "recipient", name: question.recipient };
-  }
-  if (!question.topic) return { category: null, description: null, recipient: null };
-  const matched = matchUserCategory(question.topic, await categoriesForFamily(question.type));
-  if (matched) return { category: matched, description: null, recipient: null };
-  if (searchDescriptions) return { category: null, description: question.topic, recipient: null };
-  return { missing: "category", name: question.topic };
+  return decideQuestionFilter(question, {
+    recipients: question.recipient ? await recipientsForUser() : [],
+    categories: question.topic ? await categoriesForFamily(question.type) : [],
+  }, searchDescriptions);
 }
 
 export async function sumYearType(

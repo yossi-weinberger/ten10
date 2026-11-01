@@ -13,7 +13,7 @@ export type { IntakeCount } from "../../../supabase/functions/_shared/ai/jev-int
 export { recordsOneAtATime } from "../../../supabase/functions/_shared/ai/intake-count.ts";
 export type { HalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
 export { clarificationField, draftFromText } from "../../../supabase/functions/_shared/ai/text-draft.ts";
-export { parseYearTypeSum, periodLabel, questionFromSlots, typesForFamily } from "../../../supabase/functions/_shared/ai/data-question.ts";
+export { anchoredQuestionName, nameSuggestions, parseYearTypeSum, periodLabel, questionFromSlots, typesForFamily } from "../../../supabase/functions/_shared/ai/data-question.ts";
 export type { YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 export type { QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
 export type {

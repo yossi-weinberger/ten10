@@ -1,7 +1,7 @@
 import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
-import { anchoredQuestionName, parseYearTypeSum, periodLabel } from "./data-question.ts";
+import { anchoredQuestionName, nameSuggestions, parseYearTypeSum, periodLabel } from "./data-question.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -18,8 +18,13 @@ Deno.test("a spoken name is kept only when it appears in the question", () => {
   assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "לישיבה", ["ישיבה"]) === "ישיבה", "prefix drops onto one saved name");
   assert(anchoredQuestionName("כמה תרמתי ללקט ישראל?", "לקט ישראל", []) === "לקט ישראל", "an empty list does not strip");
   assert(anchoredQuestionName("כמה תרמתי ללקט ישראל?", "לקט ישראל", ["לקט ישראל"]) === "לקט ישראל", "the full saved name stays");
-  assert(anchoredQuestionName("כמה תרמתי לבית חב״ד?", "בית חב״ד", ["בית חב״ד רעננה"]) === "בית חב״ד רעננה", "one longer saved name");
+  assert(anchoredQuestionName("כמה תרמתי לבית חב״ד?", "בית חב״ד", ["בית חב״ד רעננה"]) === "בית חב״ד", "a longer saved name is not chosen");
+  assert(nameSuggestions("בית חב״ד", ["בית חב״ד רעננה"]).join(",") === "בית חב״ד רעננה", "one longer name is a button");
   assert(anchoredQuestionName("כמה תרמתי לכולל?", "כולל", ["כולל בוקר", "כולל אברכים"]) === "כולל", "two longer names stay spoken");
+  assert(nameSuggestions("כולל", ["כולל בוקר", "כולל אברכים"]).join(",") === "כולל בוקר,כולל אברכים", "two buttons");
+  assert(nameSuggestions("ישיבה", ["ישיבה קטנה", "ישיבת נחלת"]).join(",") === "ישיבה קטנה", "only the name that contains the word");
+  assert(nameSuggestions("בבריכה", ["מנוי לבריכה"]).join(",") === "מנוי לבריכה", "one prefix letter is only a suggestion");
+  assert(anchoredQuestionName("כמה הוצאתי בבריכה הקיץ?", "בבריכה", ["מנוי לבריכה"]) === "בבריכה", "a prefix letter is not chosen");
 });
 
 Deno.test("a donation year question is a sum, not a draft", () => {

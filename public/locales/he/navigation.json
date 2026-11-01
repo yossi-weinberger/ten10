@@ -109,6 +109,11 @@
     "categoryMissing": "לא מצאתי קטגוריה «{{topic}}». לחפש בתיאור התנועות?",
     "recipientMissing": "לא מצאתי נמען «{{topic}}». לחפש בתיאור התנועות?",
     "categorySearch": "חפש בתיאור",
+    "allInPeriod": {
+      "donation": "כל התרומות בתקופה",
+      "expense": "כל ההוצאות בתקופה",
+      "income": "כל ההכנסות בתקופה"
+    },
     "duplicateScanPending": "מחפש…",
     "duplicateScanCountOne": "נמצא זוג אחד דומה בתנועות שנשמרו.",
     "duplicateScanCount": "נמצאו {{count}} זוגות דומים בתנועות שנשמרו.",
