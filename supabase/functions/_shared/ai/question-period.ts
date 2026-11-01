@@ -131,6 +131,13 @@ function unwrapPeriod(value: unknown): unknown {
   return value;
 }
 
+/** A gregorian year beside a maaser year does not name one period. */
+export function ambiguousMaaserYear(text: string): boolean {
+  if (!/שנת המעשר|שנת מעשר|maaser year|tithe year/i.test(text)) return false;
+  const year = text.match(/(?:^|[^\d])(1\d{3}|20\d{2})(?!\d)/);
+  return year !== null && Number(year[1]) < 5000;
+}
+
 export function boundsFromPeriod(period: QuestionPeriod | null, today: string): PeriodBounds | null {
   if (!period) return null;
   try {

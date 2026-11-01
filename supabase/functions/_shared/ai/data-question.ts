@@ -660,8 +660,6 @@ export function periodLabel(
   return `${day(question.from)}–${day(question.to)}`;
 }
 
-const NAME_PREFIXES = "ולהשכ";
-
 /** The model's name is kept when it appears in the question. One list hit replaces it. */
 export function anchoredQuestionName(
   question: string,
@@ -670,7 +668,8 @@ export function anchoredQuestionName(
 ): string | null {
   let text = spoken?.trim() ?? "";
   if (!text) return null;
-  if (text.length > 1 && NAME_PREFIXES.includes(text[0]) && question.includes(text.slice(1))) text = text.slice(1);
+  if (text.toLowerCase().startsWith("to ") && question.toLowerCase().includes(text.slice(3).toLowerCase())) text = text.slice(3).trim();
+  if (text.startsWith("ל") && text.length > 1 && question.includes(text.slice(1))) text = text.slice(1);
   if (!question.includes(text)) return null;
   const hits = names.filter((name) => name === text || name.toLowerCase() === text.toLowerCase());
   if (hits.length > 1) return null;
