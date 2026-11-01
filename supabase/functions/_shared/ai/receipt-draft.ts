@@ -11,7 +11,8 @@ export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 
 export interface ReceiptDraft {
   description: string;
-  date: string;
+  date: string | null;
+  checkDate: boolean;
   amount: number;
   currency: ReceiptCurrency;
   kind: "receipt";
@@ -207,14 +208,15 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
   if (typeof source.description !== "string") return null;
   const description = source.description.trim().slice(0, 200);
   if (description.length < 2) return null;
-  if (typeof source.date !== "string" || !isIsoDate(source.date)) return null;
   const amount = typeof source.amount === "number" ? source.amount : Number(source.amount);
   if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return null;
   const currency = typeof source.currency === "string" ? source.currency.trim().toUpperCase() : "";
   if (!CURRENCIES.includes(currency as ReceiptCurrency)) return null;
+  const dated = typeof source.date === "string" && isIsoDate(source.date);
   return {
     description,
-    date: source.date,
+    date: dated ? source.date as string : null,
+    checkDate: !dated,
     amount,
     currency: currency as ReceiptCurrency,
     kind: "receipt",
@@ -232,14 +234,22 @@ export interface CopiedReceiptItem {
 export function receiptDraftFromItems(
   route: "list" | "unreadable" | "several",
   items: readonly CopiedReceiptItem[],
-): { kind: ReceiptKind; description?: string; date?: string; amount?: number; currency?: string } | null {
+): { kind: ReceiptKind; description?: string; date?: string | null; amount?: number; currency?: string; check_date?: boolean } | null {
   if (route === "list") return { kind: "statement" };
   if (route !== "several") return null;
   if (items.length > 1) return { kind: "several_receipts" };
   const item = items[0];
   if (!item || item.amount === null || item.amount <= 0) return null;
   const description = item.description.trim();
-  if (description.length < 2 || !item.date || !isIsoDate(item.date)) return null;
+  if (description.length < 2) return null;
   const currency = item.currency === "USD" || item.currency === "EUR" ? item.currency : "ILS";
-  return { kind: "receipt", description, date: item.date, amount: item.amount, currency };
+  const dated = item.date !== null && isIsoDate(item.date);
+  return {
+    kind: "receipt",
+    description,
+    date: dated ? item.date : null,
+    amount: item.amount,
+    currency,
+    check_date: !dated,
+  };
 }

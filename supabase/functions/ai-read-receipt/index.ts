@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { draft: null }, 200);
 
-  const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown } | null;
+  const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown; time_zone?: unknown } | null;
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
   if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
@@ -183,7 +183,8 @@ Deno.serve(async (req: Request) => {
     if (!text || !/\d/.test(text)) {
       return json(origin, { draft: null, reason: "unreadable" }, 200);
     }
-    const today = todayInZone(new Date(), "UTC") ?? new Date().toISOString().slice(0, 10);
+    const zone = typeof body?.time_zone === "string" ? body.time_zone : "";
+    const today = (zone ? todayInZone(new Date(), zone) : null) ?? todayInZone(new Date(), "Asia/Jerusalem") ?? new Date().toISOString().slice(0, 10);
     const read = await callModel({
       userId: userData.user.id,
       operation: "split",

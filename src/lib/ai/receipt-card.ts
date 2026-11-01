@@ -4,7 +4,8 @@ import { isIsoDate } from "../../../supabase/functions/_shared/ai/receipt-draft.
 export { isIsoDate };
 
 export interface ReceiptFields {
-  date: string;
+  date: string | null;
+  checkDate: boolean;
   amount: number;
   currency: TextTransactionDraft["currency"];
   description: string;
@@ -16,7 +17,7 @@ export function receiptAsDraft(
   type: TextTransactionDraft["type"],
 ): TextTransactionDraft {
   return {
-    date: fields.date,
+    date: fields.date ?? "",
     amount: fields.amount,
     currency: fields.currency,
     type,

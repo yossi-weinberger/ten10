@@ -65,13 +65,23 @@ function reasoningTokens(payload: unknown): number | null {
 }
 
 async function askReaderOnce(key: string, item: Case): Promise<unknown> {
+  const body = splitRequestBody(item.text, item.today, {}, "eval");
   const response = await fetch(SPLIT_RESPONSES_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...splitRequestBody(item.text, item.today, {}, "eval"), model: MODEL }),
+    body: JSON.stringify({
+      ...body,
+      model: MODEL,
+      providerOptions: {
+        ...body.providerOptions,
+        deepseek: { thinking: { type: "disabled" } },
+        google: { thinkingConfig: { thinkingBudget: 0 } },
+        vertex: { thinkingConfig: { thinkingBudget: 0 } },
+      },
+    }),
   });
   if (!response.ok) {
     const detail = await response.text();

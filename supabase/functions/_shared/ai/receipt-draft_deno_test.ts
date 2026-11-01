@@ -117,7 +117,14 @@ Deno.test("a copied receipt becomes one draft, and a list becomes a statement", 
     date: "2026-10-15",
     currency: "ILS",
   }]);
-  assert(one?.kind === "receipt" && one.amount === 40, "one receipt");
+  assert(one?.kind === "receipt" && one.amount === 40 && one.check_date !== true, "one receipt");
+  const undated = receiptDraftFromItems("several", [{
+    description: "סופר",
+    amount: 40,
+    date: null,
+    currency: "ILS",
+  }]);
+  assert(undated?.kind === "receipt" && undated.check_date === true && undated.date === null, "missing date is checked");
   const many = receiptDraftFromItems("several", [
     { description: "א", amount: 10, date: "2026-10-15", currency: "ILS" },
     { description: "ב", amount: 12, date: "2026-10-15", currency: "ILS" },

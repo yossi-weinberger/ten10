@@ -6,6 +6,7 @@ const fields: ReceiptFields = {
   amount: 180,
   currency: "ILS",
   description: "בית כנסת",
+  checkDate: false,
 };
 
 describe("receiptAsDraft", () => {

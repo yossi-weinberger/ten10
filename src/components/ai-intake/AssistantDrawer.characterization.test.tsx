@@ -554,7 +554,7 @@ describe("AssistantDrawer characterization", () => {
     ai.readReceiptImage.mockResolvedValue({
       ok: true,
       route: "receipt",
-      fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS" },
+      fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS", checkDate: false },
       artifactId: "art1",
     });
     const user = setup();

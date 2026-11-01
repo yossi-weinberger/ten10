@@ -37,7 +37,6 @@ import { getPlatform } from "@/lib/platformManager";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
-import { yearSumFromReader } from "@/lib/ai/reader-question";
 import {
   QUESTION_OUTCOME_WINDOW_MS,
   markQuestionOutcome,
@@ -431,6 +430,7 @@ export function AssistantDrawer({
       setReceiptFields(null);
       setClarification(null);
       showDraft(ruled.draft, ruled.ruleName);
+      if (result.fields.checkDate) setStatus("checkDate");
       return;
     }
     setReceiptFields(result.fields);
@@ -797,19 +797,6 @@ export function AssistantDrawer({
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
-    const reader = splitRef.current;
-    const readQuestion = !searchDescriptions && reader && reader.ok && reader.route === "several"
-      ? reader.question
-      : null;
-    if (!question && readQuestion) {
-      const filled = family && !readQuestion.family ? { ...readQuestion, family } : readQuestion;
-      const built = yearSumFromReader(filled);
-      if (built === "ask_family") {
-        setDataReply({ status: "family_missing", source });
-        return;
-      }
-      question = built;
-    }
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source);
       const slots = family && slotHold
@@ -1040,6 +1027,7 @@ export function AssistantDrawer({
   function handleChooseType(type: TextTransactionDraft["type"]) {
     if (receiptFields) {
       showDraft(receiptAsDraft(receiptFields, type));
+      if (receiptFields.checkDate) setStatus("checkDate");
       setReceiptFields(null);
       setClarification(null);
       return;
