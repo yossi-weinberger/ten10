@@ -34,6 +34,8 @@ const HANDLERS: ReplyHandlers = {
   onConfirmDelete: noop,
   onCancelDelete: noop,
   onDismissPair: noop,
+  onRabbiSent: noop,
+  onRabbiDismiss: noop,
   saving: false,
   undoing: false,
   questionCalendar: "gregorian",
