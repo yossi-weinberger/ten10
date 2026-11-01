@@ -660,20 +660,41 @@ export function periodLabel(
   return `${day(question.from)}–${day(question.to)}`;
 }
 
-/** The model's name is kept when it appears in the question. One list hit replaces it. */
+function sameName(name: string, text: string): boolean {
+  return name === text || name.toLowerCase() === text.toLowerCase();
+}
+
+function prefixRemainder(text: string): string | null {
+  if (text.toLowerCase().startsWith("to ") && text.length > 3) return text.slice(3).trim();
+  if (text.startsWith("ל") && text.length > 1) return text.slice(1);
+  return null;
+}
+
+/**
+ * Keep the model's name when it appears in the question.
+ * An empty list never strips a letter. A prefix drops only when the full
+ * name is not saved and the remainder is exactly one saved name.
+ * One saved name that contains the spoken name is used. Several stay spoken.
+ */
 export function anchoredQuestionName(
   question: string,
   spoken: string | null,
   names: readonly string[],
 ): string | null {
-  let text = spoken?.trim() ?? "";
-  if (!text) return null;
-  if (text.toLowerCase().startsWith("to ") && question.toLowerCase().includes(text.slice(3).toLowerCase())) text = text.slice(3).trim();
-  if (text.startsWith("ל") && text.length > 1 && question.includes(text.slice(1))) text = text.slice(1);
-  if (!question.includes(text)) return null;
-  const hits = names.filter((name) => name === text || name.toLowerCase() === text.toLowerCase());
-  if (hits.length > 1) return null;
-  return hits[0] ?? text;
+  const text = spoken?.trim() ?? "";
+  if (!text || !question.includes(text)) return null;
+  if (names.length === 0) return text;
+  const exact = names.filter((name) => sameName(name, text));
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) return text;
+  const remainder = prefixRemainder(text);
+  if (remainder && question.includes(remainder)) {
+    const stripped = names.filter((name) => sameName(name, remainder));
+    if (stripped.length === 1) return stripped[0];
+  }
+  const contained = names.filter((name) => name.includes(text) || name.toLowerCase().includes(text.toLowerCase()));
+  if (contained.length === 1) return contained[0];
+  return text;
 }
 
 /** Jev slots plus the reader's period. Names come from the slots, not from scanning the words. */

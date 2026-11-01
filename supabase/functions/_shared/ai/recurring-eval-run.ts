@@ -144,6 +144,36 @@ const CASES: RecurringCase[] = [
     day: 1,
   },
   {
+    id: "he-yeshiva-15",
+    text: "200 לישיבה בכל 15 לחודש",
+    amount: 200,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "gregorian",
+    day: 15,
+  },
+  {
+    id: "he-kollel-5",
+    text: "100 לכולל בכל 5 לחודש",
+    amount: 100,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "gregorian",
+    day: 5,
+  },
+  {
+    id: "he-yeshiva-20",
+    text: "80 לישיבה בכל 20 לחודש",
+    amount: 80,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "gregorian",
+    day: 20,
+  },
+  {
     id: "he-evening",
     text: "80 לכולל ערב בכל ר״ח",
     amount: 80,
@@ -177,7 +207,7 @@ async function ask(key: string, text: string): Promise<unknown> {
   const response = await fetch(SPLIT_RESPONSES_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...splitRequestBody(text, TODAY, {}, "eval"), model: SPLIT_MODEL }),
+    body: JSON.stringify({ ...splitRequestBody(text, TODAY, { calendar: "gregorian" }, "eval"), model: SPLIT_MODEL }),
   });
   if (!response.ok) {
     const detail = await response.text();

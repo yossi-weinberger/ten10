@@ -263,7 +263,7 @@
       "type": "expense",
       "measure": "sum",
       "paymentMethod": null,
-      "topic": "הוצאות",
+      "topic": null,
       "recipient": null,
       "months": 10,
       "year": 2026,

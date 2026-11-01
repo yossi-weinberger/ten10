@@ -23,6 +23,7 @@ export interface SplitCallOptions {
   timeZone?: string;
   receivedAt?: string;
   defaultCurrency?: string;
+  calendar?: "gregorian" | "hebrew";
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -42,6 +43,7 @@ export async function splitItems(
       timeZone: options.timeZone,
       receivedAt: options.receivedAt,
       defaultCurrency: options.defaultCurrency,
+      calendar: options.calendar,
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };

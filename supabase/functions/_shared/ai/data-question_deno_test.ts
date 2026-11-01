@@ -15,7 +15,11 @@ Deno.test("a spoken name is kept only when it appears in the question", () => {
   assert(anchoredQuestionName(question, null, ["בית כנסת"]) === null, "nothing said");
   assert(anchoredQuestionName(question, "ישיבה", ["ישיבה"]) === null, "a name that was not said");
   assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "ישיבה", ["ישיבה", "חב״ד"]) === "ישיבה", "one list hit");
-  assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "לישיבה", ["ישיבה"]) === "ישיבה", "prefix drops");
+  assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "לישיבה", ["ישיבה"]) === "ישיבה", "prefix drops onto one saved name");
+  assert(anchoredQuestionName("כמה תרמתי ללקט ישראל?", "לקט ישראל", []) === "לקט ישראל", "an empty list does not strip");
+  assert(anchoredQuestionName("כמה תרמתי ללקט ישראל?", "לקט ישראל", ["לקט ישראל"]) === "לקט ישראל", "the full saved name stays");
+  assert(anchoredQuestionName("כמה תרמתי לבית חב״ד?", "בית חב״ד", ["בית חב״ד רעננה"]) === "בית חב״ד רעננה", "one longer saved name");
+  assert(anchoredQuestionName("כמה תרמתי לכולל?", "כולל", ["כולל בוקר", "כולל אברכים"]) === "כולל", "two longer names stay spoken");
 });
 
 Deno.test("a donation year question is a sum, not a draft", () => {

@@ -1035,6 +1035,7 @@ export function AssistantDrawer({
       timeZone: zone,
       receivedAt: new Date().toISOString(),
       defaultCurrency,
+      calendar: questionCalendar,
     });
     const decided = await classifyIntentFallback(source);
     const split = await splitPromise;
@@ -1150,6 +1151,7 @@ export function AssistantDrawer({
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       receivedAt: new Date().toISOString(),
       defaultCurrency,
+      calendar: questionCalendar,
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);
