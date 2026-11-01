@@ -209,12 +209,9 @@ export function questionFromSlots(
   nameText?: string | null,
 ): YearTypeSum | "ask_family" | "ask_period" | null {
   if (!slots) return null;
-  const period = readerPeriod?.kind === "all"
+  const period = !readerPeriod || readerPeriod.kind === "all"
     ? boundsAsQuestionPeriod("2000-01-01", today, calendar)
-    : readerPeriod?.kind === "span"
-      ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
-      : "ask_period";
-  if (period === "ask_period" || !period) return "ask_period";
+    : boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar);
   if (!slots.family) return "ask_family";
   const spoken = nameText && nameText.trim() ? nameText.trim() : null;
   const recipient = slots.family === "donation" ? slots.recipient ?? spoken : null;
