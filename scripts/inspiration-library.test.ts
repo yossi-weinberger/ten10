@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   fieldBacktick,
+  fieldContentEn,
   inspirationItemsFromSources,
   masterBlocks,
   readInspirationSources,
@@ -36,13 +37,12 @@ describe("inspiration library export", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("attaches the English email text to the twelve linked items", () => {
-    const linked = sources.emailEn.monthlyEncouragements.filter((row) => row.contentId);
-    expect(linked).toHaveLength(12);
-    for (const row of linked) {
-      const item = items.find((candidate) => candidate.id === row.contentId);
-      expect(item?.body_en).toBe(row.body);
-      expect(item?.source_en).toBe(row.source);
-    }
+  it("exports the English fields from the master for every item", () => {
+    expect(items.every((item) => item.title_en && item.body_en && item.source_en)).toBe(true);
+    const verse = items.find((item) => item.id === "TN10-0002");
+    expect(verse?.source_en).toContain("JPS 1917, public domain");
+    expect(verse?.body_en?.startsWith("Bring ye the whole tithe")).toBe(true);
+    const translated = masterBlocks(sources.masterText).filter((block) => fieldContentEn(block).length > 0);
+    expect(translated).toHaveLength(83);
   });
 });

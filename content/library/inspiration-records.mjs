@@ -16,10 +16,21 @@ export function fieldPlain(block, key) {
   return match ? match[1].trim() : null;
 }
 
-export function fieldContent(block) {
-  const at = block.indexOf(CONTENT_MARKER);
+function sliceField(block, marker) {
+  const at = block.indexOf(marker);
   if (at < 0) return "";
-  return block.slice(at + CONTENT_MARKER.length).trim();
+  let rest = block.slice(at + marker.length);
+  const next = rest.search(/\n\*\*[a-z0-9_]+:\*\*/i);
+  if (next >= 0) rest = rest.slice(0, next);
+  return rest.trim();
+}
+
+export function fieldContent(block) {
+  return sliceField(block, CONTENT_MARKER);
+}
+
+export function fieldContentEn(block) {
+  return sliceField(block, "**content_en:**");
 }
 
 function encouragements(email) {
@@ -37,20 +48,27 @@ export function inspirationItemsFromSources({ masterText, emailHe, emailEn }) {
     const id = fieldBacktick(block, "id");
     const type = fieldBacktick(block, "type");
     if (!id || type === "halakha") continue;
-    items.push({
+    const item = {
       id,
       type,
       title: fieldPlain(block, "title") ?? "",
       body: fieldContent(block),
       source: fieldPlain(block, "source") ?? "",
-    });
+    };
+    const titleEn = fieldPlain(block, "title_en");
+    const bodyEn = fieldContentEn(block);
+    const sourceEn = fieldPlain(block, "source_en");
+    if (titleEn) item.title_en = titleEn;
+    if (bodyEn) item.body_en = bodyEn;
+    if (sourceEn) item.source_en = sourceEn;
+    items.push(item);
   }
 
   const byId = new Map(items.map((item) => [item.id, item]));
   for (const row of encouragements(emailEn)) {
     if (!row.contentId) continue;
     const item = byId.get(row.contentId);
-    if (!item || typeof row.body !== "string" || row.body.length === 0) continue;
+    if (!item || item.body_en || typeof row.body !== "string" || row.body.length === 0) continue;
     item.body_en = row.body;
     item.source_en = typeof row.source === "string" ? row.source : "";
   }
