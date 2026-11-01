@@ -9,10 +9,9 @@ type Decided =
   | { ok: true; intent: IntakeIntent | null; confidence: number | null; halachaPage?: string | null }
   | { ok: false };
 
-/** A published page needs the confidence floor. A personal question is an offer, so it stays. */
+/** A page, including a personal question, needs the confidence floor. */
 export function namedHalachaPage(page: string | null, confidence: number | null): string | null {
   if (!page || page === "none") return null;
-  if (page === "personal") return "personal";
   return intentIsConfident(confidence) ? page : null;
 }
 

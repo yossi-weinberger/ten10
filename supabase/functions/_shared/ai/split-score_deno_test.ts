@@ -16,7 +16,6 @@ function row(amount: number, amountText: string, extra: Partial<SplitItemInput> 
     currency: "ILS",
     requested_rate: null,
     date: null,
-    date_iso: null,
     date_text: null,
     type: "donation",
     type_question: null,

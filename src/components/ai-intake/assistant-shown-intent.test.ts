@@ -52,7 +52,8 @@ describe("shownIntent", () => {
   });
 
   it("keeps a personal question below the page floor and drops a published page there", () => {
-    expect(namedHalachaPage("personal", 0.4)).toBe("personal");
+    expect(namedHalachaPage("personal", 0.5)).toBeNull();
+    expect(namedHalachaPage("personal", 0.95)).toBe("personal");
     expect(namedHalachaPage("chomesh", 0.66)).toBeNull();
     expect(namedHalachaPage("chomesh", 0.78)).toBe("chomesh");
   });

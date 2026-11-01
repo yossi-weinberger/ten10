@@ -53,8 +53,7 @@ function percentile(values: number[], ratio: number): number | null {
 }
 
 function shorten(text: string): string {
-  const trimmed = text.trim();
-  return trimmed.length <= 800 ? trimmed : `${trimmed.slice(0, 800)}…`;
+  return text.trim();
 }
 
 function reasoningTokens(payload: unknown): number | null {

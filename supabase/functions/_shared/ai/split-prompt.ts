@@ -13,7 +13,7 @@ export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
  */
 export const SPLIT_MODEL = "anthropic/claude-haiku-5.5";
 
-/** A backup model is added only after it passes the same set. */
+/** No backup model during the trial. A failed read shows the add form. */
 export const SPLIT_FALLBACK_MODELS: readonly string[] = [];
 
 export const SPLIT_TIMEOUT_MS = 8000;
@@ -61,9 +61,9 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "amount_text and date_text are copied from the message.",
     "is_total is true when the item is a summary of the other items, and false for a real item.",
     "Do not convert currencies and do not calculate dates.",
-    "date.kind is days_ago, last_weekday, day_of_month, or exact. date is only for a relative date.",
-    "An explicit calendar date is date_iso as YYYY-MM-DD, and date is null.",
+    "date.kind is days_ago, last_weekday, day_of_month, or exact.",
     "היום and today are days_ago with n 0. Yesterday is days_ago with n 1. Last Sunday is last_weekday with weekday 0.",
+    "A written calendar date is exact, with day, month and year.",
     "A date said once applies to every item, unless the message names another date.",
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
