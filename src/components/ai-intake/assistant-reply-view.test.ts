@@ -83,6 +83,21 @@ describe("buildReplyBlocks", () => {
     expect(blocks[1]).toMatchObject({ kind: "draft", view: { locked: true } });
   });
 
+  it("shows a movement card and a data answer together", () => {
+    const blocks = buildReplyBlocks(state({
+      intent: "add_transaction",
+      draft: {
+        draft,
+        amountInput: "15",
+        appliedRuleName: null,
+        duplicates: [],
+        duplicatesRanked: false,
+      },
+      dataReply: { status: "family_missing", source: "כמה" },
+    }));
+    expect(blocks.map((block) => block.kind)).toEqual(["intent", "askFamily", "draft"]);
+  });
+
   it("asks which family without claiming nothing was saved", () => {
     const blocks = buildReplyBlocks(state({
       intent: "ask_data",

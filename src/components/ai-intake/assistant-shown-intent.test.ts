@@ -51,9 +51,27 @@ describe("shownIntent", () => {
     })).toBe("ask");
   });
 
-  it("keeps a personal question below the page floor and drops a published page there", () => {
-    expect(namedHalachaPage("personal", 0.5)).toBeNull();
-    expect(namedHalachaPage("personal", 0.95)).toBe("personal");
+  it("offers the rabbi for a personal question even when the page confidence is low", () => {
+    expect(shownIntent("קיבלתי ירושה מאבא שלי, האם אני חייב לתת ממנה מעשר?", today, {
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.9,
+      halachaPage: "personal",
+    })).toBe("ask_rabbi");
+  });
+
+  it("keeps a movement when a personal page was also named", () => {
+    expect(shownIntent("קניתי לחם ב-15 וכמה הוצאתי החודש?", today, {
+      ok: true,
+      intent: "ask_data",
+      confidence: 0.66,
+      halachaPage: "personal",
+    }, true)).toBe("ask");
+  });
+
+  it("names a personal question at any confidence and keeps the floor for a published page", () => {
+    expect(namedHalachaPage("personal", 0.3)).toBe("personal");
+    expect(namedHalachaPage("personal", 0.5)).toBe("personal");
     expect(namedHalachaPage("chomesh", 0.66)).toBeNull();
     expect(namedHalachaPage("chomesh", 0.78)).toBe("chomesh");
   });

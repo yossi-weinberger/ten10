@@ -45,6 +45,9 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 vi.mock("@/contexts/PlatformContext", () => ({ usePlatform: () => ({ platform: ai.platform.value }) }));
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { email: "qa@example.com", user_metadata: { full_name: "QA" } } }),
+}));
 vi.mock("@/lib/platformManager", () => ({ getPlatform: () => ai.platform.value }));
 vi.mock("@/lib/ai/flags", () => ({ isAiIntakeEnabled: () => true, aiCallsAllowed: () => true }));
 vi.mock("@/lib/ai/intent-fallback", () => ({ classifyIntentFallback: ai.classifyIntentFallback }));
@@ -711,5 +714,136 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("shows the rabbi card for a personal question below the page floor", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.9,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.3,
+    });
+    const user = setup();
+    await send(user, "קיבלתי ירושה מאבא שלי, האם אני חייב לתת ממנה מעשר?");
+    expect(await screen.findByRole("button", { name: "aiIntake.rabbiSend" })).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
+  });
+
+  it("shows the bread card and the expense answer instead of the rabbi card", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "ask_data",
+      confidence: 0.66,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.5,
+    });
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "expense",
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+    });
+    ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
+    ai.sumYearType.mockResolvedValue({ ok: true, total: 40, count: 1, currency: "ILS" });
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: {
+        measure: "sum",
+        family: "expense",
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: "2026-11-01",
+        to: "2026-11-30",
+      },
+      items: [{
+        description: "לחם",
+        amount: 15,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "קניתי לחם ב-15 וכמה הוצאתי החודש?");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(await screen.findByText("answer:sum:1")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
+  });
+
+  it("asks which family for a tithe balance when the saved reader has no period", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue(null);
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 0,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      items: [],
+      question: {
+        measure: "sum",
+        family: null,
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: null,
+        to: null,
+      },
+    });
+    const user = setup();
+    await send(user, "מה יתרת המעשרות שלי?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.dataUnsupported")).not.toBeInTheDocument();
+  });
+
+  it("answers a tithe question from the reader instead of showing only the rabbi card", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.9,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.4,
+    });
+    ai.readQuestionSlots.mockResolvedValue(null);
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 0,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      items: [],
+      question: {
+        measure: "sum",
+        family: null,
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: null,
+        to: null,
+      },
+    });
+    const user = setup();
+    await send(user, "כמה מעשרות אני עוד צריך לתת?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
   });
 });

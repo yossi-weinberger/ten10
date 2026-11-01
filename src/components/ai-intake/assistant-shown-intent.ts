@@ -9,9 +9,10 @@ type Decided =
   | { ok: true; intent: IntakeIntent | null; confidence: number | null; halachaPage?: string | null }
   | { ok: false };
 
-/** A page, including a personal question, needs the confidence floor. */
+/** A published page needs the confidence floor. A personal question does not: the card is withheld when the turn already has a movement or a data answer. */
 export function namedHalachaPage(page: string | null, confidence: number | null): string | null {
   if (!page || page === "none") return null;
+  if (page === "personal") return page;
   return intentIsConfident(confidence) ? page : null;
 }
 
@@ -25,9 +26,10 @@ function modelPage(decided: Decided): string | null {
 /**
  * A page is shown only when Jev named one. An unsure intent asks the user.
  * Word lists do not choose a page or turn a question into help.
+ * A personal page becomes the rabbi card only when the turn has nothing else (`occupied`).
  */
-export function shownIntent(_source: string, _today: string, decided: Decided): ShownIntent {
-  const personal = decided.ok && decided.halachaPage === "personal";
+export function shownIntent(_source: string, _today: string, decided: Decided, occupied = false): ShownIntent {
+  const personal = decided.ok && decided.halachaPage === "personal" && !occupied;
   const page = modelPage(decided);
   const confident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
   if (personal && (!confident || decided.intent === "out_of_scope" || decided.intent === "domain_adjacent")) {

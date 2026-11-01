@@ -197,7 +197,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
       blocks.push({ kind: "thinking", phase: "data" });
     }
-    if (state.intent === "ask_data" && state.dataReply) {
+    if ((state.intent === "ask_data" || state.intent === "add_transaction") && state.dataReply) {
       const reply = state.dataReply;
       if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
       else if (reply.status === "family_missing") blocks.push({ kind: "askFamily", source: reply.source });
