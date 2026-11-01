@@ -116,6 +116,20 @@ export function getEnvironmentType(): "prod" | "preview" | "dev" {
   return "dev";
 }
 
+/**
+ * Session-replay input mask. Date fields marked `data-ph-unmask-date="true"`
+ * stay readable; every other input is replaced with asterisks.
+ */
+export function maskSessionReplayInput(
+  text: string,
+  element?: HTMLElement | null,
+): string {
+  if (element?.getAttribute("data-ph-unmask-date") === "true") {
+    return text;
+  }
+  return "*".repeat(text.length);
+}
+
 export function isPostHogSupported(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -156,6 +170,7 @@ export function initPostHog(): void {
       ? {
           maskAllInputs: true,
           maskTextSelector: "[data-ph-mask], .ph-mask",
+          maskInputFn: maskSessionReplayInput,
           maskCapturedNetworkRequestFn: (request) => {
             if (typeof request.name === "string") {
               request.name = scrubSensitiveUrl(request.name);

@@ -8,6 +8,7 @@ import {
   capturePostHogEvent,
   identifyPostHogUser,
   resetPostHogUser,
+  maskSessionReplayInput,
 } from "./posthogClient";
 import posthog from "posthog-js";
 import type { User } from "@supabase/supabase-js";
@@ -267,6 +268,7 @@ describe("initPostHog", () => {
     expect(config).not.toHaveProperty("capture_performance");
     expect(config).not.toHaveProperty("capture_heatmaps");
     
+    expect(config.session_recording.maskInputFn).toBe(maskSessionReplayInput);
     expect(posthog.register).toHaveBeenCalledWith({ env: "prod" });
   });
 
@@ -511,5 +513,37 @@ describe("resetPostHogUser", () => {
     mockWindow("localhost");
     resetPostHogUser();
     expect(posthog.reset).not.toHaveBeenCalled();
+  });
+});
+
+describe("maskSessionReplayInput", () => {
+  function mockInput(
+    attributes: Record<string, string> = {},
+    type = "text",
+  ): HTMLElement {
+    return {
+      type,
+      getAttribute: (name: string) => attributes[name] ?? null,
+    } as unknown as HTMLElement;
+  }
+
+  it("leaves a date input with data-ph-unmask-date unmasked", () => {
+    expect(
+      maskSessionReplayInput("31/10/2026", mockInput({ "data-ph-unmask-date": "true" })),
+    ).toBe("31/10/2026");
+  });
+
+  it("masks a password input", () => {
+    expect(maskSessionReplayInput("secret123", mockInput({}, "password"))).toBe(
+      "*********",
+    );
+  });
+
+  it("masks a generic text input", () => {
+    expect(maskSessionReplayInput("hello", mockInput({}, "text"))).toBe("*****");
+  });
+
+  it("masks when element is null", () => {
+    expect(maskSessionReplayInput("secret123", null)).toBe("*********");
   });
 });
