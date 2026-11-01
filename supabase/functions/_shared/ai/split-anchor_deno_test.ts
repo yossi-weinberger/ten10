@@ -129,6 +129,11 @@ Deno.test("today without its words is today, and a written date is exact", () =>
   assert(spoken.items[0]?.date === TODAY && spoken.items[0]?.checkDate === false, "היום");
   const receipt = anchorSplitItems("סופר 40", [item()], splitReadContext(TODAY, { missingDate: "check" }));
   assert(receipt.items[0]?.date === null && receipt.items[0]?.checkDate === true, "a receipt without a date is checked");
+  const receiptToday = anchorSplitItems("סופר 40", [item({
+    date: { kind: "days_ago", n: 0, weekday: null, day: null, month: null, year: null },
+    date_text: null,
+  })], splitReadContext(TODAY, { missingDate: "check" }));
+  assert(receiptToday.items[0]?.date === null && receiptToday.items[0]?.checkDate === true, "a receipt today without words is checked");
 });
 
 Deno.test("a date structure without its words is marked, and a rule clears the special question", () => {

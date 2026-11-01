@@ -56,6 +56,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
       ]
       : []),
     "amount is the number that was said.",
+    "A quantity, or a number that is part of a product name, is not an amount.",
     "amount_text is the digits when the amount is written in digits, and the words when it is written in words.",
     "When a thousand word is part of the amount, amount_text includes that word with the digits.",
     "amount_text and date_text are copied from the message.",

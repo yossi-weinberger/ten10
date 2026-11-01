@@ -46,6 +46,7 @@ export const STATUS_MESSAGES = {
   voiceTooLong: { key: "aiIntake.voiceTooLong", tone: "error" },
   voiceUnheard: { key: "aiIntake.voiceUnheard", tone: "error" },
   dataUnsupported: { key: "aiIntake.dataUnsupported", tone: "info" },
+  askPeriod: { key: "aiIntake.askPeriod", tone: "info" },
   dataMixed: { key: "aiIntake.dataMixed", tone: "info" },
   dataFailed: { key: "aiIntake.dataFailed", tone: "error" },
   duplicateScanFailed: { key: "aiIntake.duplicateScanFailed", tone: "error" },
@@ -75,7 +76,7 @@ export type DataReply =
   | ReadyDataReply
   | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
   | { status: "family_missing"; source: string }
-  | { status: "mixed" | "unsupported" | "failed" };
+  | { status: "mixed" | "unsupported" | "failed" | "period_missing" };
 
 export type DuplicateScanState =
   | { status: "pending" }
@@ -105,7 +106,7 @@ export type ReplyBlock =
   | { kind: "dataAnswer"; reply: ReadyDataReply }
   | { kind: "askFamily"; source: string }
   | { kind: "nameMissing"; nameKind: "category" | "recipient"; topic: string; source: string }
-  | { kind: "dataNotice"; status: "unsupported" | "mixed" | "failed" }
+  | { kind: "dataNotice"; status: "unsupported" | "mixed" | "failed" | "period_missing" }
   | { kind: "duplicateScan"; scan: DuplicateScanState; confirmDeleteId: string | null; actionFailed: boolean }
   | { kind: "halacha"; namespace: string }
   | { kind: "rabbi"; text: string; ticket: string | null }
