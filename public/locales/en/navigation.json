@@ -136,6 +136,7 @@
     "rabbiFailed": "The message was not sent.",
     "saved": "Saved.",
     "alreadySaved": "This is already saved.",
+    "discarded": "The card was dropped.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
     "undoNotAllowed": "This cannot be undone. You can delete the transaction in the table.",

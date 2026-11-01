@@ -215,20 +215,67 @@ describe("decideTurn", () => {
     expect(decision.mode).toBe("show");
   });
 
-  it("asks which period when the question reader has no period", () => {
+  it("answers for all time when a data question names no period", () => {
     const decision = decideTurn(base({
-      message: "כמה הוצאות?",
+      message: "כמה תרמתי?",
       jev: { ok: true, intent: "ask_data", confidence: 0.9 },
       reader: { ok: true, route: "unreadable" },
       questionAttempted: true,
       question: {
-        slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null },
+        slots: { family: "donation", measure: "sum", recipient: null, category: null, paymentMethod: null },
         period: null,
         nameText: null,
       },
     }));
-    expect(decision.pending?.kind).toBe("period");
-    expect(decision.data.status).toBe("period_missing");
+    expect(decision.pending).toBeNull();
+    expect(decision.data.status).toBe("ready");
+    if (decision.data.status === "ready") expect(decision.data.question.from).toBe("2000-01-01");
+  });
+
+  it("answers a data question even when Jev also marks a personal page", () => {
+    const decision = decideTurn(base({
+      message: "כמה תרמתי השנה?",
+      jev: { ok: true, intent: "ask_data", confidence: 0.9, halachaPage: "personal", halachaPageConfidence: 0.95 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(decision.mode).toBe("show");
+    expect(decision.intent).toBe("ask_data");
+    expect(decision.needsQuestion).toBe(true);
+  });
+
+  it("labels a recurring card as a standing order even when Jev says add_transaction", () => {
+    const decision = decideTurn(base({
+      reader: {
+        ok: true,
+        route: "several",
+        items: [item({
+          typeHint: "income",
+          amount: 100,
+          recurrence: {
+            frequency: "monthly",
+            calendarType: "gregorian",
+            startDate: "2026-11-01",
+            dayOfMonth: 10,
+            weekday: null,
+            totalOccurrences: null,
+            alreadyCharged: false,
+          },
+        })],
+        rule: null,
+        question: null,
+      },
+    }));
+    expect(decision.intent).toBe("create_recurring");
+    expect(decision.card.type).toBe("recurring");
+  });
+
+  it("does not show an empty rule title when the reader found no rule", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "create_rule", confidence: 0.95 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(decision.mode).toBe("ask");
+    expect(decision.intent).toBeNull();
   });
 
   it("asks which family when the slots have none", () => {

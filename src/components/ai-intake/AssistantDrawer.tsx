@@ -680,6 +680,9 @@ export function AssistantDrawer({
     else setDuplicateScan(null);
     if (decision.side === "inspiration") presentInspiration();
     else setInspiration(null);
+    if (decision.replaceScreen && decision.intent === null && !decision.alreadySaved) {
+      setStatus("discarded");
+    }
     if (decision.needsQuestion) {
       void loadDataAnswer(source);
       return;
@@ -1155,14 +1158,31 @@ export function AssistantDrawer({
   }
 
   async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text") {
-    const source = spoken ?? text;
+    let source = (spoken ?? text).trim();
     const today = todayIso();
-    if (!source.trim()) return;
+    if (!source) return;
     const request = ++requestRef.current;
     beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
     setText("");
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
+    const waiting = memoryRef.current.pending;
+    if (waiting && waiting.kind !== "amount") {
+      const combined = `${waiting.sourceText} ${source}`.trim();
+      const read = await readQuestionSlots(combined, {
+        calendar: questionCalendar,
+        today,
+        context: conversationContext(memoryRef.current),
+      });
+      if (requestRef.current !== request) return;
+      const filled = waiting.kind === "period"
+        ? read?.period != null
+        : waiting.kind === "family"
+          ? read?.family != null
+          : Boolean(read?.nameText);
+      if (filled) source = combined;
+      else memoryRef.current = { ...memoryRef.current, pending: null };
+    }
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const memory = memoryRef.current;
     const context = conversationContext(memory);
