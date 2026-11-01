@@ -123,6 +123,29 @@ export function readPeriodPayload(payload: unknown): QuestionPeriod | null {
   return parsed.success ? parsed.data.period : null;
 }
 
+/** Why a period call did not become dates. Null when the bounds were computed. */
+export function explainPeriodRead(text: string, today: string): {
+  reason: "zod" | "model_null" | "bounds" | null;
+  detail: string | null;
+  kind: string | null;
+} {
+  const value = unwrapPeriod(jsonValue(text));
+  const parsed = periodPayload.safeParse(value);
+  if (!parsed.success) {
+    const detail = parsed.error.issues
+      .slice(0, 4)
+      .map((issue) => `${issue.path.join(".") || "period"}: ${issue.message}`)
+      .join("; ");
+    return { reason: "zod", detail, kind: null };
+  }
+  if (!parsed.data.period) return { reason: "model_null", detail: null, kind: null };
+  const bounds = boundsFromPeriod(parsed.data.period, today);
+  if (!bounds?.from || !bounds.to) {
+    return { reason: "bounds", detail: parsed.data.period.kind, kind: parsed.data.period.kind };
+  }
+  return { reason: null, detail: null, kind: parsed.data.period.kind };
+}
+
 function unwrapPeriod(value: unknown): unknown {
   if (!value || typeof value !== "object" || !("period" in value)) return value;
   const inner = (value as { period: unknown }).period;

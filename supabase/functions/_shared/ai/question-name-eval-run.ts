@@ -1,7 +1,7 @@
 import { anchoredQuestionName, questionFromSlots } from "./data-question.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { readModelText } from "./receipt-draft.ts";
-import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
+import { boundsFromPeriod, explainPeriodRead, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
 import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
 import { decideQuestionFilter } from "../../../../src/lib/ai/question-filter.ts";
 import { matchUserCategory } from "../../../../src/lib/ai/match-category.ts";
@@ -153,8 +153,12 @@ for (const item of loaded.cases) {
   ]);
   const slotPayload = slotResponse.ok ? await slotResponse.json() : null;
   const periodPayload = periodResponse.ok ? await periodResponse.json() : null;
+  const periodRaw = periodResponse.ok ? readModelText(periodPayload).slice(0, 2000) : "";
+  const periodTrace = periodResponse.ok
+    ? explainPeriodRead(periodRaw, item.today)
+    : { reason: "http" as const, detail: null, kind: null };
   const slots = readQuestionSlots(slotPayload, lists);
-  const period = readPeriodPayload(readModelText(periodPayload));
+  const period = readPeriodPayload(periodRaw);
   const bounds = boundsFromPeriod(period, item.today);
   const readerPeriod = period?.kind === "all"
     ? { kind: "all" as const }
@@ -202,6 +206,11 @@ for (const item of loaded.cases) {
     family: slots?.family ?? null,
     period: readerPeriod,
     nameText: period?.name_text ?? null,
+    periodHttp: periodResponse.status,
+    periodRaw,
+    periodReason: periodTrace.reason,
+    periodDetail: periodTrace.detail,
+    periodKind: periodTrace.kind,
     jevName,
     question: question && typeof question === "object"
       ? { type: question.type, recipient: question.recipient, topic: question.topic, from: question.from, to: question.to }
