@@ -861,7 +861,7 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
   });
 
-  it("offers a ready rule after the user accepts a special type", async () => {
+  it("keeps the special type on the card and does not offer a rule", async () => {
     confident("add_transaction");
     ai.splitItems.mockResolvedValueOnce({
       ok: true,
@@ -890,8 +890,8 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "שילמתי לגן 900, הוצאה מוכרת");
     await user.click(await screen.findByRole("button", { name: "aiIntake.askSpecialYes" }));
-    expect(await screen.findByRole("button", { name: "aiIntake.ruleApprove" })).toBeInTheDocument();
-    expect(screen.getByText("גן")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.ruleApprove" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("גן");
     expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("900");
   });
 

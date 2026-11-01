@@ -96,7 +96,7 @@ describe("decideTurn", () => {
         question: null,
       },
     }));
-    expect(decision.card.type).toBe("recurring");
+    expect(decision.card).toMatchObject({ type: "recurring", index: 0 });
     expect(summarizeTurn(base({
       jev: { ok: true, intent: "create_recurring", confidence: 0.95 },
       reader: {
@@ -119,7 +119,7 @@ describe("decideTurn", () => {
     }), decision).kind).toBe("recurring");
   });
 
-  it("does not show a standing order when Jev says add_transaction", () => {
+  it("shows a standing order when the reader found recurrence, whatever Jev labeled", () => {
     const reader: TurnReader = {
       ok: true,
       route: "several",
@@ -138,13 +138,13 @@ describe("decideTurn", () => {
       question: null,
     };
     const decision = decideTurn(base({ reader }));
-    expect(decision.card.type).toBe("draft");
-    expect(summarizeTurn(base({ reader }), decision).kind).toBe("draft");
+    expect(decision.card).toMatchObject({ type: "recurring", index: 0 });
+    expect(summarizeTurn(base({ reader }), decision).kind).toBe("recurring");
   });
 
-  it("shows a rule only when Jev says create_rule and the reader returned one", () => {
+  it("shows a rule when the reader returned one and there is no transaction", () => {
     const decision = decideTurn(base({
-      jev: { ok: true, intent: "create_rule", confidence: 0.9 },
+      jev: { ok: true, intent: "add_transaction", confidence: 0.9 },
       reader: {
         ok: true,
         route: "several",
@@ -154,6 +154,29 @@ describe("decideTurn", () => {
       },
     }));
     expect(decision.card).toEqual({ type: "rule", name: "גן", action: "recognized-expense" });
+  });
+
+  it("keeps a special type on the transaction and does not offer the rule beside it", () => {
+    const decision = decideTurn(base({
+      reader: {
+        ok: true,
+        route: "several",
+        items: [item({ typeHint: "exempt-income", description: "מתנה" })],
+        rule: { match: "מתנה", action: "exempt-income" },
+        question: null,
+      },
+    }));
+    expect(decision.card.type).toBe("draft");
+  });
+
+  it("shows a published page even when Jev's label is help", () => {
+    const decision = decideTurn(base({
+      message: "מה זה מעשר?",
+      jev: { ok: true, intent: "help", confidence: 0.95, halachaPage: "tithes", halachaPageConfidence: 0.9 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(decision.intent).toBe("domain_adjacent");
+    expect(decision.publishedPage).toBe("tithes");
   });
 
   it("asks what the message is when Jev is unsure and there is no movement", () => {

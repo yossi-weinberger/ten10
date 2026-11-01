@@ -660,9 +660,11 @@ export function AssistantDrawer({
         if (several?.items[0]) showHeld(heldFromItem(several.items[0], defaultCurrency));
         else setStatus("couldNotRead");
         break;
-      case "recurring":
-        setRecurring(several?.items[0] ? recurringCardFromItem(several.items[0], defaultCurrency) : null);
+      case "recurring": {
+        const recurringItem = several?.items[decision.card.index];
+        setRecurring(recurringItem ? recurringCardFromItem(recurringItem, defaultCurrency) : null);
         break;
+      }
       case "frequency_unsupported":
         setStatus("frequencyUnsupported");
         break;
@@ -1220,11 +1222,6 @@ export function AssistantDrawer({
     const special = next.typeQuestion;
     const filled = yes && special ? { ...next, type: special, typeQuestion: null } : { ...next, typeQuestion: null };
     showHeld(filled);
-    const name = filled.description.trim();
-    if (yes && special && name.length >= 2 && !filled.ruleName) {
-      setParsedRule({ name, action: special });
-      setRuleChoice(null);
-    }
   }
 
   function handleAmountReply(reply = amountReply) {

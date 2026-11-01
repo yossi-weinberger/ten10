@@ -91,7 +91,7 @@ export type TurnCard =
   | { type: "drafts"; dropped: number }
   | { type: "clarify"; field: "type" | "special" | "amount" }
   | { type: "draft"; checkAmount: boolean; checkDate: boolean }
-  | { type: "recurring" }
+  | { type: "recurring"; index: number }
   | { type: "frequency_unsupported" }
   | { type: "rule"; name: string; action: string };
 
@@ -236,6 +236,19 @@ function route(input: TurnInput): Routed {
   if (shown === "ask_rabbi") {
     return { releaseAs: shown, mode: "rabbi", intent: null, withData: false, preferRabbi: false, publishedPage: null };
   }
+  if (!movement && page === "personal") {
+    return { releaseAs: "ask_rabbi", mode: "rabbi", intent: null, withData: false, preferRabbi: false, publishedPage: null };
+  }
+  if (!movement && page && page !== "personal") {
+    return {
+      releaseAs: "domain_adjacent",
+      mode: "show",
+      intent: "domain_adjacent",
+      withData: false,
+      preferRabbi: false,
+      publishedPage: page,
+    };
+  }
   if (shown === "ask") {
     return { releaseAs: shown, mode: "ask", intent: null, withData: false, preferRabbi: false, publishedPage: null };
   }
@@ -263,17 +276,13 @@ function transactionCard(reader: TurnReader | null): TurnCard {
 }
 
 function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCard {
-  if (intent === "create_recurring") {
-    const several = severalOf(reader);
-    if (several?.items.some((item) => item.unsupportedFrequency) === true) return { type: "frequency_unsupported" };
-    if (several?.items[0]) return { type: "recurring" };
-    return { type: "none" };
-  }
-  if (intent === "create_rule") {
-    const rule = severalOf(reader)?.rule ?? null;
-    if (!rule) return { type: "none" };
-    return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
-  }
+  const several = severalOf(reader);
+  if (several?.items.some((item) => item.unsupportedFrequency) === true) return { type: "frequency_unsupported" };
+  const recurringAt = several?.items.findIndex((item) => item.recurrence && !item.unsupportedFrequency) ?? -1;
+  if (recurringAt >= 0) return { type: "recurring", index: recurringAt };
+  if ((several?.items.length ?? 0) > 0) return transactionCard(reader);
+  const rule = several?.rule ?? null;
+  if (rule) return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
   if (intent === "add_transaction") return transactionCard(reader);
   return { type: "none" };
 }
