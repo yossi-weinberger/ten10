@@ -11,7 +11,6 @@ import {
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
-  type ActiveUserRule,
   type ClarificationField,
   type IntakeIntent,
   type ParsedUserRule,
@@ -21,7 +20,7 @@ import {
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { nextDraftIdempotency, saveTextDraft, type DraftIdempotency } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
-import { approveUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
+import { approveUserRule } from "@/lib/ai/user-rules";
 import {
   listDuplicateCandidates,
   type DuplicateCandidate,
@@ -31,7 +30,7 @@ import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage, type ReadReceiptResult } from "@/lib/ai/read-receipt";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
-import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
+import { isIsoDate, receiptAsDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import { getPlatform } from "@/lib/platformManager";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
@@ -132,7 +131,6 @@ export function AssistantDrawer({
   const [pendingText, setPendingText] = useState("");
   const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
   const [amountReply, setAmountReply] = useState("");
-  const [rules, setRules] = useState<ActiveUserRule[]>([]);
   const [parsedRule, setParsedRule] = useState<ParsedUserRule | null>(null);
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
@@ -280,11 +278,6 @@ export function AssistantDrawer({
   }
 
   useEffect(() => {
-    if (!open) return;
-    void listActiveUserRules().then(setRules);
-  }, [open]);
-
-  useEffect(() => {
     return () => {
       discardRecording.current = true;
       if (recordTimer.current) clearTimeout(recordTimer.current);
@@ -427,11 +420,10 @@ export function AssistantDrawer({
     setRuleChoice(null);
     setHalachaNamespace(null);
     setReceiptArtifactId(result.artifactId);
-    const ruled = receiptRuledDraft(result.fields, rules);
-    if (ruled) {
+    if (result.fields.ruledType && result.fields.ruleName) {
       setReceiptFields(null);
       setClarification(null);
-      showDraft(ruled.draft, ruled.ruleName);
+      showDraft(receiptAsDraft(result.fields, result.fields.ruledType), result.fields.ruleName);
       if (result.fields.checkDate) setStatus("checkDate");
       return;
     }
@@ -1150,7 +1142,6 @@ export function AssistantDrawer({
       setStatus("ruleFailed");
       return;
     }
-    setRules((current) => [...current, { name: parsedRule.name, type }]);
     setParsedRule(null);
     setRuleChoice(null);
     setStatus("ruleSaved");

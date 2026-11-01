@@ -9,6 +9,9 @@ type ReceiptCurrency = (typeof CURRENCIES)[number];
 
 export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 
+const RULED_TYPES = ["exempt-income", "recognized-expense", "non_tithe_donation"] as const;
+export type ReceiptRuledType = (typeof RULED_TYPES)[number];
+
 export interface ReceiptDraft {
   description: string;
   date: string | null;
@@ -16,6 +19,8 @@ export interface ReceiptDraft {
   amount: number;
   currency: ReceiptCurrency;
   kind: "receipt";
+  ruleName: string | null;
+  ruledType: ReceiptRuledType | null;
 }
 
 /** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
@@ -168,12 +173,20 @@ export function isIsoDate(value: string): boolean {
     && date.getUTCDate() === day;
 }
 
+function ruledTypeOf(value: unknown): ReceiptRuledType | null {
+  return typeof value === "string" && (RULED_TYPES as readonly string[]).includes(value)
+    ? value as ReceiptRuledType
+    : null;
+}
+
 function receiptRecord(value: unknown): {
   kind?: unknown;
   description?: unknown;
   date?: unknown;
   amount?: unknown;
   currency?: unknown;
+  rule_name?: unknown;
+  type?: unknown;
 } | null {
   let record = value;
   if (typeof value === "string") {
@@ -213,6 +226,8 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
   const currency = typeof source.currency === "string" ? source.currency.trim().toUpperCase() : "";
   if (!CURRENCIES.includes(currency as ReceiptCurrency)) return null;
   const dated = typeof source.date === "string" && isIsoDate(source.date);
+  const ruleName = typeof source.rule_name === "string" ? source.rule_name.trim() : "";
+  const ruledType = ruleName.length >= 2 ? ruledTypeOf(source.type) : null;
   return {
     description,
     date: dated ? source.date as string : null,
@@ -220,6 +235,8 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
     amount,
     currency: currency as ReceiptCurrency,
     kind: "receipt",
+    ruleName: ruledType ? ruleName : null,
+    ruledType,
   };
 }
 
@@ -228,13 +245,24 @@ export interface CopiedReceiptItem {
   amount: number | null;
   date: string | null;
   currency: string;
+  type: string;
+  ruleName: string | null;
 }
 
 /** One copied receipt becomes one draft. Several receipts or a statement do not list rows. */
 export function receiptDraftFromItems(
   route: "list" | "unreadable" | "several",
   items: readonly CopiedReceiptItem[],
-): { kind: ReceiptKind; description?: string; date?: string | null; amount?: number; currency?: string; check_date?: boolean } | null {
+): {
+  kind: ReceiptKind;
+  description?: string;
+  date?: string | null;
+  amount?: number;
+  currency?: string;
+  check_date?: boolean;
+  type?: string | null;
+  rule_name?: string | null;
+} | null {
   if (route === "list") return { kind: "statement" };
   if (route !== "several") return null;
   if (items.length > 1) return { kind: "several_receipts" };
@@ -244,6 +272,7 @@ export function receiptDraftFromItems(
   if (description.length < 2) return null;
   const currency = item.currency === "USD" || item.currency === "EUR" ? item.currency : "ILS";
   const dated = item.date !== null && isIsoDate(item.date);
+  const ruledType = item.ruleName && ruledTypeOf(item.type);
   return {
     kind: "receipt",
     description,
@@ -251,5 +280,7 @@ export function receiptDraftFromItems(
     amount: item.amount,
     currency,
     check_date: !dated,
+    type: ruledType ? item.type : null,
+    rule_name: ruledType ? item.ruleName : null,
   };
 }

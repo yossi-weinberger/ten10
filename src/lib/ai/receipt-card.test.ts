@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "./receipt-card";
+import { isIsoDate, receiptAsDraft, type ReceiptFields } from "./receipt-card";
 
 const fields: ReceiptFields = {
   date: "2026-10-18",
@@ -7,6 +7,8 @@ const fields: ReceiptFields = {
   currency: "ILS",
   description: "בית כנסת",
   checkDate: false,
+  ruleName: null,
+  ruledType: null,
 };
 
 describe("receiptAsDraft", () => {
@@ -15,14 +17,13 @@ describe("receiptAsDraft", () => {
     expect(receiptAsDraft(fields, "income").type).toBe("income");
   });
 
-  it("does not invent a type when no rule matches", () => {
-    expect(receiptRuledDraft(fields, [])).toBeNull();
-  });
-
-  it("uses a saved rule instead of asking", () => {
-    const ruled = receiptRuledDraft(fields, [{ name: "בית כנסת", type: "non_tithe_donation" }]);
-    expect(ruled?.draft.type).toBe("non_tithe_donation");
-    expect(ruled?.ruleName).toBe("בית כנסת");
+  it("keeps a type the reader took from a saved rule", () => {
+    const ruled = receiptAsDraft(
+      { ...fields, ruleName: "בית כנסת", ruledType: "non_tithe_donation" },
+      "non_tithe_donation",
+    );
+    expect(ruled.type).toBe("non_tithe_donation");
+    expect(ruled.description).toBe("בית כנסת");
   });
 
   it("rejects a calendar date that is not a real day", () => {

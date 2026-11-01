@@ -71,7 +71,7 @@ export const ASSISTANT_GALLERY: GalleryScenario[] = [
     activeBlocks: blocks({
       intent: "add_transaction",
       clarification: "type",
-      receiptFields: { description: "סופר", date: "2026-10-20", checkDate: false, amount: 42.5, currency: "ILS" },
+      receiptFields: { description: "סופר", date: "2026-10-20", checkDate: false, amount: 42.5, currency: "ILS", ruleName: null, ruledType: null },
       receiptArtifactId: "art-1",
     }),
   },
