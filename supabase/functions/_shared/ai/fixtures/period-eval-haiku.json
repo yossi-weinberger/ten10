@@ -1,0 +1,576 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "cases": 81,
+  "modelCorrect": 47,
+  "parserCorrect": 81,
+  "modelMatchesParser": 47,
+  "rows": [
+    {
+      "id": "slot-001",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-002",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-003",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2024-01-01",
+      "to": "2024-12-31"
+    },
+    {
+      "id": "slot-004",
+      "modelOk": true,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-005",
+      "modelOk": true,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-006",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-007",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-10-01",
+      "to": "2026-10-31"
+    },
+    {
+      "id": "slot-008",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-009",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-010",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-011",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-07-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-012",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-08-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-013",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-014",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-015",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-016",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-017",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-018",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-07-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-019",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-07-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-020",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-10-01",
+      "to": "2026-10-31"
+    },
+    {
+      "id": "slot-021",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-07-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-022",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2025-10-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-023",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-024",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-04-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-025",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-09-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-026",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-027",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-028",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-029",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-030",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-031",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-07-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-032",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-03-01",
+      "to": "2025-03-31"
+    },
+    {
+      "id": "slot-033",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-034",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-09-23",
+      "to": "2026-09-11"
+    },
+    {
+      "id": "slot-035",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-036",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-037",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-038",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-039",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-040",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-041",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-042",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-043",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-044",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-045",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-046",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-047",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-048",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-049",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-050",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-051",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-052",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-053",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-054",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-055",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-056",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-057",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-058",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-059",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-09-19",
+      "to": "2026-10-19"
+    },
+    {
+      "id": "slot-060",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-061",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-062",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-063",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-064",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-065",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-066",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-067",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-068",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-069",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-070",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-071",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-072",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-073",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-074",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-075",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-02-28",
+      "to": "2026-03-31"
+    },
+    {
+      "id": "slot-076",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    {
+      "id": "slot-077",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    },
+    {
+      "id": "slot-078",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    },
+    {
+      "id": "slot-079",
+      "modelOk": false,
+      "parserOk": true,
+      "from": null,
+      "to": null
+    },
+    {
+      "id": "slot-080",
+      "modelOk": true,
+      "parserOk": true,
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    {
+      "id": "slot-081",
+      "modelOk": false,
+      "parserOk": true,
+      "from": "2024-03-01",
+      "to": "2024-03-31"
+    }
+  ]
+}
