@@ -142,6 +142,13 @@ describe("decideTurn", () => {
     expect(summarizeTurn(base({ reader }), decision).kind).toBe("draft");
   });
 
+  it("blocks an unsupported frequency whatever Jev's label", () => {
+    const decision = decideTurn(base({
+      reader: { ok: true, route: "several", items: [item({ unsupportedFrequency: true })], rule: null, question: null },
+    }));
+    expect(decision.card.type).toBe("frequency_unsupported");
+  });
+
   it("shows a rule only when Jev says create_rule and the reader returned one", () => {
     const decision = decideTurn(base({
       jev: { ok: true, intent: "create_rule", confidence: 0.9 },
@@ -192,20 +199,20 @@ describe("decideTurn", () => {
     expect(decision.mode).toBe("show");
   });
 
-  it("answers for all time when a data question names no period", () => {
+  it("asks which period when the question reader has no period", () => {
     const decision = decideTurn(base({
-      message: "כמה תרמתי?",
+      message: "כמה הוצאות?",
       jev: { ok: true, intent: "ask_data", confidence: 0.9 },
       reader: { ok: true, route: "unreadable" },
       questionAttempted: true,
       question: {
-        slots: { family: "donation", measure: "sum", recipient: null, category: null, paymentMethod: null },
+        slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null },
         period: null,
         nameText: null,
       },
     }));
-    expect(decision.pending).toBeNull();
-    expect(decision.data.status).toBe("ready");
+    expect(decision.pending?.kind).toBe("period");
+    expect(decision.data.status).toBe("period_missing");
   });
 
   it("asks which family when the slots have none", () => {
@@ -221,6 +228,19 @@ describe("decideTurn", () => {
     }));
     expect(decision.data.status).toBe("family_missing");
     expect(decision.pending?.kind).toBe("family");
+  });
+
+  it("builds the question from the chosen family when the question reader returned nothing", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+      forcedIntent: "ask_data",
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: null,
+      chosenFamily: "donation",
+      periodHold: { kind: "all" },
+    }));
+    expect(decision.data.status).toBe("ready");
   });
 
   it("marks a missing saved name after the filter", () => {

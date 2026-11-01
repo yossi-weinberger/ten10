@@ -103,5 +103,5 @@ Deno.test("a date question without a confident family asks instead of guessing",
   assert(mortgage !== "ask_family" && mortgage !== "ask_period" && mortgage?.topic === null, "an empty topic stays empty");
   const two = questionFromSlots("כמה תרמתי לישיבה ולבית חבד השנה", TODAY, "gregorian", unnamed, year);
   assert(two !== "ask_family" && two !== "ask_period" && two?.recipient === null, "two names are not scanned from the words");
-  assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots, null) === "ask_family", "no date still asks for the family");
+  assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots, null) === "ask_period", "no date");
 });

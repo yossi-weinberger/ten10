@@ -263,9 +263,9 @@ function transactionCard(reader: TurnReader | null): TurnCard {
 }
 
 function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCard {
+  const several = severalOf(reader);
+  if (several?.items.some((item) => item.unsupportedFrequency) === true) return { type: "frequency_unsupported" };
   if (intent === "create_recurring") {
-    const several = severalOf(reader);
-    if (several?.items.some((item) => item.unsupportedFrequency) === true) return { type: "frequency_unsupported" };
     if (several?.items[0]) return { type: "recurring" };
     return { type: "none" };
   }
@@ -285,17 +285,15 @@ function sideFor(intent: IntakeIntent | null): TurnDecision["side"] {
 }
 
 function slotsFor(input: TurnInput): QuestionSlots | null {
-  if (input.chosenFamily && input.slotHold) {
-    return {
-      family: input.chosenFamily,
-      measure: input.slotHold.measure,
-      recipient: input.slotHold.recipient,
-      category: input.slotHold.category,
-      paymentMethod: input.slotHold.paymentMethod,
-    };
-  }
-  if (input.chosenFamily && input.question) return { ...input.question.slots, family: input.chosenFamily };
-  return input.question?.slots ?? null;
+  if (!input.chosenFamily) return input.question?.slots ?? null;
+  const base = input.slotHold ?? input.question?.slots ?? null;
+  return {
+    family: input.chosenFamily,
+    measure: base?.measure ?? null,
+    recipient: base?.recipient ?? null,
+    category: base?.category ?? null,
+    paymentMethod: base?.paymentMethod ?? null,
+  };
 }
 
 function dataFor(input: TurnInput, wantsData: boolean, preferRabbi: boolean): { data: TurnData; needsQuestion: boolean; needsNameCheck: boolean } {
