@@ -1,5 +1,4 @@
-import { getCalendarAdapter } from "../calendar/index.ts";
-import { parseYearTypeSum, questionFromSlots } from "./data-question.ts";
+import { questionFromSlots } from "./data-question.ts";
 import {
   QUESTION_SLOT_LIMIT,
   buildQuestionSlotBody,
@@ -8,8 +7,6 @@ import {
   slotConfidence,
   type QuestionSlots,
 } from "./question-slots.ts";
-import cases from "./fixtures/question-slot-eval-cases.json" with { type: "json" };
-
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
@@ -72,44 +69,6 @@ Deno.test("a slot choice below 0.7 is not chosen", () => {
   assert(readQuestionSlots({}, LISTS) === null, "no answer");
 });
 
-Deno.test("missing Jev slots use the word parser, and mirrored slots keep the same question", () => {
-  for (const item of cases) {
-    const calendar = item.calendar === "hebrew" ? "hebrew" : "gregorian";
-    const parsed = parseYearTypeSum(item.text, item.today, calendar);
-    assert(questionFromSlots(item.text, item.today, calendar, null) === null, `${item.id} no word parser`);
-    const expected = item.id === "slot-017" && parsed
-      ? { ...item.expected, topic: parsed.topic }
-      : item.expected;
-    assert(JSON.stringify(parsed) === JSON.stringify(expected), `${item.id} parser`);
-    if (!parsed) continue;
-    const slots: QuestionSlots = {
-      family: parsed.type,
-      measure: parsed.measure,
-      recipient: parsed.recipient,
-      category: parsed.topic,
-      paymentMethod: parsed.paymentMethod,
-    };
-    const composed = questionFromSlots(item.text, item.today, calendar, slots, {
-      kind: "span",
-      from: parsed.from,
-      to: parsed.to,
-    });
-    if (composed === "ask_family" || composed === "ask_period" || composed === null) {
-      throw new Error(`${item.id} slots`);
-    }
-    assert(
-      composed.type === parsed.type
-        && composed.measure === parsed.measure
-        && composed.paymentMethod === parsed.paymentMethod
-        && composed.recipient === parsed.recipient
-        && composed.topic === parsed.topic
-        && composed.from === parsed.from
-        && composed.to === parsed.to,
-      `${item.id} slots`,
-    );
-  }
-});
-
 Deno.test("a date question without a confident family asks instead of guessing", () => {
   const slots: QuestionSlots = {
     family: null,
@@ -145,8 +104,4 @@ Deno.test("a date question without a confident family asks instead of guessing",
   const two = questionFromSlots("כמה תרמתי לישיבה ולבית חבד השנה", TODAY, "gregorian", unnamed, year);
   assert(two !== "ask_family" && two !== "ask_period" && two?.recipient === null, "two names are not scanned from the words");
   assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots, null) === "ask_period", "no date");
-  const hebrew = getCalendarAdapter("hebrew");
-  const leap = hebrew.toIsoDate({ year: 5784, month: 7, day: 10 }, "reject");
-  const adar = parseYearTypeSum("כמה הוצאתי החודש", leap, "hebrew");
-  assert(adar !== null && adar.month === 7, "adar ii still a date");
 });

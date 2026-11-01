@@ -1,6 +1,5 @@
 import { buildIntentBody, INTAKE_COUNTS, readCountChoice, readIntentChoice } from "./jev-intent.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
-import { effectiveIntakeCount } from "./intake-count.ts";
 import { INTAKE_INTENTS, type IntakeIntent } from "./intent.ts";
 import { type EvalAnswer, type LabelEvalSummary, readLabelEvalCases, scoreLabelEval } from "./intent-count-eval.ts";
 
@@ -66,16 +65,10 @@ const key = readGatewayKey();
 if (!key) throw new Error("empty gateway key");
 
 const countAnswers: Record<string, EvalAnswer> = {};
-const effectiveAnswers: Record<string, EvalAnswer> = {};
 for (const item of countCases) {
   const { count } = await ask(key, item.text);
   countAnswers[item.id] = count;
-  const jevCount = INTAKE_COUNTS.find((label) => label === count.choice) ?? null;
-  effectiveAnswers[item.id] = {
-    choice: effectiveIntakeCount(item.text, jevCount, count.confidence),
-    confidence: null,
-  };
-  console.log(`${item.id} ${count.choice ?? "none"} ${count.confidence ?? "none"} ${effectiveAnswers[item.id].choice}`);
+  console.log(`${item.id} ${count.choice ?? "none"} ${count.confidence ?? "none"}`);
 }
 
 const intentSummaries: Record<string, LabelEvalSummary<IntakeIntent>> = {};
@@ -90,14 +83,12 @@ for (const set of intentSets) {
 
 const summary = {
   count: scoreLabelEval(countCases, countAnswers, INTAKE_COUNTS),
-  effectiveCount: scoreLabelEval(countCases, effectiveAnswers, INTAKE_COUNTS),
   intent: intentSummaries,
 };
 const out = new URL("./fixtures/intent-count-eval-results.json", import.meta.url);
 Deno.writeTextFileSync(out, JSON.stringify({ summary, countAnswers }, null, 2));
 console.log(JSON.stringify({
   count: { accuracy: summary.count.accuracy, byLabel: summary.count.byLabel, confidentWrong: summary.count.confidentWrong },
-  effectiveCount: { accuracy: summary.effectiveCount.accuracy, byLabel: summary.effectiveCount.byLabel },
   intent: Object.fromEntries(
     Object.entries(intentSummaries).map(([name, value]) => [
       name,

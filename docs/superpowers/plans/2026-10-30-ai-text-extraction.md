@@ -227,11 +227,11 @@ PR קטן לכל שלב, מ־`feat/ai-intake` ואליו. גם תיקון נכנ
 - [ ] **T3b: שאלה על הנתונים.** החלק `question` ו־`period`, מול סטי `question-slot-eval`.
 - [ ] **T3c: כלל, הלכה וקבלות.** החלק `rule`, שאלת הדף ב־Jev, שליחת שאלה אישית לרב מהצ'אט אחרי אישור, וקבלות שמועתקות לטקסט ועוברות את אותו מסלול.
 - [ ] **T4: מחיקה.**
-  - הקבצים: `text-draft.ts` (הטיפוס `TextTransactionDraft` עובר ל־`split-response.ts`), `phrase-aliases.ts`, `number-words.ts`, `number-word-aliases.ts`, `recipient-draft.ts`, `recipient-aliases.ts` ו־`recurring-aliases.ts`.
+  - הקבצים: `text-draft.ts` (הטיפוס `TextTransactionDraft` עובר ל־`split-response.ts`), `the word list`, `number-words.ts`, `number-word-aliases.ts`, `recipient-draft.ts`, `recipient-aliases.ts` ו־`recurring-aliases.ts`.
   - ה־parser שבתוך `recurring-draft.ts`, `data-question.ts`, `rule-draft.ts`, `intent.ts` ו־`classify-intake.ts`, והבדיקות של כולם.
   - `halacha-page.ts` נשאר רק עם רשימת הדפים, כי Jev בוחר את הדף. `sum-year-type.ts` מפסיק לייבא את `recipient-draft.ts`.
   - אם הקורא עבר את סטי `question-slot-eval`, גם `ai-read-question` ו־`question-slots.ts` יורדים, ו־`ai-read-question` יוצא מ־`ALL_FUNCTIONS` ומ־`SHARED_DEPENDENT`.
-  - בסוף T4 אין import ל־`phrase-aliases` בשום מקום.
+  - בסוף T4 אין import ל־`the word list` בשום מקום.
 
 ## לא בתוכנית
 

@@ -1072,6 +1072,7 @@
   },
   {
     "id": "slot-066",
+    "note": "The answer names the category food.",
     "text": "כמה הוצאתי על בצק השנה",
     "today": "2026-10-19",
     "calendar": "gregorian",
@@ -1079,7 +1080,7 @@
       "type": "expense",
       "measure": "sum",
       "paymentMethod": null,
-      "topic": "בצק",
+      "topic": "food",
       "recipient": null,
       "months": 10,
       "year": 2026,

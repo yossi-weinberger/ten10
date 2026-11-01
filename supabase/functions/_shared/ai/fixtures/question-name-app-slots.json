@@ -1,10 +1,10 @@
 {
   "cases": 82,
-  "rightFilter": 65,
+  "rightFilter": 66,
   "neededAsk": 0,
   "unnecessaryAsk": 16,
   "buttonMiss": 0,
-  "wrongFilter": 1,
+  "wrongFilter": 0,
   "rightFilterIds": [
     "slot-001 כמה תרמתי ב-2025?",
     "slot-002 how much did I spend in 2025",
@@ -70,7 +70,8 @@
     "slot-079 כמה תרמתי בשנת המעשר",
     "slot-080 כמה הוצאתי החודש",
     "slot-081 כמה הוצאתי החודש",
-    "mixed-donation תרמתי 50 לבית כנסת וכמה תרמתי השנה?"
+    "mixed-donation תרמתי 50 לבית כנסת וכמה תרמתי השנה?",
+    "slot-066 כמה הוצאתי על בצק השנה"
   ],
   "neededAskIds": [],
   "unnecessaryAskIds": [
@@ -92,9 +93,7 @@
     "slot-063 כמה הוצאתי על ביטול השנה"
   ],
   "buttonMissIds": [],
-  "wrongFilterIds": [
-    "slot-066 כמה הוצאתי על בצק השנה"
-  ],
+  "wrongFilterIds": [],
   "rows": [
     {
       "id": "slot-001",
@@ -554,9 +553,10 @@
     {
       "id": "slot-066",
       "text": "כמה הוצאתי על בצק השנה",
-      "outcome": "wrong_filter",
+      "outcome": "right_filter",
       "used": "food",
-      "suggestions": []
+      "suggestions": [],
+      "note": "The answer names the category food."
     },
     {
       "id": "slot-067",

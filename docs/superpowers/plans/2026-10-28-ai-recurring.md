@@ -27,7 +27,7 @@
 - **הקריטריון של `create_rule` מתעדכן** כדי שלא יתפוס את זה: «…A standing rule changes how future transactions are classified. Setting up a transaction that repeats is not this.»
 - **נשאר `add_transaction`:** «ירדו לי 300 ש״ח לישיבה בהוראת קבע» (`gen-he-add-29`), «My standing order to the yeshiva went out today» (`gen-en-add-24`), «כל חודש אני נותן 50 לישיבה, החודש כבר ירד» (`gen-he-add-08`). המשפט מדווח על חיוב, ואין בו בקשה להגדיר.
 - **לא משתנים:** «איך מבטלים הוראת קבע בבנק?» (`gen-he-oos-17`) נשאר `out_of_scope`, ו«יש מצב שהוראת הקבע וההזנה הידנית יצרו לי כפל?» (`gen-he-dup-09`) נשאר `find_duplicates`.
-- **בלי Jev:** ה־fallback ב־`intent.ts` מזהה רק צירוף של פועל בקשה («תגדיר», «תקבע», «set up», «make it recurring») עם מילת חזרה («הוראת קבע», «כל חודש», «every month»). הרשימה ב־`phrase-aliases.ts`. בלי פועל בקשה זה נשאר `add_transaction`.
+- **בלי Jev:** ה־fallback ב־`intent.ts` מזהה רק צירוף של פועל בקשה («תגדיר», «תקבע», «set up», «make it recurring») עם מילת חזרה («הוראת קבע», «כל חודש», «every month»). הרשימה ב־`the word list`. בלי פועל בקשה זה נשאר `add_transaction`.
 - **ודאות מתחת ל־0.7:** כמו היום, שאלה עם כפתורים. נוסף כפתור רביעי «הוראת קבע» ב־`ReplyBlockView.tsx:64-74`.
 - **i18n:** `aiIntake.intents.create_recurring` ו־`aiIntake.intentChoices.create_recurring`, בעברית ובאנגלית (`public/locales/*/navigation.json`).
 
