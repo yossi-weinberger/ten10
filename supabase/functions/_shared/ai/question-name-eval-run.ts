@@ -3,7 +3,6 @@ import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts
 import { readModelText } from "./receipt-draft.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
 import { buildQuestionSlotBody, readQuestionSlots } from "./question-slots.ts";
-import { SPLIT_MODEL } from "./split-prompt.ts";
 
 /** Args: env, fixture, results json. Final recipient and category: Jev, then name_text. */
 
