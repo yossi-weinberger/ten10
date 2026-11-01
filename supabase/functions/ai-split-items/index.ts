@@ -85,18 +85,24 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { reason: "unavailable" }, 200);
 
   const currency = body?.defaultCurrency === "USD" || body?.defaultCurrency === "EUR" ? body.defaultCurrency : "ILS";
-  const lists = admin
-    ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
-      logger.error(`split lists failed: ${error instanceof Error ? error.message : "unknown"}`);
-      return { context: {}, rules: [] as SplitRuleRef[] };
-    })
-    : { context: {}, rules: [] as SplitRuleRef[] };
+  const prepStarted = Date.now();
+  const [lists, firstGate] = await Promise.all([
+    admin
+      ? loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+        logger.error(`split lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+        return { context: {}, rules: [] as SplitRuleRef[] };
+      })
+      : Promise.resolve({ context: {}, rules: [] as SplitRuleRef[] }),
+    usage.consumeCall(userData.user.id),
+  ]);
+  const prepMs = Date.now() - prepStarted;
+  if (!firstGate.allowed) return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar };
+  let modelMs = 0;
 
-  async function ask(): Promise<{ payload: unknown; usageId: string | null } | null> {
-    const allowed = await usage.consumeCall(userData.user.id);
-    if (!allowed.allowed) return null;
+  async function ask(usageId: string | null): Promise<{ payload: unknown; usageId: string | null } | null> {
+    const started = Date.now();
     const result = await callModel({
       userId: userData.user.id,
       operation: "split",
@@ -113,24 +119,30 @@ Deno.serve(async (req: Request) => {
       timeoutMs: SPLIT_TIMEOUT_MS,
       record: serviceModelCallRecorder(),
     });
+    modelMs += Date.now() - started;
     if (!result.ok) {
       logger.error(`split failed: ${result.status ?? result.errorCode}`);
-      await usage.release(allowed.usageId);
+      await usage.release(usageId);
       return null;
     }
-    return { payload: result.payload, usageId: allowed.usageId };
+    return { payload: result.payload, usageId };
   }
 
   try {
-    const first = await ask();
-    if (!first) return json(origin, { reason: "unavailable" }, 200);
+    const first = await ask(firstGate.usageId);
+    if (!first) return json(origin, { reason: "unavailable", prep_ms: prepMs, model_ms: modelMs }, 200);
     let payload = first.payload;
     let usageId = first.usageId;
+    let retried = false;
     if (!parseSplitPayload(readModelText(payload))) {
-      const second = await ask();
-      if (second) {
-        payload = second.payload;
-        usageId = second.usageId;
+      const secondGate = await usage.consumeCall(userData.user.id);
+      if (secondGate.allowed) {
+        retried = true;
+        const second = await ask(secondGate.usageId);
+        if (second) {
+          payload = second.payload;
+          usageId = second.usageId;
+        }
       }
     }
     const split = readSplitResponse(
@@ -143,7 +155,7 @@ Deno.serve(async (req: Request) => {
         recipients: lists.context.recipients ?? [],
       }),
     );
-    return json(origin, { ...split, usage_id: usageId }, 200);
+    return json(origin, { ...split, usage_id: usageId, retried, prep_ms: prepMs, model_ms: modelMs }, 200);
   } catch (error) {
     logger.error(`split error: ${error instanceof Error ? error.name : "unknown"}`);
     return json(origin, { reason: "unavailable" }, 200);

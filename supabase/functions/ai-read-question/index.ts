@@ -74,13 +74,14 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { reason: "unavailable" }, 200);
 
-  const allowed = await serviceUsageGate().consumeCall(userData.user.id);
-  if (!allowed.allowed) return json(origin, { reason: allowed.reason }, 200);
-
-  const recipientCall = await userClient.rpc("list_ai_recipients");
-  const categoryCalls = await Promise.all(CATEGORY_TYPES.map((type) => (
-    userClient.rpc("get_user_categories", { p_type: type })
-  )));
+  const prepStarted = Date.now();
+  const [allowed, recipientCall, categoryCalls] = await Promise.all([
+    serviceUsageGate().consumeCall(userData.user.id),
+    userClient.rpc("list_ai_recipients"),
+    Promise.all(CATEGORY_TYPES.map((type) => userClient.rpc("get_user_categories", { p_type: type }))),
+  ]);
+  const prepMs = Date.now() - prepStarted;
+  if (!allowed.allowed) return json(origin, { reason: allowed.reason, prep_ms: prepMs }, 200);
   const lists = {
     recipients: namesFrom(recipientCall.data),
     categories: [
@@ -159,7 +160,9 @@ Deno.serve(async (req: Request) => {
       return { period: null, nameText: null as string | null };
     }
   })();
+  const modelStarted = Date.now();
   const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
+  const modelMs = Date.now() - modelStarted;
   const period = read.period;
   let slots = slotOutcome.slots;
   const bareName = anchoredQuestionName(text, read.nameText, []);
@@ -183,6 +186,7 @@ Deno.serve(async (req: Request) => {
     );
     if (!measurementId) logger.error("slot confidence was not saved");
   }
-  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period, name_text: nameText }, 200);
-  return json(origin, { ...slots, measurement_id: measurementId, period, name_text: nameText }, 200);
+  const timing = { prep_ms: prepMs, model_ms: modelMs };
+  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period, name_text: nameText, ...timing }, 200);
+  return json(origin, { ...slots, measurement_id: measurementId, period, name_text: nameText, ...timing }, 200);
 });

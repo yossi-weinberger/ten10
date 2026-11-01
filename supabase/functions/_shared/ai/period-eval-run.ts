@@ -1,9 +1,8 @@
-import { parseQuestionPeriod } from "./data-question.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
 import { SPLIT_MODEL } from "./split-prompt.ts";
 
-/** Args: env file, results json path, optional fixture path. Period bounds against the parser. */
+/** Args: env file, results json path, optional fixture path. Period bounds against the labels. */
 
 const ENV_PATH = Deno.args[0] ?? "";
 const OUT_PATH = Deno.args[1] ?? "";
@@ -45,7 +44,6 @@ function same(
 
 const cases = casesFrom(JSON.parse(Deno.readTextFileSync(FIXTURE)));
 const key = readKey();
-let modelCorrect = 0;
 let labeled = 0;
 let labeledCorrect = 0;
 const rows: {
@@ -54,8 +52,6 @@ const rows: {
   modelOk: boolean;
   from: string | null;
   to: string | null;
-  parserFrom: string | null;
-  parserTo: string | null;
   model: string;
   nameText: string | null;
 }[] = [];
@@ -63,10 +59,6 @@ const rows: {
 for (const item of cases) {
   const today = item.today ?? "2026-11-01";
   const calendar = item.calendar ?? (item.language === "en" ? "gregorian" : "hebrew");
-  const normalized = item.text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
-  const parsed = parseQuestionPeriod(normalized, today, calendar);
-  const parserFrom = parsed?.from ?? null;
-  const parserTo = parsed?.to ?? null;
   const body = periodRequestBody(item.text, today, "eval", calendar);
   const response = await fetch(SPLIT_RESPONSES_URL, {
     method: "POST",
@@ -83,11 +75,11 @@ for (const item of cases) {
   const model = readModelText(await response.json()).trim();
   const read = readPeriodPayload(model);
   const bounds = boundsFromPeriod(read, today);
-  const modelOk = same(bounds, parserFrom, parserTo);
-  if (modelOk) modelCorrect += 1;
-  if (item.expected && "from" in item.expected) {
+  const hasLabel = Boolean(item.expected && "from" in item.expected);
+  const modelOk = hasLabel && same(bounds, item.expected?.from ?? null, item.expected?.to ?? null);
+  if (hasLabel) {
     labeled += 1;
-    if (same(bounds, item.expected.from, item.expected.to)) labeledCorrect += 1;
+    if (modelOk) labeledCorrect += 1;
   }
   rows.push({
     id: item.id,
@@ -95,8 +87,6 @@ for (const item of cases) {
     modelOk,
     from: bounds?.from ?? null,
     to: bounds?.to ?? null,
-    parserFrom,
-    parserTo,
     model,
     nameText: read?.name_text ?? null,
   });
@@ -107,7 +97,6 @@ const summary = {
   model: SPLIT_MODEL,
   fixture: String(FIXTURE),
   cases: cases.length,
-  modelCorrect,
   labeled,
   labeledCorrect,
   rows,
@@ -115,7 +104,6 @@ const summary = {
 console.log(JSON.stringify({
   model: summary.model,
   cases: summary.cases,
-  modelCorrect,
   labeled,
   labeledCorrect,
 }));

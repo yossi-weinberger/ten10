@@ -144,6 +144,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const copyStarted = Date.now();
     const result = await callModel({
       userId: userData.user.id,
       operation: "receipt",
@@ -181,6 +182,7 @@ Deno.serve(async (req: Request) => {
       await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
+    const copyMs = Date.now() - copyStarted;
     const text = readModelText(result.payload);
     if (!text || !/\d/.test(text)) {
       return json(origin, { draft: null, reason: "unreadable" }, 200);
@@ -189,12 +191,15 @@ Deno.serve(async (req: Request) => {
     const today = (zone ? todayInZone(new Date(), zone) : null) ?? todayInZone(new Date(), "Asia/Jerusalem") ?? new Date().toISOString().slice(0, 10);
     const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
     const admin = serviceKey ? createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey) : null;
+    const listsStarted = Date.now();
     const lists = admin
       ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
         logger.error(`receipt lists failed: ${error instanceof Error ? error.message : "unknown"}`);
         return { context: {}, rules: [] };
       })
       : { context: {}, rules: [] };
+    const listsMs = Date.now() - listsStarted;
+    const splitStarted = Date.now();
     const read = await callModel({
       userId: userData.user.id,
       operation: "split",
@@ -211,6 +216,7 @@ Deno.serve(async (req: Request) => {
       timeoutMs: SPLIT_TIMEOUT_MS,
       record: serviceModelCallRecorder(),
     });
+    const splitMs = Date.now() - splitStarted;
     if (!read.ok) {
       await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
@@ -236,7 +242,8 @@ Deno.serve(async (req: Request) => {
     );
     if (!draft) return json(origin, { draft: null, reason: "unreadable" }, 200);
     const artifactId = readReceiptArtifactId(stored.artifactId);
-    return json(origin, artifactId ? { draft, artifact_id: artifactId } : { draft }, 200);
+    const timing = { copy_ms: copyMs, lists_ms: listsMs, split_ms: splitMs, retried: false };
+    return json(origin, artifactId ? { draft, artifact_id: artifactId, ...timing } : { draft, ...timing }, 200);
   } catch {
     logger.error("receipt read failed");
     return json(origin, { draft: null, reason: "unavailable" }, 200);

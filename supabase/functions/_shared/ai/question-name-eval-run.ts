@@ -22,7 +22,15 @@ function readKey(): string {
 }
 
 type NameFamily = "donation" | "expense" | "income" | null;
-type NameOutcome = "right_filter" | "needed_ask" | "unnecessary_ask" | "button_miss" | "wrong_filter";
+type NameOutcome =
+  | "right_filter"
+  | "needed_ask"
+  | "unnecessary_ask"
+  | "button_miss"
+  | "wrong_filter"
+  | "asked_period"
+  | "asked_family"
+  | "no_question";
 
 interface NameCase {
   id: string;
@@ -163,8 +171,12 @@ for (const item of loaded.cases) {
   let outcome: NameOutcome;
   let used: string | null = null;
   let suggestions: string[] = [];
-  if (!question || question === "ask_family" || question === "ask_period") {
-    outcome = required.length > 0 ? "button_miss" : wanted ? "wrong_filter" : "right_filter";
+  if (question === "ask_period") {
+    outcome = "asked_period";
+  } else if (question === "ask_family") {
+    outcome = "asked_family";
+  } else if (!question) {
+    outcome = "no_question";
   } else {
     const decision = decideQuestionFilter(question, lists);
     if ("missing" in decision) {
@@ -176,7 +188,25 @@ for (const item of loaded.cases) {
       outcome = required.length > 0 || !namesAgree(used, wanted, question.type) ? "wrong_filter" : "right_filter";
     }
   }
-  const row = { id: item.id, text: item.text, outcome, used, suggestions };
+  const jevName = !slots
+    ? null
+    : slots.family === "donation"
+      ? slots.recipient
+      : slots.category;
+  const row = {
+    id: item.id,
+    text: item.text,
+    outcome,
+    used,
+    suggestions,
+    family: slots?.family ?? null,
+    period: readerPeriod,
+    nameText: period?.name_text ?? null,
+    jevName,
+    question: question && typeof question === "object"
+      ? { type: question.type, recipient: question.recipient, topic: question.topic, from: question.from, to: question.to }
+      : question,
+  };
   rows.push(row);
   console.log(JSON.stringify(row));
 }
@@ -192,11 +222,17 @@ const summary = {
   unnecessaryAsk: ids("unnecessary_ask").length,
   buttonMiss: ids("button_miss").length,
   wrongFilter: ids("wrong_filter").length,
+  askedPeriod: ids("asked_period").length,
+  askedFamily: ids("asked_family").length,
+  noQuestion: ids("no_question").length,
   rightFilterIds: ids("right_filter"),
   neededAskIds: ids("needed_ask"),
   unnecessaryAskIds: ids("unnecessary_ask"),
   buttonMissIds: ids("button_miss"),
   wrongFilterIds: ids("wrong_filter"),
+  askedPeriodIds: ids("asked_period"),
+  askedFamilyIds: ids("asked_family"),
+  noQuestionIds: ids("no_question"),
   rows,
 };
 console.log(JSON.stringify({
@@ -206,9 +242,15 @@ console.log(JSON.stringify({
   unnecessaryAsk: summary.unnecessaryAsk,
   buttonMiss: summary.buttonMiss,
   wrongFilter: summary.wrongFilter,
+  askedPeriod: ids("asked_period").length,
+  askedFamily: ids("asked_family").length,
+  noQuestion: ids("no_question").length,
   neededAskIds: summary.neededAskIds,
   unnecessaryAskIds: summary.unnecessaryAskIds,
   buttonMissIds: summary.buttonMissIds,
   wrongFilterIds: summary.wrongFilterIds,
+  askedPeriodIds: ids("asked_period"),
+  askedFamilyIds: ids("asked_family"),
+  noQuestionIds: ids("no_question"),
 }));
 if (OUT_PATH) await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");

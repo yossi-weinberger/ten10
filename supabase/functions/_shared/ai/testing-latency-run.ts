@@ -66,6 +66,12 @@ interface Timed {
   id: string;
   ms: number;
   ok: boolean;
+  retried: boolean;
+  prepMs: number | null;
+  modelMs: number | null;
+  copyMs: number | null;
+  listsMs: number | null;
+  splitMs: number | null;
 }
 
 const env = readEnv(ENV_PATH);
@@ -82,17 +88,31 @@ const signed = await supabase.auth.signInWithPassword({
 });
 if (signed.error) throw new Error("sign-in failed");
 
+function numberOf(record: Record<string, unknown>, key: string): number | null {
+  const value = record[key];
+  return typeof value === "number" ? Math.round(value) : null;
+}
+
 async function invokeTimed(name: string, id: string, body: unknown): Promise<Timed> {
   const started = performance.now();
   const result = await supabase.functions.invoke(name, { body });
   const ms = Math.round(performance.now() - started);
-  const usage = result.data && typeof result.data === "object"
-    ? (result.data as { usage_id?: unknown }).usage_id
-    : null;
+  const record = result.data && typeof result.data === "object" ? result.data as Record<string, unknown> : {};
+  const usage = record.usage_id;
   if (name === "ai-split-items" && typeof usage === "string") {
     await supabase.functions.invoke("ai-split-items", { body: { release: usage } });
   }
-  return { id, ms, ok: !result.error && result.data !== null };
+  return {
+    id,
+    ms,
+    ok: !result.error && result.data !== null,
+    retried: record.retried === true,
+    prepMs: numberOf(record, "prep_ms"),
+    modelMs: numberOf(record, "model_ms"),
+    copyMs: numberOf(record, "copy_ms"),
+    listsMs: numberOf(record, "lists_ms"),
+    splitMs: numberOf(record, "split_ms"),
+  };
 }
 
 const root = new URL("./fixtures/", import.meta.url);
@@ -104,7 +124,7 @@ const receipts = receiptLines.flatMap((line) => {
   const row = JSON.parse(line) as { id?: unknown; file?: unknown; kind?: unknown };
   if (row.kind !== "receipt" || typeof row.id !== "string" || typeof row.file !== "string") return [];
   return [{ id: row.id, file: row.file }];
-}).slice(0, 10);
+}).slice(0, 30);
 
 const splitMeasured: Timed[] = [];
 for (const item of splits) {
@@ -143,18 +163,33 @@ for (const item of receipts) {
 
 function report(name: string, rows: Timed[]) {
   const ok = rows.filter((row) => row.ok);
+  const present = (values: Array<number | null>) => values.filter((value): value is number => value !== null);
   return {
     name,
     calls: rows.length,
     ok: ok.length,
+    secondAsk: rows.filter((row) => row.retried).length,
     failed: rows.filter((row) => !row.ok).map((row) => row.id),
     p50: percentile(ok.map((row) => row.ms), 0.5),
     p95: percentile(ok.map((row) => row.ms), 0.95),
+    prepP50: percentile(present(ok.map((row) => row.prepMs)), 0.5),
+    modelP50: percentile(present(ok.map((row) => row.modelMs)), 0.5),
+    modelP95: percentile(present(ok.map((row) => row.modelMs)), 0.95),
+    copyP50: percentile(present(ok.map((row) => row.copyMs)), 0.5),
+    listsP50: percentile(present(ok.map((row) => row.listsMs)), 0.5),
+    splitP50: percentile(present(ok.map((row) => row.splitMs)), 0.5),
   };
 }
 
-console.log(JSON.stringify({
+const summary = {
   split: report("ai-split-items", splitMeasured),
   question: report("ai-read-question", questionMeasured),
   receipt: report("ai-read-receipt", receiptMeasured),
+  rows: { split: splitMeasured, question: questionMeasured, receipt: receiptMeasured },
+};
+console.log(JSON.stringify({
+  split: summary.split,
+  question: summary.question,
+  receipt: summary.receipt,
 }, null, 2));
+await Deno.writeTextFile(new URL("./fixtures/testing-latency.json", import.meta.url), JSON.stringify(summary, null, 2) + "\n");
