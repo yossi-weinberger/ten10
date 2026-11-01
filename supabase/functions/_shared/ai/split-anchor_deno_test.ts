@@ -107,6 +107,26 @@ Deno.test("a thousand word scales the digits", () => {
   assert(dual.items[0]?.checkAmount === true, "אלפיים has no digits");
 });
 
+Deno.test("today without its words is today, and a written date is exact", () => {
+  const unspoken = anchor("שילמתי 50", [item({
+    date: { kind: "days_ago", n: 0, weekday: null, day: null, month: null, year: null },
+    date_text: null,
+  })]);
+  assert(unspoken.items[0]?.date === TODAY && unspoken.items[0]?.checkDate === false, "days ago 0");
+  const explicit = anchor("שילמתי ב-15/10/2026", [item({
+    date: { kind: "exact", n: null, weekday: null, day: 15, month: 10, year: 2026 },
+    date_text: "15/10/2026",
+  })]);
+  assert(explicit.items[0]?.date === "2026-10-15" && explicit.items[0]?.checkDate === false, "exact");
+  const spoken = anchor("שילמתי היום", [item({
+    date: { kind: "days_ago", n: 0, weekday: null, day: null, month: null, year: null },
+    date_text: "היום",
+  })]);
+  assert(spoken.items[0]?.date === TODAY && spoken.items[0]?.checkDate === false, "היום");
+  const receipt = anchorSplitItems("סופר 40", [item()], splitReadContext(TODAY, { missingDate: "check" }));
+  assert(receipt.items[0]?.date === null && receipt.items[0]?.checkDate === true, "a receipt without a date is checked");
+});
+
 Deno.test("a date structure without its words is marked, and a rule clears the special question", () => {
   const dated = anchor("50 לכולל", [item({
     date: { kind: "days_ago", n: 1, weekday: null, day: null, month: null, year: null },

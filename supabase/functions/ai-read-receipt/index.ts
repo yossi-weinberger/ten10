@@ -2,6 +2,10 @@ import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { gatewayProviderOptions } from "../_shared/ai/gateway-tags.ts";
+import { readSplitResponse } from "../_shared/ai/split-response.ts";
+import { splitReadContext } from "../_shared/ai/split-anchor.ts";
+import { todayInZone } from "../_shared/ai/split-date.ts";
+import { SPLIT_MODEL, SPLIT_RESPONSES_URL, SPLIT_TIMEOUT_MS, splitRequestBody } from "../_shared/ai/split-prompt.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
@@ -10,10 +14,10 @@ import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import {
   decodeReceiptBase64,
   readModelText,
-  readReceiptDraft,
-  readReceiptKind,
   readReceiptArtifactId,
   readStoredReceiptPath,
+  receiptDraftFromItems,
+  RECEIPT_COPY_PROMPT,
   receiptFilePart,
   receiptMagicMatches,
   receiptSha256,
@@ -84,20 +88,6 @@ async function storeCheckedReceipt(
   return { status: "stored", artifactId };
 }
 
-const PROMPT = [
-  "Read this receipt. It may be written in Hebrew, English, or both.",
-  "Reply with JSON only, no markdown.",
-  "kind is receipt, several_receipts, or statement.",
-  "Use several_receipts when the image shows more than one receipt. Use statement when it is a bank or credit-card statement. Otherwise use receipt.",
-  "For several_receipts or statement, reply only {\"kind\":\"several_receipts\"} or {\"kind\":\"statement\"}. Do not list transactions.",
-  '{"kind":"receipt","description":"merchant name","date":"YYYY-MM-DD","amount":12.34,"currency":"ILS"}',
-  "currency is ILS, USD, or EUR.",
-  "amount is the total paid, as a positive number.",
-  "description is the merchant name exactly as printed. Keep Hebrew in Hebrew and English in English. Do not translate.",
-  "Israeli dates are day/month/year. Return the date as YYYY-MM-DD.",
-  "If you cannot read a total, reply {\"description\":null}.",
-].join(" ");
-
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -125,7 +115,7 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { draft: null }, 200);
 
-  const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown } | null;
+  const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown; time_zone?: unknown } | null;
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
   if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
@@ -166,11 +156,11 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           model: RECEIPT_VISION_MODEL,
-          max_output_tokens: 300,
+          max_output_tokens: 2000,
           input: [{
             role: "user",
             content: [
-              { type: "input_text", text: PROMPT },
+              { type: "input_text", text: RECEIPT_COPY_PROMPT },
               filePart,
             ],
           }],
@@ -191,9 +181,44 @@ Deno.serve(async (req: Request) => {
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
     const text = readModelText(result.payload);
-    const kind = readReceiptKind(text);
-    if (kind !== "receipt") return json(origin, { draft: { kind } }, 200);
-    const draft = readReceiptDraft(text);
+    if (!text || !/\d/.test(text)) {
+      return json(origin, { draft: null, reason: "unreadable" }, 200);
+    }
+    const zone = typeof body?.time_zone === "string" ? body.time_zone : "";
+    const today = (zone ? todayInZone(new Date(), zone) : null) ?? todayInZone(new Date(), "Asia/Jerusalem") ?? new Date().toISOString().slice(0, 10);
+    const read = await callModel({
+      userId: userData.user.id,
+      operation: "split",
+      model: SPLIT_MODEL,
+      url: SPLIT_RESPONSES_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(splitRequestBody(text, today, { receipt: true })),
+      },
+      timeoutMs: SPLIT_TIMEOUT_MS,
+      record: serviceModelCallRecorder(),
+    });
+    if (!read.ok) {
+      await usage.release(allowed.usageId);
+      return json(origin, { draft: null, reason: "unavailable" }, 200);
+    }
+    const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, { missingDate: "check" }));
+    const draft = receiptDraftFromItems(
+      split.route,
+      split.route === "several"
+        ? split.items.map((item) => ({
+          description: item.description,
+          amount: item.amount,
+          date: item.date,
+          currency: item.currency,
+        }))
+        : [],
+    );
+    if (!draft) return json(origin, { draft: null, reason: "unreadable" }, 200);
     const artifactId = readReceiptArtifactId(stored.artifactId);
     return json(origin, artifactId ? { draft, artifact_id: artifactId } : { draft }, 200);
   } catch {

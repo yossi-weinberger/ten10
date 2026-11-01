@@ -33,12 +33,16 @@ type ContactFormValues = ContactRabbiFormValues | ContactDevFormValues;
 interface ContactFormProps {
   channel: "rabbi" | "dev";
   captchaToken: string;
+  initialSubject?: string;
+  initialBody?: string;
   onSubmit: (values: ContactFormValues) => Promise<void>;
 }
 
 export const ContactForm = ({
   channel,
   captchaToken,
+  initialSubject = "",
+  initialBody = "",
   onSubmit,
 }: ContactFormProps) => {
   const { t, i18n } = useTranslation("contact");
@@ -56,8 +60,8 @@ export const ContactForm = ({
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema as any), // Use 'as any' to handle the union type schema
     defaultValues: {
-      subject: "",
-      body: "",
+      subject: initialSubject,
+      body: initialBody,
       captchaToken: "",
       attachments: [],
       ...(isDevChannel && { severity: "low" }),

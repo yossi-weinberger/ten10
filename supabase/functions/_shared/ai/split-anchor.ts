@@ -27,6 +27,8 @@ export interface SplitReadContext {
   categories: readonly string[];
   rules: readonly SplitRuleRef[];
   recipients: readonly string[];
+  /** A text message with no date is today. A receipt with no date is checked. */
+  missingDate: "today" | "check";
 }
 
 export interface AnchoredSplitItem {
@@ -53,6 +55,7 @@ export function splitReadContext(today: string, extra: Partial<SplitReadContext>
     categories: extra.categories ?? [],
     rules: extra.rules ?? [],
     recipients: extra.recipients ?? [],
+    missingDate: extra.missingDate ?? "today",
   };
 }
 
@@ -172,8 +175,19 @@ function anchoredAmount(
   return { amount: item.amount, checkAmount: false };
 }
 
-function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
-  if (date === null) return { date: today, checkDate: false };
+function anchoredDate(
+  source: string,
+  date: DateStruct | null,
+  dateText: string | null,
+  today: string,
+  missingDate: "today" | "check",
+): { date: string | null; checkDate: boolean } {
+  if (date?.kind === "days_ago" && date.n === 0 && (dateText === null || dateText.trim() === "")) {
+    return { date: today, checkDate: false };
+  }
+  if (date === null) {
+    return missingDate === "check" ? { date: null, checkDate: true } : { date: today, checkDate: false };
+  }
   if (dateText === null || !textAppears(source, dateText)) return { date: null, checkDate: true };
   const resolved = resolveDateStruct(date, today);
   if (resolved === null) return { date: null, checkDate: true };
@@ -225,7 +239,7 @@ export function anchorSplitItems(
       dropped += 1;
       continue;
     }
-    const dated = anchoredDate(source, item.date, item.date_text, context.today);
+    const dated = anchoredDate(source, item.date, item.date_text, context.today, context.missingDate);
     const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     const special = item.type !== null && SPECIAL_TYPES.has(item.type);

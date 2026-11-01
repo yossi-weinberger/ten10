@@ -8,11 +8,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useDonationStore } from "@/lib/store";
 import {
   halachaNamespace as namespaceForHalachaPage,
-  intentIsConfident,
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
-  selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
   type IntakeIntent,
@@ -39,6 +37,7 @@ import { getPlatform } from "@/lib/platformManager";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
+import { yearSumFromReader } from "@/lib/ai/reader-question";
 import {
   QUESTION_OUTCOME_WINDOW_MS,
   markQuestionOutcome,
@@ -72,7 +71,7 @@ import {
   type StatusKey,
   type UserTurn,
 } from "./assistant-reply-view";
-import { shownIntent } from "./assistant-shown-intent";
+import { namedHalachaPage, shownIntent, type ShownIntent } from "./assistant-shown-intent";
 import { levelFromSamples } from "./assistant-audio-level";
 
 export interface AssistantDrawerHandle {
@@ -129,6 +128,7 @@ export function AssistantDrawer({
   const held = useRef<HeldDraft | null>(null);
   const splitRef = useRef<SplitItemsResult | null>(null);
   const halachaRef = useRef<string | null>(null);
+  const preferRabbi = useRef(false);
   const [pendingText, setPendingText] = useState("");
   const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
   const [amountReply, setAmountReply] = useState("");
@@ -137,6 +137,8 @@ export function AssistantDrawer({
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
+  const [rabbiText, setRabbiText] = useState<string | null>(null);
+  const [rabbiTicket, setRabbiTicket] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
   const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
@@ -430,6 +432,7 @@ export function AssistantDrawer({
       setReceiptFields(null);
       setClarification(null);
       showDraft(ruled.draft, ruled.ruleName);
+      if (result.fields.checkDate) setStatus("checkDate");
       return;
     }
     setReceiptFields(result.fields);
@@ -548,19 +551,46 @@ export function AssistantDrawer({
     else if (next.checkDate) setStatus("checkDate");
   }
 
-  function releaseUnused(nextIntent: IntakeIntent | "ask") {
+  function splitMovement(split: SplitItemsResult | null): boolean {
+    if (!split?.ok) return false;
+    if (split.route === "list") return true;
+    if (split.route !== "several") return false;
+    return split.items.some((item) => item.amount !== null);
+  }
+
+  function releaseUnused(nextIntent: ShownIntent) {
     const split = splitRef.current;
     const reads = nextIntent === "add_transaction" || nextIntent === "create_recurring" || nextIntent === "create_rule" || nextIntent === "ask_data" || nextIntent === "ask";
     if (!reads && split && split.ok && split.usageId) void releaseSplit(split.usageId);
   }
 
-  function pageNamespace(source: string, pageId: string | null): string | null {
-    if (pageId === "personal" || pageId === "none") return null;
-    if (pageId) return namespaceForHalachaPage(pageId);
-    return selectHalachaPage(source)?.namespace ?? null;
+  function pageNamespace(pageId: string | null): string | null {
+    if (!pageId || pageId === "personal" || pageId === "none") return null;
+    return namespaceForHalachaPage(pageId);
   }
 
-  function showIntent(source: string, nextIntent: IntakeIntent) {
+  function showRabbi(source: string) {
+    preferRabbi.current = false;
+    setAskIntent(false);
+    setIntent(null);
+    setRabbiText(source);
+    setRabbiTicket(null);
+    setHalachaNamespace(null);
+    setReceiptFields(null);
+    setClarification(null);
+    setSpecialType(null);
+    setPendingText(source);
+    setParsedRule(null);
+    setRuleChoice(null);
+    setDataReply(null);
+    showDraft(null);
+    setRecurring(null);
+    savedRecurring.current = null;
+    setStatus(null);
+    setSavedItemId(null);
+  }
+
+  function showIntent(source: string, nextIntent: IntakeIntent, withData = false) {
     const split = splitRef.current;
     const several = split && split.ok && split.route === "several" ? split : null;
     setAskIntent(false);
@@ -576,7 +606,9 @@ export function AssistantDrawer({
       ? { name: rule.match, action: rule.action ?? "ambiguous" }
       : null);
     setRuleChoice(null);
-    setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(source, halachaRef.current) : null);
+    setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(halachaRef.current) : null);
+    setRabbiText(null);
+    setRabbiTicket(null);
     showDraft(null);
     const recurringCard = nextIntent === "create_recurring" && several?.items[0]
       ? recurringCardFromItem(several.items[0], defaultCurrency)
@@ -598,7 +630,7 @@ export function AssistantDrawer({
       } else if (split.items[0]) showHeld(heldFromItem(split.items[0], defaultCurrency));
       else setStatus("couldNotRead");
     }
-    if (nextIntent === "ask_data") void loadDataAnswer(source);
+    if (nextIntent === "ask_data" || withData) void loadDataAnswer(source);
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
     else setDuplicateScan(null);
@@ -797,20 +829,50 @@ export function AssistantDrawer({
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source);
-      const slots = family && slotHold
-        ? { ...slotHold, family }
+      const base = family && slotHold ? slotHold : read;
+      const slots = family
+        ? {
+          family,
+          measure: base?.measure ?? null,
+          recipient: base?.recipient ?? null,
+          category: base?.category ?? null,
+          paymentMethod: base?.paymentMethod ?? null,
+        }
         : read;
+      const asked = slots && splitMovement(splitRef.current)
+        ? { ...slots, category: null, recipient: null }
+        : slots;
       if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
-      const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
+      const composed = questionFromSlots(source, todayIso(), questionCalendar, asked);
       if (composed === "ask_family") {
-        if (slots) setSlotHold(slots);
+        if (asked) setSlotHold(asked);
         setDataReply({ status: "family_missing", source });
         return;
       }
       question = composed;
     }
     if (!question) {
+      const reader = splitRef.current;
+      const readQuestion = reader && reader.ok && reader.route === "several" ? reader.question : null;
+      if (readQuestion) {
+        const bare = splitMovement(splitRef.current)
+          ? { ...readQuestion, category: null, recipient: null }
+          : readQuestion;
+        const filled = family && !bare.family ? { ...bare, family } : bare;
+        const built = yearSumFromReader(filled);
+        if (built === "ask_family") {
+          setDataReply({ status: "family_missing", source });
+          return;
+        }
+        question = built;
+      }
+    }
+    if (!question) {
+      if (preferRabbi.current) {
+        showRabbi(source);
+        return;
+      }
       setDataReply({ status: "unsupported" });
       return;
     }
@@ -857,6 +919,8 @@ export function AssistantDrawer({
       confirmDeleteId,
       duplicateActionFailed,
       halachaNamespace,
+      rabbiText,
+      rabbiTicket,
       parsedRule,
       ruleChoice,
       clarification,
@@ -926,6 +990,9 @@ export function AssistantDrawer({
     setRuleChoice(null);
     setAppliedRuleName(null);
     setHalachaNamespace(null);
+    preferRabbi.current = false;
+    setRabbiText(null);
+    setRabbiTicket(null);
     setAskIntent(false);
     setDataReply(null);
     setDuplicateScan(null);
@@ -960,19 +1027,38 @@ export function AssistantDrawer({
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;
-    const pageAnswered = decided.ok && intentIsConfident(decided.halachaPageConfidence);
-    halachaRef.current = pageAnswered ? decided.halachaPage : null;
+    const namedPage = decided.ok ? namedHalachaPage(decided.halachaPage, decided.halachaPageConfidence) : null;
+    halachaRef.current = namedPage === "personal" ? null : namedPage;
+    preferRabbi.current = false;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
+    const movement = splitMovement(split);
+    const readerQuestion = split && split.ok && split.route === "several" ? split.question : null;
     const next = decided.ok
       ? shownIntent(source, today, {
         ok: true,
         intent: decided.intent,
         confidence: decided.confidence,
-        halachaPage: pageAnswered ? decided.halachaPage : undefined,
-      })
-      : shownIntent(source, today, { ok: false });
+        halachaPage: namedPage ?? undefined,
+      }, movement)
+      : shownIntent(source, today, { ok: false }, movement);
+    const dataCandidate = decided.ok && (decided.intent === "ask_data" || readerQuestion !== null);
+    if (movement && (next === "ask" || next === "ask_data" || next === "ask_rabbi" || next === "add_transaction")) {
+      releaseUnused("add_transaction");
+      showIntent(source, "add_transaction", dataCandidate);
+      return;
+    }
+    if (next === "ask_rabbi" && dataCandidate) {
+      preferRabbi.current = true;
+      releaseUnused("ask_data");
+      showIntent(source, "ask_data");
+      return;
+    }
     releaseUnused(next);
+    if (next === "ask_rabbi") {
+      showRabbi(source);
+      return;
+    }
     if (next === "ask") {
       setAskIntent(true);
       setIntent(null);
@@ -1002,6 +1088,7 @@ export function AssistantDrawer({
   function handleChooseType(type: TextTransactionDraft["type"]) {
     if (receiptFields) {
       showDraft(receiptAsDraft(receiptFields, type));
+      if (receiptFields.checkDate) setStatus("checkDate");
       setReceiptFields(null);
       setClarification(null);
       return;
@@ -1319,6 +1406,8 @@ export function AssistantDrawer({
           onDismissPair: (pair) => {
             void dismissPair(pair);
           },
+          onRabbiSent: setRabbiTicket,
+          onRabbiDismiss: () => setRabbiText(null),
           saving,
           undoing,
           questionCalendar,

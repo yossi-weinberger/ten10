@@ -11,7 +11,8 @@ export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 
 export interface ReceiptDraft {
   description: string;
-  date: string;
+  date: string | null;
+  checkDate: boolean;
   amount: number;
   currency: ReceiptCurrency;
   kind: "receipt";
@@ -19,6 +20,14 @@ export interface ReceiptDraft {
 
 /** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
 export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
+
+export const RECEIPT_COPY_PROMPT = [
+  "Copy this document line by line, as written.",
+  "The photo may be rotated or upside down.",
+  "The text may be Hebrew or English. Copy what you can read. Do not refuse.",
+  "Do not interpret, translate, calculate, or add fields.",
+  "Keep the original language and the original digits.",
+].join("\n");
 
 const ARTIFACT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -199,16 +208,48 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
   if (typeof source.description !== "string") return null;
   const description = source.description.trim().slice(0, 200);
   if (description.length < 2) return null;
-  if (typeof source.date !== "string" || !isIsoDate(source.date)) return null;
   const amount = typeof source.amount === "number" ? source.amount : Number(source.amount);
   if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return null;
   const currency = typeof source.currency === "string" ? source.currency.trim().toUpperCase() : "";
   if (!CURRENCIES.includes(currency as ReceiptCurrency)) return null;
+  const dated = typeof source.date === "string" && isIsoDate(source.date);
   return {
     description,
-    date: source.date,
+    date: dated ? source.date as string : null,
+    checkDate: !dated,
     amount,
     currency: currency as ReceiptCurrency,
     kind: "receipt",
+  };
+}
+
+export interface CopiedReceiptItem {
+  description: string;
+  amount: number | null;
+  date: string | null;
+  currency: string;
+}
+
+/** One copied receipt becomes one draft. Several receipts or a statement do not list rows. */
+export function receiptDraftFromItems(
+  route: "list" | "unreadable" | "several",
+  items: readonly CopiedReceiptItem[],
+): { kind: ReceiptKind; description?: string; date?: string | null; amount?: number; currency?: string; check_date?: boolean } | null {
+  if (route === "list") return { kind: "statement" };
+  if (route !== "several") return null;
+  if (items.length > 1) return { kind: "several_receipts" };
+  const item = items[0];
+  if (!item || item.amount === null || item.amount <= 0) return null;
+  const description = item.description.trim();
+  if (description.length < 2) return null;
+  const currency = item.currency === "USD" || item.currency === "EUR" ? item.currency : "ILS";
+  const dated = item.date !== null && isIsoDate(item.date);
+  return {
+    kind: "receipt",
+    description,
+    date: dated ? item.date : null,
+    amount: item.amount,
+    currency,
+    check_date: !dated,
   };
 }

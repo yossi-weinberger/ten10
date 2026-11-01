@@ -78,7 +78,7 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   }
 
   const { data: payload, error } = await supabase.functions.invoke("ai-read-receipt", {
-    body: { media_type: prepared.type, data },
+    body: { media_type: prepared.type, data, time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone },
   });
   if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const reason = (payload as { reason?: unknown }).reason;

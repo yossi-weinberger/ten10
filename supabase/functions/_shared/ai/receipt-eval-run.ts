@@ -1,4 +1,4 @@
-import { readModelText, receiptFilePart } from "./receipt-draft.ts";
+import { readModelText, receiptFilePart, RECEIPT_COPY_PROMPT } from "./receipt-draft.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { readModelUsage } from "./model-call.ts";
 import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
@@ -14,14 +14,6 @@ import { gatewayProviderOptions } from "./gateway-tags.ts";
 const TRANSCRIBE_MODEL = Deno.args[0] ?? "anthropic/claude-sonnet-5";
 const ENV_PATH = Deno.args[1] ?? "";
 const OUT_PATH = Deno.args[2] ?? "";
-
-const COPY_PROMPT = [
-  "Copy this document line by line, as written.",
-  "The photo may be rotated or upside down.",
-  "The text may be Hebrew or English. Copy what you can read. Do not refuse.",
-  "Do not interpret, translate, calculate, or add fields.",
-  "Keep the original language and the original digits.",
-].join("\n");
 
 function copyHasDigits(text: string): boolean {
   return /\d/.test(text);
@@ -125,7 +117,7 @@ for (const item of cases) {
     const copiedPayload = await post(key, SPLIT_RESPONSES_URL, {
       model: TRANSCRIBE_MODEL,
       max_output_tokens: 4000,
-      input: [{ role: "user", content: [{ type: "input_text", text: COPY_PROMPT }, part] }],
+      input: [{ role: "user", content: [{ type: "input_text", text: RECEIPT_COPY_PROMPT }, part] }],
       providerOptions: {
         gateway: gatewayProviderOptions({ source: "eval" }),
         anthropic: { thinking: { type: "disabled" } },
