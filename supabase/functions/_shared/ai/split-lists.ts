@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
+import { ruleNameStands } from "./rule-name.ts";
 import type { SplitRuleRef } from "./split-anchor.ts";
 import type { SplitPromptContext } from "./split-prompt.ts";
 
@@ -51,12 +52,54 @@ export async function loadSplitLists(
     ? recipients.data.filter((name): name is string => typeof name === "string" && name.trim().length > 0).slice(0, 40)
     : [];
   const saved = ruleRefs(rules.data);
+  const examples = await ruleExamples(admin, userId, saved);
   return {
     rules: saved,
     context: {
       categories,
       recipients: recipientNames,
-      rules: saved.map((rule) => ({ id: rule.id, name: rule.name })),
+      rules: saved.map((rule) => ({
+        id: rule.id,
+        name: rule.name,
+        examples: examples.get(rule.id) ?? [],
+      })),
     },
   };
+}
+
+const EXAMPLE_MAX = 40;
+
+/** Up to three descriptions already saved under that rule's type, where the name stands as a word. */
+async function ruleExamples(
+  admin: SupabaseClient,
+  userId: string,
+  rules: readonly SplitRuleRef[],
+): Promise<Map<string, string[]>> {
+  const found = new Map<string, string[]>();
+  if (rules.length === 0) return found;
+  const types = [...new Set(rules.map((rule) => rule.type))];
+  const { data, error } = await admin
+    .from("transactions")
+    .select("description, type")
+    .eq("user_id", userId)
+    .in("type", types)
+    .order("date", { ascending: false })
+    .limit(200);
+  if (error || !Array.isArray(data)) return found;
+  for (const rule of rules) {
+    const examples: string[] = [];
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      if ((row as { type?: unknown }).type !== rule.type) continue;
+      const description = (row as { description?: unknown }).description;
+      if (typeof description !== "string") continue;
+      const trimmed = description.trim().slice(0, EXAMPLE_MAX);
+      if (trimmed.length < 2 || examples.includes(trimmed)) continue;
+      if (!ruleNameStands(trimmed, rule.name)) continue;
+      examples.push(trimmed);
+      if (examples.length === 3) break;
+    }
+    if (examples.length > 0) found.set(rule.id, examples);
+  }
+  return found;
 }
