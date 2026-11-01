@@ -1,4 +1,4 @@
-import { resolveDateStruct, type DateStruct } from "./split-date.ts";
+import { dateInWindow, isIsoDate, resolveDateStruct, type DateStruct } from "./split-date.ts";
 import { resolveRecurrence, type ResolvedRecurrence } from "./split-recurrence.ts";
 import type { SplitItemInput } from "./split-schema.ts";
 
@@ -172,7 +172,18 @@ function anchoredAmount(
   return { amount: item.amount, checkAmount: false };
 }
 
-function anchoredDate(source: string, date: DateStruct | null, dateText: string | null, today: string): { date: string | null; checkDate: boolean } {
+function anchoredDate(
+  source: string,
+  date: DateStruct | null,
+  dateIso: string | null,
+  dateText: string | null,
+  today: string,
+): { date: string | null; checkDate: boolean } {
+  if (dateIso !== null) {
+    if (!isIsoDate(dateIso) || !dateInWindow(dateIso, today)) return { date: null, checkDate: true };
+    if (dateText === null || !textAppears(source, dateText)) return { date: null, checkDate: true };
+    return { date: dateIso, checkDate: false };
+  }
   if (date === null) return { date: today, checkDate: false };
   if (dateText === null || !textAppears(source, dateText)) return { date: null, checkDate: true };
   const resolved = resolveDateStruct(date, today);
@@ -225,7 +236,7 @@ export function anchorSplitItems(
       dropped += 1;
       continue;
     }
-    const dated = anchoredDate(source, item.date, item.date_text, context.today);
+    const dated = anchoredDate(source, item.date, item.date_iso, item.date_text, context.today);
     const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     const special = item.type !== null && SPECIAL_TYPES.has(item.type);

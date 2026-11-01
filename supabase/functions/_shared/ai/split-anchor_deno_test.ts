@@ -15,6 +15,7 @@ function item(overrides: Partial<SplitItemInput> = {}): SplitItemInput {
     currency: "ILS",
     requested_rate: null,
     date: null,
+    date_iso: null,
     date_text: null,
     type: "donation",
     type_question: null,
@@ -105,6 +106,19 @@ Deno.test("a thousand word scales the digits", () => {
   assert(kilo.items[0]?.amount === 2500 && kilo.items[0]?.checkAmount === false, "2.5K");
   const dual = anchor("שילמתי אלפיים", [item({ amount: 2000, amount_text: "אלפיים", type: "expense" })]);
   assert(dual.items[0]?.checkAmount === true, "אלפיים has no digits");
+});
+
+Deno.test("an explicit date is date_iso and today is days ago zero", () => {
+  const explicit = anchor("שילמתי ב-15/10/2026", [item({
+    date_iso: "2026-10-15",
+    date_text: "15/10/2026",
+  })]);
+  assert(explicit.items[0]?.date === "2026-10-15" && explicit.items[0]?.checkDate === false, "date_iso");
+  const spoken = anchor("שילמתי היום", [item({
+    date: { kind: "days_ago", n: 0, weekday: null, day: null, month: null, year: null },
+    date_text: "היום",
+  })]);
+  assert(spoken.items[0]?.date === TODAY && spoken.items[0]?.checkDate === false, "היום");
 });
 
 Deno.test("a date structure without its words is marked, and a rule clears the special question", () => {

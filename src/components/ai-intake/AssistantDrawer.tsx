@@ -12,7 +12,6 @@ import {
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
-  selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
   type IntakeIntent,
@@ -39,6 +38,7 @@ import { getPlatform } from "@/lib/platformManager";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
+import { yearSumFromReader } from "@/lib/ai/reader-question";
 import {
   QUESTION_OUTCOME_WINDOW_MS,
   markQuestionOutcome,
@@ -554,10 +554,9 @@ export function AssistantDrawer({
     if (!reads && split && split.ok && split.usageId) void releaseSplit(split.usageId);
   }
 
-  function pageNamespace(source: string, pageId: string | null): string | null {
-    if (pageId === "personal" || pageId === "none") return null;
-    if (pageId) return namespaceForHalachaPage(pageId);
-    return selectHalachaPage(source)?.namespace ?? null;
+  function pageNamespace(pageId: string | null): string | null {
+    if (!pageId || pageId === "personal" || pageId === "none") return null;
+    return namespaceForHalachaPage(pageId);
   }
 
   function showIntent(source: string, nextIntent: IntakeIntent) {
@@ -576,7 +575,7 @@ export function AssistantDrawer({
       ? { name: rule.match, action: rule.action ?? "ambiguous" }
       : null);
     setRuleChoice(null);
-    setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(source, halachaRef.current) : null);
+    setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(halachaRef.current) : null);
     showDraft(null);
     const recurringCard = nextIntent === "create_recurring" && several?.items[0]
       ? recurringCardFromItem(several.items[0], defaultCurrency)
@@ -795,6 +794,19 @@ export function AssistantDrawer({
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
+    const reader = splitRef.current;
+    const readQuestion = !searchDescriptions && reader && reader.ok && reader.route === "several"
+      ? reader.question
+      : null;
+    if (!question && readQuestion) {
+      const filled = family && !readQuestion.family ? { ...readQuestion, family } : readQuestion;
+      const built = yearSumFromReader(filled);
+      if (built === "ask_family") {
+        setDataReply({ status: "family_missing", source });
+        return;
+      }
+      question = built;
+    }
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source);
       const slots = family && slotHold

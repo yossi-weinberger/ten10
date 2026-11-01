@@ -47,7 +47,8 @@ Responses API (`/v1/responses`, כמו היום ב־`ai-split-items`). היום 
 | `amount_text` | הסכום בדיוק כפי שנכתב, או null |
 | `currency` | `ILS`, `USD` או `EUR`, או null כשלא נאמר |
 | `requested_rate` | שער שנאמר, או null |
-| `date` | מבנה, או null כשלא נאמר: `kind` (`days_ago`, `last_weekday`, `day_of_month`, `exact`) עם `n`, `weekday`, `day`, `month` ו־`year` לפי הצורך. הקוד מחשב ממנו את התאריך |
+| `date` | מבנה לתאריך יחסי בלבד, או null: `kind` (`days_ago`, `last_weekday`, `day_of_month`, `exact`). «היום» הוא `days_ago` עם `n` 0 |
+| `date_iso` | תאריך מפורש `YYYY-MM-DD`, או null. כשהוא מלא, `date` הוא null |
 | `date_text` | ביטוי התאריך כפי שנאמר, או null |
 | `type` | אחד מששת הסוגים, או null. סוג מיוחד (פטור, מוכר, לא ממעשר) רק כשהוא נאמר במפורש |
 | `type_question` | סוג מיוחד שכדאי לשאול עליו, או null. למשל מתנה, ירושה או החזר הוצאות |
