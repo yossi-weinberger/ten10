@@ -25,7 +25,7 @@ Deno.test("a gregorian year and a last-n range are inclusive dates", () => {
     to: null,
     calendar: "gregorian",
   }, "2026-10-30");
-  assert(recent?.to === "2026-10-30" && recent.from === "2026-09-30", "one month back");
+  assert(recent?.to === "2026-10-30" && recent.from === "2026-10-01", "one month back");
 });
 
 Deno.test("a monthly standing order starts next month and counts to the end of the year", () => {

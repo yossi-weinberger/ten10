@@ -22,6 +22,8 @@ const periodStruct = z.object({
   from: dateStruct.nullable(),
   to: dateStruct.nullable(),
   calendar: z.enum(["gregorian", "hebrew"]),
+  recipient_text: z.string().nullable().optional().catch(null),
+  topic_text: z.string().nullable().optional().catch(null),
 });
 
 const periodPayload = z.object({
@@ -52,7 +54,7 @@ const PERIOD_JSON_SCHEMA = {
     period: nullable({
       type: "object",
       additionalProperties: false,
-      required: ["kind", "year", "month", "n", "offset", "from", "to", "calendar"],
+      required: ["kind", "year", "month", "n", "offset", "from", "to", "calendar", "recipient_text", "topic_text"],
       properties: {
         kind: { type: "string", enum: ["year", "month", "last_n_months", "range", "all", "maaser_year"] },
         year: nullable({ type: "integer" }),
@@ -62,6 +64,8 @@ const PERIOD_JSON_SCHEMA = {
         from: nullable(dateSchema),
         to: nullable(dateSchema),
         calendar: { type: "string", enum: ["gregorian", "hebrew"] },
+        recipient_text: nullable({ type: "string" }),
+        topic_text: nullable({ type: "string" }),
       },
     }),
   },
@@ -80,6 +84,8 @@ function periodPrompt(text: string, today: string, calendar: "gregorian" | "hebr
     "The last N months is last_n_months with that n. A span from one date to another is range, and from and to are exact dates with day, month, and year.",
     "A maaser year is kind maaser_year only when the question names that year, such as שנת המעשר or maaser year. offset 0 is the current one. offset -1 is the previous one. A numbered gregorian year is not a maaser year. A donation to מעשר during השנה is kind year, not maaser_year.",
     "When the question names no period, kind is all.",
+    "recipient_text is the payee the question asks about, copied from the question, or null. A payee that belongs to a transaction in the same message is not the question's recipient.",
+    "topic_text is the subject the question asks about, copied from the question, or null. A subject that belongs to a transaction in the same message is not the question's topic.",
     `Today is ${today}.`,
     "Question:",
     text,

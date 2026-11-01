@@ -69,6 +69,8 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
+    "ראש חודש is the Hebrew calendar. כולל, when it is the payee, is a donation.",
+    "unsupported_frequency is true only when the user asked for a repeating payment whose frequency is not daily, weekly, monthly, or yearly. recurrence is then null. Do not record that request as monthly. Otherwise unsupported_frequency is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
     "currency is ILS, USD, or EUR, or null when no currency was named.",
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",

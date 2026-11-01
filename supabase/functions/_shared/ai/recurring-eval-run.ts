@@ -17,6 +17,7 @@ interface RecurringCase {
   day?: number;
   count?: number;
   notRecurring?: boolean;
+  unsupported?: boolean;
   startMonth?: string;
 }
 
@@ -99,6 +100,7 @@ const CASES: RecurringCase[] = [
     amount: 40,
     currency: "USD",
     notRecurring: true,
+    unsupported: true,
     frequency: "monthly",
   },
   {
@@ -107,6 +109,7 @@ const CASES: RecurringCase[] = [
     amount: 15,
     currency: "USD",
     notRecurring: true,
+    unsupported: false,
     frequency: "monthly",
   },
 ];
@@ -142,7 +145,11 @@ for (const item of CASES) {
   const row = read.route === "several" ? read.items[0] : null;
   const recurrence = row?.recurrence ?? null;
   const checks = item.notRecurring
-    ? [row?.amount === item.amount, recurrence === null]
+    ? [
+      row?.amount === item.amount,
+      recurrence === null,
+      item.unsupported === undefined || row?.unsupportedFrequency === item.unsupported,
+    ]
     : [
       row?.amount === item.amount,
       row?.currency === item.currency,

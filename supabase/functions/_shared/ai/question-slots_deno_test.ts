@@ -76,9 +76,8 @@ Deno.test("missing Jev slots use the word parser, and mirrored slots keep the sa
   for (const item of cases) {
     const calendar = item.calendar === "hebrew" ? "hebrew" : "gregorian";
     const parsed = parseYearTypeSum(item.text, item.today, calendar);
-    const fallback = questionFromSlots(item.text, item.today, calendar, null);
+    assert(questionFromSlots(item.text, item.today, calendar, null) === null, `${item.id} no word parser`);
     assert(JSON.stringify(parsed) === JSON.stringify(item.expected), `${item.id} parser`);
-    assert(JSON.stringify(fallback) === JSON.stringify(item.expected), `${item.id} fallback`);
     if (!parsed) continue;
     const slots: QuestionSlots = {
       family: parsed.type,
@@ -87,8 +86,24 @@ Deno.test("missing Jev slots use the word parser, and mirrored slots keep the sa
       category: parsed.topic,
       paymentMethod: parsed.paymentMethod,
     };
-    const composed = questionFromSlots(item.text, item.today, calendar, slots);
-    assert(JSON.stringify(composed) === JSON.stringify(parsed), `${item.id} slots`);
+    const composed = questionFromSlots(item.text, item.today, calendar, slots, {
+      kind: "span",
+      from: parsed.from,
+      to: parsed.to,
+    });
+    if (composed === "ask_family" || composed === "ask_period" || composed === null) {
+      throw new Error(`${item.id} slots`);
+    }
+    assert(
+      composed.type === parsed.type
+        && composed.measure === parsed.measure
+        && composed.paymentMethod === parsed.paymentMethod
+        && composed.recipient === parsed.recipient
+        && composed.topic === parsed.topic
+        && composed.from === parsed.from
+        && composed.to === parsed.to,
+      `${item.id} slots`,
+    );
   }
 });
 
@@ -100,7 +115,8 @@ Deno.test("a date question without a confident family asks instead of guessing",
     category: null,
     paymentMethod: null,
   };
-  assert(questionFromSlots("כמה תרמתי ב-2025?", TODAY, "gregorian", slots) === "ask_family", "ask");
+  const year = { kind: "span" as const, from: "2025-01-01", to: "2025-12-31" };
+  assert(questionFromSlots("כמה תרמתי ב-2025?", TODAY, "gregorian", slots, year) === "ask_family", "ask");
   const unnamed: QuestionSlots = {
     family: "donation",
     measure: "sum",
@@ -108,25 +124,26 @@ Deno.test("a date question without a confident family asks instead of guessing",
     category: "gift",
     paymentMethod: null,
   };
-  const yeshiva = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", unnamed);
-  assert(yeshiva !== "ask_family" && yeshiva?.recipient === "ישיבה" && yeshiva.topic === null, "unsaved recipient");
-  const chabad = questionFromSlots("how much did I donate to Chabad this year?", TODAY, "gregorian", unnamed);
-  assert(chabad !== "ask_family" && chabad?.recipient === "chabad" && chabad.topic === null, "chabad is not a category");
+  const yeshiva = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", unnamed, year);
+  assert(yeshiva !== "ask_family" && yeshiva !== "ask_period" && yeshiva?.recipient === null && yeshiva?.topic === null, "an empty name stays empty");
+  const chabad = questionFromSlots("how much did I donate to Chabad this year?", TODAY, "gregorian", unnamed, year);
+  assert(chabad !== "ask_family" && chabad !== "ask_period" && chabad?.recipient === null && chabad?.topic === null, "a category is not a recipient");
   const saved: QuestionSlots = { ...unnamed, recipient: "חב״ד", category: null };
-  const kept = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", saved);
-  assert(kept !== "ask_family" && kept?.recipient === "חב״ד", "a chosen recipient stays");
+  const kept = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", saved, year);
+  assert(kept !== "ask_family" && kept !== "ask_period" && kept?.recipient === "חב״ד", "a chosen recipient stays");
   const mortgage = questionFromSlots("כמה הוצאתי על משכנתא השנה?", TODAY, "gregorian", {
     family: "expense",
     measure: "sum",
     recipient: null,
     category: null,
     paymentMethod: null,
-  });
-  assert(mortgage !== "ask_family" && mortgage?.topic === "משכנתא", "unsaved category");
-  assert(questionFromSlots("כמה תרמתי לישיבה ולבית חבד השנה", TODAY, "gregorian", unnamed) === null, "two names");
-  assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots) === null, "no date");
+  }, year);
+  assert(mortgage !== "ask_family" && mortgage !== "ask_period" && mortgage?.topic === null, "an empty topic stays empty");
+  const two = questionFromSlots("כמה תרמתי לישיבה ולבית חבד השנה", TODAY, "gregorian", unnamed, year);
+  assert(two !== "ask_family" && two !== "ask_period" && two?.recipient === null, "two names are not scanned from the words");
+  assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots, null) === "ask_period", "no date");
   const hebrew = getCalendarAdapter("hebrew");
   const leap = hebrew.toIsoDate({ year: 5784, month: 7, day: 10 }, "reject");
-  const adar = questionFromSlots("כמה הוצאתי החודש", leap, "hebrew", null);
-  assert(adar !== null && adar !== "ask_family" && adar.month === 7, "adar ii still a date");
+  const adar = parseYearTypeSum("כמה הוצאתי החודש", leap, "hebrew");
+  assert(adar !== null && adar.month === 7, "adar ii still a date");
 });

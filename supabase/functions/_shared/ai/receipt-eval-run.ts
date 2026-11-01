@@ -183,6 +183,7 @@ const summary = {
   amount: rate(sum((score) => score.amountCorrect), sum((score) => score.amountChecked)),
   date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),
   wrongAnchoredAmount: fields.filter((score) => score.wrongAnchoredAmount).length,
+  wrongAnchoredIds: sentences.filter((sentence) => sentence.fields.wrongAnchoredAmount).map((sentence) => sentence.id),
   checkAmounts: sum((score) => score.checkAmounts),
   costPerReceiptUsd: average(sentences.map((sentence) => (
     sentence.copyCostUsd === null && sentence.readCostUsd === null

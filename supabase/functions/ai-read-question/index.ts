@@ -15,6 +15,7 @@ import {
 } from "../_shared/ai/question-slots.ts";
 import { saveQuestionMeasurement } from "./measurement.ts";
 import { readModelText } from "../_shared/ai/receipt-draft.ts";
+import { anchoredQuestionName } from "../_shared/ai/data-question.ts";
 import {
   boundsFromPeriod,
   periodRequestBody,
@@ -145,17 +146,31 @@ Deno.serve(async (req: Request) => {
         return null;
       }
       const raw = readPeriodPayload(readModelText(result.payload));
-      if (!raw) return null;
-      if (raw.kind === "all") return { kind: "all" as const };
+      if (!raw) return { period: null, recipientText: null, topicText: null };
+      const recipientText = raw.recipient_text ?? null;
+      const topicText = raw.topic_text ?? null;
+      if (raw.kind === "all") return { period: { kind: "all" as const }, recipientText, topicText };
       const bounds = boundsFromPeriod(raw, today);
-      return bounds?.from && bounds.to ? { kind: "span" as const, from: bounds.from, to: bounds.to } : null;
+      const period = bounds?.from && bounds.to
+        ? { kind: "span" as const, from: bounds.from, to: bounds.to }
+        : null;
+      return { period, recipientText, topicText };
     } catch {
       logger.error("question period failed");
-      return null;
+      return { period: null, recipientText: null, topicText: null };
     }
   })();
-  const [slotOutcome, period] = await Promise.all([slotsCall, periodCall]);
-  const slots = slotOutcome.slots;
+  const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
+  const period = read.period;
+  let slots = slotOutcome.slots;
+  if (slots && !slots.recipient) {
+    const recipient = anchoredQuestionName(text, read.recipientText, lists.recipients);
+    if (recipient) slots = { ...slots, recipient };
+  }
+  if (slots && !slots.category) {
+    const category = anchoredQuestionName(text, read.topicText, lists.categories);
+    if (category) slots = { ...slots, category };
+  }
   const signals = slotOutcome.signals;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();

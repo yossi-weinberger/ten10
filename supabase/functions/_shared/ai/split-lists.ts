@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
+import { logger } from "../logger.ts";
 import type { SplitRuleRef } from "./split-anchor.ts";
 import type { SplitPromptContext } from "./split-prompt.ts";
 
@@ -42,14 +43,11 @@ function ruleRefs(data: unknown): SplitRuleRef[] {
 
 async function readerRules(admin: SupabaseClient, userId: string): Promise<unknown> {
   const rpc = await admin.rpc("list_ai_reader_rules", { p_user_id: userId });
-  if (!rpc.error) return typeof rpc.data === "string" ? JSON.parse(rpc.data) : rpc.data;
-  const table = await admin.schema("ai").from("user_rules")
-    .select("id, match, action")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .limit(40);
-  if (table.error) throw new Error(rpc.error.message);
-  return table.data;
+  if (rpc.error) {
+    logger.error(`saved rules were not loaded: ${rpc.error.message}`);
+    return [];
+  }
+  return typeof rpc.data === "string" ? JSON.parse(rpc.data) : rpc.data;
 }
 
 /** Categories, recipients, and saved rules for one read. The same lists the text path uses. */

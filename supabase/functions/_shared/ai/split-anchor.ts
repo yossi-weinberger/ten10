@@ -46,6 +46,7 @@ export interface AnchoredSplitItem {
   ruleId: string | null;
   ruleName: string | null;
   recurrence: ResolvedRecurrence | null;
+  unsupportedFrequency: boolean;
 }
 
 export function splitReadContext(today: string, extra: Partial<SplitReadContext> = {}): SplitReadContext {
@@ -199,6 +200,32 @@ function anchoredDate(
   return { date: resolved, checkDate: false };
 }
 
+const USE_LETTERS = "ובלהשכ";
+
+function isLetter(char: string): boolean {
+  return /\p{L}|\p{N}/u.test(char);
+}
+
+/** The rule name is a whole word in the item text, or that word with one prefix letter. */
+export function nameStands(text: string, name: string): boolean {
+  const source = text.replace(/־/g, " ");
+  const word = name.trim();
+  if (!word) return false;
+  let from = 0;
+  while (from < source.length) {
+    const at = source.indexOf(word, from);
+    if (at < 0) return false;
+    const after = source[at + word.length] ?? "";
+    const before = at === 0 ? "" : source[at - 1];
+    const afterOk = after === "" || !isLetter(after);
+    const beforeOk = before === "" || !isLetter(before)
+      || (USE_LETTERS.includes(before) && (at === 1 || !isLetter(source[at - 2] ?? "")));
+    if (afterOk && beforeOk) return true;
+    from = at + word.length;
+  }
+  return false;
+}
+
 function savedRule(rules: readonly SplitRuleRef[], ruleId: string | null): SplitRuleRef | null {
   if (!ruleId) return null;
   const byId = rules.find((entry) => entry.id === ruleId);
@@ -207,9 +234,12 @@ function savedRule(rules: readonly SplitRuleRef[], ruleId: string | null): Split
   return byName.length === 1 ? byName[0] : null;
 }
 
-function sumsTo(values: readonly number[], target: number): boolean {
+/** The largest group of at least two amounts that adds up to the target. */
+function summingMask(values: readonly number[], target: number): number | null {
   const count = values.length;
-  if (count < 2) return false;
+  if (count < 2) return null;
+  let best: number | null = null;
+  let bestParts = 0;
   const limit = 1 << count;
   for (let mask = 1; mask < limit; mask += 1) {
     let parts = 0;
@@ -219,9 +249,12 @@ function sumsTo(values: readonly number[], target: number): boolean {
       parts += 1;
       sum += values[bit];
     }
-    if (parts >= 2 && Math.abs(sum - target) < 0.02) return true;
+    if (parts >= 2 && parts > bestParts && Math.abs(sum - target) < 0.02) {
+      best = mask;
+      bestParts = parts;
+    }
   }
-  return false;
+  return best;
 }
 
 function askedSpecial(type: SplitItemInput["type"]): AnchoredSplitItem["typeQuestion"] {
@@ -253,9 +286,13 @@ export function anchorSplitItems(
       continue;
     }
     const dated = anchoredDate(source, item.date, item.date_text, context.today, context.missingDate);
-    const rule = savedRule(context.rules, item.rule_id);
+    const named = savedRule(context.rules, item.rule_id);
+    const stands = named ? nameStands(item.description, named.name) : false;
+    const rule = named && stands ? named : null;
+    const rejected = Boolean(named && !stands);
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     const special = item.type !== null && SPECIAL_TYPES.has(item.type);
+    const unsupported = item.unsupported_frequency === true;
     kept.push({
       total: item.is_total,
       item: {
@@ -265,14 +302,15 @@ export function anchorSplitItems(
         date: dated.date,
         checkDate: dated.checkDate,
         checkAmount: amount.checkAmount,
-        typeHint: rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
-        typeQuestion: rule ? null : askedSpecial(item.type) ?? item.type_question,
+        typeHint: rejected ? "" : rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
+        typeQuestion: rejected || rule ? null : askedSpecial(item.type) ?? item.type_question,
         requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
         paymentMethod: item.payment_method,
         category,
         ruleId: rule?.id ?? null,
         ruleName: rule?.name ?? null,
-        recurrence: item.recurrence ? resolveRecurrence(item.recurrence, context.today) : null,
+        recurrence: unsupported || !item.recurrence ? null : resolveRecurrence(item.recurrence, context.today),
+        unsupportedFrequency: unsupported,
       },
     });
   }
@@ -280,9 +318,18 @@ export function anchorSplitItems(
   kept.forEach((entry, index) => {
     if (!entry.total || entry.item.amount === null || entry.item.checkAmount) return;
     const others = kept.flatMap((other, otherIndex) => (
-      otherIndex !== index && other.item.amount !== null && !other.item.checkAmount ? [other.item.amount] : []
+      otherIndex !== index && other.item.amount !== null && !other.item.checkAmount
+        ? [{ index: otherIndex, amount: other.item.amount }]
+        : []
     ));
-    if (sumsTo(others, entry.item.amount)) totals.add(index);
+    const mask = summingMask(others.map((other) => other.amount), entry.item.amount);
+    if (mask === null) return;
+    totals.add(index);
+    const everyone = mask === (1 << others.length) - 1;
+    if (everyone) return;
+    others.forEach((other, bit) => {
+      if ((mask & (1 << bit)) === 0) kept[other.index].item.checkAmount = true;
+    });
   });
   return {
     items: kept.filter((_, index) => !totals.has(index)).map((entry) => entry.item),

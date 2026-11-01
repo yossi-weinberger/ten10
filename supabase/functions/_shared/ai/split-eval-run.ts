@@ -228,6 +228,7 @@ const summary = {
     clear,
     amount: rate(sum((score) => score.amountCorrect), sum((score) => score.amountChecked)),
     wrongAnchoredAmount: fields.filter((score) => score.wrongAnchoredAmount).length,
+    wrongAnchoredIds: sentences.filter((sentence) => sentence.fields.wrongAnchoredAmount).map((sentence) => sentence.id),
     type: rate(sum((score) => score.typeCorrect), sum((score) => score.typeChecked)),
     specialTypeUnasked: fields.filter((score) => score.specialTypeUnasked).length,
     date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),

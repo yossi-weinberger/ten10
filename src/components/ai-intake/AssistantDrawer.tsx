@@ -602,17 +602,18 @@ export function AssistantDrawer({
     setRabbiText(null);
     setRabbiTicket(null);
     showDraft(null);
-    const recurringCard = nextIntent === "create_recurring" && several?.items[0]
+    const frequencyBlocked = several?.items.some((item) => item.unsupportedFrequency) === true;
+    const recurringCard = !frequencyBlocked && nextIntent === "create_recurring" && several?.items[0]
       ? recurringCardFromItem(several.items[0], defaultCurrency)
       : null;
     savedRecurring.current = null;
     setRecurring(recurringCard);
     setSplitDrafts(null);
     setSplitDropped(0);
-    setStatus(null);
+    setStatus(frequencyBlocked ? "frequencyUnsupported" : null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
-    if (nextIntent === "add_transaction") {
+    if (!frequencyBlocked && nextIntent === "add_transaction") {
       if (!split || !split.ok || split.route === "unreadable") setStatus("couldNotRead");
       else if (split.route === "list") setStatus("splitList");
       else if (split.items.length > 1) {

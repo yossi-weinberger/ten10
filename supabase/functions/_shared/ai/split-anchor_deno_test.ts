@@ -23,6 +23,7 @@ function item(overrides: Partial<SplitItemInput> = {}): SplitItemInput {
     category: null,
     rule_id: null,
     is_total: false,
+    unsupported_frequency: false,
     ...overrides,
   };
 }
@@ -77,7 +78,7 @@ Deno.test("a future date is marked for review and a saved rule overrides the typ
     date: { kind: "exact", n: null, weekday: null, day: 20, month: 10, year: 2026 },
   })]);
   assert(dated.items[0]?.date === null && dated.items[0]?.checkDate === true, "future date");
-  const ruled = anchor("50 לגן", [item({ type: "expense", rule_id: "rule-1", category: "מזון" })]);
+  const ruled = anchor("50 לגן", [item({ description: "גן", type: "expense", rule_id: "rule-1", category: "מזון" })]);
   assert(ruled.items[0]?.typeHint === "recognized-expense", "rule type");
   assert(ruled.items[0]?.ruleName === "גן", "rule name");
   const named = anchorSplitItems("גן 900", [item({ description: "גן", amount: 900, amount_text: "900", type: "expense", rule_id: "גן" })], splitReadContext(TODAY, {
@@ -143,6 +144,7 @@ Deno.test("a date structure without its words is marked, and a rule clears the s
   })]);
   assert(dated.items[0]?.date === null && dated.items[0]?.checkDate === true, "missing date text");
   const ruled = anchor("50 לגן", [item({
+    description: "גן",
     type: "expense",
     type_question: "exempt-income",
     rule_id: "rule-1",
@@ -224,6 +226,29 @@ Deno.test("digits in the message anchor when the currency word was left out of t
   assert(dated.items[0]?.amount === 80 && dated.items[0]?.checkAmount === false, "80 שקל");
   const missing = anchor("תרמתי לצדקה", [item({ amount: 100, amount_text: null })]);
   assert(missing.items[0]?.amount === null, "a number that was not said is still asked");
+});
+
+Deno.test("a rule id stands only as a whole word in the item text", () => {
+  const applied = anchor("גן 900", [item({ description: "גן", amount: 900, amount_text: "900", rule_id: "rule-1", type: "expense" })]);
+  assert(applied.items[0]?.ruleId === "rule-1" && applied.items[0]?.typeHint === "recognized-expense", "גן");
+  const prefixed = anchor("שילמתי לגן 900", [item({ description: "לגן", amount: 900, amount_text: "900", rule_id: "rule-1" })]);
+  assert(prefixed.items[0]?.ruleId === "rule-1", "one prefix");
+  const shield = anchor("מגן 50", [item({ description: "מגן", amount: 50, amount_text: "50", rule_id: "rule-1", type: "expense" })]);
+  assert(shield.items[0]?.ruleId === null && shield.items[0]?.typeHint === "", "מגן asks the type");
+  const gardener = anchor("גנן 50", [item({ description: "גנן", rule_id: "rule-1" })]);
+  assert(gardener.items[0]?.ruleId === null, "גנן");
+});
+
+Deno.test("items outside a partial total are marked for review", () => {
+  const partial = anchor("10 ו-20 ו-7 יחד 30", [
+    item({ amount: 10, amount_text: "10", description: "א", type: "expense" }),
+    item({ amount: 20, amount_text: "20", description: "ב", type: "expense" }),
+    item({ amount: 7, amount_text: "7", description: "ג", type: "expense" }),
+    item({ amount: 30, amount_text: "30", description: "יחד", type: "expense", is_total: true }),
+  ]);
+  assert(partial.items.map((entry) => entry.amount).join(",") === "10,20,7", "the total row drops");
+  assert(partial.items[2]?.checkAmount === true, "7 is outside the sum");
+  assert(partial.items[0]?.checkAmount === false && partial.items[1]?.checkAmount === false, "the summed items stay");
 });
 
 Deno.test("digit evidence ignores thousand separators", () => {

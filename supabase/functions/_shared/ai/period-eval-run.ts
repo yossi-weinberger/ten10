@@ -57,6 +57,8 @@ const rows: {
   parserFrom: string | null;
   parserTo: string | null;
   model: string;
+  recipientText: string | null;
+  topicText: string | null;
 }[] = [];
 
 for (const item of cases) {
@@ -80,7 +82,8 @@ for (const item of cases) {
     throw new Error(`${item.id} http ${response.status} ${detail.slice(0, 180)}`);
   }
   const model = readModelText(await response.json()).trim();
-  const bounds = boundsFromPeriod(readPeriodPayload(model), today);
+  const read = readPeriodPayload(model);
+  const bounds = boundsFromPeriod(read, today);
   const modelOk = same(bounds, parserFrom, parserTo);
   if (modelOk) modelCorrect += 1;
   if (item.expected && "from" in item.expected) {
@@ -96,6 +99,8 @@ for (const item of cases) {
     parserFrom,
     parserTo,
     model,
+    recipientText: read?.recipient_text ?? null,
+    topicText: read?.topic_text ?? null,
   });
   console.log(JSON.stringify({ id: item.id, modelOk, from: bounds?.from ?? null, to: bounds?.to ?? null }));
 }
