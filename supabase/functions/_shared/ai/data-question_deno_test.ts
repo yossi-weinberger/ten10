@@ -15,6 +15,7 @@ Deno.test("a spoken name is kept only when it appears in the question", () => {
   assert(anchoredQuestionName(question, null, ["בית כנסת"]) === null, "nothing said");
   assert(anchoredQuestionName(question, "ישיבה", ["ישיבה"]) === null, "a name that was not said");
   assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "ישיבה", ["ישיבה", "חב״ד"]) === "ישיבה", "one list hit");
+  assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "לישיבה", ["ישיבה"]) === "ישיבה", "prefix drops");
 });
 
 Deno.test("a donation year question is a sum, not a draft", () => {

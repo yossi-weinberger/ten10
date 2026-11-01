@@ -660,14 +660,18 @@ export function periodLabel(
   return `${day(question.from)}–${day(question.to)}`;
 }
 
+const NAME_PREFIXES = "ולהשכ";
+
 /** The model's name is kept when it appears in the question. One list hit replaces it. */
 export function anchoredQuestionName(
   question: string,
   spoken: string | null,
   names: readonly string[],
 ): string | null {
-  const text = spoken?.trim() ?? "";
-  if (!text || !question.includes(text)) return null;
+  let text = spoken?.trim() ?? "";
+  if (!text) return null;
+  if (text.length > 1 && NAME_PREFIXES.includes(text[0]) && question.includes(text.slice(1))) text = text.slice(1);
+  if (!question.includes(text)) return null;
   const hits = names.filter((name) => name === text || name.toLowerCase() === text.toLowerCase());
   if (hits.length > 1) return null;
   return hits[0] ?? text;
@@ -680,6 +684,7 @@ export function questionFromSlots(
   calendar: QuestionCalendar,
   slots: QuestionSlots | null,
   readerPeriod?: { kind: "all" } | { kind: "span"; from: string; to: string } | null,
+  nameText?: string | null,
 ): YearTypeSum | "ask_family" | "ask_period" | null {
   if (!slots) return null;
   const period = readerPeriod?.kind === "all"
@@ -689,8 +694,9 @@ export function questionFromSlots(
       : "ask_period";
   if (period === "ask_period" || !period) return "ask_period";
   if (!slots.family) return "ask_family";
-  const recipient = slots.family === "donation" ? slots.recipient : null;
-  const topic = slots.family === "donation" ? null : slots.category;
+  const spoken = nameText && nameText.trim() ? nameText.trim() : null;
+  const recipient = slots.family === "donation" ? slots.recipient ?? spoken : null;
+  const topic = slots.family === "donation" ? null : slots.category ?? spoken;
   return {
     type: slots.family,
     measure: slots.measure ?? "sum",

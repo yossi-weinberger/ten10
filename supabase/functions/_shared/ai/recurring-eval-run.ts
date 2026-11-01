@@ -104,6 +104,56 @@ const CASES: RecurringCase[] = [
     frequency: "monthly",
   },
   {
+    id: "he-rosh-short",
+    text: "100 לישיבה בכל ר״ח",
+    amount: 100,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "hebrew",
+    day: 1,
+  },
+  {
+    id: "en-rosh",
+    text: "every Rosh Chodesh 50 to shul",
+    amount: 50,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "hebrew",
+    day: 1,
+  },
+  {
+    id: "he-gmach",
+    text: "36 לגמ״ח בכל ראש חודש",
+    amount: 36,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "hebrew",
+    day: 1,
+  },
+  {
+    id: "en-kollel-rosh",
+    text: "Pay 20 dollars to the kollel every Rosh Chodesh",
+    amount: 20,
+    currency: "USD",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "hebrew",
+    day: 1,
+  },
+  {
+    id: "he-evening",
+    text: "80 לכולל ערב בכל ר״ח",
+    amount: 80,
+    currency: "ILS",
+    type: "donation",
+    frequency: "monthly",
+    calendar: "hebrew",
+    day: 1,
+  },
+  {
     id: "en-non",
     text: "This is a non-recurring expense of 15 dollars for coffee",
     amount: 15,
@@ -137,7 +187,9 @@ async function ask(key: string, text: string): Promise<unknown> {
 }
 
 const key = readKey(Deno.args[0] ?? "");
+const outPath = Deno.args[1] ?? "";
 let passed = 0;
+const rows: unknown[] = [];
 for (const item of CASES) {
   const first = await ask(key, item.text);
   const payload = parseSplitPayload(readModelText(first)) ? first : await ask(key, item.text).catch(() => first);
@@ -162,7 +214,7 @@ for (const item of CASES) {
     ];
   const ok = checks.every(Boolean);
   if (ok) passed += 1;
-  console.log(JSON.stringify({
+  const rowOut = {
     id: item.id,
     ok,
     amount: row?.amount ?? null,
@@ -173,6 +225,11 @@ for (const item of CASES) {
     day: recurrence?.dayOfMonth ?? null,
     count: recurrence?.totalOccurrences ?? null,
     start: recurrence?.startDate ?? null,
-  }));
+  };
+  rows.push(rowOut);
+  console.log(JSON.stringify(rowOut));
 }
 console.log(`recurring ${passed}/${CASES.length}`);
+if (outPath) {
+  await Deno.writeTextFile(outPath, JSON.stringify({ passed, cases: CASES.length, rows }, null, 2) + "\n");
+}

@@ -50,7 +50,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
       ? [
         "This text was copied from one image.",
         "Each receipt is one transaction. The amount is the total that was paid, not a line on the receipt, not the cash handed over, and not the change.",
-        "Several receipts in the image are several transactions.",
+        "Several receipts only when each one has its own business name and its own total. Otherwise one item, and the amount is the final amount that was paid.",
         "A bank or card statement sets more_than_five and does not list the rows.",
         "10/15/2026 on a US receipt, or Oct 15, 2026, is exact with day 15, month 10, year 2026.",
       ]
@@ -69,7 +69,8 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
-    "ראש חודש is the Hebrew calendar. כולל, when it is the payee, is a donation.",
+    "A day named on the Hebrew calendar, including the first day of a Hebrew month, uses calendar hebrew.",
+    "A payee that is a place of Torah study is a donation.",
     "unsupported_frequency is true only when the user asked for a repeating payment whose frequency is not daily, weekly, monthly, or yearly. recurrence is then null. Do not record that request as monthly. Otherwise unsupported_frequency is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
     "currency is ILS, USD, or EUR, or null when no currency was named.",

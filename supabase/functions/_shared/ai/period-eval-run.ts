@@ -57,8 +57,7 @@ const rows: {
   parserFrom: string | null;
   parserTo: string | null;
   model: string;
-  recipientText: string | null;
-  topicText: string | null;
+  nameText: string | null;
 }[] = [];
 
 for (const item of cases) {
@@ -99,8 +98,7 @@ for (const item of cases) {
     parserFrom,
     parserTo,
     model,
-    recipientText: read?.recipient_text ?? null,
-    topicText: read?.topic_text ?? null,
+    nameText: read?.name_text ?? null,
   });
   console.log(JSON.stringify({ id: item.id, modelOk, from: bounds?.from ?? null, to: bounds?.to ?? null }));
 }

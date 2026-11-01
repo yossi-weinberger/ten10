@@ -143,33 +143,32 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`question period failed: ${result.status ?? result.errorCode}`);
-        return null;
+        return { period: null, nameText: null as string | null };
       }
       const raw = readPeriodPayload(readModelText(result.payload));
-      if (!raw) return { period: null, recipientText: null, topicText: null };
-      const recipientText = raw.recipient_text ?? null;
-      const topicText = raw.topic_text ?? null;
-      if (raw.kind === "all") return { period: { kind: "all" as const }, recipientText, topicText };
+      if (!raw) return { period: null, nameText: null as string | null };
+      const nameText = raw.name_text ?? null;
+      if (raw.kind === "all") return { period: { kind: "all" as const }, nameText };
       const bounds = boundsFromPeriod(raw, today);
       const period = bounds?.from && bounds.to
         ? { kind: "span" as const, from: bounds.from, to: bounds.to }
         : null;
-      return { period, recipientText, topicText };
+      return { period, nameText };
     } catch {
       logger.error("question period failed");
-      return { period: null, recipientText: null, topicText: null };
+      return { period: null, nameText: null as string | null };
     }
   })();
   const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
   const period = read.period;
   let slots = slotOutcome.slots;
-  if (slots && !slots.recipient) {
-    const recipient = anchoredQuestionName(text, read.recipientText, lists.recipients);
-    if (recipient) slots = { ...slots, recipient };
-  }
-  if (slots && !slots.category) {
-    const category = anchoredQuestionName(text, read.topicText, lists.categories);
-    if (category) slots = { ...slots, category };
+  const bareName = anchoredQuestionName(text, read.nameText, []);
+  const nameText = slots?.family
+    ? anchoredQuestionName(text, bareName, slots.family === "donation" ? lists.recipients : lists.categories)
+    : bareName;
+  if (slots && nameText && slots.family === "donation" && !slots.recipient) slots = { ...slots, recipient: nameText };
+  if (slots && nameText && slots.family && slots.family !== "donation" && !slots.category) {
+    slots = { ...slots, category: nameText };
   }
   const signals = slotOutcome.signals;
 
@@ -184,6 +183,6 @@ Deno.serve(async (req: Request) => {
     );
     if (!measurementId) logger.error("slot confidence was not saved");
   }
-  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period }, 200);
-  return json(origin, { ...slots, measurement_id: measurementId, period }, 200);
+  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period, name_text: nameText }, 200);
+  return json(origin, { ...slots, measurement_id: measurementId, period, name_text: nameText }, 200);
 });
