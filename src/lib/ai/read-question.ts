@@ -23,6 +23,7 @@ function asName(value: unknown): string | null {
 export type ReadQuestionSlotsResult = QuestionSlots & {
   measurementId: string | null;
   period: { kind: "all" } | { kind: "span"; from: string; to: string } | null;
+  nameText: string | null;
 };
 
 /** Null when Jev did not answer. The caller then uses the word parser. */
@@ -44,6 +45,7 @@ export async function readQuestionSlots(
     paymentMethod?: unknown;
     measurement_id?: unknown;
     period?: unknown;
+    name_text?: unknown;
   };
   if (record.reason === "unavailable" || !("family" in record)) return null;
   const payment = typeof record.paymentMethod === "string" ? record.paymentMethod : null;
@@ -63,5 +65,6 @@ export async function readQuestionSlots(
     paymentMethod: payment && (PAYMENT_METHOD_KEYS as readonly string[]).includes(payment) ? payment : null,
     measurementId: typeof record.measurement_id === "string" ? record.measurement_id : null,
     period,
+    nameText: asName(record.name_text),
   };
 }

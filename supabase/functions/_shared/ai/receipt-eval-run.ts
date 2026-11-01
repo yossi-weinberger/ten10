@@ -1,4 +1,5 @@
-import { readModelText, receiptFilePart, RECEIPT_COPY_PROMPT } from "./receipt-draft.ts";
+import { readModelText, receiptDraftFromItems, receiptFilePart, RECEIPT_COPY_PROMPT } from "./receipt-draft.ts";
+import { splitReadContext } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { readModelUsage } from "./model-call.ts";
 import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
@@ -98,6 +99,8 @@ const key = readKey();
 const sentences: {
   id: string;
   kindOk: boolean;
+  severalMistake: boolean;
+  wrongKeptAmount: boolean;
   fields: SplitFieldScore;
   copy: string | null;
   read: string | null;
@@ -140,14 +143,35 @@ for (const item of cases) {
     }
     const read = readPayload ? readModelText(readPayload) : "";
     const fields = scoreSplitFields(copied, read, item.today, item.expected);
-    const actual = readSplitResponse(copied, read, item.today);
+    const actual = readSplitResponse(copied, read, splitReadContext(item.today, { missingDate: "check" }));
+    const draft = receiptDraftFromItems(
+      actual.route === "list" ? "list" : actual.route,
+      actual.route === "several" ? actual.items.map((row) => ({
+        description: row.description,
+        amount: row.amount,
+        date: row.date,
+        currency: row.currency,
+        type: row.typeHint,
+        ruleName: row.ruleName,
+      })) : [],
+    );
+    const expectedAmount = item.expected.items.length === 1 ? item.expected.items[0]?.amount ?? null : null;
+    const keptAmount = draft?.kind === "receipt" ? draft.amount ?? null : null;
+    const severalMistake = item.kind === "receipt" && draft?.kind === "several_receipts";
+    const wrongKeptAmount = item.kind === "receipt"
+      && draft?.kind === "receipt"
+      && expectedAmount !== null
+      && keptAmount !== expectedAmount;
     const kindOk = item.kind === "statement"
-      ? actual.route === "list"
-      : actual.route === "several"
-        && actual.items.length === (item.kind === "receipt" ? 1 : item.expected.items.length);
+      ? draft?.kind === "statement"
+      : item.kind === "several"
+        ? draft?.kind === "several_receipts"
+        : draft?.kind === "receipt";
     sentences.push({
       id: item.id,
       kindOk,
+      severalMistake,
+      wrongKeptAmount,
       fields,
       copy: shorten(copied),
       read: shorten(read),
@@ -161,6 +185,8 @@ for (const item of cases) {
     sentences.push({
       id: item.id,
       kindOk: false,
+      severalMistake: false,
+      wrongKeptAmount: false,
       fields: scoreSplitFields("", "", item.today, item.expected),
       copy: null,
       read: error instanceof Error ? error.message : "failed",
@@ -182,7 +208,12 @@ const summary = {
   kind: rate(sentences.filter((sentence) => sentence.kindOk).length, sentences.length),
   amount: rate(sum((score) => score.amountCorrect), sum((score) => score.amountChecked)),
   date: rate(sum((score) => score.dateCorrect), sum((score) => score.dateChecked)),
+  wrongKeptAmount: sentences.filter((sentence) => sentence.wrongKeptAmount).length,
+  wrongKeptIds: sentences.filter((sentence) => sentence.wrongKeptAmount).map((sentence) => sentence.id),
+  severalMistake: sentences.filter((sentence) => sentence.severalMistake).length,
+  severalMistakeIds: sentences.filter((sentence) => sentence.severalMistake).map((sentence) => sentence.id),
   wrongAnchoredAmount: fields.filter((score) => score.wrongAnchoredAmount).length,
+  wrongAnchoredIds: sentences.filter((sentence) => sentence.fields.wrongAnchoredAmount).map((sentence) => sentence.id),
   checkAmounts: sum((score) => score.checkAmounts),
   costPerReceiptUsd: average(sentences.map((sentence) => (
     sentence.copyCostUsd === null && sentence.readCostUsd === null

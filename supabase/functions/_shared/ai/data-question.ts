@@ -660,39 +660,42 @@ export function periodLabel(
   return `${day(question.from)}–${day(question.to)}`;
 }
 
-/** Jev slots plus the date window. A missing answer uses the word parser unchanged. */
+/** The model's name is kept when it appears in the question. One list hit replaces it. */
+export function anchoredQuestionName(
+  question: string,
+  spoken: string | null,
+  names: readonly string[],
+): string | null {
+  let text = spoken?.trim() ?? "";
+  if (!text) return null;
+  if (text.toLowerCase().startsWith("to ") && question.toLowerCase().includes(text.slice(3).toLowerCase())) text = text.slice(3).trim();
+  if (text.startsWith("ל") && text.length > 1 && question.includes(text.slice(1))) text = text.slice(1);
+  if (!question.includes(text)) return null;
+  const hits = names.filter((name) => name === text || name.toLowerCase() === text.toLowerCase());
+  if (hits.length > 1) return null;
+  return hits[0] ?? text;
+}
+
+/** Jev slots plus the reader's period. Names come from the slots, not from scanning the words. */
 export function questionFromSlots(
-  text: string,
+  _text: string,
   today: string,
   calendar: QuestionCalendar,
   slots: QuestionSlots | null,
   readerPeriod?: { kind: "all" } | { kind: "span"; from: string; to: string } | null,
+  nameText?: string | null,
 ): YearTypeSum | "ask_family" | "ask_period" | null {
-  if (!slots) return parseYearTypeSum(text, today, calendar);
-  const normalized = normalize(text);
-  const period = readerPeriod === undefined
-    ? parseQuestionPeriod(normalized, today, calendar)
-    : readerPeriod?.kind === "all"
-      ? boundsAsQuestionPeriod("2000-01-01", today, calendar)
-      : readerPeriod?.kind === "span"
-        ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
-        : "ask_period";
-  if (period === "ask_period") return "ask_period";
-  if (!period) return "ask_period";
+  if (!slots) return null;
+  const period = readerPeriod?.kind === "all"
+    ? boundsAsQuestionPeriod("2000-01-01", today, calendar)
+    : readerPeriod?.kind === "span"
+      ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
+      : "ask_period";
+  if (period === "ask_period" || !period) return "ask_period";
   if (!slots.family) return "ask_family";
-  let recipient: string | null = null;
-  if (slots.family === "donation") {
-    if (slots.recipient) recipient = slots.recipient;
-    else {
-      const spoken = recipientPhrase(normalized);
-      if (spoken === "ambiguous") return null;
-      recipient = spoken;
-    }
-  }
-  let topic: string | null = null;
-  if (slots.family !== "donation") {
-    topic = slots.category ?? topicPhrase(normalized);
-  }
+  const spoken = nameText && nameText.trim() ? nameText.trim() : null;
+  const recipient = slots.family === "donation" ? slots.recipient ?? spoken : null;
+  const topic = slots.family === "donation" ? null : slots.category ?? spoken;
   return {
     type: slots.family,
     measure: slots.measure ?? "sum",

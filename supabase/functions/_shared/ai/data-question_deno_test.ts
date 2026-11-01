@@ -1,13 +1,22 @@
 import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
-import { parseYearTypeSum, periodLabel } from "./data-question.ts";
+import { anchoredQuestionName, parseYearTypeSum, periodLabel } from "./data-question.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
 const TODAY = "2026-10-19";
+
+Deno.test("a spoken name is kept only when it appears in the question", () => {
+  const question = "תרמתי 50 לבית כנסת וכמה תרמתי השנה?";
+  assert(anchoredQuestionName(question, "בית כנסת", []) === "בית כנסת", "the short name appears");
+  assert(anchoredQuestionName(question, null, ["בית כנסת"]) === null, "nothing said");
+  assert(anchoredQuestionName(question, "ישיבה", ["ישיבה"]) === null, "a name that was not said");
+  assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "ישיבה", ["ישיבה", "חב״ד"]) === "ישיבה", "one list hit");
+  assert(anchoredQuestionName("כמה תרמתי לישיבה השנה?", "לישיבה", ["ישיבה"]) === "ישיבה", "prefix drops");
+});
 
 Deno.test("a donation year question is a sum, not a draft", () => {
   const donation = parseYearTypeSum("כמה תרמתי ב-2025?", TODAY);

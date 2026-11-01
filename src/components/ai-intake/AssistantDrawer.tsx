@@ -158,6 +158,8 @@ export function AssistantDrawer({
     | null
   >(null);
   const [slotHold, setSlotHold] = useState<QuestionSlots | null>(null);
+  const periodHold = useRef<{ kind: "all" } | { kind: "span"; from: string; to: string } | null>(null);
+  const nameHold = useRef<string | null>(null);
   const [askedQuestion, setAskedQuestion] = useState<YearTypeSum | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [duplicateActionFailed, setDuplicateActionFailed] = useState(false);
@@ -602,17 +604,18 @@ export function AssistantDrawer({
     setRabbiText(null);
     setRabbiTicket(null);
     showDraft(null);
-    const recurringCard = nextIntent === "create_recurring" && several?.items[0]
+    const frequencyBlocked = several?.items.some((item) => item.unsupportedFrequency) === true;
+    const recurringCard = !frequencyBlocked && nextIntent === "create_recurring" && several?.items[0]
       ? recurringCardFromItem(several.items[0], defaultCurrency)
       : null;
     savedRecurring.current = null;
     setRecurring(recurringCard);
     setSplitDrafts(null);
     setSplitDropped(0);
-    setStatus(null);
+    setStatus(frequencyBlocked ? "frequencyUnsupported" : null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
-    if (nextIntent === "add_transaction") {
+    if (!frequencyBlocked && nextIntent === "add_transaction") {
       if (!split || !split.ok || split.route === "unreadable") setStatus("couldNotRead");
       else if (split.route === "list") setStatus("splitList");
       else if (split.items.length > 1) {
@@ -824,6 +827,10 @@ export function AssistantDrawer({
         calendar: questionCalendar,
         today: todayIso(),
       });
+      if (read) {
+        periodHold.current = read.period;
+        nameHold.current = read.nameText;
+      }
       const base = family && slotHold ? slotHold : read;
       const slots = family
         ? {
@@ -839,7 +846,14 @@ export function AssistantDrawer({
         : slots;
       if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
-      const composed = questionFromSlots(source, todayIso(), questionCalendar, asked, read?.period ?? null);
+      const composed = questionFromSlots(
+        source,
+        todayIso(),
+        questionCalendar,
+        asked,
+        read?.period ?? periodHold.current,
+        read?.nameText ?? nameHold.current,
+      );
       if (composed === "ask_period") {
         setDataReply({ status: "period_missing" });
         return;

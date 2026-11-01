@@ -477,7 +477,15 @@ describe("AssistantDrawer characterization", () => {
 
   it("answers a data question from SQL totals", async () => {
     confident("ask_data");
-    ai.readQuestionSlots.mockResolvedValue(null);
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "donation",
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: null,
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
+    });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
     ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
     const user = setup();
@@ -494,6 +502,7 @@ describe("AssistantDrawer characterization", () => {
       category: null,
       paymentMethod: null,
       measurementId: "m-1",
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
     });
     const user = setup();
     await send(user, "כמה ב-2025?");
@@ -511,6 +520,7 @@ describe("AssistantDrawer characterization", () => {
       category: null,
       paymentMethod: null,
       measurementId: "m-1",
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
     });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
     ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
@@ -744,6 +754,7 @@ describe("AssistantDrawer characterization", () => {
       recipient: null,
       category: "food",
       paymentMethod: null,
+      period: { kind: "span", from: "2026-11-01", to: "2026-11-30" },
     });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
     ai.sumYearType.mockResolvedValue({ ok: true, total: 40, count: 1, currency: "ILS" });
@@ -882,5 +893,39 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByRole("button", { name: "aiIntake.ruleApprove" })).toBeInTheDocument();
     expect(screen.getByText("גן")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("900");
+  });
+
+  it("names the frequencies when the standing order is not one of them", async () => {
+    confident("create_recurring");
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "gym",
+        amount: 40,
+        currency: "USD",
+        date: null,
+        checkDate: false,
+        checkAmount: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+        unsupportedFrequency: true,
+      }],
+    });
+    const user = setup();
+    await send(user, "Pay 40 dollars bimonthly for the gym");
+    expect(await screen.findByText("aiIntake.frequencyUnsupported")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.save" })).not.toBeInTheDocument();
   });
 });

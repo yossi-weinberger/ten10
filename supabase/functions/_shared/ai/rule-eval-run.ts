@@ -1,6 +1,7 @@
 import { readModelText } from "./receipt-draft.ts";
+import { splitReadContext } from "./split-anchor.ts";
 import { splitPrompt, splitRequestBody, SPLIT_RESPONSES_URL, type SplitPromptContext } from "./split-prompt.ts";
-import { parseSplitPayload } from "./split-response.ts";
+import { readSplitResponse } from "./split-response.ts";
 
 /** Args: env file, results json path. Eight rule sentences, separate from the 264. */
 
@@ -28,10 +29,12 @@ interface Fixture {
   cases: RuleCase[];
 }
 
-function ruleIds(text: string): string[] {
-  const parsed = parseSplitPayload(text);
-  if (!parsed) return [];
-  return parsed.items.flatMap((item) => item.rule_id ? [item.rule_id] : []);
+function ruleIds(text: string, source: string): string[] {
+  const read = readSplitResponse(source, text, splitReadContext(TODAY, {
+    rules: [{ id: fixture.rule.id, name: fixture.rule.name, type: "recognized-expense" }],
+  }));
+  if (read.route !== "several") return [];
+  return read.items.flatMap((item) => item.ruleId ? [item.ruleId] : []);
 }
 
 function passed(expect: string | null, ids: string[]): boolean {
@@ -63,7 +66,7 @@ for (const item of fixture.cases) {
   }
   const payload = await response.json();
   const model = readModelText(payload).trim();
-  const ids = ruleIds(model);
+  const ids = ruleIds(model, item.text);
   const ok = passed(item.expect, ids);
   rows.push({ id: item.id, expect: item.expect, ruleIds: ids, pass: ok, model });
   console.log(JSON.stringify({ id: item.id, expect: item.expect, ruleIds: ids, pass: ok }));

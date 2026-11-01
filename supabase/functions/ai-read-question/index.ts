@@ -15,7 +15,9 @@ import {
 } from "../_shared/ai/question-slots.ts";
 import { saveQuestionMeasurement } from "./measurement.ts";
 import { readModelText } from "../_shared/ai/receipt-draft.ts";
+import { anchoredQuestionName } from "../_shared/ai/data-question.ts";
 import {
+  ambiguousMaaserYear,
   boundsFromPeriod,
   periodRequestBody,
   readPeriodPayload,
@@ -142,20 +144,34 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`question period failed: ${result.status ?? result.errorCode}`);
-        return null;
+        return { period: null, nameText: null as string | null };
       }
       const raw = readPeriodPayload(readModelText(result.payload));
-      if (!raw) return null;
-      if (raw.kind === "all") return { kind: "all" as const };
+      if (!raw) return { period: null, nameText: null as string | null };
+      const nameText = raw.name_text ?? null;
+      if (ambiguousMaaserYear(text)) return { period: null, nameText };
+      if (raw.kind === "all") return { period: { kind: "all" as const }, nameText };
       const bounds = boundsFromPeriod(raw, today);
-      return bounds?.from && bounds.to ? { kind: "span" as const, from: bounds.from, to: bounds.to } : null;
+      const period = bounds?.from && bounds.to
+        ? { kind: "span" as const, from: bounds.from, to: bounds.to }
+        : null;
+      return { period, nameText };
     } catch {
       logger.error("question period failed");
-      return null;
+      return { period: null, nameText: null as string | null };
     }
   })();
-  const [slotOutcome, period] = await Promise.all([slotsCall, periodCall]);
-  const slots = slotOutcome.slots;
+  const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
+  const period = read.period;
+  let slots = slotOutcome.slots;
+  const bareName = anchoredQuestionName(text, read.nameText, []);
+  const nameText = slots?.family
+    ? anchoredQuestionName(text, bareName, slots.family === "donation" ? lists.recipients : lists.categories)
+    : bareName;
+  if (slots && nameText && slots.family === "donation" && !slots.recipient) slots = { ...slots, recipient: nameText };
+  if (slots && nameText && slots.family && slots.family !== "donation" && !slots.category) {
+    slots = { ...slots, category: nameText };
+  }
   const signals = slotOutcome.signals;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
@@ -169,6 +185,6 @@ Deno.serve(async (req: Request) => {
     );
     if (!measurementId) logger.error("slot confidence was not saved");
   }
-  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period }, 200);
-  return json(origin, { ...slots, measurement_id: measurementId, period }, 200);
+  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period, name_text: nameText }, 200);
+  return json(origin, { ...slots, measurement_id: measurementId, period, name_text: nameText }, 200);
 });

@@ -47,6 +47,7 @@ export const STATUS_MESSAGES = {
   voiceUnheard: { key: "aiIntake.voiceUnheard", tone: "error" },
   dataUnsupported: { key: "aiIntake.dataUnsupported", tone: "info" },
   askPeriod: { key: "aiIntake.askPeriod", tone: "info" },
+  frequencyUnsupported: { key: "aiIntake.frequencyUnsupported", tone: "info" },
   dataMixed: { key: "aiIntake.dataMixed", tone: "info" },
   dataFailed: { key: "aiIntake.dataFailed", tone: "error" },
   duplicateScanFailed: { key: "aiIntake.duplicateScanFailed", tone: "error" },

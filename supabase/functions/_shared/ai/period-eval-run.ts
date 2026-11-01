@@ -1,6 +1,6 @@
 import { parseQuestionPeriod } from "./data-question.ts";
 import { readModelText } from "./receipt-draft.ts";
-import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
+import { ambiguousMaaserYear, boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
 import { SPLIT_MODEL } from "./split-prompt.ts";
 
 /** Args: env file, results json path, optional fixture path. Period bounds against the parser. */
@@ -57,6 +57,7 @@ const rows: {
   parserFrom: string | null;
   parserTo: string | null;
   model: string;
+  nameText: string | null;
 }[] = [];
 
 for (const item of cases) {
@@ -80,7 +81,8 @@ for (const item of cases) {
     throw new Error(`${item.id} http ${response.status} ${detail.slice(0, 180)}`);
   }
   const model = readModelText(await response.json()).trim();
-  const bounds = boundsFromPeriod(readPeriodPayload(model), today);
+  const read = readPeriodPayload(model);
+  const bounds = ambiguousMaaserYear(item.text) ? null : boundsFromPeriod(read, today);
   const modelOk = same(bounds, parserFrom, parserTo);
   if (modelOk) modelCorrect += 1;
   if (item.expected && "from" in item.expected) {
@@ -96,6 +98,7 @@ for (const item of cases) {
     parserFrom,
     parserTo,
     model,
+    nameText: read?.name_text ?? null,
   });
   console.log(JSON.stringify({ id: item.id, modelOk, from: bounds?.from ?? null, to: bounds?.to ?? null }));
 }

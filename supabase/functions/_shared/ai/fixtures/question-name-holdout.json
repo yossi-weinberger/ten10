@@ -1,0 +1,770 @@
+{
+  "cases": 61,
+  "recipientCorrect": 56,
+  "categoryCorrect": 58,
+  "rows": [
+    {
+      "id": "slot-hold-he-001",
+      "family": "donation",
+      "nameText": "כולל בוקר",
+      "period": null,
+      "recipient": "כולל בוקר",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-002",
+      "family": "donation",
+      "nameText": "כולל אברכים",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "כולל אברכים",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-003",
+      "family": "donation",
+      "nameText": "כולל",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2026-10-11"
+      },
+      "recipient": "כולל",
+      "category": null,
+      "recipientOk": false,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-004",
+      "family": "donation",
+      "nameText": "ישיבה קטנה",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "ישיבה קטנה",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-005",
+      "family": "donation",
+      "nameText": "נחלת",
+      "period": null,
+      "recipient": "ישיבת נחלת",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-006",
+      "family": "donation",
+      "nameText": "ישיבה",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "ישיבה",
+      "category": null,
+      "recipientOk": false,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-007",
+      "family": "donation",
+      "nameText": "אור שמח",
+      "period": {
+        "from": "2025-01-01",
+        "to": "2025-12-31"
+      },
+      "recipient": "Ohr Somayach",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-008",
+      "family": "donation",
+      "nameText": "בית חב״ד",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "בית חב״ד",
+      "category": null,
+      "recipientOk": false,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-009",
+      "family": "donation",
+      "nameText": "גמ״ח תרופות",
+      "period": {
+        "from": "2026-05-09",
+        "to": "2026-11-01"
+      },
+      "recipient": "גמ״ח תרופות",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-010",
+      "family": null,
+      "nameText": "גמ״ח",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-011",
+      "family": "donation",
+      "nameText": "עניי העיר",
+      "period": null,
+      "recipient": "עניי העיר",
+      "category": null,
+      "recipientOk": false,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-012",
+      "family": "donation",
+      "nameText": "עזר מציון",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "עזר מציון",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-013",
+      "family": "donation",
+      "nameText": null,
+      "period": {
+        "from": "2026-10-03",
+        "to": "2026-11-01"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-014",
+      "family": "donation",
+      "nameText": null,
+      "period": null,
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-015",
+      "family": null,
+      "nameText": null,
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-016",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2026-10-11"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-017",
+      "family": "expense",
+      "nameText": null,
+      "period": null,
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-018",
+      "family": null,
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-019",
+      "family": null,
+      "nameText": null,
+      "period": {
+        "from": "2026-10-12",
+        "to": "2026-11-10"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-020",
+      "family": null,
+      "nameText": "פייפאל",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-021",
+      "family": "expense",
+      "nameText": "הצהרון",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "צהרון",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-022",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-10-12",
+        "to": "2026-11-10"
+      },
+      "recipient": null,
+      "category": "food",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-023",
+      "family": "expense",
+      "nameText": "חוג",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "חוגים",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-024",
+      "family": "expense",
+      "nameText": "חוגים",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": "חוגים",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-025",
+      "family": "expense",
+      "nameText": "ביטוח",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "ביטוח",
+      "recipientOk": true,
+      "categoryOk": false
+    },
+    {
+      "id": "slot-hold-he-026",
+      "family": "expense",
+      "nameText": null,
+      "period": null,
+      "recipient": null,
+      "category": "ביטוח רכב",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-027",
+      "family": "expense",
+      "nameText": "תרופות",
+      "period": null,
+      "recipient": null,
+      "category": "תרופות",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-028",
+      "family": "expense",
+      "nameText": "בריאות",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "healthcare",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-029",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "מנוי לבריכה",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-030",
+      "family": "expense",
+      "nameText": "בריכה",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "בריכה",
+      "recipientOk": true,
+      "categoryOk": false
+    },
+    {
+      "id": "slot-hold-he-031",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2026-10-11"
+      },
+      "recipient": null,
+      "category": "food",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-032",
+      "family": "donation",
+      "nameText": null,
+      "period": null,
+      "recipient": "גמ״ח חתונות",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-033",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-034",
+      "family": "expense",
+      "nameText": "פייבוקס",
+      "period": null,
+      "recipient": null,
+      "category": "shopping",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-035",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-10-03",
+        "to": "2026-11-01"
+      },
+      "recipient": null,
+      "category": "transportation",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-036",
+      "family": "income",
+      "nameText": null,
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "salary",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-037",
+      "family": "income",
+      "nameText": "freelance work",
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-11-01"
+      },
+      "recipient": null,
+      "category": "freelance",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-038",
+      "family": "income",
+      "nameText": "salary",
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-12-31"
+      },
+      "recipient": null,
+      "category": "salary",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-039",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2024-01-01",
+        "to": "2024-12-31"
+      },
+      "recipient": null,
+      "category": "business",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-040",
+      "family": "income",
+      "nameText": null,
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": "investment",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-041",
+      "family": null,
+      "nameText": null,
+      "period": null,
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-042",
+      "family": "expense",
+      "nameText": "PayPal",
+      "period": {
+        "from": "2026-10-01",
+        "to": "2026-11-01"
+      },
+      "recipient": null,
+      "category": "PayPal",
+      "recipientOk": true,
+      "categoryOk": false
+    },
+    {
+      "id": "slot-hold-en-043",
+      "family": "donation",
+      "nameText": "Ohr Sameach",
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-12-31"
+      },
+      "recipient": "Ohr Somayach",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-044",
+      "family": "donation",
+      "nameText": "Beit Chabad Raanana",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-11-01"
+      },
+      "recipient": "בית חב״ד רעננה",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-045",
+      "family": "donation",
+      "nameText": "kollel",
+      "period": {
+        "from": "2026-10-01",
+        "to": "2026-10-31"
+      },
+      "recipient": "kollel",
+      "category": null,
+      "recipientOk": false,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-046",
+      "family": "donation",
+      "nameText": "Keren Halvaot",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": "קרן הלוואות",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-047",
+      "family": "expense",
+      "nameText": "education",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": "education",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-048",
+      "family": "expense",
+      "nameText": "צהרון",
+      "period": {
+        "from": "2026-11-01",
+        "to": "2026-11-30"
+      },
+      "recipient": null,
+      "category": "צהרון",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-049",
+      "family": "expense",
+      "nameText": "pool",
+      "period": {
+        "from": "2026-06-01",
+        "to": "2026-08-31"
+      },
+      "recipient": null,
+      "category": "מנוי לבריכה",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-050",
+      "family": "expense",
+      "nameText": "healthcare",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": "healthcare",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-051",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-10-01",
+        "to": "2026-10-31"
+      },
+      "recipient": null,
+      "category": "housing",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-052",
+      "family": "donation",
+      "nameText": "Ezras Mizion",
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-12-31"
+      },
+      "recipient": "עזר מציון",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-053",
+      "family": "expense",
+      "nameText": null,
+      "period": {
+        "from": "2026-08-02",
+        "to": "2026-11-01"
+      },
+      "recipient": null,
+      "category": "תרופות",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-054",
+      "family": "donation",
+      "nameText": "תלמוד תורה",
+      "period": {
+        "from": "2025-11-02",
+        "to": "2026-11-01"
+      },
+      "recipient": "תלמוד תורה",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-055",
+      "family": "donation",
+      "nameText": "כולל אברכים",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": "כולל אברכים",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-056",
+      "family": "donation",
+      "nameText": "ישיבת נחלת",
+      "period": {
+        "from": "2026-10-01",
+        "to": "2026-10-31"
+      },
+      "recipient": "ישיבת נחלת",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-057",
+      "family": "expense",
+      "nameText": "מנוי לבריכה",
+      "period": {
+        "from": "2026-09-12",
+        "to": "2027-10-01"
+      },
+      "recipient": null,
+      "category": "מנוי לבריכה",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-058",
+      "family": "donation",
+      "nameText": "גמ״ח חתונות",
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-12-31"
+      },
+      "recipient": "גמ״ח חתונות",
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-he-059",
+      "family": "expense",
+      "nameText": "חוגים",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "recipient": null,
+      "category": "חוגים",
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "slot-hold-en-060",
+      "family": null,
+      "nameText": null,
+      "period": {
+        "from": "2026-10-01",
+        "to": "2026-10-31"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    },
+    {
+      "id": "mixed-donation",
+      "family": "donation",
+      "nameText": null,
+      "period": {
+        "from": "2026-01-01",
+        "to": "2026-12-31"
+      },
+      "recipient": null,
+      "category": null,
+      "recipientOk": true,
+      "categoryOk": true
+    }
+  ]
+}
