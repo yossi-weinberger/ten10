@@ -1,16 +1,16 @@
 {
   "summary": {
-    "turns": 124,
-    "conversations": 55,
+    "turns": 126,
+    "conversations": 56,
     "turn_correct": 57,
-    "turn_correct_rate": 0.4596774193548387,
+    "turn_correct_rate": 0.4523809523809524,
     "wrong_save": 0,
     "recurring_as_one_time": 0,
-    "dead_end": 20,
-    "unnecessary_question": 42,
-    "unnecessary_question_rate": 0.3387096774193548,
-    "costUsd": 0.108848,
-    "elapsedMs": 253705,
+    "dead_end": 18,
+    "unnecessary_question": 46,
+    "unnecessary_question_rate": 0.36507936507936506,
+    "costUsd": 0.110623,
+    "elapsedMs": 256197,
     "runs": 1
   },
   "rows": [
@@ -58,11 +58,11 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.91,
+            "confidence": 0.88,
             "probabilities": {
-              "one": 0.94,
-              "several": 0.03,
-              "list": 0.03
+              "one": 0.92,
+              "several": 0.04,
+              "list": 0.04
             }
           },
           "halacha_page": {
@@ -140,15 +140,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.99,
+        "confidence": 1,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.99,
+            "confidence": 1,
             "probabilities": {
-              "add_transaction": 0.99,
+              "add_transaction": 1,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -156,7 +156,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.01
+              "out_of_scope": 0
             }
           },
           "count": {
@@ -172,19 +172,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.92,
+            "confidence": 0.9,
             "probabilities": {
-              "expenses": 0.01,
+              "expenses": 0.02,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.04,
-              "none": 0.93
+              "none": 0.92
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"רוכעלך\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"רוכעלך\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"shopping\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -218,7 +218,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008077
+      "costUsd": 0.0008237
     },
     {
       "id": "conv-000-3",
@@ -245,13 +245,13 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.38,
+        "confidence": 0.36,
         "page": "expenses",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.38,
+            "confidence": 0.36,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0.01,
@@ -259,9 +259,9 @@
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.06,
-              "inspiration": 0.06,
-              "domain_adjacent": 0.45,
-              "out_of_scope": 0.4
+              "inspiration": 0.07,
+              "domain_adjacent": 0.43,
+              "out_of_scope": 0.41
             }
           },
           "count": {
@@ -277,13 +277,13 @@
           "halacha_page": {
             "type": "choice",
             "choice": "expenses",
-            "confidence": 0.48,
+            "confidence": 0.5,
             "probabilities": {
-              "expenses": 0.57,
+              "expenses": 0.58,
               "chomesh": 0.01,
               "income": 0,
-              "tithes": 0.18,
-              "personal": 0.24,
+              "tithes": 0.15,
+              "personal": 0.26,
               "none": 0
             }
           }
@@ -347,13 +347,13 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.61,
+        "confidence": 0.63,
         "page": "chomesh",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.61,
+            "confidence": 0.63,
             "probabilities": {
               "add_transaction": 0.02,
               "create_rule": 0.01,
@@ -362,8 +362,8 @@
               "find_duplicates": 0,
               "help": 0.04,
               "inspiration": 0.08,
-              "domain_adjacent": 0.65,
-              "out_of_scope": 0.18
+              "domain_adjacent": 0.67,
+              "out_of_scope": 0.16
             }
           },
           "count": {
@@ -379,12 +379,12 @@
           "halacha_page": {
             "type": "choice",
             "choice": "chomesh",
-            "confidence": 0.89,
+            "confidence": 0.88,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0.91,
+              "chomesh": 0.9,
               "income": 0.01,
-              "tithes": 0.06,
+              "tithes": 0.07,
               "personal": 0.02,
               "none": 0
             }
@@ -447,13 +447,13 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.99,
+        "confidence": 0.98,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.99,
+            "confidence": 0.98,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
@@ -461,9 +461,9 @@
               "ask_data": 0,
               "find_duplicates": 0,
               "help": 0,
-              "inspiration": 0,
+              "inspiration": 0.01,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.99
+              "out_of_scope": 0.98
             }
           },
           "count": {
@@ -569,24 +569,24 @@
           "count": {
             "type": "choice",
             "choice": "several",
-            "confidence": 0.98,
+            "confidence": 1,
             "probabilities": {
-              "one": 0.01,
-              "several": 0.99,
+              "one": 0,
+              "several": 1,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.87,
+            "confidence": 0.83,
             "probabilities": {
               "expenses": 0.03,
-              "chomesh": 0.01,
+              "chomesh": 0.02,
               "income": 0,
               "tithes": 0.02,
-              "personal": 0.05,
-              "none": 0.89
+              "personal": 0.07,
+              "none": 0.86
             }
           }
         }
@@ -652,51 +652,51 @@
       },
       "jev": {
         "intent": "create_rule",
-        "confidence": 0.37,
-        "page": "personal",
+        "confidence": 0.34,
+        "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_rule",
-            "confidence": 0.37,
+            "confidence": 0.34,
             "probabilities": {
-              "add_transaction": 0.29,
-              "create_rule": 0.44,
-              "create_recurring": 0.15,
+              "add_transaction": 0.34,
+              "create_rule": 0.41,
+              "create_recurring": 0.13,
               "ask_data": 0.01,
               "find_duplicates": 0,
-              "help": 0,
+              "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.1
+              "out_of_scope": 0.09
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.91,
+            "confidence": 0.89,
             "probabilities": {
-              "one": 0.94,
-              "several": 0.06,
+              "one": 0.93,
+              "several": 0.07,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
-            "choice": "personal",
-            "confidence": 0.16,
+            "choice": "none",
+            "confidence": 0.23,
             "probabilities": {
               "expenses": 0.03,
               "chomesh": 0.01,
               "income": 0.25,
-              "tithes": 0.11,
-              "personal": 0.3,
-              "none": 0.3
+              "tithes": 0.1,
+              "personal": 0.25,
+              "none": 0.36
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":\"כל 10 לחודש\",\"type\":\"exempt-income\",\"type_question\":\"exempt-income\",\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"ביטוח לאומי\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"exempt-income\",\"type_question\":\"exempt-income\",\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"date\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"ביטוח לאומי\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -728,7 +728,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000855008
+      "costUsd": 0.000855508
     },
     {
       "id": "conv-000-8",
@@ -756,23 +756,23 @@
       },
       "jev": {
         "intent": "create_recurring",
-        "confidence": 0.46,
+        "confidence": 0.51,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_recurring",
-            "confidence": 0.46,
+            "confidence": 0.51,
             "probabilities": {
               "add_transaction": 0.04,
               "create_rule": 0.03,
-              "create_recurring": 0.52,
+              "create_recurring": 0.56,
               "ask_data": 0.03,
               "find_duplicates": 0.01,
               "help": 0.01,
               "inspiration": 0.01,
               "domain_adjacent": 0,
-              "out_of_scope": 0.35
+              "out_of_scope": 0.31
             }
           },
           "count": {
@@ -788,14 +788,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.89,
+            "confidence": 0.87,
             "probabilities": {
               "expenses": 0.02,
-              "chomesh": 0.01,
+              "chomesh": 0.02,
               "income": 0,
               "tithes": 0.02,
-              "personal": 0.04,
-              "none": 0.91
+              "personal": 0.05,
+              "none": 0.89
             }
           }
         }
@@ -862,22 +862,22 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.45,
+        "confidence": 0.46,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.45,
+            "confidence": 0.46,
             "probabilities": {
-              "add_transaction": 0.51,
+              "add_transaction": 0.52,
               "create_rule": 0.01,
               "create_recurring": 0.33,
               "ask_data": 0.02,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.01,
+              "domain_adjacent": 0,
               "out_of_scope": 0.12
             }
           },
@@ -906,7 +906,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"next_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"מקצבה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"allowance\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"next_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"מקצבה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"allowance\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -962,23 +962,23 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.45,
+        "confidence": 0.46,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.45,
+            "confidence": 0.46,
             "probabilities": {
-              "add_transaction": 0.03,
-              "create_rule": 0.01,
+              "add_transaction": 0.02,
+              "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.51,
+              "ask_data": 0.52,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0.02,
-              "domain_adjacent": 0.2,
-              "out_of_scope": 0.22
+              "domain_adjacent": 0.16,
+              "out_of_scope": 0.27
             }
           },
           "count": {
@@ -987,21 +987,21 @@
             "confidence": 0.97,
             "probabilities": {
               "one": 0.98,
-              "several": 0.02,
-              "list": 0
+              "several": 0.01,
+              "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.5,
+            "confidence": 0.52,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
-              "income": 0.03,
-              "tithes": 0.29,
+              "income": 0.02,
+              "tithes": 0.28,
               "personal": 0.09,
-              "none": 0.58
+              "none": 0.6
             }
           }
         }
@@ -1074,12 +1074,12 @@
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0.01,
-              "create_recurring": 0.04,
+              "create_recurring": 0.05,
               "ask_data": 0.93,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.01,
+              "domain_adjacent": 0,
               "out_of_scope": 0.01
             }
           },
@@ -1202,10 +1202,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.77,
+            "confidence": 0.73,
             "probabilities": {
-              "one": 0.85,
-              "several": 0.13,
+              "one": 0.82,
+              "several": 0.16,
               "list": 0.02
             }
           },
@@ -1295,15 +1295,15 @@
         "family": "expense"
       },
       "summary": {
-        "kind": "data_answer",
+        "kind": "question",
         "amount": null,
-        "type": "expense",
+        "type": null,
         "date": null,
         "frequency": null,
         "day": null,
-        "period": "2000-01-01..2026-11-01",
-        "family": "expense",
-        "pending": null
+        "period": null,
+        "family": null,
+        "pending": "period"
       },
       "jev": {
         "intent": "ask_data",
@@ -1329,24 +1329,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.79,
+            "confidence": 0.74,
             "probabilities": {
-              "one": 0.86,
-              "several": 0.13,
+              "one": 0.83,
+              "several": 0.16,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.78,
+            "confidence": 0.81,
             "probabilities": {
-              "expenses": 0.15,
+              "expenses": 0.13,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.01,
-              "none": 0.82
+              "none": 0.84
             }
           }
         }
@@ -1364,9 +1364,7 @@
           "category": null,
           "paymentMethod": null
         },
-        "period": {
-          "kind": "all"
-        },
+        "period": null,
         "nameText": null
       },
       "decision": {
@@ -1378,24 +1376,15 @@
           "type": "none"
         },
         "data": {
-          "status": "ready",
-          "question": {
-            "type": "expense",
-            "measure": "sum",
-            "paymentMethod": null,
-            "topic": null,
-            "recipient": null,
-            "from": "2000-01-01",
-            "to": "2026-11-01",
-            "year": 2000,
-            "month": null,
-            "months": 323
-          }
+          "status": "period_missing"
         },
         "side": "none",
         "needsQuestion": false,
-        "needsNameCheck": true,
-        "pending": null,
+        "needsNameCheck": false,
+        "pending": {
+          "kind": "period",
+          "sourceText": "וכמה הוצאות?"
+        },
         "preferRabbi": false,
         "frequencyBlocked": false,
         "nextState": {
@@ -1405,9 +1394,11 @@
           "pending": null
         }
       },
-      "reason": "turn_correct",
-      "flags": [],
-      "costUsd": 0.001231058
+      "reason": "unnecessary_question",
+      "flags": [
+        "unnecessary_question"
+      ],
+      "costUsd": 0.001203058
     },
     {
       "id": "conv-001-1",
@@ -1435,23 +1426,23 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.43,
+        "confidence": 0.49,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.43,
+            "confidence": 0.49,
             "probabilities": {
-              "add_transaction": 0.49,
+              "add_transaction": 0.55,
               "create_rule": 0.01,
               "create_recurring": 0.31,
-              "ask_data": 0.03,
+              "ask_data": 0.02,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.15
+              "out_of_scope": 0.1
             }
           },
           "count": {
@@ -1467,14 +1458,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.83,
+            "confidence": 0.86,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
-              "income": 0.09,
+              "income": 0.07,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.86
+              "none": 0.88
             }
           }
         }
@@ -1530,7 +1521,7 @@
         "kind": "question",
         "amount": null,
         "type": null,
-        "date": null,
+        "date": "2026-11-01",
         "frequency": null,
         "day": null,
         "period": null,
@@ -1539,51 +1530,51 @@
       },
       "jev": {
         "intent": "create_recurring",
-        "confidence": 0.52,
+        "confidence": 0.46,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_recurring",
-            "confidence": 0.52,
+            "confidence": 0.46,
             "probabilities": {
-              "add_transaction": 0.04,
+              "add_transaction": 0.06,
               "create_rule": 0.02,
-              "create_recurring": 0.57,
-              "ask_data": 0.03,
+              "create_recurring": 0.52,
+              "ask_data": 0.04,
               "find_duplicates": 0.01,
               "help": 0.01,
               "inspiration": 0.01,
-              "domain_adjacent": 0,
-              "out_of_scope": 0.31
+              "domain_adjacent": 0.01,
+              "out_of_scope": 0.32
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.91,
+            "confidence": 0.94,
             "probabilities": {
-              "one": 0.94,
-              "several": 0.06,
+              "one": 0.96,
+              "several": 0.04,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.86,
+            "confidence": 0.83,
             "probabilities": {
-              "expenses": 0.02,
+              "expenses": 0.03,
               "chomesh": 0.02,
               "income": 0,
               "tithes": 0.02,
-              "personal": 0.06,
-              "none": 0.88
+              "personal": 0.07,
+              "none": 0.86
             }
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -1617,7 +1608,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000746522
+      "costUsd": 0.000799522
     },
     {
       "id": "conv-002-1",
@@ -1644,24 +1635,24 @@
         "pending": null
       },
       "jev": {
-        "intent": "create_recurring",
-        "confidence": 0.39,
+        "intent": "add_transaction",
+        "confidence": 0.4,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
-            "choice": "create_recurring",
-            "confidence": 0.39,
+            "choice": "add_transaction",
+            "confidence": 0.4,
             "probabilities": {
-              "add_transaction": 0.44,
+              "add_transaction": 0.47,
               "create_rule": 0.01,
-              "create_recurring": 0.46,
+              "create_recurring": 0.45,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.08
+              "out_of_scope": 0.06
             }
           },
           "count": {
@@ -1677,19 +1668,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.87,
+            "confidence": 0.86,
             "probabilities": {
-              "expenses": 0.03,
+              "expenses": 0.04,
               "chomesh": 0.01,
-              "income": 0.03,
+              "income": 0.02,
               "tithes": 0.01,
-              "personal": 0.03,
-              "none": 0.89
+              "personal": 0.04,
+              "none": 0.88
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":\"כל 10 לחודש\",\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"ביטוח לאומי\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":250,\"amount_text\":\"250\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":\"כל 10 לחודש\",\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":10,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"ביטוח לאומי\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -1740,7 +1731,7 @@
         "kind": "question",
         "amount": null,
         "type": null,
-        "date": null,
+        "date": "2026-11-01",
         "frequency": null,
         "day": null,
         "period": null,
@@ -1749,23 +1740,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.54,
+        "confidence": 0.55,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.54,
+            "confidence": 0.55,
             "probabilities": {
               "add_transaction": 0.02,
-              "create_rule": 0.12,
-              "create_recurring": 0.24,
-              "ask_data": 0.02,
+              "create_rule": 0.09,
+              "create_recurring": 0.25,
+              "ask_data": 0.03,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.59
+              "out_of_scope": 0.6
             }
           },
           "count": {
@@ -1793,7 +1784,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -1827,7 +1818,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000745954
+      "costUsd": 0.0007989539999999999
     },
     {
       "id": "conv-003-1",
@@ -1855,23 +1846,23 @@
       },
       "jev": {
         "intent": "create_recurring",
-        "confidence": 0.49,
+        "confidence": 0.55,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_recurring",
-            "confidence": 0.49,
+            "confidence": 0.55,
             "probabilities": {
-              "add_transaction": 0.37,
+              "add_transaction": 0.33,
               "create_rule": 0.01,
-              "create_recurring": 0.55,
+              "create_recurring": 0.6,
               "ask_data": 0,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.07
+              "out_of_scope": 0.06
             }
           },
           "count": {
@@ -1959,46 +1950,46 @@
       },
       "jev": {
         "intent": "create_recurring",
-        "confidence": 0.21,
+        "confidence": 0.26,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_recurring",
-            "confidence": 0.21,
+            "confidence": 0.26,
             "probabilities": {
-              "add_transaction": 0.03,
-              "create_rule": 0.26,
-              "create_recurring": 0.3,
+              "add_transaction": 0.02,
+              "create_rule": 0.29,
+              "create_recurring": 0.34,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0.01,
-              "domain_adjacent": 0.14,
-              "out_of_scope": 0.24
+              "domain_adjacent": 0.11,
+              "out_of_scope": 0.21
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.97,
+            "confidence": 0.96,
             "probabilities": {
-              "one": 0.98,
-              "several": 0.01,
+              "one": 0.97,
+              "several": 0.02,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.94,
+            "confidence": 0.95,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.03,
-              "none": 0.95
+              "personal": 0.02,
+              "none": 0.96
             }
           }
         }
@@ -2064,47 +2055,47 @@
         "pending": null
       },
       "jev": {
-        "intent": "create_recurring",
-        "confidence": 0.33,
+        "intent": "add_transaction",
+        "confidence": 0.34,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
-            "choice": "create_recurring",
-            "confidence": 0.33,
+            "choice": "add_transaction",
+            "confidence": 0.34,
             "probabilities": {
-              "add_transaction": 0.39,
+              "add_transaction": 0.41,
               "create_rule": 0.01,
-              "create_recurring": 0.4,
-              "ask_data": 0.02,
+              "create_recurring": 0.38,
+              "ask_data": 0.03,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.18
+              "out_of_scope": 0.17
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.04,
+              "one": 0.94,
+              "several": 0.06,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.94,
+            "confidence": 0.95,
             "probabilities": {
-              "expenses": 0.04,
+              "expenses": 0.03,
               "chomesh": 0,
               "income": 0,
               "tithes": 0,
               "personal": 0.01,
-              "none": 0.95
+              "none": 0.96
             }
           }
         }
@@ -2160,7 +2151,7 @@
         "kind": "question",
         "amount": null,
         "type": null,
-        "date": null,
+        "date": "2026-11-01",
         "frequency": null,
         "day": null,
         "period": null,
@@ -2169,51 +2160,51 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.57,
+        "confidence": 0.53,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.57,
+            "confidence": 0.53,
             "probabilities": {
               "add_transaction": 0.01,
-              "create_rule": 0.03,
-              "create_recurring": 0.28,
+              "create_rule": 0.04,
+              "create_recurring": 0.31,
               "ask_data": 0.02,
               "find_duplicates": 0.03,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.62
+              "out_of_scope": 0.58
             }
           },
           "count": {
             "type": "choice",
-            "choice": "several",
-            "confidence": 0.33,
+            "choice": "one",
+            "confidence": 0.25,
             "probabilities": {
-              "one": 0.44,
-              "several": 0.55,
+              "one": 0.5,
+              "several": 0.49,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.95,
+            "confidence": 0.94,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.02,
-              "none": 0.96
+              "personal": 0.03,
+              "none": 0.95
             }
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -2247,7 +2238,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000746438
+      "costUsd": 0.000799438
     },
     {
       "id": "conv-005-1",
@@ -2275,17 +2266,17 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.51,
+        "confidence": 0.58,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.51,
+            "confidence": 0.58,
             "probabilities": {
-              "add_transaction": 0.56,
-              "create_rule": 0.03,
-              "create_recurring": 0.36,
+              "add_transaction": 0.63,
+              "create_rule": 0.02,
+              "create_recurring": 0.3,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0,
@@ -2297,29 +2288,29 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.88,
+            "confidence": 0.89,
             "probabilities": {
-              "one": 0.92,
-              "several": 0.07,
+              "one": 0.93,
+              "several": 0.06,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.86,
+            "confidence": 0.83,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0.06,
               "tithes": 0.02,
-              "personal": 0.03,
-              "none": 0.88
+              "personal": 0.05,
+              "none": 0.86
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":4000,\"amount_text\":\"4000\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":1,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"שכר\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"salary\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":4000,\"amount_text\":\"4000\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"day_of_month\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":null,\"year\":null},\"date_text\":\"1\",\"type\":\"income\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":1,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"שכר\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"salary\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -2351,7 +2342,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000842684
+      "costUsd": 0.0008676840000000001
     },
     {
       "id": "conv-005-2",
@@ -2379,23 +2370,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.42,
+        "confidence": 0.45,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.42,
+            "confidence": 0.45,
             "probabilities": {
-              "add_transaction": 0.38,
-              "create_rule": 0.04,
+              "add_transaction": 0.34,
+              "create_rule": 0.03,
               "create_recurring": 0,
-              "ask_data": 0.06,
+              "ask_data": 0.07,
               "find_duplicates": 0,
-              "help": 0,
+              "help": 0.01,
               "inspiration": 0.01,
               "domain_adjacent": 0.03,
-              "out_of_scope": 0.48
+              "out_of_scope": 0.51
             }
           },
           "count": {
@@ -2411,14 +2402,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.82,
+            "confidence": 0.81,
             "probabilities": {
-              "expenses": 0.04,
+              "expenses": 0.05,
               "chomesh": 0.02,
               "income": 0.02,
-              "tithes": 0.02,
-              "personal": 0.05,
-              "none": 0.85
+              "tithes": 0.03,
+              "personal": 0.04,
+              "none": 0.84
             }
           }
         }
@@ -2515,19 +2506,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.9,
+            "confidence": 0.89,
             "probabilities": {
-              "expenses": 0.03,
+              "expenses": 0.04,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.92
+              "none": 0.91
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -2561,7 +2552,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000823248
+      "costUsd": 0.0008192480000000001
     },
     {
       "id": "conv-006-2",
@@ -2575,7 +2566,7 @@
         "type": "expense"
       },
       "summary": {
-        "kind": "out_of_scope",
+        "kind": "question",
         "amount": 25,
         "type": null,
         "date": "2026-11-01",
@@ -2587,23 +2578,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.7,
+        "confidence": 0.62,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.7,
+            "confidence": 0.62,
             "probabilities": {
-              "add_transaction": 0.23,
+              "add_transaction": 0.31,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.04,
+              "ask_data": 0.03,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.73
+              "out_of_scope": 0.66
             }
           },
           "count": {
@@ -2638,12 +2629,13 @@
       },
       "question": null,
       "decision": {
-        "releaseAs": "out_of_scope",
+        "releaseAs": "add_transaction",
         "mode": "show",
-        "intent": "out_of_scope",
+        "intent": "add_transaction",
         "publishedPage": null,
         "card": {
-          "type": "none"
+          "type": "clarify",
+          "field": "type"
         },
         "data": {
           "status": "skip"
@@ -2661,11 +2653,11 @@
           "pending": null
         }
       },
-      "reason": "dead_end",
+      "reason": "unnecessary_question",
       "flags": [
-        "dead_end"
+        "unnecessary_question"
       ],
-      "costUsd": 0.000799038
+      "costUsd": 0.0008005379999999999
     },
     {
       "id": "conv-007-1",
@@ -2723,19 +2715,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.87,
+            "confidence": 0.86,
             "probabilities": {
               "expenses": 0.02,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.02,
-              "personal": 0.06,
-              "none": 0.89
+              "personal": 0.07,
+              "none": 0.88
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"gift\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"לישיבה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -2769,7 +2761,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008060739999999999
+      "costUsd": 0.000820574
     },
     {
       "id": "conv-007-2",
@@ -2795,23 +2787,23 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.71,
+        "confidence": 0.6,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.71,
+            "confidence": 0.6,
             "probabilities": {
-              "add_transaction": 0.74,
+              "add_transaction": 0.64,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.03,
+              "ask_data": 0.05,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.23
+              "out_of_scope": 0.31
             }
           },
           "count": {
@@ -2827,14 +2819,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.98,
+            "confidence": 0.99,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0,
-              "personal": 0.01,
-              "none": 0.98
+              "personal": 0,
+              "none": 0.99
             }
           }
         }
@@ -2922,24 +2914,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.98,
+            "confidence": 1,
             "probabilities": {
-              "one": 0.99,
-              "several": 0.01,
+              "one": 1,
+              "several": 0,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.92,
+            "confidence": 0.93,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0.01,
+              "chomesh": 0,
               "income": 0.03,
               "tithes": 0.01,
               "personal": 0.02,
-              "none": 0.93
+              "none": 0.94
             }
           }
         }
@@ -3140,19 +3132,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.88,
+            "confidence": 0.89,
             "probabilities": {
-              "expenses": 0.06,
+              "expenses": 0.05,
               "chomesh": 0.01,
               "income": 0,
-              "tithes": 0.01,
-              "personal": 0.02,
-              "none": 0.9
+              "tithes": 0,
+              "personal": 0.03,
+              "none": 0.91
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מונית\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":60,\"amount_text\":\"60\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מונית\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -3186,7 +3178,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000824474
+      "costUsd": 0.000820474
     },
     {
       "id": "conv-009-2",
@@ -3212,51 +3204,51 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.63,
+        "confidence": 0.68,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.63,
+            "confidence": 0.68,
             "probabilities": {
-              "add_transaction": 0.1,
-              "create_rule": 0.2,
+              "add_transaction": 0.11,
+              "create_rule": 0.14,
               "create_recurring": 0,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.67
+              "out_of_scope": 0.72
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.68,
+            "confidence": 0.79,
             "probabilities": {
-              "one": 0.79,
-              "several": 0.2,
+              "one": 0.86,
+              "several": 0.13,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.9,
+            "confidence": 0.92,
             "probabilities": {
-              "expenses": 0.03,
+              "expenses": 0.02,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.92
+              "none": 0.93
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"לא מונית, אוטובוס\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"מונית, אוטובוס\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -3290,7 +3282,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000806932
+      "costUsd": 0.000805932
     },
     {
       "id": "conv-010-1",
@@ -3316,15 +3308,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.93,
+        "confidence": 0.94,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.93,
+            "confidence": 0.94,
             "probabilities": {
-              "add_transaction": 0.94,
+              "add_transaction": 0.95,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -3332,7 +3324,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.06
+              "out_of_scope": 0.05
             }
           },
           "count": {
@@ -3348,14 +3340,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.94,
+            "confidence": 0.93,
             "probabilities": {
-              "expenses": 0.01,
+              "expenses": 0.02,
               "chomesh": 0,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.95
+              "none": 0.94
             }
           }
         }
@@ -3421,23 +3413,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.79,
+        "confidence": 0.78,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.79,
+            "confidence": 0.78,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.17,
+              "ask_data": 0.18,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.81
+              "out_of_scope": 0.8
             }
           },
           "count": {
@@ -3557,14 +3549,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.83,
+            "confidence": 0.84,
             "probabilities": {
-              "expenses": 0.09,
+              "expenses": 0.08,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.86
+              "none": 0.87
             }
           }
         }
@@ -3629,15 +3621,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.71,
+        "confidence": 0.66,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.71,
+            "confidence": 0.66,
             "probabilities": {
-              "add_transaction": 0.74,
+              "add_transaction": 0.7,
               "create_rule": 0.02,
               "create_recurring": 0,
               "ask_data": 0,
@@ -3645,30 +3637,30 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.24
+              "out_of_scope": 0.28
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.98,
+            "confidence": 0.97,
             "probabilities": {
-              "one": 0.99,
-              "several": 0.01,
+              "one": 0.98,
+              "several": 0.02,
               "list": 0
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.72,
+            "confidence": 0.8,
             "probabilities": {
-              "expenses": 0.02,
+              "expenses": 0.01,
               "chomesh": 0.02,
-              "income": 0.04,
-              "tithes": 0.03,
-              "personal": 0.12,
-              "none": 0.77
+              "income": 0.05,
+              "tithes": 0.02,
+              "personal": 0.07,
+              "none": 0.83
             }
           }
         }
@@ -3680,13 +3672,12 @@
       },
       "question": null,
       "decision": {
-        "releaseAs": "add_transaction",
-        "mode": "show",
-        "intent": "add_transaction",
+        "releaseAs": "ask",
+        "mode": "ask",
+        "intent": null,
         "publishedPage": null,
         "card": {
-          "type": "clarify",
-          "field": "type"
+          "type": "none"
         },
         "data": {
           "status": "skip"
@@ -3734,23 +3725,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.65,
+        "confidence": 0.61,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.65,
+            "confidence": 0.61,
             "probabilities": {
-              "add_transaction": 0.23,
+              "add_transaction": 0.24,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.08,
+              "ask_data": 0.11,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.69
+              "out_of_scope": 0.65
             }
           },
           "count": {
@@ -3766,14 +3757,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.95,
+            "confidence": 0.96,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.02,
-              "none": 0.96
+              "personal": 0.01,
+              "none": 0.97
             }
           }
         }
@@ -3870,14 +3861,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.96,
+            "confidence": 0.94,
             "probabilities": {
-              "expenses": 0,
+              "expenses": 0.01,
               "chomesh": 0,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.02,
-              "none": 0.97
+              "personal": 0.03,
+              "none": 0.95
             }
           }
         }
@@ -3944,32 +3935,32 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.49,
+        "confidence": 0.51,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.49,
+            "confidence": 0.51,
             "probabilities": {
-              "add_transaction": 0.38,
+              "add_transaction": 0.39,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.07,
+              "ask_data": 0.05,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.55
+              "out_of_scope": 0.56
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.97,
+            "confidence": 0.98,
             "probabilities": {
-              "one": 0.98,
-              "several": 0.01,
+              "one": 0.99,
+              "several": 0,
               "list": 0.01
             }
           },
@@ -4048,18 +4039,18 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 1,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 1,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 0,
+              "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 1,
+              "ask_data": 0.99,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
@@ -4092,7 +4083,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"category\":\"food\",\"family\":\"expense\",\"measure\":\"sum\",\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"all\",\"month\":null,\"n\":null,\"to\":null,\"year\":null},\"recipient\":null}}",
+      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"category\":null,\"family\":\"expense\",\"measure\":\"sum\",\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"all\",\"month\":null,\"n\":null,\"to\":null,\"year\":null},\"recipient\":null}}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -4137,7 +4128,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.001204694
+      "costUsd": 0.001201694
     },
     {
       "id": "conv-013-2",
@@ -4161,33 +4152,33 @@
         "pending": null
       },
       "jev": {
-        "intent": "ask_data",
-        "confidence": 0.46,
+        "intent": "out_of_scope",
+        "confidence": 0.43,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
-            "choice": "ask_data",
-            "confidence": 0.46,
+            "choice": "out_of_scope",
+            "confidence": 0.43,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0.01,
-              "ask_data": 0.52,
+              "ask_data": 0.47,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.01,
-              "out_of_scope": 0.45
+              "domain_adjacent": 0.02,
+              "out_of_scope": 0.49
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.85,
+            "confidence": 0.86,
             "probabilities": {
-              "one": 0.9,
-              "several": 0.06,
+              "one": 0.91,
+              "several": 0.05,
               "list": 0.04
             }
           },
@@ -4392,33 +4383,33 @@
               "create_recurring": 0,
               "ask_data": 0.56,
               "find_duplicates": 0,
-              "help": 0,
+              "help": 0.01,
               "inspiration": 0,
-              "domain_adjacent": 0.09,
+              "domain_adjacent": 0.08,
               "out_of_scope": 0.28
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.61,
+            "confidence": 0.58,
             "probabilities": {
-              "one": 0.74,
-              "several": 0.21,
-              "list": 0.05
+              "one": 0.72,
+              "several": 0.22,
+              "list": 0.06
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "expenses",
-            "confidence": 0.48,
+            "confidence": 0.46,
             "probabilities": {
-              "expenses": 0.57,
+              "expenses": 0.55,
               "chomesh": 0.01,
               "income": 0,
-              "tithes": 0.02,
+              "tithes": 0.01,
               "personal": 0.01,
-              "none": 0.39
+              "none": 0.42
             }
           }
         }
@@ -4514,14 +4505,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.99,
+            "confidence": 0.98,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0,
-              "none": 0.99
+              "personal": 0.01,
+              "none": 0.98
             }
           }
         }
@@ -4609,23 +4600,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.8,
+        "confidence": 0.82,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.8,
+            "confidence": 0.82,
             "probabilities": {
-              "add_transaction": 0.02,
+              "add_transaction": 0.03,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.04,
+              "ask_data": 0.03,
               "find_duplicates": 0,
-              "help": 0.01,
+              "help": 0,
               "inspiration": 0.02,
-              "domain_adjacent": 0.09,
-              "out_of_scope": 0.82
+              "domain_adjacent": 0.08,
+              "out_of_scope": 0.84
             }
           },
           "count": {
@@ -4641,14 +4632,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.99,
+            "confidence": 1,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
               "income": 0,
-              "tithes": 0.01,
+              "tithes": 0,
               "personal": 0,
-              "none": 0.99
+              "none": 1
             }
           }
         }
@@ -4687,7 +4678,7 @@
       "flags": [
         "dead_end"
       ],
-      "costUsd": 0.0008044220000000001
+      "costUsd": 0.000805422
     },
     {
       "id": "conv-016-1",
@@ -4712,15 +4703,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.98,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.98,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 0.98,
+              "add_transaction": 0.99,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -4728,7 +4719,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.02
+              "out_of_scope": 0.01
             }
           },
           "count": {
@@ -4744,14 +4735,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.89,
+            "confidence": 0.88,
             "probabilities": {
               "expenses": 0.06,
-              "chomesh": 0,
+              "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.02,
-              "none": 0.91
+              "none": 0.9
             }
           }
         }
@@ -4818,23 +4809,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.55,
+        "confidence": 0.49,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.55,
+            "confidence": 0.49,
             "probabilities": {
-              "add_transaction": 0.35,
+              "add_transaction": 0.37,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.05,
+              "ask_data": 0.08,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.6
+              "out_of_scope": 0.55
             }
           },
           "count": {
@@ -4862,7 +4853,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":80,\"amount_text\":\"80\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":80,\"amount_text\":\"80\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -4897,7 +4888,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000799828
+      "costUsd": 0.0007983280000000001
     },
     {
       "id": "conv-017-1",
@@ -4947,21 +4938,21 @@
             "confidence": 0.83,
             "probabilities": {
               "one": 0.89,
-              "several": 0.1,
-              "list": 0.01
+              "several": 0.09,
+              "list": 0.02
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.92,
+            "confidence": 0.88,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
-              "income": 0.05,
+              "income": 0.08,
               "tithes": 0.01,
               "personal": 0.01,
-              "none": 0.93
+              "none": 0.9
             }
           }
         }
@@ -4974,7 +4965,7 @@
       "question": {
         "slots": {
           "family": "income",
-          "measure": "sum",
+          "measure": null,
           "recipient": null,
           "category": null,
           "paymentMethod": null
@@ -5024,7 +5015,7 @@
         "family": "income"
       },
       "summary": {
-        "kind": "out_of_scope",
+        "kind": "question",
         "amount": null,
         "type": null,
         "date": null,
@@ -5036,23 +5027,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.7,
+        "confidence": 0.67,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.7,
+            "confidence": 0.67,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.24,
+              "ask_data": 0.26,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0.02,
-              "out_of_scope": 0.73
+              "out_of_scope": 0.71
             }
           },
           "count": {
@@ -5087,9 +5078,9 @@
       },
       "question": null,
       "decision": {
-        "releaseAs": "out_of_scope",
-        "mode": "show",
-        "intent": "out_of_scope",
+        "releaseAs": "ask",
+        "mode": "ask",
+        "intent": null,
         "publishedPage": null,
         "card": {
           "type": "none"
@@ -5110,9 +5101,9 @@
           "pending": null
         }
       },
-      "reason": "dead_end",
+      "reason": "unnecessary_question",
       "flags": [
-        "dead_end"
+        "unnecessary_question"
       ],
       "costUsd": 0.000745612
     },
@@ -5161,24 +5152,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.92,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.03,
+              "one": 0.95,
+              "several": 0.04,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.98,
+            "confidence": 0.96,
             "probabilities": {
-              "expenses": 0,
+              "expenses": 0.01,
               "chomesh": 0,
               "income": 0.01,
               "tithes": 0.01,
               "personal": 0,
-              "none": 0.98
+              "none": 0.97
             }
           }
         }
@@ -5264,23 +5255,23 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.43,
+        "confidence": 0.4,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.43,
+            "confidence": 0.4,
             "probabilities": {
               "add_transaction": 0.15,
               "create_rule": 0.01,
               "create_recurring": 0,
-              "ask_data": 0.08,
+              "ask_data": 0.06,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0.02,
-              "domain_adjacent": 0.49,
-              "out_of_scope": 0.24
+              "domain_adjacent": 0.47,
+              "out_of_scope": 0.28
             }
           },
           "count": {
@@ -5296,14 +5287,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.54,
+            "confidence": 0.6,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0.01,
-              "tithes": 0.35,
+              "tithes": 0.3,
               "personal": 0.01,
-              "none": 0.62
+              "none": 0.67
             }
           }
         }
@@ -5342,7 +5333,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000800796
+      "costUsd": 0.000801296
     },
     {
       "id": "conv-019-1",
@@ -5367,18 +5358,18 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 1,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 1,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 0,
+              "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 1,
+              "ask_data": 0.99,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
@@ -5389,10 +5380,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.91,
+            "confidence": 0.92,
             "probabilities": {
-              "one": 0.94,
-              "several": 0.05,
+              "one": 0.95,
+              "several": 0.04,
               "list": 0.01
             }
           },
@@ -5494,23 +5485,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.58,
+        "confidence": 0.62,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.58,
+            "confidence": 0.62,
             "probabilities": {
-              "add_transaction": 0,
+              "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.01,
-              "inspiration": 0.05,
-              "domain_adjacent": 0.3,
-              "out_of_scope": 0.63
+              "inspiration": 0.04,
+              "domain_adjacent": 0.27,
+              "out_of_scope": 0.66
             }
           },
           "count": {
@@ -5526,14 +5517,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.94,
+            "confidence": 0.93,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.03,
-              "personal": 0.01,
-              "none": 0.95
+              "personal": 0.02,
+              "none": 0.94
             }
           }
         }
@@ -5619,10 +5610,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.77,
+            "confidence": 0.83,
             "probabilities": {
-              "one": 0.85,
-              "several": 0.14,
+              "one": 0.89,
+              "several": 0.1,
               "list": 0.01
             }
           },
@@ -5724,46 +5715,46 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.83,
+        "confidence": 0.89,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.83,
+            "confidence": 0.89,
             "probabilities": {
-              "add_transaction": 0.05,
+              "add_transaction": 0.04,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.85,
+              "ask_data": 0.9,
               "find_duplicates": 0,
-              "help": 0.01,
+              "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.03,
-              "out_of_scope": 0.06
+              "domain_adjacent": 0.02,
+              "out_of_scope": 0.04
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.26,
+            "confidence": 0.33,
             "probabilities": {
-              "one": 0.51,
-              "several": 0.47,
+              "one": 0.55,
+              "several": 0.43,
               "list": 0.02
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.5,
+            "confidence": 0.48,
             "probabilities": {
               "expenses": 0.38,
-              "chomesh": 0.01,
+              "chomesh": 0.02,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.02,
-              "none": 0.58
+              "none": 0.57
             }
           }
         }
@@ -5862,10 +5853,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.91,
+            "confidence": 0.92,
             "probabilities": {
-              "one": 0.94,
-              "several": 0.05,
+              "one": 0.95,
+              "several": 0.04,
               "list": 0.01
             }
           },
@@ -5967,32 +5958,32 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.56,
+        "confidence": 0.46,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.56,
+            "confidence": 0.46,
             "probabilities": {
-              "add_transaction": 0.01,
+              "add_transaction": 0.02,
               "create_rule": 0,
               "create_recurring": 0.02,
-              "ask_data": 0.61,
+              "ask_data": 0.52,
               "find_duplicates": 0,
-              "help": 0.05,
-              "inspiration": 0.01,
-              "domain_adjacent": 0.03,
+              "help": 0.07,
+              "inspiration": 0.02,
+              "domain_adjacent": 0.08,
               "out_of_scope": 0.27
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.89,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.93,
-              "several": 0.05,
+              "one": 0.94,
+              "several": 0.04,
               "list": 0.02
             }
           },
@@ -6004,14 +5995,14 @@
               "expenses": 0,
               "chomesh": 0.04,
               "income": 0.01,
-              "tithes": 0.05,
-              "personal": 0.1,
+              "tithes": 0.04,
+              "personal": 0.11,
               "none": 0.8
             }
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"category\":null,\"family\":null,\"measure\":\"sum\",\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"month\",\"month\":null,\"n\":null,\"to\":null,\"year\":null},\"recipient\":null}}",
+      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"category\":null,\"family\":null,\"measure\":\"sum\",\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"month\",\"month\":11,\"n\":null,\"to\":null,\"year\":2026},\"recipient\":null}}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -6045,7 +6036,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.0007868220000000001
+      "costUsd": 0.000788322
     },
     {
       "id": "conv-022-1",
@@ -6092,24 +6083,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.96,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.03,
+              "one": 0.97,
+              "several": 0.02,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.95,
+            "confidence": 0.94,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
-              "income": 0.03,
+              "income": 0.04,
               "tithes": 0,
               "personal": 0.01,
-              "none": 0.96
+              "none": 0.95
             }
           }
         }
@@ -6197,32 +6188,32 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.82,
+        "confidence": 0.83,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.82,
+            "confidence": 0.83,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.84,
+              "ask_data": 0.85,
               "find_duplicates": 0,
-              "help": 0,
+              "help": 0.01,
               "inspiration": 0,
-              "domain_adjacent": 0.07,
-              "out_of_scope": 0.09
+              "domain_adjacent": 0.03,
+              "out_of_scope": 0.11
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.52,
+            "confidence": 0.6,
             "probabilities": {
-              "one": 0.68,
-              "several": 0.23,
+              "one": 0.73,
+              "several": 0.18,
               "list": 0.09
             }
           },
@@ -6344,10 +6335,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.83,
+            "confidence": 0.85,
             "probabilities": {
-              "one": 0.89,
-              "several": 0.09,
+              "one": 0.9,
+              "several": 0.08,
               "list": 0.02
             }
           },
@@ -6424,7 +6415,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.001231126
+      "costUsd": 0.001233626
     },
     {
       "id": "conv-023-2",
@@ -6471,24 +6462,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.88,
+            "confidence": 0.89,
             "probabilities": {
-              "one": 0.92,
-              "several": 0.07,
+              "one": 0.93,
+              "several": 0.06,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.81,
+            "confidence": 0.76,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
-              "income": 0.12,
-              "tithes": 0.01,
+              "income": 0.15,
+              "tithes": 0.02,
               "personal": 0.02,
-              "none": 0.84
+              "none": 0.8
             }
           }
         }
@@ -6501,7 +6492,7 @@
       "question": {
         "slots": {
           "family": "income",
-          "measure": null,
+          "measure": "sum",
           "recipient": null,
           "category": null,
           "paymentMethod": null
@@ -6705,33 +6696,33 @@
               "create_recurring": 0,
               "ask_data": 0.89,
               "find_duplicates": 0,
-              "help": 0.01,
+              "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.04
+              "out_of_scope": 0.05
             }
           },
           "count": {
             "type": "choice",
-            "choice": "several",
-            "confidence": 0.3,
+            "choice": "one",
+            "confidence": 0.37,
             "probabilities": {
-              "one": 0.45,
-              "several": 0.53,
+              "one": 0.58,
+              "several": 0.4,
               "list": 0.02
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.59,
+            "confidence": 0.53,
             "probabilities": {
-              "expenses": 0.29,
-              "chomesh": 0.02,
+              "expenses": 0.35,
+              "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.02,
-              "none": 0.66
+              "none": 0.61
             }
           }
         }
@@ -6808,32 +6799,32 @@
       },
       "jev": {
         "intent": "create_rule",
-        "confidence": 0.4,
+        "confidence": 0.46,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "create_rule",
-            "confidence": 0.4,
+            "confidence": 0.46,
             "probabilities": {
-              "add_transaction": 0.18,
-              "create_rule": 0.47,
-              "create_recurring": 0.01,
-              "ask_data": 0.1,
+              "add_transaction": 0.15,
+              "create_rule": 0.52,
+              "create_recurring": 0,
+              "ask_data": 0.11,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0.01,
               "domain_adjacent": 0,
-              "out_of_scope": 0.22
+              "out_of_scope": 0.2
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.56,
+            "confidence": 0.46,
             "probabilities": {
-              "one": 0.71,
-              "several": 0.27,
+              "one": 0.64,
+              "several": 0.34,
               "list": 0.02
             }
           },
@@ -6842,11 +6833,11 @@
             "choice": "none",
             "confidence": 0.8,
             "probabilities": {
-              "expenses": 0,
-              "chomesh": 0.02,
+              "expenses": 0.01,
+              "chomesh": 0.01,
               "income": 0.02,
-              "tithes": 0.1,
-              "personal": 0.03,
+              "tithes": 0.11,
+              "personal": 0.02,
               "none": 0.83
             }
           }
@@ -6912,23 +6903,23 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.93,
+        "confidence": 0.89,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.93,
+            "confidence": 0.89,
             "probabilities": {
-              "add_transaction": 0.94,
-              "create_rule": 0.03,
+              "add_transaction": 0.9,
+              "create_rule": 0.06,
               "create_recurring": 0,
               "ask_data": 0,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0.01,
-              "out_of_scope": 0.02
+              "out_of_scope": 0.03
             }
           },
           "count": {
@@ -6944,14 +6935,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.27,
+            "confidence": 0.26,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
-              "income": 0.09,
+              "income": 0.1,
               "tithes": 0.27,
               "personal": 0.24,
-              "none": 0.39
+              "none": 0.38
             }
           }
         }
@@ -7108,9 +7099,9 @@
         "type": "recognized-expense"
       },
       "summary": {
-        "kind": "draft",
+        "kind": "question",
         "amount": 200,
-        "type": "recognized-expense",
+        "type": "donation",
         "date": "2026-11-01",
         "frequency": null,
         "day": null,
@@ -7152,19 +7143,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.48,
+            "confidence": 0.53,
             "probabilities": {
-              "expenses": 0.3,
+              "expenses": 0.28,
               "chomesh": 0.02,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.1,
-              "none": 0.57
+              "personal": 0.08,
+              "none": 0.61
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":200,\"amount_text\":\"200\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"recognized-expense\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":200,\"amount_text\":\"200\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":\"recognized-expense\",\"recurrence\":null,\"description\":\"גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -7176,9 +7167,8 @@
         "intent": "add_transaction",
         "publishedPage": null,
         "card": {
-          "type": "draft",
-          "checkAmount": false,
-          "checkDate": false
+          "type": "clarify",
+          "field": "special"
         },
         "data": {
           "status": "skip"
@@ -7196,9 +7186,11 @@
           "pending": null
         }
       },
-      "reason": "turn_correct",
-      "flags": [],
-      "costUsd": 0.000824752
+      "reason": "unnecessary_question",
+      "flags": [
+        "unnecessary_question"
+      ],
+      "costUsd": 0.0008267519999999999
     },
     {
       "id": "conv-026-2",
@@ -7224,32 +7216,32 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.98,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.98,
+            "confidence": 0.99,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.01,
+              "ask_data": 0,
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.98
+              "out_of_scope": 0.99
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.96,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.02,
+              "one": 0.97,
+              "several": 0.01,
               "list": 0.02
             }
           },
@@ -7328,16 +7320,16 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.99,
+        "confidence": 1,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.99,
+            "confidence": 1,
             "probabilities": {
-              "add_transaction": 0.99,
-              "create_rule": 0.01,
+              "add_transaction": 1,
+              "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
               "find_duplicates": 0,
@@ -7360,19 +7352,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.39,
+            "confidence": 0.29,
             "probabilities": {
-              "expenses": 0.04,
+              "expenses": 0.06,
               "chomesh": 0.03,
               "income": 0.04,
-              "tithes": 0.13,
-              "personal": 0.27,
-              "none": 0.49
+              "tithes": 0.14,
+              "personal": 0.32,
+              "none": 0.41
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":\"non_tithe_donation\",\"recurrence\":null,\"description\":\"לחבר\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"gift\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":50,\"amount_text\":\"50\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":\"non_tithe_donation\",\"recurrence\":null,\"description\":\"לחבר\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"gift\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -7407,7 +7399,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.000829484
+      "costUsd": 0.000807484
     },
     {
       "id": "conv-027-2",
@@ -7455,11 +7447,11 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.92,
             "probabilities": {
-              "one": 0.96,
+              "one": 0.95,
               "several": 0.02,
-              "list": 0.02
+              "list": 0.03
             }
           },
           "halacha_page": {
@@ -7550,31 +7542,31 @@
               "find_duplicates": 0,
               "help": 0.01,
               "inspiration": 0.02,
-              "domain_adjacent": 0.18,
-              "out_of_scope": 0.22
+              "domain_adjacent": 0.15,
+              "out_of_scope": 0.25
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.96,
+            "confidence": 0.97,
             "probabilities": {
-              "one": 0.97,
-              "several": 0.02,
+              "one": 0.98,
+              "several": 0.01,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.46,
+            "confidence": 0.45,
             "probabilities": {
-              "expenses": 0.01,
+              "expenses": 0,
               "chomesh": 0.01,
               "income": 0.03,
-              "tithes": 0.3,
+              "tithes": 0.32,
               "personal": 0.1,
-              "none": 0.55
+              "none": 0.54
             }
           }
         }
@@ -7651,9 +7643,9 @@
               "ask_data": 0.96,
               "find_duplicates": 0,
               "help": 0,
-              "inspiration": 0.01,
+              "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.03
+              "out_of_scope": 0.04
             }
           },
           "count": {
@@ -7681,7 +7673,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"category\":null,\"family\":null,\"measure\":\"sum\",\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"all\",\"month\":null,\"n\":null,\"to\":null,\"year\":null},\"recipient\":null}}",
+      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":{\"measure\":\"sum\",\"family\":null,\"recipient\":null,\"category\":null,\"payment_method\":null,\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"kind\":\"all\",\"month\":null,\"n\":null,\"to\":null,\"year\":null}}}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -7751,23 +7743,23 @@
         "pending": null
       },
       "jev": {
-        "intent": "domain_adjacent",
-        "confidence": 0.51,
+        "intent": "ask_data",
+        "confidence": 0.43,
         "page": "tithes",
         "answers": {
           "intent": {
             "type": "choice",
-            "choice": "domain_adjacent",
-            "confidence": 0.51,
+            "choice": "ask_data",
+            "confidence": 0.43,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.41,
+              "ask_data": 0.49,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0.01,
-              "domain_adjacent": 0.56,
+              "domain_adjacent": 0.48,
               "out_of_scope": 0.01
             }
           },
@@ -7784,14 +7776,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "tithes",
-            "confidence": 0.57,
+            "confidence": 0.46,
             "probabilities": {
               "expenses": 0.01,
               "chomesh": 0.05,
               "income": 0.01,
-              "tithes": 0.64,
+              "tithes": 0.55,
               "personal": 0.03,
-              "none": 0.26
+              "none": 0.35
             }
           }
         }
@@ -7956,22 +7948,22 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.9,
+        "confidence": 0.92,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.9,
+            "confidence": 0.92,
             "probabilities": {
-              "add_transaction": 0.03,
+              "add_transaction": 0.02,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.91,
+              "ask_data": 0.93,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.05,
+              "domain_adjacent": 0.04,
               "out_of_scope": 0.01
             }
           },
@@ -7992,8 +7984,8 @@
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
-              "income": 0.01,
-              "tithes": 0.09,
+              "income": 0,
+              "tithes": 0.1,
               "personal": 0.02,
               "none": 0.87
             }
@@ -8056,7 +8048,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.0012322260000000001
+      "costUsd": 0.001229726
     },
     {
       "id": "conv-030-2",
@@ -8080,23 +8072,23 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.15,
+        "confidence": 0.21,
         "page": "chomesh",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.15,
+            "confidence": 0.21,
             "probabilities": {
-              "add_transaction": 0.06,
+              "add_transaction": 0.05,
               "create_rule": 0.01,
               "create_recurring": 0,
-              "ask_data": 0.23,
-              "find_duplicates": 0,
-              "help": 0.23,
+              "ask_data": 0.21,
+              "find_duplicates": 0.01,
+              "help": 0.25,
               "inspiration": 0.01,
-              "domain_adjacent": 0.24,
-              "out_of_scope": 0.22
+              "domain_adjacent": 0.3,
+              "out_of_scope": 0.16
             }
           },
           "count": {
@@ -8112,14 +8104,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "chomesh",
-            "confidence": 0.42,
+            "confidence": 0.44,
             "probabilities": {
               "expenses": 0.01,
-              "chomesh": 0.52,
-              "income": 0.01,
+              "chomesh": 0.53,
+              "income": 0,
               "tithes": 0.04,
-              "personal": 0.06,
-              "none": 0.36
+              "personal": 0.05,
+              "none": 0.37
             }
           }
         }
@@ -8182,46 +8174,46 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.93,
+        "confidence": 0.94,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.93,
+            "confidence": 0.94,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.94,
+              "ask_data": 0.95,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
-              "domain_adjacent": 0.03,
+              "domain_adjacent": 0.02,
               "out_of_scope": 0.02
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.89,
+            "confidence": 0.92,
             "probabilities": {
-              "one": 0.93,
-              "several": 0.05,
+              "one": 0.95,
+              "several": 0.03,
               "list": 0.02
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.93,
+            "confidence": 0.9,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0,
+              "chomesh": 0.01,
               "income": 0,
-              "tithes": 0.05,
+              "tithes": 0.06,
               "personal": 0.01,
-              "none": 0.94
+              "none": 0.92
             }
           }
         }
@@ -8308,13 +8300,13 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.98,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.98,
+            "confidence": 0.99,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
@@ -8322,9 +8314,9 @@
               "ask_data": 0,
               "find_duplicates": 0,
               "help": 0,
-              "inspiration": 0.02,
+              "inspiration": 0.01,
               "domain_adjacent": 0,
-              "out_of_scope": 0.98
+              "out_of_scope": 0.99
             }
           },
           "count": {
@@ -8442,14 +8434,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "tithes",
-            "confidence": 0.9,
+            "confidence": 0.88,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0,
+              "chomesh": 0.01,
               "income": 0.03,
-              "tithes": 0.92,
+              "tithes": 0.9,
               "personal": 0,
-              "none": 0.05
+              "none": 0.06
             }
           }
         }
@@ -8518,15 +8510,15 @@
             "choice": "domain_adjacent",
             "confidence": 0.26,
             "probabilities": {
-              "add_transaction": 0.04,
+              "add_transaction": 0.03,
               "create_rule": 0.01,
               "create_recurring": 0.01,
-              "ask_data": 0.24,
+              "ask_data": 0.18,
               "find_duplicates": 0.01,
-              "help": 0.09,
+              "help": 0.13,
               "inspiration": 0.05,
               "domain_adjacent": 0.34,
-              "out_of_scope": 0.21
+              "out_of_scope": 0.24
             }
           },
           "count": {
@@ -8542,10 +8534,10 @@
           "halacha_page": {
             "type": "choice",
             "choice": "chomesh",
-            "confidence": 0.71,
+            "confidence": 0.7,
             "probabilities": {
-              "expenses": 0,
-              "chomesh": 0.76,
+              "expenses": 0.01,
+              "chomesh": 0.75,
               "income": 0,
               "tithes": 0.04,
               "personal": 0.02,
@@ -8613,45 +8605,45 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.43,
+        "confidence": 0.42,
         "page": "expenses",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.43,
+            "confidence": 0.42,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0.01,
               "create_recurring": 0,
               "ask_data": 0.01,
               "find_duplicates": 0,
-              "help": 0.07,
-              "inspiration": 0.07,
-              "domain_adjacent": 0.49,
-              "out_of_scope": 0.34
+              "help": 0.06,
+              "inspiration": 0.08,
+              "domain_adjacent": 0.48,
+              "out_of_scope": 0.35
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.97,
+            "confidence": 0.98,
             "probabilities": {
-              "one": 0.98,
-              "several": 0.01,
+              "one": 0.99,
+              "several": 0,
               "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "expenses",
-            "confidence": 0.54,
+            "confidence": 0.5,
             "probabilities": {
-              "expenses": 0.62,
+              "expenses": 0.58,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.15,
-              "personal": 0.22,
+              "personal": 0.26,
               "none": 0
             }
           }
@@ -8715,46 +8707,46 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.34,
+        "confidence": 0.45,
         "page": "chomesh",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.34,
+            "confidence": 0.45,
             "probabilities": {
               "add_transaction": 0.04,
               "create_rule": 0.01,
-              "create_recurring": 0.01,
-              "ask_data": 0.15,
+              "create_recurring": 0,
+              "ask_data": 0.12,
               "find_duplicates": 0.01,
               "help": 0.1,
               "inspiration": 0.04,
-              "domain_adjacent": 0.41,
-              "out_of_scope": 0.23
+              "domain_adjacent": 0.51,
+              "out_of_scope": 0.17
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.02,
-              "list": 0.02
+              "one": 0.94,
+              "several": 0.03,
+              "list": 0.03
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "chomesh",
-            "confidence": 0.7,
+            "confidence": 0.74,
             "probabilities": {
-              "expenses": 0,
-              "chomesh": 0.75,
-              "income": 0,
+              "expenses": 0.01,
+              "chomesh": 0.78,
+              "income": 0.01,
               "tithes": 0.04,
               "personal": 0.02,
-              "none": 0.19
+              "none": 0.14
             }
           }
         }
@@ -8815,33 +8807,33 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.96,
+        "confidence": 0.94,
         "page": "expenses",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.96,
+            "confidence": 0.94,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0.01,
               "create_recurring": 0,
-              "ask_data": 0.01,
+              "ask_data": 0.02,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0.01,
-              "domain_adjacent": 0.96,
+              "domain_adjacent": 0.95,
               "out_of_scope": 0.01
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.88,
+            "confidence": 0.89,
             "probabilities": {
-              "one": 0.92,
+              "one": 0.93,
               "several": 0.05,
-              "list": 0.03
+              "list": 0.02
             }
           },
           "halacha_page": {
@@ -8915,13 +8907,13 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.72,
+        "confidence": 0.75,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.72,
+            "confidence": 0.75,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
@@ -8929,19 +8921,19 @@
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.03,
-              "inspiration": 0.18,
+              "inspiration": 0.15,
               "domain_adjacent": 0.02,
-              "out_of_scope": 0.75
+              "out_of_scope": 0.78
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.97,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.02,
-              "list": 0.02
+              "one": 0.98,
+              "several": 0.01,
+              "list": 0.01
             }
           },
           "halacha_page": {
@@ -9017,23 +9009,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.46,
+        "confidence": 0.38,
         "page": "personal",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.46,
+            "confidence": 0.38,
             "probabilities": {
-              "add_transaction": 0.07,
+              "add_transaction": 0.08,
               "create_rule": 0.01,
               "create_recurring": 0,
               "ask_data": 0.02,
               "find_duplicates": 0,
               "help": 0.03,
-              "inspiration": 0.09,
-              "domain_adjacent": 0.26,
-              "out_of_scope": 0.52
+              "inspiration": 0.13,
+              "domain_adjacent": 0.28,
+              "out_of_scope": 0.45
             }
           },
           "count": {
@@ -9049,13 +9041,13 @@
           "halacha_page": {
             "type": "choice",
             "choice": "personal",
-            "confidence": 0.45,
+            "confidence": 0.4,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
-              "income": 0.22,
-              "tithes": 0.23,
-              "personal": 0.54,
+              "income": 0.24,
+              "tithes": 0.25,
+              "personal": 0.5,
               "none": 0.01
             }
           }
@@ -9126,13 +9118,13 @@
             "confidence": 0.6,
             "probabilities": {
               "add_transaction": 0.03,
-              "create_rule": 0.08,
+              "create_rule": 0.11,
               "create_recurring": 0,
               "ask_data": 0.02,
               "find_duplicates": 0,
-              "help": 0.05,
-              "inspiration": 0.11,
-              "domain_adjacent": 0.07,
+              "help": 0.06,
+              "inspiration": 0.08,
+              "domain_adjacent": 0.06,
               "out_of_scope": 0.64
             }
           },
@@ -9142,26 +9134,26 @@
             "confidence": 0.91,
             "probabilities": {
               "one": 0.94,
-              "several": 0.04,
-              "list": 0.02
+              "several": 0.05,
+              "list": 0.01
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "personal",
-            "confidence": 0.42,
+            "confidence": 0.41,
             "probabilities": {
               "expenses": 0.01,
               "chomesh": 0.03,
-              "income": 0.02,
+              "income": 0.01,
               "tithes": 0.03,
-              "personal": 0.52,
-              "none": 0.39
+              "personal": 0.51,
+              "none": 0.41
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"ומה אם זה מההורים\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -9193,7 +9185,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008052479999999999
+      "costUsd": 0.0007997480000000001
     },
     {
       "id": "conv-036-1",
@@ -9217,23 +9209,23 @@
       },
       "jev": {
         "intent": "domain_adjacent",
-        "confidence": 0.63,
+        "confidence": 0.65,
         "page": "income",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "domain_adjacent",
-            "confidence": 0.63,
+            "confidence": 0.65,
             "probabilities": {
-              "add_transaction": 0.01,
+              "add_transaction": 0.02,
               "create_rule": 0.02,
               "create_recurring": 0,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.02,
               "inspiration": 0.05,
-              "domain_adjacent": 0.67,
-              "out_of_scope": 0.22
+              "domain_adjacent": 0.69,
+              "out_of_scope": 0.19
             }
           },
           "count": {
@@ -9249,13 +9241,13 @@
           "halacha_page": {
             "type": "choice",
             "choice": "income",
-            "confidence": 0.86,
+            "confidence": 0.83,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
-              "income": 0.88,
-              "tithes": 0.07,
-              "personal": 0.05,
+              "income": 0.86,
+              "tithes": 0.08,
+              "personal": 0.06,
               "none": 0
             }
           }
@@ -9317,33 +9309,33 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.78,
+        "confidence": 0.73,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.78,
+            "confidence": 0.73,
             "probabilities": {
               "add_transaction": 0.01,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0.01,
               "find_duplicates": 0,
-              "help": 0.03,
-              "inspiration": 0.13,
+              "help": 0.02,
+              "inspiration": 0.18,
               "domain_adjacent": 0.02,
-              "out_of_scope": 0.8
+              "out_of_scope": 0.76
             }
           },
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.97,
+            "confidence": 0.94,
             "probabilities": {
-              "one": 0.98,
-              "several": 0.01,
-              "list": 0.01
+              "one": 0.96,
+              "several": 0.02,
+              "list": 0.02
             }
           },
           "halacha_page": {
@@ -9543,11 +9535,11 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.89,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.93,
+              "one": 0.94,
               "several": 0.03,
-              "list": 0.04
+              "list": 0.03
             }
           },
           "halacha_page": {
@@ -9643,10 +9635,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.92,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.95,
-              "several": 0.02,
+              "one": 0.94,
+              "several": 0.03,
               "list": 0.03
             }
           },
@@ -9723,20 +9715,20 @@
       },
       "jev": {
         "intent": "help",
-        "confidence": 0.54,
+        "confidence": 0.53,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "help",
-            "confidence": 0.54,
+            "confidence": 0.53,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.41,
+              "ask_data": 0.42,
               "find_duplicates": 0,
-              "help": 0.59,
+              "help": 0.58,
               "inspiration": 0,
               "domain_adjacent": 0,
               "out_of_scope": 0
@@ -9745,24 +9737,24 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.96,
+            "confidence": 0.94,
             "probabilities": {
-              "one": 0.97,
+              "one": 0.96,
               "several": 0.02,
-              "list": 0.01
+              "list": 0.02
             }
           },
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.96,
+            "confidence": 1,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0.01,
+              "chomesh": 0,
               "income": 0,
-              "tithes": 0.01,
-              "personal": 0.01,
-              "none": 0.97
+              "tithes": 0,
+              "personal": 0,
+              "none": 1
             }
           }
         }
@@ -9925,23 +9917,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.64,
+        "confidence": 0.62,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.64,
+            "confidence": 0.62,
             "probabilities": {
-              "add_transaction": 0.2,
+              "add_transaction": 0.23,
               "create_rule": 0,
-              "create_recurring": 0.01,
+              "create_recurring": 0.02,
               "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0.01,
-              "inspiration": 0.06,
-              "domain_adjacent": 0.03,
-              "out_of_scope": 0.68
+              "inspiration": 0.05,
+              "domain_adjacent": 0.02,
+              "out_of_scope": 0.66
             }
           },
           "count": {
@@ -10015,7 +10007,7 @@
         "kind": "out_of_scope"
       },
       "summary": {
-        "kind": "question",
+        "kind": "out_of_scope",
         "amount": null,
         "type": null,
         "date": null,
@@ -10027,23 +10019,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.68,
+        "confidence": 0.75,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.68,
+            "confidence": 0.75,
             "probabilities": {
               "add_transaction": 0.09,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.19,
+              "ask_data": 0.13,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.72
+              "out_of_scope": 0.78
             }
           },
           "count": {
@@ -10078,9 +10070,9 @@
       },
       "question": null,
       "decision": {
-        "releaseAs": "ask",
-        "mode": "ask",
-        "intent": null,
+        "releaseAs": "out_of_scope",
+        "mode": "show",
+        "intent": "out_of_scope",
         "publishedPage": null,
         "card": {
           "type": "none"
@@ -10101,10 +10093,8 @@
           "pending": null
         }
       },
-      "reason": "unnecessary_question",
-      "flags": [
-        "unnecessary_question"
-      ],
+      "reason": "turn_correct",
+      "flags": [],
       "costUsd": 0.000747642
     },
     {
@@ -10140,12 +10130,12 @@
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.01,
+              "ask_data": 0,
               "find_duplicates": 0,
               "help": 0.94,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.05
+              "out_of_scope": 0.06
             }
           },
           "count": {
@@ -10161,14 +10151,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.38,
+            "confidence": 0.51,
             "probabilities": {
               "expenses": 0.01,
-              "chomesh": 0.04,
+              "chomesh": 0.03,
               "income": 0.01,
-              "tithes": 0.08,
-              "personal": 0.38,
-              "none": 0.48
+              "tithes": 0.06,
+              "personal": 0.3,
+              "none": 0.59
             }
           }
         }
@@ -10230,15 +10220,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.94,
+        "confidence": 0.92,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.94,
+            "confidence": 0.92,
             "probabilities": {
-              "add_transaction": 0.95,
+              "add_transaction": 0.93,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -10246,7 +10236,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.05
+              "out_of_scope": 0.07
             }
           },
           "count": {
@@ -10357,11 +10347,11 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.73,
+            "confidence": 0.79,
             "probabilities": {
-              "one": 0.82,
-              "several": 0.16,
-              "list": 0.02
+              "one": 0.86,
+              "several": 0.13,
+              "list": 0.01
             }
           },
           "halacha_page": {
@@ -10387,7 +10377,7 @@
       "question": {
         "slots": {
           "family": "expense",
-          "measure": "count",
+          "measure": null,
           "recipient": null,
           "category": null,
           "paymentMethod": null
@@ -10411,7 +10401,7 @@
           "status": "ready",
           "question": {
             "type": "expense",
-            "measure": "count",
+            "measure": "sum",
             "paymentMethod": null,
             "topic": null,
             "recipient": null,
@@ -10437,7 +10427,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0012318939999999999
+      "costUsd": 0.001234394
     },
     {
       "id": "conv-042-1",
@@ -10484,10 +10474,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.89,
+            "confidence": 0.91,
             "probabilities": {
-              "one": 0.93,
-              "several": 0.06,
+              "one": 0.94,
+              "several": 0.05,
               "list": 0.01
             }
           },
@@ -10620,19 +10610,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.89,
+            "confidence": 0.92,
             "probabilities": {
-              "expenses": 0.04,
+              "expenses": 0.03,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.03,
-              "none": 0.91
+              "personal": 0.02,
+              "none": 0.93
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":10,\"amount_text\":\"10\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלב\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":10,\"amount_text\":\"10\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלב\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -10666,7 +10656,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008192480000000001
+      "costUsd": 0.000823248
     },
     {
       "id": "conv-043-1",
@@ -10804,23 +10794,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.97,
+        "confidence": 0.96,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.97,
+            "confidence": 0.96,
             "probabilities": {
               "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
               "find_duplicates": 0,
-              "help": 0.03,
+              "help": 0.04,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.97
+              "out_of_scope": 0.96
             }
           },
           "count": {
@@ -10848,7 +10838,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":\"null\",\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -10882,7 +10872,7 @@
       "flags": [
         "dead_end"
       ],
-      "costUsd": 0.00074547
+      "costUsd": 0.00074497
     },
     {
       "id": "conv-044-1",
@@ -10908,15 +10898,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 1,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 1,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 1,
+              "add_transaction": 0.99,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -10924,7 +10914,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0
+              "out_of_scope": 0.01
             }
           },
           "count": {
@@ -10940,19 +10930,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.9,
+            "confidence": 0.89,
             "probabilities": {
-              "expenses": 0.03,
+              "expenses": 0.04,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.92
+              "none": 0.91
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":20,\"amount_text\":\"20\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"לחם\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -10986,7 +10976,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000823248
+      "costUsd": 0.0008192480000000001
     },
     {
       "id": "conv-044-2",
@@ -11043,19 +11033,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.95,
+            "confidence": 0.94,
             "probabilities": {
               "expenses": 0.01,
               "chomesh": 0,
               "income": 0,
-              "tithes": 0,
+              "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.96
+              "none": 0.95
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"עכשיו\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלב\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":\"עכשיו\",\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"חלב\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"food\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -11091,7 +11081,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.00082489
+      "costUsd": 0.00082139
     },
     {
       "id": "conv-045-1",
@@ -11149,19 +11139,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.9,
+            "confidence": 0.92,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0.01,
               "tithes": 0.03,
-              "personal": 0.03,
-              "none": 0.92
+              "personal": 0.02,
+              "none": 0.93
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -11195,7 +11185,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.000821222
+      "costUsd": 0.000817222
     },
     {
       "id": "conv-045-2",
@@ -11220,15 +11210,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.99,
+        "confidence": 0.98,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.99,
+            "confidence": 0.98,
             "probabilities": {
-              "add_transaction": 0.99,
+              "add_transaction": 0.98,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -11236,7 +11226,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.01
+              "out_of_scope": 0.02
             }
           },
           "count": {
@@ -11252,19 +11242,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.84,
+            "confidence": 0.86,
             "probabilities": {
-              "expenses": 0.08,
+              "expenses": 0.07,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
               "personal": 0.03,
-              "none": 0.87
+              "none": 0.88
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מונית\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"מונית\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"transportation\",\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -11300,7 +11290,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008200480000000001
+      "costUsd": 0.000823048
     },
     {
       "id": "conv-046-1",
@@ -11358,19 +11348,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.96,
+            "confidence": 0.95,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0,
-              "income": 0.01,
+              "income": 0.02,
               "tithes": 0.01,
               "personal": 0.01,
-              "none": 0.97
+              "none": 0.96
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":300,\"amount_text\":\"300\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"income\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -11404,7 +11394,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.0008203640000000001
+      "costUsd": 0.000799364
     },
     {
       "id": "conv-046-2",
@@ -11429,15 +11419,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.92,
+        "confidence": 0.93,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.92,
+            "confidence": 0.93,
             "probabilities": {
-              "add_transaction": 0.93,
+              "add_transaction": 0.94,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -11445,7 +11435,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.07
+              "out_of_scope": 0.06
             }
           },
           "count": {
@@ -11535,15 +11525,15 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.52,
+        "confidence": 0.48,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.52,
+            "confidence": 0.48,
             "probabilities": {
-              "add_transaction": 0.36,
+              "add_transaction": 0.39,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0.07,
@@ -11551,7 +11541,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.57
+              "out_of_scope": 0.54
             }
           },
           "count": {
@@ -11640,15 +11630,15 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 1,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 1,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 1,
+              "add_transaction": 0.99,
               "create_rule": 0,
               "create_recurring": 0,
               "ask_data": 0,
@@ -11656,7 +11646,7 @@
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0
+              "out_of_scope": 0.01
             }
           },
           "count": {
@@ -11672,14 +11662,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.84,
+            "confidence": 0.88,
             "probabilities": {
-              "expenses": 0.05,
+              "expenses": 0.03,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.06,
-              "none": 0.87
+              "personal": 0.05,
+              "none": 0.9
             }
           }
         }
@@ -11878,19 +11868,19 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.87,
+            "confidence": 0.86,
             "probabilities": {
               "expenses": 0,
-              "chomesh": 0.01,
+              "chomesh": 0.02,
               "income": 0.01,
               "tithes": 0.06,
               "personal": 0.03,
-              "none": 0.89
+              "none": 0.88
             }
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":15,\"amount_text\":\"15\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":\"gift\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":15,\"amount_text\":\"15\",\"currency\":null,\"requested_rate\":null,\"date\":{\"kind\":\"days_ago\",\"n\":0,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -11924,7 +11914,7 @@
       },
       "reason": "turn_correct",
       "flags": [],
-      "costUsd": 0.00081768
+      "costUsd": 0.00082068
     },
     {
       "id": "conv-048-2",
@@ -12084,14 +12074,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.84,
+            "confidence": 0.83,
             "probabilities": {
               "expenses": 0.07,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.04,
-              "none": 0.87
+              "personal": 0.05,
+              "none": 0.86
             }
           }
         }
@@ -12361,24 +12351,24 @@
         "pending": null
       },
       "jev": {
-        "intent": "add_transaction",
-        "confidence": 0.42,
+        "intent": "out_of_scope",
+        "confidence": 0.43,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
-            "choice": "add_transaction",
-            "confidence": 0.42,
+            "choice": "out_of_scope",
+            "confidence": 0.43,
             "probabilities": {
-              "add_transaction": 0.48,
+              "add_transaction": 0.43,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.09,
+              "ask_data": 0.08,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.43
+              "out_of_scope": 0.49
             }
           },
           "count": {
@@ -12394,14 +12384,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.98,
+            "confidence": 0.96,
             "probabilities": {
               "expenses": 0,
               "chomesh": 0.01,
               "income": 0,
-              "tithes": 0,
+              "tithes": 0.01,
               "personal": 0.01,
-              "none": 0.98
+              "none": 0.97
             }
           }
         }
@@ -12441,7 +12431,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.0008004539999999999
+      "costUsd": 0.0007989539999999999
     },
     {
       "id": "conv-051-1",
@@ -12467,18 +12457,18 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.97,
+        "confidence": 0.96,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.97,
+            "confidence": 0.96,
             "probabilities": {
-              "add_transaction": 0.97,
+              "add_transaction": 0.96,
               "create_rule": 0,
               "create_recurring": 0.02,
-              "ask_data": 0,
+              "ask_data": 0.01,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
@@ -12499,14 +12489,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.94,
+            "confidence": 0.96,
             "probabilities": {
-              "expenses": 0.03,
+              "expenses": 0.02,
               "chomesh": 0,
               "income": 0,
-              "tithes": 0.01,
+              "tithes": 0,
               "personal": 0.01,
-              "none": 0.95
+              "none": 0.97
             }
           }
         }
@@ -12571,23 +12561,23 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.43,
+        "confidence": 0.4,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.43,
+            "confidence": 0.4,
             "probabilities": {
-              "add_transaction": 0.49,
-              "create_rule": 0.3,
+              "add_transaction": 0.47,
+              "create_rule": 0.29,
               "create_recurring": 0,
               "ask_data": 0,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.21
+              "out_of_scope": 0.24
             }
           },
           "count": {
@@ -12603,14 +12593,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.5,
+            "confidence": 0.45,
             "probabilities": {
-              "expenses": 0.37,
+              "expenses": 0.42,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.03,
-              "none": 0.58
+              "personal": 0.02,
+              "none": 0.54
             }
           }
         }
@@ -12695,10 +12685,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.94,
+            "confidence": 0.96,
             "probabilities": {
-              "one": 0.96,
-              "several": 0.02,
+              "one": 0.97,
+              "several": 0.01,
               "list": 0.02
             }
           },
@@ -12764,7 +12754,7 @@
         "kind": "question",
         "amount": null,
         "type": null,
-        "date": null,
+        "date": "2026-11-01",
         "frequency": null,
         "day": null,
         "period": null,
@@ -12773,23 +12763,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.62,
+        "confidence": 0.57,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.62,
+            "confidence": 0.57,
             "probabilities": {
-              "add_transaction": 0.13,
+              "add_transaction": 0.17,
               "create_rule": 0,
-              "create_recurring": 0.16,
+              "create_recurring": 0.15,
               "ask_data": 0.02,
               "find_duplicates": 0.02,
-              "help": 0,
+              "help": 0.01,
               "inspiration": 0.01,
               "domain_adjacent": 0,
-              "out_of_scope": 0.66
+              "out_of_scope": 0.62
             }
           },
           "count": {
@@ -12817,7 +12807,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -12851,7 +12841,7 @@
       "flags": [
         "unnecessary_question"
       ],
-      "costUsd": 0.0007459119999999999
+      "costUsd": 0.0007989119999999999
     },
     {
       "id": "conv-053-1",
@@ -12899,10 +12889,10 @@
           "count": {
             "type": "choice",
             "choice": "one",
-            "confidence": 0.88,
+            "confidence": 0.86,
             "probabilities": {
-              "one": 0.92,
-              "several": 0.08,
+              "one": 0.91,
+              "several": 0.09,
               "list": 0
             }
           },
@@ -12980,18 +12970,18 @@
       },
       "jev": {
         "intent": "ask_data",
-        "confidence": 0.98,
+        "confidence": 0.99,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "ask_data",
-            "confidence": 0.98,
+            "confidence": 0.99,
             "probabilities": {
-              "add_transaction": 0.01,
+              "add_transaction": 0,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.98,
+              "ask_data": 0.99,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
@@ -13106,23 +13096,23 @@
       },
       "jev": {
         "intent": "add_transaction",
-        "confidence": 0.93,
+        "confidence": 0.91,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "add_transaction",
-            "confidence": 0.93,
+            "confidence": 0.91,
             "probabilities": {
-              "add_transaction": 0.94,
+              "add_transaction": 0.92,
               "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.02,
+              "ask_data": 0.03,
               "find_duplicates": 0,
               "help": 0,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.04
+              "out_of_scope": 0.05
             }
           },
           "count": {
@@ -13138,14 +13128,14 @@
           "halacha_page": {
             "type": "choice",
             "choice": "none",
-            "confidence": 0.95,
+            "confidence": 0.94,
             "probabilities": {
               "expenses": 0.01,
               "chomesh": 0.01,
               "income": 0,
               "tithes": 0.01,
-              "personal": 0.01,
-              "none": 0.96
+              "personal": 0.02,
+              "none": 0.95
             }
           }
         }
@@ -13200,7 +13190,7 @@
         "kind": "out_of_scope",
         "amount": null,
         "type": null,
-        "date": "2026-11-01",
+        "date": null,
         "frequency": null,
         "day": null,
         "period": null,
@@ -13209,23 +13199,23 @@
       },
       "jev": {
         "intent": "out_of_scope",
-        "confidence": 0.76,
+        "confidence": 0.81,
         "page": "none",
         "answers": {
           "intent": {
             "type": "choice",
             "choice": "out_of_scope",
-            "confidence": 0.76,
+            "confidence": 0.81,
             "probabilities": {
               "add_transaction": 0.01,
-              "create_rule": 0.01,
+              "create_rule": 0,
               "create_recurring": 0,
-              "ask_data": 0.17,
+              "ask_data": 0.14,
               "find_duplicates": 0.01,
               "help": 0.01,
               "inspiration": 0,
               "domain_adjacent": 0,
-              "out_of_scope": 0.79
+              "out_of_scope": 0.83
             }
           },
           "count": {
@@ -13253,7 +13243,7 @@
           }
         }
       },
-      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "readerText": "{\"items\":[],\"more_than_five\":false,\"rule\":null,\"question\":null}",
       "httpStatus": {
         "jev": 200,
         "reader": 200
@@ -13287,7 +13277,214 @@
       "flags": [
         "dead_end"
       ],
-      "costUsd": 0.000799364
+      "costUsd": 0.000746364
+    },
+    {
+      "id": "conv-055-1",
+      "conversation": "conv-055",
+      "topic": "recurring_no_frequency",
+      "user": "הוראת קבע של 100 שקל לעמותה",
+      "context": "",
+      "expect": {
+        "kind": "question",
+        "alsoOk": [
+          "recurring"
+        ]
+      },
+      "summary": {
+        "kind": "recurring",
+        "amount": 100,
+        "type": "donation",
+        "date": "2026-11-01",
+        "frequency": "monthly",
+        "day": null,
+        "period": null,
+        "family": null,
+        "pending": null
+      },
+      "jev": {
+        "intent": "create_recurring",
+        "confidence": 0.51,
+        "page": "none",
+        "answers": {
+          "intent": {
+            "type": "choice",
+            "choice": "create_recurring",
+            "confidence": 0.51,
+            "probabilities": {
+              "add_transaction": 0.04,
+              "create_rule": 0.39,
+              "create_recurring": 0.56,
+              "ask_data": 0,
+              "find_duplicates": 0,
+              "help": 0,
+              "inspiration": 0,
+              "domain_adjacent": 0,
+              "out_of_scope": 0.01
+            }
+          },
+          "count": {
+            "type": "choice",
+            "choice": "one",
+            "confidence": 1,
+            "probabilities": {
+              "one": 1,
+              "several": 0,
+              "list": 0
+            }
+          },
+          "halacha_page": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.63,
+            "probabilities": {
+              "expenses": 0.08,
+              "chomesh": 0.06,
+              "income": 0.01,
+              "tithes": 0.04,
+              "personal": 0.12,
+              "none": 0.69
+            }
+          }
+        }
+      },
+      "readerText": "{\"items\":[{\"amount\":100,\"amount_text\":\"100\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"donation\",\"type_question\":null,\"recurrence\":{\"frequency\":\"monthly\",\"calendar\":\"gregorian\",\"day_of_month\":null,\"weekday\":null,\"start_kind\":\"this_month\",\"start\":null,\"end_kind\":null,\"end_count\":null,\"end\":null,\"already_charged\":false},\"description\":\"עמותה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":\"bank_transfer\",\"category\":\"other\",\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "httpStatus": {
+        "jev": 200,
+        "reader": 200
+      },
+      "question": null,
+      "decision": {
+        "releaseAs": "create_recurring",
+        "mode": "show",
+        "intent": "create_recurring",
+        "publishedPage": null,
+        "card": {
+          "type": "recurring"
+        },
+        "data": {
+          "status": "skip"
+        },
+        "side": "none",
+        "needsQuestion": false,
+        "needsNameCheck": false,
+        "pending": null,
+        "preferRabbi": false,
+        "frequencyBlocked": false,
+        "nextState": {
+          "recentUserTexts": [],
+          "receiptText": null,
+          "onScreen": null,
+          "pending": null
+        }
+      },
+      "reason": "turn_correct",
+      "flags": [],
+      "costUsd": 0.000845468
+    },
+    {
+      "id": "conv-055-2",
+      "conversation": "conv-055",
+      "topic": "recurring_no_frequency",
+      "user": "כל חודש",
+      "context": "",
+      "expect": {
+        "kind": "recurring",
+        "amount": 100,
+        "frequency": "monthly"
+      },
+      "summary": {
+        "kind": "question",
+        "amount": null,
+        "type": null,
+        "date": "2026-11-01",
+        "frequency": null,
+        "day": null,
+        "period": null,
+        "family": null,
+        "pending": null
+      },
+      "jev": {
+        "intent": "create_recurring",
+        "confidence": 0.45,
+        "page": "none",
+        "answers": {
+          "intent": {
+            "type": "choice",
+            "choice": "create_recurring",
+            "confidence": 0.45,
+            "probabilities": {
+              "add_transaction": 0.01,
+              "create_rule": 0.01,
+              "create_recurring": 0.51,
+              "ask_data": 0.05,
+              "find_duplicates": 0,
+              "help": 0,
+              "inspiration": 0,
+              "domain_adjacent": 0.01,
+              "out_of_scope": 0.41
+            }
+          },
+          "count": {
+            "type": "choice",
+            "choice": "one",
+            "confidence": 0.89,
+            "probabilities": {
+              "one": 0.93,
+              "several": 0.06,
+              "list": 0.01
+            }
+          },
+          "halacha_page": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.93,
+            "probabilities": {
+              "expenses": 0,
+              "chomesh": 0.01,
+              "income": 0,
+              "tithes": 0.03,
+              "personal": 0.02,
+              "none": 0.94
+            }
+          }
+        }
+      },
+      "readerText": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"rule\":null,\"question\":null}",
+      "httpStatus": {
+        "jev": 200,
+        "reader": 200
+      },
+      "question": null,
+      "decision": {
+        "releaseAs": "ask",
+        "mode": "ask",
+        "intent": null,
+        "publishedPage": null,
+        "card": {
+          "type": "none"
+        },
+        "data": {
+          "status": "skip"
+        },
+        "side": "none",
+        "needsQuestion": false,
+        "needsNameCheck": false,
+        "pending": null,
+        "preferRabbi": false,
+        "frequencyBlocked": false,
+        "nextState": {
+          "recentUserTexts": [],
+          "receiptText": null,
+          "onScreen": null,
+          "pending": null
+        }
+      },
+      "reason": "unnecessary_question",
+      "flags": [
+        "unnecessary_question"
+      ],
+      "costUsd": 0.000798854
     }
   ]
 }
