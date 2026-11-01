@@ -6,6 +6,7 @@ export interface InspirationRecord {
   title: string;
   body: string;
   source: string;
+  title_en?: string;
   body_en?: string;
   source_en?: string;
 }

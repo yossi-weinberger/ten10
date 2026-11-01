@@ -22,7 +22,7 @@ export function itemsForLanguage(items: readonly InspirationRecord[], language: 
       if (!item.body_en) return [];
       return [{
         id: item.id,
-        title: item.title,
+        title: item.title_en || item.title,
         body: item.body_en,
         source: item.source_en ?? "",
       }];
