@@ -22,6 +22,7 @@ import heTransactions from "../../../public/locales/he/transactions.json";
 const EN_REQUIRED = enTransactions.transactionForm.validation.date.required;
 const HE_REQUIRED = heTransactions.transactionForm.validation.date.required;
 const EN_INVALID = enTransactions.transactionForm.validation.date.invalid;
+const EN_MIN = enTransactions.transactionForm.validation.date.min;
 
 let locale: "en" | "he" = "en";
 
@@ -188,7 +189,7 @@ describe("DatePicker typed dates", () => {
     expect(input).toHaveValue("31/1");
     
     await user.type(input, "0");
-    expect(input).toHaveValue("31/10/");
+    expect(input).toHaveValue("31/10");
     
     await user.type(input, "2026");
     expect(input).toHaveValue("31/10/2026");
@@ -368,7 +369,7 @@ describe("DatePicker typed dates", () => {
     expect(onInputStatusChange).toHaveBeenCalledWith("parsed", "typed");
   });
 
-  it("out-of-range commit (pre-2000) emits NaN not real date", async () => {
+  it("out-of-range commit (pre-2000) emits the real parsed Date", async () => {
     useGregorian();
     const user = userEvent.setup();
     const setDate = vi.fn();
@@ -378,12 +379,11 @@ describe("DatePicker typed dates", () => {
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
     await typeOverField(user, input, "31/12/1999");
-    
+
     await user.tab();
-    
-    // Should emit NaN, not the actual 1999 date
+
     const lastCall = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
-    expect(Number.isNaN(lastCall.getTime())).toBe(true);
+    expect(formatLocalDate(lastCall)).toBe("1999-12-31");
   });
 
   it("accepts dates with dot separator", async () => {
@@ -422,7 +422,7 @@ describe("DatePicker typed dates", () => {
     expect(formatLocalDate(committed)).toBe("2026-03-15");
   });
 
-  it("has inputMode numeric on the input", () => {
+  it("has inputMode numeric and enterKeyHint next on the input", () => {
     useGregorian();
     render(
       <DatePicker date={parseLocalDate("2026-10-08")} setDate={vi.fn()} />,
@@ -430,6 +430,70 @@ describe("DatePicker typed dates", () => {
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
     expect(input).toHaveAttribute("inputMode", "numeric");
+    expect(input).toHaveAttribute("enterKeyHint", "next");
+  });
+
+  it("commits 05/11/2026 when 5112026 is typed on a numeric keypad", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    await user.type(input, "5112026");
+    expect(input).toHaveValue("05/11/2026");
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-11-05");
+  });
+
+  it("commits 05/01/2026 when 512026 is typed on a numeric keypad", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await user.click(input);
+    await user.type(input, "512026");
+    await user.tab();
+    expect(input).toHaveValue("05/01/2026");
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-01-05");
+  });
+
+  it("types 15/03/2026 with slashes and keeps the caret after each key", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    render(<DatePicker date={undefined} setDate={setDate} />);
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY") as HTMLInputElement;
+    await user.click(input);
+
+    const expected: Array<{ value: string; caret: number }> = [
+      { value: "1", caret: 1 },
+      { value: "15/", caret: 3 },
+      { value: "15/", caret: 3 },
+      { value: "15/0", caret: 4 },
+      { value: "15/03/", caret: 6 },
+      { value: "15/03/", caret: 6 },
+      { value: "15/03/2", caret: 7 },
+      { value: "15/03/20", caret: 8 },
+      { value: "15/03/202", caret: 9 },
+      { value: "15/03/2026", caret: 10 },
+    ];
+
+    for (const [index, char] of Array.from("15/03/2026").entries()) {
+      await user.type(input, char);
+      expect(input).toHaveValue(expected[index]!.value);
+      expect(input.selectionStart).toBe(expected[index]!.caret);
+    }
+
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2026-03-15");
   });
 
   it("has data-ph-unmask-date attribute for session replay", () => {
@@ -497,9 +561,7 @@ describe.each([
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(input).toHaveValue("01/01/0999");
-    // Since out_of_range dates are committed as NaN (as requested in req #2),
-    // the form validation shows "Invalid date" not "min date" error
-    expect(screen.getByText(EN_INVALID)).toBeInTheDocument();
+    expect(screen.getByText(EN_MIN)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -517,9 +579,7 @@ describe.each([
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(input).toHaveValue("31/12/1999");
-    // Since out_of_range dates are committed as NaN (as requested in req #2),
-    // the form validation shows "Invalid date" not "min date" error
-    expect(screen.getByText(EN_INVALID)).toBeInTheDocument();
+    expect(screen.getByText(EN_MIN)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 });

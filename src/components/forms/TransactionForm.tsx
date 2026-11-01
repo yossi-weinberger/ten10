@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useTrackAddFormLifecycle } from "./useTrackAddFormLifecycle";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
@@ -71,32 +72,12 @@ export function TransactionForm({
   const { search, getInitialType } =
     useTransactionFormInitialization(isEditMode);
 
-  // Track form open and abandon
-  const formOpenedRef = useRef(false);
   const formSavedSuccessRef = useRef(false);
-  const mountedRef = useRef(false);
   const dateInputStatusRef = useRef<GregorianDateParseResult["status"] | null>(null);
   const dateInputMethodRef = useRef<"typed" | "calendar">("typed");
+  const wasFormSaved = useCallback(() => formSavedSuccessRef.current, []);
 
-  useEffect(() => {
-    // Track form open only for add mode
-    if (!isEditMode && !formOpenedRef.current) {
-      formOpenedRef.current = true;
-      trackProductEvent("add_transaction_form_opened");
-    }
-
-    // Mark as mounted
-    mountedRef.current = true;
-
-    // Track abandon on unmount
-    return () => {
-      // Only fire if truly unmounting (not StrictMode re-mount)
-      if (mountedRef.current && !isEditMode && formOpenedRef.current && !formSavedSuccessRef.current) {
-        trackProductEvent("add_transaction_form_abandoned");
-      }
-      mountedRef.current = false;
-    };
-  }, [isEditMode]);
+  useTrackAddFormLifecycle(isEditMode, wasFormSaved);
 
   // Labels are handled where rendered
 

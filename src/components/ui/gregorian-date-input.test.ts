@@ -5,7 +5,42 @@ import {
   parseFlexibleGregorianDateInput,
   autoFormatDigitsOnly,
   formatAsUserTypes,
+  formatIosDigitSequence,
 } from "./gregorian-date-input";
+
+function typeKeys(keys: string, start = ""): {
+  value: string;
+  caret: number;
+  steps: Array<{ key: string; formatted: string; caretPos: number }>;
+} {
+  let value = start;
+  let caret = start.length;
+  const steps: Array<{ key: string; formatted: string; caretPos: number }> = [];
+  for (const key of keys) {
+    const newValue = value.slice(0, caret) + key + value.slice(caret);
+    const result = formatAsUserTypes(value, newValue, caret + key.length);
+    value = result.formatted;
+    caret = result.caretPos;
+    steps.push({ key, formatted: value, caretPos: caret });
+  }
+  return { value, caret, steps };
+}
+
+function expectTypedSequence(
+  keys: string,
+  expected: Array<{ formatted: string; caretPos: number }>,
+) {
+  const { steps, value } = typeKeys(keys);
+  expect(steps).toHaveLength(expected.length);
+  for (let index = 0; index < expected.length; index += 1) {
+    expect(steps[index], `after '${keys[index]}'`).toEqual({
+      key: keys[index],
+      formatted: expected[index]!.formatted,
+      caretPos: expected[index]!.caretPos,
+    });
+  }
+  return value;
+}
 
 describe("autoFormatDigitsOnly", () => {
   it("formats 8 digits as DD/MM/YYYY", () => {
@@ -37,10 +72,156 @@ describe("formatAsUserTypes", () => {
     expect(result.caretPos).toBe(3);
   });
 
-  it("auto-inserts slash after 2nd month digit", () => {
+  it("does not insert a slash eagerly after month 1 + 0", () => {
     const result = formatAsUserTypes("31/1", "31/10", 5);
-    expect(result.formatted).toBe("31/10/");
-    expect(result.caretPos).toBe(6);
+    expect(result.formatted).toBe("31/10");
+    expect(result.caretPos).toBe(5);
+  });
+
+  it("types 15/03/2026 char by char with slashes, caret after each key", () => {
+    const value = expectTypedSequence("15/03/2026", [
+      { formatted: "1", caretPos: 1 },
+      { formatted: "15/", caretPos: 3 },
+      { formatted: "15/", caretPos: 3 },
+      { formatted: "15/0", caretPos: 4 },
+      { formatted: "15/03/", caretPos: 6 },
+      { formatted: "15/03/", caretPos: 6 },
+      { formatted: "15/03/2", caretPos: 7 },
+      { formatted: "15/03/20", caretPos: 8 },
+      { formatted: "15/03/202", caretPos: 9 },
+      { formatted: "15/03/2026", caretPos: 10 },
+    ]);
+    const committed = parseFlexibleGregorianDateInput(value);
+    expect(committed.status).toBe("parsed");
+    if (committed.status === "parsed") {
+      expect(formatGregorianDateInput(committed.date)).toBe("15/03/2026");
+    }
+  });
+
+  it("types 01/03/2026 char by char with slashes, caret after each key", () => {
+    const value = expectTypedSequence("01/03/2026", [
+      { formatted: "0", caretPos: 1 },
+      { formatted: "01/", caretPos: 3 },
+      { formatted: "01/", caretPos: 3 },
+      { formatted: "01/0", caretPos: 4 },
+      { formatted: "01/03/", caretPos: 6 },
+      { formatted: "01/03/", caretPos: 6 },
+      { formatted: "01/03/2", caretPos: 7 },
+      { formatted: "01/03/20", caretPos: 8 },
+      { formatted: "01/03/202", caretPos: 9 },
+      { formatted: "01/03/2026", caretPos: 10 },
+    ]);
+    const committed = parseFlexibleGregorianDateInput(value);
+    expect(committed.status).toBe("parsed");
+    if (committed.status === "parsed") {
+      expect(formatGregorianDateInput(committed.date)).toBe("01/03/2026");
+    }
+  });
+
+  it("types 15/03/26 char by char with slashes, caret after each key", () => {
+    const value = expectTypedSequence("15/03/26", [
+      { formatted: "1", caretPos: 1 },
+      { formatted: "15/", caretPos: 3 },
+      { formatted: "15/", caretPos: 3 },
+      { formatted: "15/0", caretPos: 4 },
+      { formatted: "15/03/", caretPos: 6 },
+      { formatted: "15/03/", caretPos: 6 },
+      { formatted: "15/03/2", caretPos: 7 },
+      { formatted: "15/03/26", caretPos: 8 },
+    ]);
+    expect(parseCompleteFourDigitGregorianDateInput(value).status).toBe("partial");
+    const committed = parseFlexibleGregorianDateInput(value);
+    expect(committed.status).toBe("parsed");
+    if (committed.status === "parsed") {
+      expect(formatGregorianDateInput(committed.date)).toBe("15/03/2026");
+    }
+  });
+
+  it("types 31.10.2026 char by char, normalizing dots and swallowing extras", () => {
+    const value = expectTypedSequence("31.10.2026", [
+      { formatted: "3", caretPos: 1 },
+      { formatted: "31/", caretPos: 3 },
+      { formatted: "31/", caretPos: 3 },
+      { formatted: "31/1", caretPos: 4 },
+      { formatted: "31/10", caretPos: 5 },
+      { formatted: "31/10/", caretPos: 6 },
+      { formatted: "31/10/2", caretPos: 7 },
+      { formatted: "31/10/20", caretPos: 8 },
+      { formatted: "31/10/202", caretPos: 9 },
+      { formatted: "31/10/2026", caretPos: 10 },
+    ]);
+    const committed = parseFlexibleGregorianDateInput(value);
+    expect(committed.status).toBe("parsed");
+    if (committed.status === "parsed") {
+      expect(formatGregorianDateInput(committed.date)).toBe("31/10/2026");
+    }
+  });
+
+  it("types 31-10-2026 char by char, normalizing dashes and swallowing extras", () => {
+    const value = expectTypedSequence("31-10-2026", [
+      { formatted: "3", caretPos: 1 },
+      { formatted: "31/", caretPos: 3 },
+      { formatted: "31/", caretPos: 3 },
+      { formatted: "31/1", caretPos: 4 },
+      { formatted: "31/10", caretPos: 5 },
+      { formatted: "31/10/", caretPos: 6 },
+      { formatted: "31/10/2", caretPos: 7 },
+      { formatted: "31/10/20", caretPos: 8 },
+      { formatted: "31/10/202", caretPos: 9 },
+      { formatted: "31/10/2026", caretPos: 10 },
+    ]);
+    const committed = parseFlexibleGregorianDateInput(value);
+    expect(committed.status).toBe("parsed");
+    if (committed.status === "parsed") {
+      expect(formatGregorianDateInput(committed.date)).toBe("31/10/2026");
+    }
+  });
+
+  it("does not re-insert separators when slashes are deleted down to 8 digits", () => {
+    const afterFirstSlash = formatAsUserTypes("31/10/2026", "3110/2026", 2);
+    expect(afterFirstSlash.formatted).toBe("3110/2026");
+    const afterBoth = formatAsUserTypes("3110/2026", "31102026", 4);
+    expect(afterBoth.formatted).toBe("31102026");
+    expect(afterBoth.formatted).not.toBe("31/10/2026");
+  });
+
+  it("formats iOS keypad digit sequences", () => {
+    expect(formatIosDigitSequence("5112026")).toBe("05/11/2026");
+    expect(formatIosDigitSequence("512026", true)).toBe("05/01/2026");
+    expect(formatIosDigitSequence("5122026")).toBe("05/12/2026");
+    expect(formatIosDigitSequence("05122026")).toBe("05/12/2026");
+    expect(formatIosDigitSequence("31102026")).toBe("31/10/2026");
+    expect(formatIosDigitSequence("3132026")).toBe("31/03/2026");
+    expect(formatIosDigitSequence("152026")).toBe("15/02/2026");
+  });
+
+  it("types iOS keypad digits one at a time", () => {
+    expect(typeKeys("5112026").value).toBe("05/11/2026");
+    expect(typeKeys("512026").value).toBe("05/12026");
+    const resolved512026 = parseFlexibleGregorianDateInput(typeKeys("512026").value);
+    expect(resolved512026.status).toBe("parsed");
+    if (resolved512026.status === "parsed") {
+      expect(formatGregorianDateInput(resolved512026.date)).toBe("05/01/2026");
+    }
+    expect(typeKeys("5122026").value).toBe("05/12/2026");
+    expect(typeKeys("05122026").value).toBe("05/12/2026");
+    expect(typeKeys("31102026").value).toBe("31/10/2026");
+    expect(typeKeys("3132026").value).toBe("31/03/2026");
+    expect(typeKeys("152026").value).toBe("15/02/2026");
+    expect(typeKeys("5/11/2026").value).toBe("05/11/2026");
+  });
+
+  it("preserves non-digit invalid input", () => {
+    expect(typeKeys("abc").value).toBe("abc");
+  });
+
+  it("does not re-insert a pad after backspace through 0X/", () => {
+    const afterFive = typeKeys("5");
+    expect(afterFive.value).toBe("05/");
+    const afterSlash = formatAsUserTypes("05/", "05", 2);
+    expect(afterSlash.formatted).toBe("05");
+    const afterFiveDigit = formatAsUserTypes("05", "0", 1);
+    expect(afterFiveDigit.formatted).toBe("0");
   });
 
   it("accepts manually typed separator (allows d/M)", () => {
@@ -148,8 +329,14 @@ describe("parseCompleteFourDigitGregorianDateInput", () => {
     expect(parseCompleteFourDigitGregorianDateInput("29/02/2025").status).toBe("nonexistent");
   });
 
-  it("marks dates before 2000 as out_of_range", () => {
-    expect(parseCompleteFourDigitGregorianDateInput("31/12/1999").status).toBe("out_of_range");
+  it("marks dates before 2000 as out_of_range with the parsed Date", () => {
+    const parsed = parseCompleteFourDigitGregorianDateInput("31/12/1999");
+    expect(parsed.status).toBe("out_of_range");
+    if (parsed.status === "out_of_range") {
+      expect(parsed.date.getFullYear()).toBe(1999);
+      expect(parsed.date.getMonth()).toBe(11);
+      expect(parsed.date.getDate()).toBe(31);
+    }
     expect(parseCompleteFourDigitGregorianDateInput("01/01/1990").status).toBe("out_of_range");
   });
 
@@ -211,9 +398,19 @@ describe("parseFlexibleGregorianDateInput", () => {
     expect(parseFlexibleGregorianDateInput("32/01/2026").status).toBe("nonexistent");
   });
 
-  it("rejects dates before 2000 as out_of_range", () => {
-    expect(parseFlexibleGregorianDateInput("31/12/1999").status).toBe("out_of_range");
-    expect(parseFlexibleGregorianDateInput("01/01/0999").status).toBe("out_of_range");
+  it("rejects dates before 2000 as out_of_range with the parsed Date", () => {
+    const parsed = parseFlexibleGregorianDateInput("31/12/1999");
+    expect(parsed.status).toBe("out_of_range");
+    if (parsed.status === "out_of_range") {
+      expect(parsed.date.getFullYear()).toBe(1999);
+      expect(parsed.date.getMonth()).toBe(11);
+      expect(parsed.date.getDate()).toBe(31);
+    }
+    const ancient = parseFlexibleGregorianDateInput("01/01/0999");
+    expect(ancient.status).toBe("out_of_range");
+    if (ancient.status === "out_of_range") {
+      expect(ancient.date.getFullYear()).toBe(999);
+    }
   });
 
   it("marks partial input as partial", () => {
@@ -230,5 +427,26 @@ describe("parseFlexibleGregorianDateInput", () => {
   it("returns empty for empty string", () => {
     expect(parseFlexibleGregorianDateInput("").status).toBe("empty");
     expect(parseFlexibleGregorianDateInput("   ").status).toBe("empty");
+  });
+
+  it("resolves iOS keypad digit strings on commit", () => {
+    const cases = [
+      ["5112026", "05/11/2026"],
+      ["512026", "05/01/2026"],
+      ["5122026", "05/12/2026"],
+      ["05122026", "05/12/2026"],
+      ["31102026", "31/10/2026"],
+      ["3132026", "31/03/2026"],
+      ["152026", "15/02/2026"],
+      ["05/12026", "05/01/2026"],
+    ] as const;
+
+    for (const [input, display] of cases) {
+      const result = parseFlexibleGregorianDateInput(input);
+      expect(result.status, input).toBe("parsed");
+      if (result.status === "parsed") {
+        expect(formatGregorianDateInput(result.date), input).toBe(display);
+      }
+    }
   });
 });

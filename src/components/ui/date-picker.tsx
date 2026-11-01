@@ -174,10 +174,15 @@ export function DatePicker({
         onInputStatusChangeRef.current?.(result.status, lastInputMethodRef.current);
         return;
       }
+      case "out_of_range":
+        dirtyRef.current = true;
+        setFieldText(rawValue);
+        setDate(result.date);
+        onInputStatusChangeRef.current?.(result.status, lastInputMethodRef.current);
+        return;
       case "partial":
       case "invalid_format":
       case "nonexistent":
-      case "out_of_range":
         dirtyRef.current = true;
         setFieldText(rawValue);
         setDate(new Date(Number.NaN));
@@ -204,13 +209,9 @@ export function DatePicker({
     
     dirtyRef.current = true;
     setFieldText(formatted);
-    
-    // Only update caret if we actually changed the string
-    if (formatted !== newValue) {
-      // Store the desired caret position for the effect
-      caretPositionRef.current = caretPos;
-      needsCaretUpdate.current = true;
-    }
+
+    caretPositionRef.current = caretPos;
+    needsCaretUpdate.current = true;
 
     const result = parseCompleteFourDigitGregorianDateInput(formatted);
     switch (result.status) {
@@ -294,6 +295,7 @@ export function DatePicker({
         className="bg-background pr-10"
         data-ph-unmask-date="true"
         inputMode={calendarType === "hebrew" ? undefined : "numeric"}
+        enterKeyHint={calendarType === "hebrew" ? undefined : "next"}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
