@@ -149,7 +149,8 @@
 | 630 | שתי הריצות האחרונות ומעקב תקופה | תוצאות, בלי שינוי התנהגות | #628 | מוזג ל־`feat/ai-intake` | [#630](https://github.com/yossi-weinberger/ten10/pull/630) |
 | 631 | חישוב תקופה יחסית בקוד | קוד, בלי מודל | #630 | מוזג ל־`feat/ai-intake` | [#631](https://github.com/yossi-weinberger/ten10/pull/631) |
 | C1 | `2026-11-01-ai-conversation-memory.md` | החלטת תור טהורה, בלי שינוי התנהגות | — | נפתח | [#640](https://github.com/yossi-weinberger/ten10/pull/640) |
-| C2 | `2026-11-01-ai-conversation-memory.md` | החלטה לפי מה שנקרא | C1 | נפתח | `feat/ai-c2-read-decision` |
+| C2 | `2026-11-01-ai-conversation-memory.md` | החלטה לפי מה שנקרא | C1 | נפתח | [#641](https://github.com/yossi-weinberger/ten10/pull/641) |
+| C3 | `2026-11-01-ai-conversation-memory.md` | זיכרון והקשר למודלים | C2 | נפתח | `feat/ai-c3-conversation-memory` |
 
 **צורת העבודה (מ־28/10/2026):**
 - **שלב הוא PR קטן.** ענף `feat/ai-<קוד>-<תיאור>` מהגרסה העדכנית של `feat/ai-intake`, ו־base תמיד `feat/ai-intake`. לא ממזגים ל־`main` עד הודעה. ממזגים מ־`main` לענף מדי פעם.
@@ -609,3 +610,5 @@
 - **2026-11-01:** סט השיחות, 54 שיחות ו־111 תורים. ריצה שמורה אחת, הבסיס של היום: `turn_correct` ‏40/111 (36%), `wrong_save` ‏0, `recurring_as_one_time` ‏5, `dead_end` ‏22, `unnecessary_question` ‏36 (32%). עלות 0.097341 דולר. ניסיון קודם נגמר בלי קובץ כי חסר אישור כתיבה, בלי שינוי קוד. הצעד הבא: C2.
 - **2026-11-01:** C2. כרטיס הוראת קבע כשיש recurrence ובלי unsupportedFrequency, בלי קשר לתווית. כרטיס כלל רק כשהקורא החזיר rule ואין תנועה. דף הלכה מעל הסף ודף אישי בלי קשר לתווית. «זה פטור» נשאר על הכרטיס בלי הצעת כלל. אין שינוי Edge. לא ל־`main`.
 - **2026-11-01:** סט השיחות אחרי C2, ריצה אחת: `turn_correct` ‏38/111 (34%), `wrong_save` ‏0, `recurring_as_one_time` ‏0, `dead_end` ‏10, `unnecessary_question` ‏42 (38%). עלות 0.089501 דולר. `conv-001-1` עבר ל־recurring. סט הכוונות 99/99, עלות 0.012704 דולר, ריצה אחת. אין שינוי Edge. הצעד הבא: C3.
+- **2026-11-01:** C3. הזיכרון נשמר ב־ref ולא מתאפס ב־beginTurn. בלוק הקשר עד 800 תווים נשלח ל־Jev, לקורא ולשאלה. `continues` ו־`discards` נוספו לקורא. שאלה שהיא המשך מסומנת `followed_up`, והקודמת `answered`. מיגרציה `20261101193000` עם rollback. לא ל־`main`.
+- **2026-11-01:** סט השיחות אחרי C3, ריצה אחת: `turn_correct` ‏61/111 (55%), `wrong_save` ‏0, `recurring_as_one_time` ‏0, `dead_end` ‏8, `unnecessary_question` ‏12 (11%). עלות 0.096183 דולר. `conv-001` שני התורים נכונים, ו«עוד אחד» נשאר חיזוק. `ai-classify-intent`, `ai-split-items` ו־`ai-read-question` נפרסו ל־testing `bbcllewcotypedqsnwmi`. הצעד הבא: C4.

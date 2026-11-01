@@ -56,6 +56,8 @@ export type TurnReader =
     dropped?: number;
     rule: { match: string; action: string | null } | null;
     question: ResolvedQuestion | null;
+    continues?: boolean;
+    discards?: boolean;
   };
 
 export type TurnNameCheck =
@@ -124,6 +126,8 @@ export interface TurnDecision {
   needsNameCheck: boolean;
   pending: { kind: PendingKind; sourceText: string } | null;
   preferRabbi: boolean;
+  replaceScreen: boolean;
+  alreadySaved: boolean;
   nextState: ConversationState;
 }
 
@@ -373,8 +377,67 @@ function copyState(state: ConversationState): ConversationState {
   };
 }
 
+function rememberTurn(input: TurnInput, pending: TurnDecision["pending"], onScreen: ConversationState["onScreen"]): ConversationState {
+  const text = input.message.trim().slice(0, 400);
+  const recent = text.length > 0 ? [...input.state.recentUserTexts, text].slice(-3) : input.state.recentUserTexts.slice();
+  return {
+    recentUserTexts: recent,
+    receiptText: input.state.receiptText,
+    onScreen,
+    pending,
+  };
+}
+
+function screenFrom(input: TurnInput, card: TurnCard): ConversationState["onScreen"] {
+  const item = firstItem(input.reader);
+  if (card.type === "recurring" && item) {
+    return { kind: "recurring", sourceText: input.message };
+  }
+  if (card.type === "draft" || card.type === "drafts" || card.type === "clarify") {
+    return { kind: "draft", sourceText: input.message };
+  }
+  return input.state.onScreen;
+}
+
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
+  const several = severalOf(input.reader);
+  if (several?.discards && input.state.onScreen) {
+    return {
+      releaseAs: "out_of_scope",
+      mode: "show",
+      intent: null,
+      publishedPage: null,
+      card: { type: "none" },
+      data: { status: "skip" },
+      side: "none",
+      needsQuestion: false,
+      needsNameCheck: false,
+      pending: null,
+      preferRabbi: false,
+      replaceScreen: true,
+      alreadySaved: false,
+      nextState: rememberTurn(input, null, null),
+    };
+  }
+  if (several?.continues && input.state.onScreen?.kind === "saved") {
+    return {
+      releaseAs: "out_of_scope",
+      mode: "show",
+      intent: null,
+      publishedPage: null,
+      card: { type: "none" },
+      data: { status: "skip" },
+      side: "none",
+      needsQuestion: false,
+      needsNameCheck: false,
+      pending: null,
+      preferRabbi: false,
+      replaceScreen: false,
+      alreadySaved: true,
+      nextState: copyState(input.state),
+    };
+  }
   const routed = route(input);
   const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
   const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
@@ -393,7 +456,13 @@ export function decideTurn(input: TurnInput): TurnDecision {
     needsNameCheck: data.needsNameCheck,
     pending: pendingFor(input.message, card, data.data),
     preferRabbi: routed.preferRabbi,
-    nextState: copyState(input.state),
+    replaceScreen: severalOf(input.reader)?.continues === true,
+    alreadySaved: false,
+    nextState: rememberTurn(
+      input,
+      pendingFor(input.message, card, data.data),
+      screenFrom(input, card) ?? (data.data.status === "ready" ? { kind: "data_answer", sourceText: input.message } : input.state.onScreen),
+    ),
   };
 }
 

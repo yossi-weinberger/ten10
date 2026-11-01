@@ -40,8 +40,9 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { intent: null }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; context?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const context = typeof body?.context === "string" ? body.context.slice(0, 800) : "";
   if (!text) return json(origin, { intent: "out_of_scope" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
@@ -63,7 +64,7 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), {
+        body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text, context), {
           source: "app",
         })),
       },

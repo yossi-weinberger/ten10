@@ -84,6 +84,8 @@ export const splitPayloadSchema = z.object({
   more_than_five: z.boolean().nullish().transform((value) => value === true),
   rule: splitRuleSchema.nullish().transform((value) => value ?? null),
   question: splitQuestionSchema.nullish().transform((value) => value ?? null),
+  continues: z.boolean().optional().default(false),
+  discards: z.boolean().optional().default(false),
 });
 
 export type SplitItemInput = z.infer<typeof splitItemSchema>;
@@ -177,10 +179,12 @@ const itemSchema = {
 export const SPLIT_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["items", "more_than_five", "rule", "question"],
+  required: ["items", "more_than_five", "rule", "question", "continues", "discards"],
   properties: {
     items: { type: "array", items: itemSchema },
     more_than_five: { type: "boolean" },
+    continues: { type: "boolean" },
+    discards: { type: "boolean" },
     rule: nullable({
       type: "object",
       additionalProperties: false,

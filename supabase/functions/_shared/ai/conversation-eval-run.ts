@@ -7,7 +7,8 @@ import { splitReadContext } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "./question-period.ts";
-import { decideTurn, emptyConversation, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
+import { conversationContext } from "./conversation-context.ts";
+import { decideTurn, emptyConversation, summarizeTurn, type ConversationState, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
 
 interface ExpectTurn {
   kind: string;
@@ -84,15 +85,16 @@ async function post(key: string, url: string, body: unknown): Promise<unknown> {
   return response.json();
 }
 
-async function askJev(key: string, text: string): Promise<unknown> {
-  return post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildIntentBody(text), { source: "eval" }));
+async function askJev(key: string, text: string, context: string): Promise<unknown> {
+  return post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildIntentBody(text, context), { source: "eval" }));
 }
 
-async function askReader(key: string, text: string, fixture: Fixture, categories: string[]): Promise<unknown> {
+async function askReader(key: string, text: string, fixture: Fixture, categories: string[], context: string): Promise<unknown> {
   const body = splitRequestBody(text, fixture.today, {
     categories,
     recipients: fixture.recipients,
     calendar: fixture.calendar,
+    conversation: context,
   }, "eval");
   const first = await post(key, SPLIT_RESPONSES_URL, body);
   if (parseSplitPayload(readModelText(first))) return first;
@@ -104,10 +106,11 @@ async function askQuestion(
   text: string,
   fixture: Fixture,
   lists: { recipients: string[]; categories: string[] },
+  context: string,
 ): Promise<{ question: TurnQuestion; costUsd: number }> {
   const [slotsPayload, periodPayload] = await Promise.all([
-    post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildQuestionSlotBody(text, lists), { source: "eval" })),
-    post(key, SPLIT_RESPONSES_URL, periodRequestBody(text, fixture.today, "eval", fixture.calendar)),
+    post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildQuestionSlotBody(text, lists, context), { source: "eval" })),
+    post(key, SPLIT_RESPONSES_URL, periodRequestBody(context ? `${context}\n${text}` : text, fixture.today, "eval", fixture.calendar)),
   ]);
   const costUsd = (readModelUsage(slotsPayload).costUsd ?? 0) + (readModelUsage(periodPayload).costUsd ?? 0);
   const slots = readQuestionSlots(slotsPayload, lists);
@@ -155,33 +158,36 @@ async function runConversation(
 ) {
   const lists = { recipients: fixture.recipients, categories };
   const rows = [];
+  let state: ConversationState = emptyConversation();
   for (const [index, turn] of conversation.turns.entries()) {
+    const context = conversationContext(state);
     const [jevRaw, readerRaw] = await Promise.all([
-      askJev(key, turn.user),
-      askReader(key, turn.user, fixture, categories),
+      askJev(key, turn.user, context),
+      askReader(key, turn.user, fixture, categories, context),
     ]);
     const intent = readIntentChoice(jevRaw);
     const page = readHalachaChoice(jevRaw);
     const split = readSplitResponse(turn.user, readModelText(readerRaw), splitReadContext(fixture.today, {
       categories,
       recipients: fixture.recipients,
-    }));
+    }), [...state.recentUserTexts, state.receiptText ?? ""]);
     const reader = split.route === "several"
-      ? { ok: true as const, route: "several" as const, items: split.items, dropped: split.dropped, rule: split.rule, question: split.question }
+      ? { ok: true as const, route: "several" as const, items: split.items, dropped: split.dropped, rule: split.rule, question: split.question, continues: split.continues, discards: split.discards }
       : { ok: true as const, route: split.route };
+    const jev = intent
+      ? { ok: true as const, intent: intent.intent, confidence: intent.confidence, halachaPage: page?.page ?? null, halachaPageConfidence: page?.confidence ?? null }
+      : { ok: false as const };
     const first = decideTurn({
       message: turn.user,
-      jev: intent
-        ? { ok: true, intent: intent.intent, confidence: intent.confidence, halachaPage: page?.page ?? null, halachaPageConfidence: page?.confidence ?? null }
-        : { ok: false },
+      jev,
       reader,
       question: null,
       questionAttempted: false,
-      state: emptyConversation(),
+      state,
       today: fixture.today,
       calendar: fixture.calendar,
     });
-    const asked = first.needsQuestion ? await askQuestion(key, turn.user, fixture, lists) : null;
+    const asked = first.needsQuestion ? await askQuestion(key, turn.user, fixture, lists, context) : null;
     const question = asked?.question ?? null;
     const decision = first.needsQuestion
       ? decideTurn({
@@ -192,11 +198,12 @@ async function runConversation(
         reader,
         question,
         questionAttempted: true,
-        state: emptyConversation(),
+        state,
         today: fixture.today,
         calendar: fixture.calendar,
       })
       : first;
+    state = decision.nextState;
     const summary = summarizeTurn({
       message: turn.user,
       jev: { ok: false },
@@ -216,7 +223,7 @@ async function runConversation(
       conversation: conversation.id,
       topic: conversation.topic,
       user: turn.user,
-      context: "",
+      context,
       expect: turn.expect,
       summary,
       jev: { intent: intent?.intent ?? null, confidence: intent?.confidence ?? null, page: page?.page ?? null, raw: jevRaw },

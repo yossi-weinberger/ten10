@@ -60,6 +60,7 @@ import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTab
 import { recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
 import { releaseSplit, splitItems, type SplitItemsResult } from "@/lib/ai/split-items";
 import { decideTurn, emptyConversation, type TurnDecision } from "@/lib/ai/assistant-turn";
+import { conversationContext } from "../../../supabase/functions/_shared/ai/conversation-context.ts";
 import { digitsOnlyAmount, draftFromHeld, heldFromItem, recurringCardFromItem, type HeldDraft } from "@/lib/ai/split-draft";
 import { cardsFromSplit, type SplitDraft } from "@/lib/ai/split-cards";
 import { saveSplitDrafts } from "@/lib/ai/save-split-drafts";
@@ -135,6 +136,7 @@ export function AssistantDrawer({
   const [specialType, setSpecialType] = useState<HeldDraft["typeQuestion"]>(null);
   const held = useRef<HeldDraft | null>(null);
   const splitRef = useRef<SplitItemsResult | null>(null);
+  const memoryRef = useRef(emptyConversation());
   const halachaRef = useRef<string | null>(null);
   const preferRabbi = useRef(false);
   const [pendingText, setPendingText] = useState("");
@@ -238,6 +240,7 @@ export function AssistantDrawer({
   }
 
   function clearConversation() {
+    memoryRef.current = emptyConversation();
     settleOpenMeasurement();
     requestRef.current += 1;
     conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
@@ -695,7 +698,7 @@ export function AssistantDrawer({
       withData,
       preferRabbi: preferRabbi.current,
       knownHalachaPage: halachaRef.current,
-      state: emptyConversation(),
+      state: memoryRef.current,
       today: todayIso(),
       calendar: questionCalendar,
     }));
@@ -899,19 +902,24 @@ export function AssistantDrawer({
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
     const request = requestRef.current;
-    followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
+    const continued = !family && !searchDescriptions && memoryRef.current.onScreen?.kind === "data_answer";
+    followQuestion(family ? "family" : searchDescriptions ? "search" : continued ? "follow" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source, {
         calendar: questionCalendar,
         today: todayIso(),
+        context: conversationContext(memoryRef.current),
       });
       if (read) {
         periodHold.current = read.period;
         nameHold.current = read.nameText;
       }
-      if (read?.measurementId) holdMeasurement(read.measurementId);
+      if (read?.measurementId) {
+        holdMeasurement(read.measurementId);
+        if (continued) void markQuestionOutcome(read.measurementId, "followed_up");
+      }
       if (requestRef.current !== request) return;
       const decision = decideTurn({
         message: source,
@@ -1156,13 +1164,18 @@ export function AssistantDrawer({
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const memory = memoryRef.current;
+    const context = conversationContext(memory);
     const splitPromise = splitItems(source, today, {
       timeZone: zone,
       receivedAt: new Date().toISOString(),
       defaultCurrency,
       calendar: questionCalendar,
+      context,
+      priorTexts: memory.recentUserTexts,
+      receiptText: memory.receiptText,
     });
-    const decided = await classifyIntentFallback(source);
+    const decided = await classifyIntentFallback(source, context);
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;
@@ -1185,12 +1198,22 @@ export function AssistantDrawer({
       reader: split,
       question: null,
       questionAttempted: false,
-      state: emptyConversation(),
+      state: memory,
       today,
       calendar: questionCalendar,
     });
+    memoryRef.current = decision.nextState;
+    if (decision.replaceScreen) {
+      setHistory((current) => current.map((turn, index) => (
+        index === current.length - 1 ? { ...turn, blocks: [] } : turn
+      )));
+    }
     releaseUnused(decision.releaseAs);
     applyTurn(source, decision);
+    if (decision.alreadySaved && memory.onScreen?.kind === "saved") {
+      setSavedItemId(memory.onScreen.savedItemId);
+      setStatus("alreadySaved");
+    }
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
@@ -1318,6 +1341,11 @@ export function AssistantDrawer({
     }
     if (result.ok) {
       setSavedItemId(result.itemId);
+      memoryRef.current = {
+        ...memoryRef.current,
+        pending: null,
+        onScreen: { kind: "saved", sourceText: memoryRef.current.onScreen?.sourceText ?? pendingText, savedItemId: result.itemId },
+      };
       refreshAfterIntakeSave();
       setStatus("saved");
       navigator.vibrate?.(12);

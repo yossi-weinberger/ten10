@@ -7,6 +7,7 @@ export const QUESTION_OUTCOMES = [
   "searched_description",
   "asked_again",
   "answered",
+  "followed_up",
 ] as const;
 
 export type QuestionOutcome = (typeof QUESTION_OUTCOMES)[number];
@@ -16,7 +17,7 @@ export type MeasurementHold = {
   at: number;
 };
 
-export type QuestionOutcomeEvent = "family" | "search" | "ask" | "timeout";
+export type QuestionOutcomeEvent = "family" | "search" | "ask" | "follow" | "timeout";
 
 /** The first follow-up within 60 seconds wins. A numeric answer waits out the window. */
 export function nextQuestionOutcome(input: {
@@ -28,6 +29,7 @@ export function nextQuestionOutcome(input: {
   if (!hold) return { mark: null, hold: null };
   if (event === "family") return { mark: { id: hold.id, outcome: "asked_family" }, hold: null };
   if (event === "search") return { mark: { id: hold.id, outcome: "searched_description" }, hold: null };
+  if (event === "follow") return { mark: { id: hold.id, outcome: "answered" }, hold: null };
   if (event === "ask") {
     if (now - hold.at > QUESTION_OUTCOME_WINDOW_MS) return { mark: null, hold: null };
     return { mark: { id: hold.id, outcome: "asked_again" }, hold: null };

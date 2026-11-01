@@ -16,6 +16,8 @@ export type SplitItemsResult =
     rule: SplitRuleInput | null;
     question: ResolvedQuestion | null;
     usageId: string | null;
+    continues: boolean;
+    discards: boolean;
   }
   | { ok: false; reason: "UNAVAILABLE" };
 
@@ -24,6 +26,9 @@ export interface SplitCallOptions {
   receivedAt?: string;
   defaultCurrency?: string;
   calendar?: "gregorian" | "hebrew";
+  context?: string;
+  priorTexts?: readonly string[];
+  receiptText?: string | null;
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -44,6 +49,9 @@ export async function splitItems(
       receivedAt: options.receivedAt,
       defaultCurrency: options.defaultCurrency,
       calendar: options.calendar,
+      context: options.context?.slice(0, 800),
+      priorTexts: options.priorTexts?.slice(0, 3),
+      receiptText: options.receiptText ?? undefined,
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
@@ -56,6 +64,8 @@ export async function splitItems(
     rule?: unknown;
     question?: unknown;
     usage_id?: unknown;
+    continues?: unknown;
+    discards?: unknown;
   };
   if (body.reason === "unavailable" || body.reason === "quota_exhausted" || body.reason === "rate_limited" || body.reason === "daily_limit") {
     return { ok: false, reason: "UNAVAILABLE" };
@@ -74,6 +84,8 @@ export async function splitItems(
       rule,
       question,
       usageId,
+      continues: body.continues === true,
+      discards: body.discards === true,
     };
   }
   return { ok: false, reason: "UNAVAILABLE" };

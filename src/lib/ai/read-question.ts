@@ -29,11 +29,11 @@ export type ReadQuestionSlotsResult = QuestionSlots & {
 /** Null when Jev did not answer. The caller then uses the word parser. */
 export async function readQuestionSlots(
   text: string,
-  options: { calendar?: "gregorian" | "hebrew"; today?: string } = {},
+  options: { calendar?: "gregorian" | "hebrew"; today?: string; context?: string } = {},
 ): Promise<ReadQuestionSlotsResult | null> {
   if (!aiCallsAllowed()) return null;
   const { data, error } = await supabase.functions.invoke("ai-read-question", {
-    body: { text, calendar: options.calendar, today: options.today },
+    body: { text, calendar: options.calendar, today: options.today, context: options.context?.slice(0, 800) },
   });
   if (error || !data || typeof data !== "object") return null;
   const record = data as {

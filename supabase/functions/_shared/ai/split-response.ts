@@ -14,8 +14,8 @@ export interface ResolvedQuestion {
 }
 
 export type SplitResponse =
-  | { route: "list" }
-  | { route: "unreadable" }
+  | { route: "list"; continues: boolean; discards: boolean }
+  | { route: "unreadable"; continues: boolean; discards: boolean }
   | {
     route: "several";
     items: AnchoredSplitItem[];
@@ -23,6 +23,8 @@ export type SplitResponse =
     dropped: number;
     rule: SplitRuleInput | null;
     question: ResolvedQuestion | null;
+    continues: boolean;
+    discards: boolean;
   };
 
 function asContext(todayOrContext: string | SplitReadContext): SplitReadContext | null {
@@ -71,22 +73,31 @@ export function readSplitResponse(
   source: string,
   payload: unknown,
   todayOrContext: string | SplitReadContext,
+  priorEvidence: readonly string[] = [],
 ): SplitResponse {
   const context = asContext(todayOrContext);
-  if (!context) return { route: "unreadable" };
+  if (!context) return { route: "unreadable", continues: false, discards: false };
   const raw = jsonValue(payload);
+  const flags = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as { continues?: unknown; discards?: unknown }
+    : null;
+  const continues = flags?.continues === true;
+  const discards = flags?.discards === true;
   if (raw && typeof raw === "object" && !Array.isArray(raw) && (raw as { more_than_five?: unknown }).more_than_five === true) {
-    return { route: "list" };
+    return { route: "list", continues, discards };
   }
   const parsed = parseSplitPayload(payload);
-  if (!parsed) return { route: "unreadable" };
-  if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
-  const anchored = anchorSplitItems(source, parsed.items, context);
+  if (!parsed) return { route: "unreadable", continues: false, discards: false };
+  if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list", continues: parsed.continues, discards: parsed.discards };
+  const evidence = parsed.continues
+    ? [...priorEvidence, source].filter((part) => part.trim().length > 0).join("\n")
+    : source;
+  const anchored = anchorSplitItems(evidence, parsed.items, context);
   const question = parsed.question ? questionInLists(parsed.question, context) : null;
   const rule = parsed.rule && parsed.rule.match.trim().length >= 2
     ? { match: parsed.rule.match.trim(), action: parsed.rule.action }
     : null;
-  if (anchored.items.length === 0 && !question && !rule) return { route: "unreadable" };
+  if (anchored.items.length === 0 && !question && !rule) return { route: "unreadable", continues: parsed.continues, discards: parsed.discards };
   return {
     route: "several",
     items: anchored.items,
@@ -94,5 +105,7 @@ export function readSplitResponse(
     dropped: anchored.dropped,
     rule,
     question,
+    continues: parsed.continues,
+    discards: parsed.discards,
   };
 }

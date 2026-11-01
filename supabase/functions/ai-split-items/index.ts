@@ -55,6 +55,9 @@ Deno.serve(async (req: Request) => {
     defaultCurrency?: unknown;
     calendar?: unknown;
     release?: unknown;
+    context?: unknown;
+    priorTexts?: unknown;
+    receiptText?: unknown;
   } | null;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
@@ -98,7 +101,12 @@ Deno.serve(async (req: Request) => {
   const prepMs = Date.now() - prepStarted;
   if (!firstGate.allowed) return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
-  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar };
+  const conversation = typeof body?.context === "string" ? body.context.slice(0, 800) : "";
+  const priorTexts = Array.isArray(body?.priorTexts)
+    ? body.priorTexts.flatMap((part) => typeof part === "string" ? [part.slice(0, 400)] : []).slice(0, 3)
+    : [];
+  const receiptText = typeof body?.receiptText === "string" ? body.receiptText.slice(0, 2000) : "";
+  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar, conversation };
   let modelMs = 0;
 
   async function ask(usageId: string | null): Promise<{ payload: unknown; usageId: string | null } | null> {
@@ -154,6 +162,7 @@ Deno.serve(async (req: Request) => {
         rules: lists.rules,
         recipients: lists.context.recipients ?? [],
       }),
+      [...priorTexts, receiptText],
     );
     return json(origin, { ...split, usage_id: usageId, retried, prep_ms: prepMs, model_ms: modelMs }, 200);
   } catch (error) {

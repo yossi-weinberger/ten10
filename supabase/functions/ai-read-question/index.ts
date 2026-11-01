@@ -63,8 +63,9 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown; context?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const context = typeof body?.context === "string" ? body.context.slice(0, 800) : "";
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const today = typeof body?.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today)
     ? body.today
@@ -92,7 +93,7 @@ Deno.serve(async (req: Request) => {
 
   const slotsCall = (async () => {
     try {
-      const request = buildQuestionSlotBody(text, lists);
+      const request = buildQuestionSlotBody(text, lists, context);
       const result = await callModel({
         userId: userData.user.id,
         operation: "question_slots",
@@ -137,7 +138,7 @@ Deno.serve(async (req: Request) => {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(periodRequestBody(text, today, "app", calendar)),
+          body: JSON.stringify(periodRequestBody(context ? `${context}\n${text}` : text, today, "app", calendar)),
         },
         timeoutMs: 8000,
         record: serviceModelCallRecorder(),

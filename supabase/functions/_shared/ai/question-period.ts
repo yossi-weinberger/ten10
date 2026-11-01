@@ -82,6 +82,7 @@ function periodPrompt(text: string, today: string, calendar: "gregorian" | "hebr
     "The last N months is last_n_months with that n. A span from one date to another is range, and from and to are exact dates with day, month, and year.",
     "A maaser year is kind maaser_year only when the question names that year, such as שנת המעשר or maaser year. offset 0 is the current one. offset -1 is the previous one. A numbered gregorian year is not a maaser year. A donation to מעשר during השנה is kind year, not maaser_year.",
     "When the question names no period, kind is all.",
+    "When the question continues the previous question, use its period unless it names a new one.",
     "name_text is the recipient or the subject the question asks about, copied from the question without a prefix letter, or null.",
     "A generic word for a donation or an expense is not a name. A payment method is not a name.",
     "A name that belongs to a transaction in the same message is not the question's name.",

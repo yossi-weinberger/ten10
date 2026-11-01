@@ -34,6 +34,7 @@ export interface SplitPromptContext {
   timeZone?: string;
   calendar?: "gregorian" | "hebrew";
   receipt?: boolean;
+  conversation?: string;
 }
 
 export function splitPrompt(text: string, today: string, context: SplitPromptContext = {}): string {
@@ -74,6 +75,8 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     `The user's calendar is ${context.calendar ?? "gregorian"}. A numbered day of the month uses that calendar, unless the message names a Hebrew date or a Hebrew month.`,
     "A payee that is a place of Torah study is a donation.",
     "unsupported_frequency is true only when the user asked for a repeating payment whose frequency is not daily, weekly, monthly, or yearly. recurrence is then null. Do not record that request as monthly. Otherwise unsupported_frequency is false.",
+    "When the message changes or completes what is on screen, return the full updated items and set continues to true. Otherwise continues is false.",
+    "discards is true when the user asks to drop what is on screen. Otherwise discards is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
     "currency is ILS, USD, or EUR, or null when no currency was named.",
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",
@@ -89,6 +92,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
       return examples.length > 0 ? `${rule.id} ${rule.name} | examples: ${examples.join(" | ")}` : `${rule.id} ${rule.name}`;
     }).join("; ") : "none"}.`,
     `Recipients: ${recipients.length > 0 ? recipients.join(", ") : "none"}.`,
+    ...(context.conversation ? [context.conversation] : []),
     "Message:",
     text,
   ].join("\n");

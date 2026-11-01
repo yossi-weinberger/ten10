@@ -269,10 +269,11 @@ describe("decideTurn", () => {
     expect(decision.pending?.kind).toBe("name");
   });
 
-  it("leaves the conversation state unchanged", () => {
+  it("remembers the user message and does not send the assistant's words", () => {
     const state = emptyConversation();
-    const decision = decideTurn(base({ state }));
-    expect(decision.nextState).toEqual(state);
+    const decision = decideTurn(base({ state, message: "קניתי לחם ב-15" }));
+    expect(decision.nextState.recentUserTexts).toEqual(["קניתי לחם ב-15"]);
+    expect(decision.nextState.onScreen?.kind).toBe("draft");
     expect(decision.nextState).not.toBe(state);
   });
 

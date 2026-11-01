@@ -135,6 +135,7 @@
     "rabbiSent": "Sent. Reference: {{ticket}}",
     "rabbiFailed": "The message was not sent.",
     "saved": "Saved.",
+    "alreadySaved": "This is already saved.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
     "undoNotAllowed": "This cannot be undone. You can delete the transaction in the table.",
