@@ -70,6 +70,25 @@ export function TransactionForm({
   const { search, getInitialType } =
     useTransactionFormInitialization(isEditMode);
 
+  // Track form open and abandon
+  const formOpenedRef = useRef(false);
+  const formSavedRef = useRef(false);
+
+  useEffect(() => {
+    // Track form open only for add mode
+    if (!isEditMode && !formOpenedRef.current) {
+      formOpenedRef.current = true;
+      trackProductEvent("add_transaction_form_opened");
+    }
+
+    // Track abandon on unmount
+    return () => {
+      if (!isEditMode && formOpenedRef.current && !formSavedRef.current) {
+        trackProductEvent("add_transaction_form_abandoned");
+      }
+    };
+  }, [isEditMode]);
+
   // Labels are handled where rendered
 
   const updateTransaction = useTableTransactionsStore(
@@ -241,6 +260,7 @@ export function TransactionForm({
   const isRecurringChecked = form.watch("is_recurring");
 
   async function onSubmit(values: TransactionFormValues) {
+    formSavedRef.current = true; // Mark as saved before actual save
     setIsSuccess(false);
     logger.log("Form values submitted:", values);
 
@@ -470,11 +490,77 @@ export function TransactionForm({
     );
 
     // Measure blocked submits so we can track this beyond session recordings.
-    trackProductEvent("transaction_validation_failed", {
+    const properties: Record<string, string | number | boolean> = {
       fields: Object.keys(errors).join(","),
       field_count: Object.keys(errors).length,
       is_edit_mode: isEditMode,
-    });
+    };
+
+    // Add enhanced date field telemetry
+    if (errors.date) {
+      const dateInput = document.querySelector<HTMLInputElement>(
+        'input[placeholder="DD/MM/YYYY"]'
+      );
+      const dateValue = form.getValues("date");
+      const dateError = errors.date;
+
+      // Determine reason based on error message and value
+      let reason: string = "unknown";
+      if (!dateValue || dateValue.trim() === "") {
+        reason = "partial";
+      } else {
+        const errorMsg = String(dateError.message || "");
+        if (errorMsg.includes("format") || errorMsg.includes("invalid")) {
+          // Check if it's a parse error vs date validity error
+          const hasDigits = /\d/.test(dateValue);
+          const hasSeparators = /[\/.\-]/.test(dateValue);
+          if (!hasDigits || !hasSeparators) {
+            reason = "invalid_format";
+          } else {
+            // Could be nonexistent date (31/02) or out of range
+            const parts = dateValue.split(/[\/.\-]/);
+            if (parts.length === 3) {
+              const day = parseInt(parts[0] || "0");
+              const month = parseInt(parts[1] || "0");
+              if (day > 31 || month > 12) {
+                reason = "invalid_format";
+              } else {
+                // Try to parse and check if it's a real date
+                const year = parts[2]?.length === 2 
+                  ? 2000 + parseInt(parts[2])
+                  : parseInt(parts[2] || "0");
+                const testDate = new Date(year, month - 1, day);
+                if (
+                  testDate.getFullYear() !== year ||
+                  testDate.getMonth() !== month - 1 ||
+                  testDate.getDate() !== day
+                ) {
+                  reason = "nonexistent";
+                } else if (testDate < new Date(2000, 0, 1)) {
+                  reason = "out_of_range";
+                } else {
+                  reason = "invalid_format";
+                }
+              }
+            } else {
+              reason = "partial";
+            }
+          }
+        } else if (errorMsg.includes("min") || errorMsg.includes("2000")) {
+          reason = "out_of_range";
+        }
+      }
+
+      properties.date_reason = reason;
+
+      // Get input method from the date input element
+      if (dateInput) {
+        const lastInputMethod = (dateInput as HTMLInputElement & { __lastInputMethod?: string }).__lastInputMethod;
+        properties.date_input_method = lastInputMethod || "typed";
+      }
+    }
+
+    trackProductEvent("transaction_validation_failed", properties);
   }
 
   return (

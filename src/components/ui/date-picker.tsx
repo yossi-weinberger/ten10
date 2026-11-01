@@ -24,6 +24,7 @@ import {
   formatGregorianDateInput,
   parseCompleteFourDigitGregorianDateInput,
   parseFlexibleGregorianDateInput,
+  formatAsUserTypes,
 } from "./gregorian-date-input";
 
 function isValidDate(d: unknown): d is Date {
@@ -85,6 +86,7 @@ export function DatePicker({
   const dirtyRef = React.useRef(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValueRef = React.useRef(inputValue);
+  const lastInputMethodRef = React.useRef<"typed" | "calendar">("typed");
   const { i18n } = useTranslation(["dashboard", "transactions"]);
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
@@ -149,7 +151,31 @@ export function DatePicker({
         setDate(result.date);
         return;
       }
-      case "invalid":
+      case "out_of_range": {
+        // Date is valid but before 2000 - pass it through so Zod's min check triggers
+        // This requires us to re-parse to get the actual date
+        const manualParse = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/.exec(rawValue.trim());
+        if (manualParse) {
+          const day = Number(manualParse[1]);
+          const month = Number(manualParse[2]);
+          const rawYear = manualParse[3];
+          const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear);
+          const date = new Date(year, month - 1, day);
+          dirtyRef.current = true;
+          setFieldText(rawValue);
+          setMonth(date);
+          setDate(date); // Pass the actual date so Zod can validate it properly
+          return;
+        }
+        // Fallback to NaN if we can't parse for some reason
+        dirtyRef.current = true;
+        setFieldText(rawValue);
+        setDate(new Date(Number.NaN));
+        return;
+      }
+      case "partial":
+      case "invalid_format":
+      case "nonexistent":
         dirtyRef.current = true;
         setFieldText(rawValue);
         setDate(new Date(Number.NaN));
@@ -165,11 +191,25 @@ export function DatePicker({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (calendarType === "hebrew") return;
-    const value = e.target.value;
+    lastInputMethodRef.current = "typed";
+    
+    const oldValue = inputValueRef.current;
+    const newValue = e.target.value;
+    const selectionStart = e.target.selectionStart;
+    
+    const { formatted, caretPos } = formatAsUserTypes(oldValue, newValue, selectionStart);
+    
     dirtyRef.current = true;
-    setFieldText(value);
+    setFieldText(formatted);
+    
+    // Restore caret position after React renders the new value
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.setSelectionRange(caretPos, caretPos);
+      }
+    }, 0);
 
-    const result = parseCompleteFourDigitGregorianDateInput(value);
+    const result = parseCompleteFourDigitGregorianDateInput(formatted);
     switch (result.status) {
       case "empty":
         setDate(undefined);
@@ -178,7 +218,10 @@ export function DatePicker({
         setMonth(result.date);
         setDate(result.date);
         return;
-      case "invalid":
+      case "partial":
+      case "invalid_format":
+      case "nonexistent":
+      case "out_of_range":
         setDate(undefined);
         return;
       default: {
@@ -190,6 +233,7 @@ export function DatePicker({
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
     dirtyRef.current = false;
+    lastInputMethodRef.current = "calendar";
     if (isValidDate(selectedDate)) {
       setDate(selectedDate);
       setFieldText(formatFieldDate(selectedDate));
@@ -228,6 +272,13 @@ export function DatePicker({
     return yearDate.getFullYear().toString();
   };
 
+  // Export last input method for telemetry
+  React.useEffect(() => {
+    if (inputRef.current) {
+      (inputRef.current as HTMLInputElement & { __lastInputMethod?: "typed" | "calendar" }).__lastInputMethod = lastInputMethodRef.current;
+    }
+  }, [date]);
+
   return (
     <div className="relative">
       <Input
@@ -239,7 +290,8 @@ export function DatePicker({
           commitInput(inputValueRef.current);
         }}
         readOnly={calendarType === "hebrew"}
-        className="bg-background pr-10"
+        className="bg-background pr-10 ph-no-mask"
+        inputMode={calendarType === "hebrew" ? undefined : "numeric"}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
