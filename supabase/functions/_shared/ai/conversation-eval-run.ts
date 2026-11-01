@@ -39,6 +39,7 @@ interface Fixture {
 }
 
 const TOPIC_COUNTS: Record<string, number> = {
+  real_chat: 1,
   draft_fix: 6,
   assistant_answer: 8,
   data_followup: 5,
@@ -219,8 +220,14 @@ async function runConversation(
       context: "",
       expect: turn.expect,
       summary,
-      jev: { intent: intent?.intent ?? null, confidence: intent?.confidence ?? null, page: page?.page ?? null, raw: jevRaw },
-      readerRaw,
+      jev: {
+        intent: intent?.intent ?? null,
+        confidence: intent?.confidence ?? null,
+        page: page?.page ?? null,
+        answers: (jevRaw as { answers?: unknown } | null)?.answers ?? null,
+      },
+      // ponytail: the model's text only, cut at 2000 characters, so a run stays well under 1MB.
+      readerText: readModelText(readerRaw).slice(0, 2000),
       question,
       decision,
       reason,

@@ -8,6 +8,107 @@
   ],
   "conversations": [
     {
+      "id": "conv-000",
+      "topic": "real_chat",
+      "note": "Yossi on testing, 1/11/2026. The reply «כל התקופות» to an unneeded period question is left out.",
+      "turns": [
+        {
+          "user": "היי",
+          "expect": {
+            "kind": "help"
+          }
+        },
+        {
+          "user": "קניתי רוכעלך ב-20 שקל",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "האם מותר לשלם שכר לימוד מכספי מעשרות?",
+          "expect": {
+            "kind": "rabbi"
+          }
+        },
+        {
+          "user": "האם חייבים לתת חומש",
+          "expect": {
+            "kind": "halacha"
+          }
+        },
+        {
+          "user": "אני צריך מתכון להרינג",
+          "expect": {
+            "kind": "out_of_scope"
+          }
+        },
+        {
+          "user": "קניתי 2 חלב ב-10 שקל ותרמתי 14 שקל לעזר מציון",
+          "expect": {
+            "kind": "drafts"
+          }
+        },
+        {
+          "user": "כל 10 לחודש נכנס לי 250 מביטוח לאומי אבל זה פטור ממעשרות",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "exempt-income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "אבל זה כל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "exempt-income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "כל חודש בעשירי נכנס לי 100 שקל מקצבה",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "כמה אני חייב למעשרות?",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "כמה הוראות קבע יש לי",
+          "expect": {
+            "kind": "standing_orders"
+          }
+        },
+        {
+          "user": "כמה תרומות נתתי החודש?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "וכמה הוצאות?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
       "id": "conv-001",
       "topic": "recurring_fact",
       "turns": [
