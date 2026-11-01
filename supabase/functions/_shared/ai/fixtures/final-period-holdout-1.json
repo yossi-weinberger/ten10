@@ -1,0 +1,549 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "fixture": "supabase/functions/_shared/ai/fixtures/question-slot-eval-holdout.json",
+  "cases": 60,
+  "labeled": 0,
+  "labeledCorrect": 0,
+  "rows": [
+    {
+      "id": "slot-hold-he-001",
+      "text": "כמה נתתי לכולל בוקר מתחילת אלול?",
+      "modelOk": false,
+      "from": "2026-06-01",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":6,\"year\":2026},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":2026},\"calendar\":\"hebrew\",\"name_text\":\"כולל בוקר\"}}}",
+      "nameText": "כולל בוקר"
+    },
+    {
+      "id": "slot-hold-he-002",
+      "text": "כמה פעמים תרמתי לכולל אברכים השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"כולל אברכים\"}}}",
+      "nameText": "כולל אברכים"
+    },
+    {
+      "id": "slot-hold-he-003",
+      "text": "כמה נתתי לכולל בחודש שעבר?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":null,\"month\":null,\"n\":null,\"offset\":-1,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"לכולל\"}}}",
+      "nameText": "לכולל"
+    },
+    {
+      "id": "slot-hold-he-004",
+      "text": "מה התרומה הכי גדולה שלי לישיבה קטנה בתשפ״ז?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"ישיבה קטנה\"}}}",
+      "nameText": "ישיבה קטנה"
+    },
+    {
+      "id": "slot-hold-he-005",
+      "text": "כמה הפרשתי לישיבת נחלת מאז פסח?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"to\":null,\"name_text\":\"נחלת\"}}",
+      "nameText": "נחלת"
+    },
+    {
+      "id": "slot-hold-he-006",
+      "text": "כמה נתתי לישיבה השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"ישיבה\"}}}",
+      "nameText": "ישיבה"
+    },
+    {
+      "id": "slot-hold-he-007",
+      "text": "כמה תרמתי לאור שמח ב־2025?",
+      "modelOk": false,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"אור שמח\"}}",
+      "nameText": "אור שמח"
+    },
+    {
+      "id": "slot-hold-he-008",
+      "text": "מה הסכום הכולל שנתתי לבית חב״ד השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"בית חב״ד\"}}}",
+      "nameText": "בית חב״ד"
+    },
+    {
+      "id": "slot-hold-he-009",
+      "text": "כמה פעמים נתתי לגמ״ח תרופות בחצי השנה האחרונה?",
+      "modelOk": false,
+      "from": "2026-05-09",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":6,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"גמ״ח תרופות\"}}}",
+      "nameText": "גמ״ח תרופות"
+    },
+    {
+      "id": "slot-hold-he-010",
+      "text": "כמה כסף נתתי לגמ״ח בסך הכול?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-011",
+      "text": "כמה נתתי לעניי העיר לפני ראש השנה?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"all\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":5787},\"calendar\":\"hebrew\",\"name_text\":\"עניי העיר\"}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-012",
+      "text": "כמה תרומות היו לי לעזר מציון השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"לעזר מציון\"}}}",
+      "nameText": "לעזר מציון"
+    },
+    {
+      "id": "slot-hold-he-013",
+      "text": "כמה נתתי לצדקה בחודש האחרון?",
+      "modelOk": false,
+      "from": "2026-10-03",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":1,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"צדקה\"}}",
+      "nameText": "צדקה"
+    },
+    {
+      "id": "slot-hold-he-014",
+      "text": "מה מצב התרומות שלי מאז ראש השנה?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":7,\"year\":5787},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-015",
+      "text": "כמה אני מפריש בממוצע לחודש?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"all\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-016",
+      "text": "מה היתה ההוצאה הכי כבדה שלי בחודש שעבר?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":null,\"month\":null,\"n\":null,\"offset\":-1,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-017",
+      "text": "מה הכי יקר שהיה לי מאז סוכות?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-018",
+      "text": "כמה פעולות היו בצ׳קים בתשפ״ז?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-019",
+      "text": "מה הסכום הכולל במזומן בחודש הזה?",
+      "modelOk": false,
+      "from": "2026-10-12",
+      "to": "2026-11-10",
+      "model": "{\"period\":{\"kind\":\"month\",\"year\":5787,\"month\":2,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-020",
+      "text": "מה היה הממוצע החודשי בפייפאל השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"פייפאל\"}}}",
+      "nameText": "פייפאל"
+    },
+    {
+      "id": "slot-hold-he-021",
+      "text": "כמה עלה לי הצהרון מתחילת שנת הלימודים?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"to\":null,\"name_text\":\"הצהרון\"}}",
+      "nameText": "הצהרון"
+    },
+    {
+      "id": "slot-hold-he-022",
+      "text": "כמה הוצאתי על ארוחות צהריים בעבודה החודש?",
+      "modelOk": false,
+      "from": "2026-10-12",
+      "to": "2026-11-10",
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"month\",\"year\":5787,\"month\":2,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-023",
+      "text": "כמה שילמתי על חוג השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"חוג\"}}}",
+      "nameText": "חוג"
+    },
+    {
+      "id": "slot-hold-he-024",
+      "text": "כמה יוצא לי בערך כל חודש על חוגים?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"all\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"חוגים\"}}}",
+      "nameText": "חוגים"
+    },
+    {
+      "id": "slot-hold-he-025",
+      "text": "כמה שילמתי על ביטוח השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"ביטוח\"}}",
+      "nameText": "ביטוח"
+    },
+    {
+      "id": "slot-hold-he-026",
+      "text": "מה התשלום הכי גבוה שהיה לי על ביטוח רכב?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"all\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"ביטוח רכב\"}}",
+      "nameText": "ביטוח רכב"
+    },
+    {
+      "id": "slot-hold-he-027",
+      "text": "כמה הוצאתי על תרופות מאז החורף?",
+      "modelOk": false,
+      "from": "2026-11-01",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":2026},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":2026},\"calendar\":\"gregorian\",\"name_text\":\"תרופות\"}}}",
+      "nameText": "תרופות"
+    },
+    {
+      "id": "slot-hold-he-028",
+      "text": "כמה פעמים שילמתי על בריאות השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"בריאות\"}}}",
+      "nameText": "בריאות"
+    },
+    {
+      "id": "slot-hold-he-029",
+      "text": "כמה עלה לי מנוי לבריכה השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"מנוי לבריכה\"}}}",
+      "nameText": "מנוי לבריכה"
+    },
+    {
+      "id": "slot-hold-he-030",
+      "text": "כמה הוצאתי בבריכה הקיץ?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"בבריכה\"}}}",
+      "nameText": "בבריכה"
+    },
+    {
+      "id": "slot-hold-he-031",
+      "text": "כמה שילמתי בכרטיס על אוכל בחודש שעבר?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2026-10-11",
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":5787,\"month\":1,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-032",
+      "text": "כמה תרמתי לגמ״ח חתונות בצ׳ק דחוי?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-033",
+      "text": "כמה שילמתי בהוראת קבע על חשבונות השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"הוראת קבע על חשבונות\"}}}",
+      "nameText": "הוראת קבע על חשבונות"
+    },
+    {
+      "id": "slot-hold-he-034",
+      "text": "כמה הוצאתי בפייבוקס על קניות בשבוע שעבר?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-035",
+      "text": "כמה פעמים שילמתי במזומן על תחבורה בחודש האחרון",
+      "modelOk": false,
+      "from": "2026-10-03",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":1,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-he-036",
+      "text": "מה הסכום הכי גבוה שקיבלתי ממשכורת בהעברה בנקאית השנה",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-037",
+      "text": "How much did I earn from freelance work since January?",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2026},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":2026},\"name_text\":\"freelance work\"}}",
+      "nameText": "freelance work"
+    },
+    {
+      "id": "slot-hold-en-038",
+      "text": "How many salary payments did I get this year?",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"salary\"}}",
+      "nameText": "salary"
+    },
+    {
+      "id": "slot-hold-en-039",
+      "text": "What was my largest business payment in 2024?",
+      "modelOk": false,
+      "from": "2024-01-01",
+      "to": "2024-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2024,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-040",
+      "text": "How much investment income do I get on average per month?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"all\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"investment income\"}}}",
+      "nameText": "investment income"
+    },
+    {
+      "id": "slot-hold-en-041",
+      "text": "What was the biggest payment I had last week?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"days_ago\",\"n\":7,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"to\":{\"kind\":\"days_ago\",\"n\":1,\"weekday\":null,\"day\":null,\"month\":null,\"year\":null},\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-042",
+      "text": "How many payments were made with PayPal this quarter?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-043",
+      "text": "How much did I donate to Ohr Sameach this year?",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"Ohr Sameach\"}}",
+      "nameText": "Ohr Sameach"
+    },
+    {
+      "id": "slot-hold-en-044",
+      "text": "How many times did I give to Beit Chabad Raanana since Pesach?",
+      "modelOk": false,
+      "from": "2026-04-01",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":4,\"year\":2026},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":11,\"year\":2026},\"name_text\":\"Beit Chabad Raanana\"}}}",
+      "nameText": "Beit Chabad Raanana"
+    },
+    {
+      "id": "slot-hold-en-045",
+      "text": "How much did I give to the kollel last month?",
+      "modelOk": false,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"kollel\"}}",
+      "nameText": "kollel"
+    },
+    {
+      "id": "slot-hold-en-046",
+      "text": "What was my largest donation to Keren Halvaot?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-047",
+      "text": "How much did I spend on education this school year?",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"education\"}}}",
+      "nameText": "education"
+    },
+    {
+      "id": "slot-hold-en-048",
+      "text": "How many צהרון payments did I make this month?",
+      "modelOk": false,
+      "from": "2026-11-01",
+      "to": "2026-11-30",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"month\",\"year\":2026,\"month\":11,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"צהרון\"}}",
+      "nameText": "צהרון"
+    },
+    {
+      "id": "slot-hold-en-049",
+      "text": "How much did I spend on the pool this summer?",
+      "modelOk": false,
+      "from": "2026-06-01",
+      "to": "2026-08-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":6,\"year\":2026},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":8,\"year\":2026},\"calendar\":\"gregorian\",\"name_text\":\"pool\"}}}",
+      "nameText": "pool"
+    },
+    {
+      "id": "slot-hold-en-050",
+      "text": "How much did I spend on healthcare by pay pal?",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"all\",\"calendar\":\"gregorian\",\"name_text\":null,\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-051",
+      "text": "How much did I pay straight from my account for housing last month?",
+      "modelOk": false,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"housing\"}}}",
+      "nameText": "housing"
+    },
+    {
+      "id": "slot-hold-en-052",
+      "text": "How much did I donate to Ezras Mizion by bank transfer this year?",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"Ezras Mizion\"}}",
+      "nameText": "Ezras Mizion"
+    },
+    {
+      "id": "slot-hold-en-053",
+      "text": "how many times did i pay cash for medicines in the last three months",
+      "modelOk": false,
+      "from": "2026-08-02",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-hold-en-054",
+      "text": "how much did i give to talmud torah by check during the last year",
+      "modelOk": false,
+      "from": "2025-11-02",
+      "to": "2026-11-01",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":12,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"talmud torah\"}}",
+      "nameText": "talmud torah"
+    },
+    {
+      "id": "slot-hold-he-055",
+      "text": "כמה did I give to כולל אברכים דרך PayBox השנה?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"calendar\":\"hebrew\",\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"כולל אברכים\"}}",
+      "nameText": "כולל אברכים"
+    },
+    {
+      "id": "slot-hold-en-056",
+      "text": "How much did I give to ישיבת נחלת last month?",
+      "modelOk": false,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"ישיבת נחלת\"}}",
+      "nameText": "ישיבת נחלת"
+    },
+    {
+      "id": "slot-hold-he-057",
+      "text": "כמה פעמים paid by debit card על מנוי לבריכה השנה",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"מנוי לבריכה\"}}",
+      "nameText": "מנוי לבריכה"
+    },
+    {
+      "id": "slot-hold-en-058",
+      "text": "what was the biggest תרומה I gave to גמ״ח חתונות this year",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"גמ״ח חתונות\"}}}",
+      "nameText": "גמ״ח חתונות"
+    },
+    {
+      "id": "slot-hold-he-059",
+      "text": "כמה I usually spend per month על חוגים",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"all\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":\"חוגים\"}}}",
+      "nameText": "חוגים"
+    },
+    {
+      "id": "slot-hold-en-060",
+      "text": "how many payments היו באשראי בחודש שעבר בלי קשר אם זה הכנסה הוצאה או תרומה",
+      "modelOk": false,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    }
+  ]
+}
