@@ -666,14 +666,19 @@ export function questionFromSlots(
   today: string,
   calendar: QuestionCalendar,
   slots: QuestionSlots | null,
-  readerPeriod?: { from: string | null; to: string | null } | null,
-): YearTypeSum | "ask_family" | null {
+  readerPeriod?: { kind: "all" } | { kind: "span"; from: string; to: string } | null,
+): YearTypeSum | "ask_family" | "ask_period" | null {
   if (!slots) return parseYearTypeSum(text, today, calendar);
   const normalized = normalize(text);
-  const period = readerPeriod?.from && readerPeriod.to
-    ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
-    : parseQuestionPeriod(normalized, today, calendar);
-  if (!period) return null;
+  const period = readerPeriod === undefined
+    ? parseQuestionPeriod(normalized, today, calendar)
+    : readerPeriod?.kind === "all"
+      ? boundsAsQuestionPeriod("2000-01-01", today, calendar)
+      : readerPeriod?.kind === "span"
+        ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
+        : "ask_period";
+  if (period === "ask_period") return "ask_period";
+  if (!period) return "ask_period";
   if (!slots.family) return "ask_family";
   let recipient: string | null = null;
   if (slots.family === "donation") {

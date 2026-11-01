@@ -21,7 +21,8 @@ const DATA_NOTICE_STATUS = {
   unsupported: "dataUnsupported",
   mixed: "dataMixed",
   failed: "dataFailed",
-} as const satisfies Record<"unsupported" | "mixed" | "failed", StatusKey>;
+  period_missing: "askPeriod",
+} as const satisfies Record<"unsupported" | "mixed" | "failed" | "period_missing", StatusKey>;
 
 export function DataAnswer({
   reply,
@@ -107,6 +108,6 @@ export function NameMissing({
   );
 }
 
-export function DataNotice({ status }: { status: "unsupported" | "mixed" | "failed" }) {
+export function DataNotice({ status }: { status: "unsupported" | "mixed" | "failed" | "period_missing" }) {
   return <StatusNote status={DATA_NOTICE_STATUS[status]} />;
 }

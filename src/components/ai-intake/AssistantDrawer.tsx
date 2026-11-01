@@ -156,7 +156,7 @@ export function AssistantDrawer({
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
     | { status: "family_missing"; source: string }
-    | { status: "mixed" | "unsupported" | "failed" }
+    | { status: "mixed" | "unsupported" | "failed" | "period_missing" }
     | null
   >(null);
   const [slotHold, setSlotHold] = useState<QuestionSlots | null>(null);
@@ -848,6 +848,10 @@ export function AssistantDrawer({
       if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
       const composed = questionFromSlots(source, todayIso(), questionCalendar, asked, read?.period ?? null);
+      if (composed === "ask_period") {
+        setDataReply({ status: "period_missing" });
+        return;
+      }
       if (composed === "ask_family") {
         if (asked) setSlotHold(asked);
         setDataReply({ status: "family_missing", source });

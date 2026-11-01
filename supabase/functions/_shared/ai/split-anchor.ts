@@ -199,6 +199,14 @@ function anchoredDate(
   return { date: resolved, checkDate: false };
 }
 
+function savedRule(rules: readonly SplitRuleRef[], ruleId: string | null): SplitRuleRef | null {
+  if (!ruleId) return null;
+  const byId = rules.find((entry) => entry.id === ruleId);
+  if (byId) return byId;
+  const byName = rules.filter((entry) => entry.name === ruleId);
+  return byName.length === 1 ? byName[0] : null;
+}
+
 function sumsTo(values: readonly number[], target: number): boolean {
   const count = values.length;
   if (count < 2) return false;
@@ -245,7 +253,7 @@ export function anchorSplitItems(
       continue;
     }
     const dated = anchoredDate(source, item.date, item.date_text, context.today, context.missingDate);
-    const rule = item.rule_id ? context.rules.find((entry) => entry.id === item.rule_id) ?? null : null;
+    const rule = savedRule(context.rules, item.rule_id);
     const category = item.category && context.categories.includes(item.category) ? item.category : null;
     const special = item.type !== null && SPECIAL_TYPES.has(item.type);
     kept.push({

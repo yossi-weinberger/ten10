@@ -88,37 +88,75 @@ Deno.serve(async (req: Request) => {
     ],
   };
 
-  let slots: ReturnType<typeof readQuestionSlots> = null;
-  let signals: Record<string, number> = {};
-  try {
-    const request = buildQuestionSlotBody(text, lists);
-    const result = await callModel({
-      userId: userData.user.id,
-      operation: "question_slots",
-      model: request.model,
-      url: JEV_SYSTEMONE_URL,
-      init: {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+  const slotsCall = (async () => {
+    try {
+      const request = buildQuestionSlotBody(text, lists);
+      const result = await callModel({
+        userId: userData.user.id,
+        operation: "question_slots",
+        model: request.model,
+        url: JEV_SYSTEMONE_URL,
+        init: {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(gatewaySystemOneBody(request, {
+            source: "app",
+          })),
         },
-        body: JSON.stringify(gatewaySystemOneBody(request, {
-          source: "app",
-        })),
-      },
-      timeoutMs: 12000,
-      record: serviceModelCallRecorder(),
-    });
-    if (!result.ok) {
-      logger.error(`jev question slots failed: ${result.status ?? result.errorCode}`);
-    } else {
-      slots = readQuestionSlots(result.payload, lists);
-      signals = slotConfidence(result.payload) ?? {};
+        timeoutMs: 12000,
+        record: serviceModelCallRecorder(),
+      });
+      if (!result.ok) {
+        logger.error(`jev question slots failed: ${result.status ?? result.errorCode}`);
+        return { slots: null, signals: {} as Record<string, number> };
+      }
+      return {
+        slots: readQuestionSlots(result.payload, lists),
+        signals: slotConfidence(result.payload) ?? {},
+      };
+    } catch {
+      logger.error("jev question slots failed");
+      return { slots: null, signals: {} as Record<string, number> };
     }
-  } catch {
-    logger.error("jev question slots failed");
-  }
+  })();
+  const periodCall = (async () => {
+    try {
+      const result = await callModel({
+        userId: userData.user.id,
+        operation: "question_period",
+        model: SPLIT_MODEL,
+        url: SPLIT_RESPONSES_URL,
+        init: {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(periodRequestBody(text, today, "app", calendar)),
+        },
+        timeoutMs: 8000,
+        record: serviceModelCallRecorder(),
+      });
+      if (!result.ok) {
+        logger.error(`question period failed: ${result.status ?? result.errorCode}`);
+        return null;
+      }
+      const raw = readPeriodPayload(readModelText(result.payload));
+      if (!raw) return null;
+      if (raw.kind === "all") return { kind: "all" as const };
+      const bounds = boundsFromPeriod(raw, today);
+      return bounds?.from && bounds.to ? { kind: "span" as const, from: bounds.from, to: bounds.to } : null;
+    } catch {
+      logger.error("question period failed");
+      return null;
+    }
+  })();
+  const [slotOutcome, period] = await Promise.all([slotsCall, periodCall]);
+  const slots = slotOutcome.slots;
+  const signals = slotOutcome.signals;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
   let measurementId: string | null = null;
@@ -131,30 +169,6 @@ Deno.serve(async (req: Request) => {
     );
     if (!measurementId) logger.error("slot confidence was not saved");
   }
-  let period: { from: string | null; to: string | null } | null = null;
-  try {
-    const result = await callModel({
-      userId: userData.user.id,
-      operation: "question_period",
-      model: SPLIT_MODEL,
-      url: SPLIT_RESPONSES_URL,
-      init: {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(periodRequestBody(text, today, "app", calendar)),
-      },
-      timeoutMs: 8000,
-      record: serviceModelCallRecorder(),
-    });
-    if (result.ok) period = boundsFromPeriod(readPeriodPayload(readModelText(result.payload)), today);
-    else logger.error(`question period failed: ${result.status ?? result.errorCode}`);
-  } catch {
-    logger.error("question period failed");
-  }
-
   if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId, period }, 200);
   return json(origin, { ...slots, measurement_id: measurementId, period }, 200);
 });

@@ -83,7 +83,7 @@ for (const item of cases) {
   const bounds = boundsFromPeriod(readPeriodPayload(model), today);
   const modelOk = same(bounds, parserFrom, parserTo);
   if (modelOk) modelCorrect += 1;
-  if (item.expected) {
+  if (item.expected && "from" in item.expected) {
     labeled += 1;
     if (same(bounds, item.expected.from, item.expected.to)) labeledCorrect += 1;
   }
