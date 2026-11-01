@@ -4,6 +4,7 @@ import { logger } from "../_shared/logger.ts";
 import { gatewayProviderOptions } from "../_shared/ai/gateway-tags.ts";
 import { readSplitResponse } from "../_shared/ai/split-response.ts";
 import { splitReadContext } from "../_shared/ai/split-anchor.ts";
+import { loadSplitLists } from "../_shared/ai/split-lists.ts";
 import { todayInZone } from "../_shared/ai/split-date.ts";
 import { SPLIT_MODEL, SPLIT_RESPONSES_URL, SPLIT_TIMEOUT_MS, splitRequestBody } from "../_shared/ai/split-prompt.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
@@ -186,6 +187,14 @@ Deno.serve(async (req: Request) => {
     }
     const zone = typeof body?.time_zone === "string" ? body.time_zone : "";
     const today = (zone ? todayInZone(new Date(), zone) : null) ?? todayInZone(new Date(), "Asia/Jerusalem") ?? new Date().toISOString().slice(0, 10);
+    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    const admin = serviceKey ? createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey) : null;
+    const lists = admin
+      ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+        logger.error(`receipt lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+        return { context: {}, rules: [] };
+      })
+      : { context: {}, rules: [] };
     const read = await callModel({
       userId: userData.user.id,
       operation: "split",
@@ -197,7 +206,7 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(splitRequestBody(text, today, { receipt: true })),
+        body: JSON.stringify(splitRequestBody(text, today, { ...lists.context, receipt: true })),
       },
       timeoutMs: SPLIT_TIMEOUT_MS,
       record: serviceModelCallRecorder(),
@@ -206,7 +215,12 @@ Deno.serve(async (req: Request) => {
       await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
-    const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, { missingDate: "check" }));
+    const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, {
+      missingDate: "check",
+      categories: lists.context.categories ?? [],
+      rules: lists.rules,
+      recipients: lists.context.recipients ?? [],
+    }));
     const draft = receiptDraftFromItems(
       split.route,
       split.route === "several"
@@ -215,6 +229,8 @@ Deno.serve(async (req: Request) => {
           amount: item.amount,
           date: item.date,
           currency: item.currency,
+          type: item.typeHint,
+          ruleName: item.ruleName,
         }))
         : [],
     );

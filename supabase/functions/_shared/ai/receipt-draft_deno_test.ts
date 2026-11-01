@@ -116,18 +116,31 @@ Deno.test("a copied receipt becomes one draft, and a list becomes a statement", 
     amount: 40,
     date: "2026-10-15",
     currency: "ILS",
+    type: "expense",
+    ruleName: null,
   }]);
-  assert(one?.kind === "receipt" && one.amount === 40 && one.check_date !== true, "one receipt");
+  assert(one?.kind === "receipt" && one.amount === 40 && one.check_date !== true && one.rule_name === null, "one receipt");
+  const ruled = receiptDraftFromItems("several", [{
+    description: "בית כנסת",
+    amount: 180,
+    date: "2026-10-18",
+    currency: "ILS",
+    type: "non_tithe_donation",
+    ruleName: "בית כנסת",
+  }]);
+  assert(ruled?.type === "non_tithe_donation" && ruled.rule_name === "בית כנסת", "saved rule");
   const undated = receiptDraftFromItems("several", [{
     description: "סופר",
     amount: 40,
     date: null,
     currency: "ILS",
+    type: "",
+    ruleName: null,
   }]);
   assert(undated?.kind === "receipt" && undated.check_date === true && undated.date === null, "missing date is checked");
   const many = receiptDraftFromItems("several", [
-    { description: "א", amount: 10, date: "2026-10-15", currency: "ILS" },
-    { description: "ב", amount: 12, date: "2026-10-15", currency: "ILS" },
+    { description: "א", amount: 10, date: "2026-10-15", currency: "ILS", type: "", ruleName: null },
+    { description: "ב", amount: 12, date: "2026-10-15", currency: "ILS", type: "", ruleName: null },
   ]);
   assert(many?.kind === "several_receipts", "several");
   assert(receiptDraftFromItems("list", [])?.kind === "statement", "statement");

@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
@@ -10,6 +10,7 @@ import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import { readModelText } from "../_shared/ai/receipt-draft.ts";
 import { parseSplitPayload, readSplitResponse } from "../_shared/ai/split-response.ts";
 import { splitReadContext, type SplitRuleRef } from "../_shared/ai/split-anchor.ts";
+import { loadSplitLists } from "../_shared/ai/split-lists.ts";
 import { todayInZone } from "../_shared/ai/split-date.ts";
 import {
   SPLIT_MODEL,
@@ -20,7 +21,6 @@ import {
 } from "../_shared/ai/split-prompt.ts";
 
 const USAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SPECIAL = new Set(["exempt-income", "recognized-expense", "non_tithe_donation"]);
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -29,61 +29,6 @@ function json(origin: string | null, body: unknown, status: number): Response {
   });
 }
 
-function categoryNames(data: unknown): string[] {
-  if (!Array.isArray(data)) return [];
-  const names: string[] = [];
-  for (const row of data) {
-    if (typeof row === "string" && row.trim()) names.push(row.trim());
-    else if (row && typeof row === "object" && typeof (row as { category?: unknown }).category === "string") {
-      const name = (row as { category: string }).category.trim();
-      if (name) names.push(name);
-    }
-  }
-  return names;
-}
-
-function ruleRefs(data: unknown): SplitRuleRef[] {
-  if (!Array.isArray(data)) return [];
-  const rules: SplitRuleRef[] = [];
-  for (const row of data) {
-    if (!row || typeof row !== "object") continue;
-    const id = (row as { id?: unknown }).id;
-    const match = (row as { match?: unknown }).match;
-    const action = (row as { action?: unknown }).action;
-    const name = match && typeof match === "object" ? (match as { name?: unknown }).name : null;
-    const type = action && typeof action === "object" ? (action as { type?: unknown }).type : null;
-    if (typeof id !== "string" || typeof name !== "string" || typeof type !== "string") continue;
-    if (!SPECIAL.has(type)) continue;
-    rules.push({ id, name, type: type as SplitRuleRef["type"] });
-  }
-  return rules.slice(0, 40);
-}
-
-async function loadLists(
-  userClient: SupabaseClient,
-  admin: SupabaseClient,
-  userId: string,
-): Promise<{ context: SplitPromptContext; rules: SplitRuleRef[] }> {
-  const [income, expense, recipients, rules] = await Promise.all([
-    userClient.rpc("get_user_categories", { p_type: "income" }),
-    userClient.rpc("get_user_categories", { p_type: "expense" }),
-    userClient.rpc("list_ai_recipients"),
-    admin.schema("ai").from("user_rules").select("id, match, action").eq("user_id", userId).eq("status", "active").limit(40),
-  ]);
-  const categories = [...new Set([...categoryNames(income.data), ...categoryNames(expense.data)])].slice(0, 80);
-  const recipientNames = Array.isArray(recipients.data)
-    ? recipients.data.filter((name): name is string => typeof name === "string" && name.trim().length > 0).slice(0, 40)
-    : [];
-  const saved = ruleRefs(rules.data);
-  return {
-    rules: saved,
-    context: {
-      categories,
-      recipients: recipientNames,
-      rules: saved.map((rule) => ({ id: rule.id, name: rule.name })),
-    },
-  };
-}
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
@@ -140,7 +85,10 @@ Deno.serve(async (req: Request) => {
 
   const currency = body?.defaultCurrency === "USD" || body?.defaultCurrency === "EUR" ? body.defaultCurrency : "ILS";
   const lists = admin
-    ? await loadLists(userClient, admin, userData.user.id).catch(() => ({ context: {}, rules: [] as SplitRuleRef[] }))
+    ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+      logger.error(`split lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+      return { context: {}, rules: [] as SplitRuleRef[] };
+    })
     : { context: {}, rules: [] as SplitRuleRef[] };
   const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone };
 

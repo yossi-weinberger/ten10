@@ -29,7 +29,7 @@ const TYPE_LINES = [
 
 export interface SplitPromptContext {
   categories?: readonly string[];
-  rules?: readonly { id: string; name: string }[];
+  rules?: readonly { id: string; name: string; examples?: readonly string[] }[];
   recipients?: readonly string[];
   timeZone?: string;
   receipt?: boolean;
@@ -69,16 +69,20 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
-    "rule is null unless the user is saving a standing classification. question is null unless the user asks for a saved total.",
+    "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
     "currency is ILS, USD, or EUR, or null when no currency was named.",
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",
-    "category and rule_id must be copied from the lists below, or null.",
+    "Set rule_id when the payee or description contains that rule's name as a whole word, or that word with one prefix letter ו, ב, ל, ה, ש, or כ. Also set it when the payee clearly refers to the same thing as that rule's examples. Set rule_id only when exactly one rule fits. If none or more than one fits, rule_id is null. A name that is only part of a longer word is not a match.",
+    "category must be copied from the list below, or null.",
     "description is the item or the payee, in the message language. Do not copy the whole message and do not translate.",
     "When no item or recipient was said, description is empty. Do not use the verb, such as שילמתי or קניתי.",
     ...TYPE_LINES,
     `Today is ${today}, ${weekday}. Time zone: ${context.timeZone ?? "unknown"}.`,
     `Categories: ${categories.length > 0 ? categories.join(", ") : "none"}.`,
-    `Rules: ${rules.length > 0 ? rules.map((rule) => `${rule.id} ${rule.name}`).join("; ") : "none"}.`,
+    `Rules: ${rules.length > 0 ? rules.map((rule) => {
+      const examples = (rule.examples ?? []).map((example) => example.trim()).filter((example) => example.length > 0).slice(0, 3);
+      return examples.length > 0 ? `${rule.id} ${rule.name} | examples: ${examples.join(" | ")}` : `${rule.id} ${rule.name}`;
+    }).join("; ") : "none"}.`,
     `Recipients: ${recipients.length > 0 ? recipients.join(", ") : "none"}.`,
     "Message:",
     text,

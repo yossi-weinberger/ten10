@@ -557,7 +557,7 @@ describe("AssistantDrawer characterization", () => {
     ai.readReceiptImage.mockResolvedValue({
       ok: true,
       route: "receipt",
-      fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS", checkDate: false },
+      fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS", checkDate: false, ruleName: null, ruledType: null },
       artifactId: "art1",
     });
     const user = setup();
@@ -848,5 +848,39 @@ describe("AssistantDrawer characterization", () => {
     await send(user, "כמה מעשרות אני עוד צריך לתת?");
     expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
+  });
+
+  it("offers a ready rule after the user accepts a special type", async () => {
+    confident("add_transaction");
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "גן",
+        amount: 900,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: "recognized-expense",
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "שילמתי לגן 900, הוצאה מוכרת");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.askSpecialYes" }));
+    expect(await screen.findByRole("button", { name: "aiIntake.ruleApprove" })).toBeInTheDocument();
+    expect(screen.getByText("גן")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("900");
   });
 });

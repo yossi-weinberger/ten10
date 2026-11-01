@@ -1,5 +1,5 @@
-import { applyForwardRule, type ActiveUserRule, type TextTransactionDraft } from "@/lib/ai/classify-intake";
-import { isIsoDate } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { isIsoDate, type ReceiptRuledType } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
 
 export { isIsoDate };
 
@@ -9,6 +9,8 @@ export interface ReceiptFields {
   amount: number;
   currency: TextTransactionDraft["currency"];
   description: string;
+  ruleName: string | null;
+  ruledType: ReceiptRuledType | null;
 }
 
 /** A receipt has no transaction type until the user answers, or a saved rule names one. */
@@ -26,14 +28,4 @@ export function receiptAsDraft(
     category: null,
     paymentMethod: null,
   };
-}
-
-/** A saved rule can name the type. Otherwise the receipt still needs the user's answer. */
-export function receiptRuledDraft(
-  fields: ReceiptFields,
-  rules: readonly ActiveUserRule[],
-): { draft: TextTransactionDraft; ruleName: string } | null {
-  const applied = applyForwardRule(receiptAsDraft(fields, "expense"), rules, fields.description);
-  if (!applied.ruleName) return null;
-  return { draft: applied.draft, ruleName: applied.ruleName };
 }
