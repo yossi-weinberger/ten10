@@ -41,7 +41,7 @@ function passed(expect: string | null, ids: string[]): boolean {
 
 const fixture = JSON.parse(Deno.readTextFileSync(new URL("./fixtures/rule-eval-cases.json", import.meta.url))) as Fixture;
 const context: SplitPromptContext = {
-  rules: [{ id: fixture.rule.id, name: fixture.rule.name, examples: fixture.rule.examples }],
+  rules: [{ id: fixture.rule.id, name: fixture.rule.name }],
 };
 const promptSeesExamples = splitPrompt(fixture.cases[0]?.text ?? "", TODAY, context).includes("examples:");
 const key = readKey();
