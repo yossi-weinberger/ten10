@@ -190,7 +190,10 @@ Deno.serve(async (req: Request) => {
     const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
     const admin = serviceKey ? createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey) : null;
     const lists = admin
-      ? await loadSplitLists(userClient, admin, userData.user.id).catch(() => ({ context: {}, rules: [] }))
+      ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+        logger.error(`receipt lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+        return { context: {}, rules: [] };
+      })
       : { context: {}, rules: [] };
     const read = await callModel({
       userId: userData.user.id,

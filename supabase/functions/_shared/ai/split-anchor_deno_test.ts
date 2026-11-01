@@ -80,6 +80,10 @@ Deno.test("a future date is marked for review and a saved rule overrides the typ
   const ruled = anchor("50 לגן", [item({ type: "expense", rule_id: "rule-1", category: "מזון" })]);
   assert(ruled.items[0]?.typeHint === "recognized-expense", "rule type");
   assert(ruled.items[0]?.ruleName === "גן", "rule name");
+  const named = anchorSplitItems("גן 900", [item({ description: "גן", amount: 900, amount_text: "900", type: "expense", rule_id: "גן" })], splitReadContext(TODAY, {
+    rules: [{ id: "8b1c2d3e-4f50-4617-8899-aabbccddeeff", name: "גן", type: "recognized-expense" }],
+  }));
+  assert(named.items[0]?.typeHint === "recognized-expense", "the returned name selects the one rule");
   assert(ruled.items[0]?.category === "מזון", "known category");
   const unknown = anchor("50 לגן", [item({ category: "לא קיים" })]);
   assert(unknown.items[0]?.category === null, "unknown category");

@@ -85,7 +85,10 @@ Deno.serve(async (req: Request) => {
 
   const currency = body?.defaultCurrency === "USD" || body?.defaultCurrency === "EUR" ? body.defaultCurrency : "ILS";
   const lists = admin
-    ? await loadSplitLists(userClient, admin, userData.user.id).catch(() => ({ context: {}, rules: [] as SplitRuleRef[] }))
+    ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+      logger.error(`split lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+      return { context: {}, rules: [] as SplitRuleRef[] };
+    })
     : { context: {}, rules: [] as SplitRuleRef[] };
   const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone };
 
