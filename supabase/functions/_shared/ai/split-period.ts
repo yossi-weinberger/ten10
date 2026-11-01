@@ -1,4 +1,4 @@
-import { addIsoDays, resolveExactDate, type DateStruct } from "./split-date.ts";
+import { addIsoDays, resolveDateStruct, resolveExactDate, type DateStruct } from "./split-date.ts";
 import { getCalendarAdapter, type CalendarType } from "../calendar/index.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 
@@ -49,9 +49,19 @@ export function periodBounds(period: QuestionPeriodInput, today: string): Period
   }
 
   if (period.kind === "month") {
-    if (period.year == null || period.month == null) return null;
     try {
       const adapter = getCalendarAdapter(calendar);
+      if (period.month == null && period.offset != null) {
+        const shifted = adapter.addMonths(today, period.offset);
+        return { from: adapter.startOfMonth(shifted), to: adapter.endOfMonth(shifted) };
+      }
+      if (period.month != null && period.year == null) {
+        const current = adapter.fromIsoDate(today);
+        const year = period.month > current.month ? current.year - 1 : current.year;
+        const anchor = adapter.toIsoDate({ year, month: period.month, day: 1 });
+        return { from: adapter.startOfMonth(anchor), to: adapter.endOfMonth(anchor) };
+      }
+      if (period.year == null || period.month == null) return null;
       const anchor = adapter.toIsoDate({ year: period.year, month: period.month, day: 1 });
       return { from: adapter.startOfMonth(anchor), to: adapter.endOfMonth(anchor) };
     } catch {
@@ -71,8 +81,8 @@ export function periodBounds(period: QuestionPeriodInput, today: string): Period
   }
 
   if (period.kind === "range") {
-    const from = period.from ? resolveExactDate(period.from) : null;
-    const to = period.to ? resolveExactDate(period.to) : null;
+    const from = period.from ? resolveRangeDate(period.from, today) : null;
+    const to = period.to ? resolveRangeDate(period.to, today) : null;
     if (!from || !to || from > to) return null;
     return { from, to };
   }
@@ -97,6 +107,13 @@ export function periodBounds(period: QuestionPeriodInput, today: string): Period
 
   const unreachable: never = period.kind;
   return unreachable;
+}
+
+function resolveRangeDate(date: DateStruct, today: string): string | null {
+  if (date.kind === "days_ago" || date.kind === "last_weekday" || date.kind === "day_of_month") {
+    return resolveDateStruct(date, today);
+  }
+  return resolveExactDate(date);
 }
 
 export type { DateStruct };
