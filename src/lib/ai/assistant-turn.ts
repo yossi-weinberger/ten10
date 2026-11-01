@@ -210,6 +210,16 @@ function route(input: TurnInput): Routed {
     }, movement)
     : shownIntent(input.message, input.today, { ok: false }, movement);
   const dataCandidate = input.jev.ok && (input.jev.intent === "ask_data" || readerQuestion(input.reader) !== null);
+  if (!movement && shown === "ask_data") {
+    return {
+      releaseAs: "ask_data",
+      mode: "show",
+      intent: "ask_data",
+      withData: true,
+      preferRabbi: false,
+      publishedPage: null,
+    };
+  }
   if (
     movement
     && (shown === "ask" || shown === "ask_data" || shown === "ask_rabbi" || shown === "add_transaction" || shown === "inspiration")
@@ -376,19 +386,27 @@ function copyState(state: ConversationState): ConversationState {
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
   const routed = route(input);
-  const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
   const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
-  const data = routed.mode === "show"
+  let intent = routed.intent;
+  let mode = routed.mode;
+  if (card.type === "recurring") intent = "create_recurring";
+  else if (card.type === "rule") intent = "create_rule";
+  else if ((intent === "create_rule" || intent === "create_recurring") && (card.type === "none" || card.type === "could_not_read")) {
+    mode = "ask";
+    intent = null;
+  }
+  const wantsData = intent === "ask_data" || (routed.withData && intent === "add_transaction");
+  const data = mode === "show" && card.type !== "recurring" && card.type !== "rule"
     ? dataFor(input, wantsData, routed.preferRabbi)
     : { data: { status: "skip" as const }, needsQuestion: false, needsNameCheck: false };
   return {
-    releaseAs: routed.releaseAs,
-    mode: routed.mode,
-    intent: routed.intent,
+    releaseAs: card.type === "recurring" ? "create_recurring" : card.type === "rule" ? "create_rule" : routed.releaseAs,
+    mode,
+    intent,
     publishedPage: routed.publishedPage,
     card,
     data: data.data,
-    side: routed.mode === "show" ? sideFor(routed.intent) : "none",
+    side: mode === "show" ? sideFor(intent) : "none",
     needsQuestion: data.needsQuestion,
     needsNameCheck: data.needsNameCheck,
     pending: pendingFor(input.message, card, data.data),

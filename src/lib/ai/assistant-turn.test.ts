@@ -139,6 +139,7 @@ describe("decideTurn", () => {
     };
     const decision = decideTurn(base({ reader }));
     expect(decision.card).toMatchObject({ type: "recurring", index: 0 });
+    expect(decision.intent).toBe("create_recurring");
     expect(summarizeTurn(base({ reader }), decision).kind).toBe("recurring");
   });
 
@@ -177,6 +178,26 @@ describe("decideTurn", () => {
     }));
     expect(decision.intent).toBe("domain_adjacent");
     expect(decision.publishedPage).toBe("tithes");
+  });
+
+  it("answers a data question even when Jev also marks a personal page", () => {
+    const decision = decideTurn(base({
+      message: "כמה תרמתי השנה?",
+      jev: { ok: true, intent: "ask_data", confidence: 0.9, halachaPage: "personal", halachaPageConfidence: 0.95 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(decision.mode).toBe("show");
+    expect(decision.intent).toBe("ask_data");
+    expect(decision.needsQuestion).toBe(true);
+  });
+
+  it("does not show an empty rule title when the reader found no rule", () => {
+    const decision = decideTurn(base({
+      jev: { ok: true, intent: "create_rule", confidence: 0.95 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(decision.mode).toBe("ask");
+    expect(decision.intent).toBeNull();
   });
 
   it("asks what the message is when Jev is unsure and there is no movement", () => {
