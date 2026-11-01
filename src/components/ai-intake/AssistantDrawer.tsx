@@ -1105,8 +1105,14 @@ export function AssistantDrawer({
   function handleChooseSpecial(yes: boolean) {
     const next = held.current;
     if (!next) return;
-    const filled = yes && next.typeQuestion ? { ...next, type: next.typeQuestion, typeQuestion: null } : { ...next, typeQuestion: null };
+    const special = next.typeQuestion;
+    const filled = yes && special ? { ...next, type: special, typeQuestion: null } : { ...next, typeQuestion: null };
     showHeld(filled);
+    const name = filled.description.trim();
+    if (yes && special && name.length >= 2 && !filled.ruleName) {
+      setParsedRule({ name, action: special });
+      setRuleChoice(null);
+    }
   }
 
   function handleAmountReply(reply = amountReply) {
