@@ -1,6 +1,7 @@
 import { readModelText } from "./receipt-draft.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { parseSplitPayload } from "./split-response.ts";
+import { periodBounds } from "./split-period.ts";
 import { readSlotEvalFixture, scoreSlotEval, type SlotEvalField } from "./question-slot-eval.ts";
 
 /** Scores the reader's question field. The production path stays on ai-read-question until this passes. */
@@ -40,25 +41,45 @@ async function ask(key: string, text: string, recipients: readonly string[], cat
 
 const key = readKey(Deno.args[0] ?? "");
 const fixturePath = Deno.args[1] ?? "";
-const fixture = readSlotEvalFixture(JSON.parse(Deno.readTextFileSync(fixturePath)));
-if (!fixture) throw new Error("fixture needs lists and cases");
+const raw = JSON.parse(Deno.readTextFileSync(fixturePath));
 
-const answers: Record<string, unknown> = {};
-for (const item of fixture.cases) {
-  const first = await ask(key, item.text, fixture.lists.recipients, fixture.lists.categories);
-  const payload = parseSplitPayload(readModelText(first))
-    ? first
-    : await ask(key, item.text, fixture.lists.recipients, fixture.lists.categories).catch(() => first);
-  const parsed = parseSplitPayload(readModelText(payload));
-  const question = parsed?.question ?? null;
-  const row: Record<string, unknown> = {};
-  for (const field of FIELDS) {
-    const value = question ? question[field] : null;
-    row[field] = { choice: value ?? "none", confidence: question ? 1 : 0 };
+if (Array.isArray(raw)) {
+  let correct = 0;
+  for (const item of raw) {
+    const row = item as { id: string; text: string; today: string; expected: { type: string | null; measure: string | null; recipient: string | null; from: string | null; to: string | null } };
+    const first = await ask(key, row.text, [], []);
+    const payload = parseSplitPayload(readModelText(first))
+      ? first
+      : await ask(key, row.text, [], []).catch(() => first);
+    const question = parseSplitPayload(readModelText(payload))?.question ?? null;
+    const bounds = question ? periodBounds(question.period, row.today) : null;
+    const ok = question?.family === row.expected.type
+      && question?.measure === row.expected.measure
+      && (question?.recipient ?? null) === row.expected.recipient
+      && (bounds?.from ?? null) === row.expected.from
+      && (bounds?.to ?? null) === row.expected.to;
+    if (ok) correct += 1;
+    console.log(JSON.stringify({ id: row.id, ok }));
   }
-  answers[item.id] = row;
-  console.log(item.id);
+  console.log(JSON.stringify({ file: fixturePath, model: SPLIT_MODEL, total: raw.length, correct }));
+} else {
+  const fixture = readSlotEvalFixture(raw);
+  if (!fixture) throw new Error("fixture needs lists and cases");
+  const answers: Record<string, unknown> = {};
+  for (const item of fixture.cases) {
+    const first = await ask(key, item.text, fixture.lists.recipients, fixture.lists.categories);
+    const payload = parseSplitPayload(readModelText(first))
+      ? first
+      : await ask(key, item.text, fixture.lists.recipients, fixture.lists.categories).catch(() => first);
+    const question = parseSplitPayload(readModelText(payload))?.question ?? null;
+    const row: Record<string, unknown> = {};
+    for (const field of FIELDS) {
+      const value = question ? question[field] : null;
+      row[field] = { choice: value ?? "none", confidence: question ? 1 : 0 };
+    }
+    answers[item.id] = row;
+    console.log(item.id);
+  }
+  const score = scoreSlotEval(fixture.cases, answers);
+  console.log(JSON.stringify({ file: fixturePath, model: SPLIT_MODEL, ...score }));
 }
-
-const score = scoreSlotEval(fixture.cases, answers);
-console.log(JSON.stringify({ file: fixturePath, model: SPLIT_MODEL, ...score }));
