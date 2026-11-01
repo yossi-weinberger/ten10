@@ -47,7 +47,7 @@ export interface TextTransactionDraft {
     | "non_tithe_donation";
   requestedRate: number | null;
   description: string;
-  category: "food" | "transportation" | null;
+  category: string | null;
   paymentMethod: "credit_card" | "cash" | "bank_transfer" | "bit_paybox" | "check" | null;
 }
 
@@ -375,7 +375,7 @@ function resolveType(text: string): TextTransactionDraft["type"] {
   return explicitType(text) ?? "expense";
 }
 
-export type ClarificationField = "type" | "amount";
+export type ClarificationField = "type" | "amount" | "special";
 
 /** One question, type before amount. Null means the draft can be shown. */
 export function clarificationField(text: string, today: string): ClarificationField | null {

@@ -26,6 +26,10 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
 }
 
+export function halachaNamespace(id: string): string | null {
+  return HALACHA_PAGES.find((page) => page.id === id)?.namespace ?? null;
+}
+
 export function selectHalachaPage(text: string): HalachaPage | null {
   const normalized = normalize(text);
   if (includesAlias(normalized, PERSONAL_PSAK_MARKERS)) return null;

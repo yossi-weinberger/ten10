@@ -35,6 +35,9 @@ export const STATUS_MESSAGES = {
   receiptMissing: { key: "aiIntake.receiptMissing", tone: "info" },
   receiptUnavailable: { key: "aiIntake.receiptUnavailable", tone: "error" },
   providerFailed: { key: "aiIntake.providerFailed", tone: "error" },
+  couldNotRead: { key: "aiIntake.couldNotRead", tone: "info" },
+  checkDate: { key: "aiIntake.splitCheckDate", tone: "info" },
+  checkAmount: { key: "aiIntake.checkAmount", tone: "info" },
   oneAtATime: { key: "aiIntake.oneAtATime", tone: "info" },
   splitList: { key: "aiIntake.splitList", tone: "info" },
   severalReceipts: { key: "aiIntake.severalReceipts", tone: "info" },
@@ -107,6 +110,7 @@ export type ReplyBlock =
   | { kind: "halacha"; namespace: string }
   | { kind: "rule"; rule: ParsedUserRule; choice: RuleActionType | null }
   | { kind: "askType"; receipt: ReceiptFields | null }
+  | { kind: "askSpecial"; type: "exempt-income" | "recognized-expense" | "non_tithe_donation" }
   | { kind: "askAmount" }
   | { kind: "receipt"; artifactId: string; link: string | null }
   | { kind: "draft"; view: DraftView }
@@ -133,6 +137,7 @@ export interface ReplyState {
   parsedRule: ParsedUserRule | null;
   ruleChoice: RuleActionType | null;
   clarification: ClarificationField | null;
+  specialType: "exempt-income" | "recognized-expense" | "non_tithe_donation" | null;
   receiptFields: ReceiptFields | null;
   receiptArtifactId: string | null;
   receiptLink: string | null;
@@ -158,6 +163,7 @@ export function emptyReplyState(): ReplyState {
     parsedRule: null,
     ruleChoice: null,
     clarification: null,
+    specialType: null,
     receiptFields: null,
     receiptArtifactId: null,
     receiptLink: null,
@@ -175,7 +181,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.checking) blocks.push({ kind: "thinking", phase: state.pendingPhase ?? "reading" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
   if (state.intent) {
-    if (state.status !== "oneAtATime" && state.status !== "splitList") {
+    if (state.status !== "oneAtATime" && state.status !== "splitList" && state.status !== "couldNotRead") {
       blocks.push({
         kind: "intent",
         intent: state.intent,
@@ -207,6 +213,9 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     }
     if (state.halachaNamespace) blocks.push({ kind: "halacha", namespace: state.halachaNamespace });
     if (state.parsedRule) blocks.push({ kind: "rule", rule: state.parsedRule, choice: state.ruleChoice });
+    if (state.clarification === "special" && state.specialType) {
+      blocks.push({ kind: "askSpecial", type: state.specialType });
+    }
     if (state.clarification === "type") blocks.push({ kind: "askType", receipt: state.receiptFields });
     if (state.clarification === "amount") blocks.push({ kind: "askAmount" });
     if (state.receiptArtifactId && (state.clarification === "type" || state.draft)) {

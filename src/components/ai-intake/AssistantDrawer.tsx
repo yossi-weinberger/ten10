@@ -5,19 +5,16 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDonationStore } from "@/lib/store";
 import {
-  applyForwardRule,
-  clarificationField,
-  draftFromText,
+  halachaNamespace as namespaceForHalachaPage,
+  intentIsConfident,
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
-  parseUserRule,
-  recordsOneAtATime,
   selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
-  type IntakeCount,
   type IntakeIntent,
   type ParsedUserRule,
   type RuleActionType,
@@ -33,14 +30,12 @@ import {
 } from "@/lib/ai/duplicate-candidates";
 import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
-import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage, type ReadReceiptResult } from "@/lib/ai/read-receipt";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import { getPlatform } from "@/lib/platformManager";
-import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
@@ -57,13 +52,13 @@ import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { cardFromRecurringDraft, recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
-import { splitItems } from "@/lib/ai/split-items";
+import { recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
+import { releaseSplit, splitItems, type SplitItemsResult } from "@/lib/ai/split-items";
+import { digitsOnlyAmount, draftFromHeld, heldFromItem, recurringCardFromItem, type HeldDraft } from "@/lib/ai/split-draft";
 import { cardsFromSplit, type SplitDraft } from "@/lib/ai/split-cards";
 import { saveSplitDrafts } from "@/lib/ai/save-split-drafts";
 import type { RecurringTransaction } from "@/types/transaction";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
-import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurring-draft.ts";
 import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
@@ -84,10 +79,6 @@ export interface AssistantDrawerHandle {
   receive(file: File): void;
   receiveText(text: string): void;
 }
-
-type CountAnswer = { count: IntakeCount | null; confidence: number | null };
-
-const NO_COUNT: CountAnswer = { count: null, confidence: null };
 
 function isSingleReceipt(
   result: ReadReceiptResult,
@@ -116,6 +107,8 @@ export function AssistantDrawer({
     "halacha-tithes",
   ]);
   const calendarType = useDonationStore((state) => state.settings.calendarType);
+  const storedCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  const defaultCurrency = storedCurrency === "USD" || storedCurrency === "EUR" ? storedCurrency : "ILS";
   const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
@@ -132,8 +125,11 @@ export function AssistantDrawer({
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [duplicatesRanked, setDuplicatesRanked] = useState(false);
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
+  const [specialType, setSpecialType] = useState<HeldDraft["typeQuestion"]>(null);
+  const held = useRef<HeldDraft | null>(null);
+  const splitRef = useRef<SplitItemsResult | null>(null);
+  const halachaRef = useRef<string | null>(null);
   const [pendingText, setPendingText] = useState("");
-  const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
   const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
   const [amountReply, setAmountReply] = useState("");
   const [rules, setRules] = useState<ActiveUserRule[]>([]);
@@ -154,7 +150,6 @@ export function AssistantDrawer({
   const [splitDropped, setSplitDropped] = useState(0);
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
-  const [countAnswer, setCountAnswer] = useState<CountAnswer>(NO_COUNT);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
@@ -246,7 +241,6 @@ export function AssistantDrawer({
     setDuplicatesRanked(false);
     setClarification(null);
     setPendingText("");
-    setChosenType(null);
     setReceiptFields(null);
     setAmountReply("");
     setParsedRule(null);
@@ -261,7 +255,6 @@ export function AssistantDrawer({
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
-    setCountAnswer(NO_COUNT);
     setDataReply(null);
     for (const url of previewUrls.current) URL.revokeObjectURL(url);
     previewUrls.current = [];
@@ -339,7 +332,7 @@ export function AssistantDrawer({
     }, 400);
   }
 
-  function showDraft(next: TextTransactionDraft | null, source: string) {
+  function showDraft(next: TextTransactionDraft | null, ruleName: string | null = null) {
     if (!next) {
       setDraft(null);
       originalDraft.current = null;
@@ -349,22 +342,21 @@ export function AssistantDrawer({
       refreshDuplicates(null, "");
       return;
     }
-    const applied = applyForwardRule(next, rules, source);
-    setDraft(applied.draft);
-    setAmountInput(String(applied.draft.amount));
+    setDraft(next);
+    setAmountInput(String(next.amount));
     idempotency.current = nextDraftIdempotency(idempotency.current, {
-      description: applied.draft.description,
-      amount: String(applied.draft.amount),
-      type: applied.draft.type,
-      date: applied.draft.date,
+      description: next.description,
+      amount: String(next.amount),
+      type: next.type,
+      date: next.date,
     });
     originalDraft.current = {
-      description: applied.draft.description,
-      amount: applied.draft.amount,
-      date: applied.draft.date,
+      description: next.description,
+      amount: next.amount,
+      date: next.date,
     };
-    setAppliedRuleName(applied.ruleName);
-    refreshDuplicates(applied.draft, String(applied.draft.amount));
+    setAppliedRuleName(ruleName);
+    refreshDuplicates(next, String(next.amount));
   }
 
   async function openReceiptFile() {
@@ -428,7 +420,6 @@ export function AssistantDrawer({
     }
     setIntent("add_transaction");
     setPendingText("");
-    setChosenType(null);
     setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
@@ -438,7 +429,7 @@ export function AssistantDrawer({
     if (ruled) {
       setReceiptFields(null);
       setClarification(null);
-      showDraft(ruled.draft, result.fields.description);
+      showDraft(ruled.draft, ruled.ruleName);
       return;
     }
     setReceiptFields(result.fields);
@@ -532,59 +523,85 @@ export function AssistantDrawer({
     }, 60_000);
   }
 
-  function showIntent(source: string, today: string, nextIntent: IntakeIntent, counted: CountAnswer) {
-    const oneAtATime = recordsOneAtATime(nextIntent, source, counted.count, counted.confidence);
-    const single = nextIntent === "add_transaction" && !oneAtATime;
-    const field = single ? clarificationField(source, today) : null;
+  function showHeld(next: HeldDraft) {
+    held.current = next;
+    setSpecialType(next.typeQuestion);
+    if (next.type === null) {
+      setClarification("type");
+      showDraft(null);
+      return;
+    }
+    if (next.typeQuestion) {
+      setClarification("special");
+      showDraft(null);
+      return;
+    }
+    if (next.amount === null) {
+      setClarification("amount");
+      showDraft(null);
+      return;
+    }
+    const draft = draftFromHeld(next);
+    setClarification(null);
+    showDraft(draft, next.ruleName);
+    if (next.checkAmount) setStatus("checkAmount");
+    else if (next.checkDate) setStatus("checkDate");
+  }
+
+  function releaseUnused(nextIntent: IntakeIntent | "ask") {
+    const split = splitRef.current;
+    const reads = nextIntent === "add_transaction" || nextIntent === "create_recurring" || nextIntent === "create_rule" || nextIntent === "ask_data" || nextIntent === "ask";
+    if (!reads && split && split.ok && split.usageId) void releaseSplit(split.usageId);
+  }
+
+  function pageNamespace(source: string, pageId: string | null): string | null {
+    if (pageId === "personal" || pageId === "none") return null;
+    if (pageId) return namespaceForHalachaPage(pageId);
+    return selectHalachaPage(source)?.namespace ?? null;
+  }
+
+  function showIntent(source: string, nextIntent: IntakeIntent) {
+    const split = splitRef.current;
+    const several = split && split.ok && split.route === "several" ? split : null;
     setAskIntent(false);
     setIntent(nextIntent);
     setReceiptFields(null);
-    setClarification(field);
     setPendingText(source);
-    setChosenType(null);
     setAmountReply("");
-    setParsedRule(nextIntent === "create_rule" ? parseUserRule(source) : null);
+    setClarification(null);
+    setSpecialType(null);
+    held.current = null;
+    const rule = several?.rule ?? null;
+    setParsedRule(nextIntent === "create_rule" && rule
+      ? { name: rule.match, action: rule.action ?? "ambiguous" }
+      : null);
     setRuleChoice(null);
-    setHalachaNamespace(
-      nextIntent === "domain_adjacent" ? selectHalachaPage(source)?.namespace ?? null : null,
-    );
-    showDraft(field === null && single ? draftFromText(source, today) : null, source);
-    const recurringDraft = nextIntent === "create_recurring"
-      ? recurringFromText(source, today, questionCalendar)
+    setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(source, halachaRef.current) : null);
+    showDraft(null);
+    const recurringCard = nextIntent === "create_recurring" && several?.items[0]
+      ? recurringCardFromItem(several.items[0], defaultCurrency)
       : null;
     savedRecurring.current = null;
-    setRecurring(recurringDraft ? cardFromRecurringDraft(recurringDraft.draft) : null);
+    setRecurring(recurringCard);
     setSplitDrafts(null);
     setSplitDropped(0);
-    if (oneAtATime) {
-      setStatus(null);
-      const request = requestRef.current;
-      void loadSplit(source, today, request);
-    } else {
-      setStatus(null);
-    }
+    setStatus(null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
+    if (nextIntent === "add_transaction") {
+      if (!split || !split.ok || split.route === "unreadable") setStatus("couldNotRead");
+      else if (split.route === "list") setStatus("splitList");
+      else if (split.items.length > 1) {
+        splitKey.current = crypto.randomUUID();
+        setSplitDropped(split.dropped);
+        setSplitDrafts(cardsFromSplit(split.items));
+      } else if (split.items[0]) showHeld(heldFromItem(split.items[0], defaultCurrency));
+      else setStatus("couldNotRead");
+    }
     if (nextIntent === "ask_data") void loadDataAnswer(source);
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
     else setDuplicateScan(null);
-  }
-
-  async function loadSplit(source: string, today: string, request: number) {
-    const result = await splitItems(source, today);
-    if (requestRef.current !== request) return;
-    if (!result.ok || result.route === "unreadable") {
-      setStatus("oneAtATime");
-      return;
-    }
-    if (result.route === "list") {
-      setStatus("splitList");
-      return;
-    }
-    splitKey.current = crypto.randomUUID();
-    setSplitDropped(result.dropped);
-    setSplitDrafts(cardsFromSplit(result.items));
   }
 
   async function handleSaveSplit() {
@@ -843,6 +860,7 @@ export function AssistantDrawer({
       parsedRule,
       ruleChoice,
       clarification,
+      specialType,
       receiptFields,
       receiptArtifactId,
       receiptLink,
@@ -902,7 +920,6 @@ export function AssistantDrawer({
     setDuplicatesRanked(false);
     setClarification(null);
     setPendingText("");
-    setChosenType(null);
     setReceiptFields(null);
     setAmountReply("");
     setParsedRule(null);
@@ -918,6 +935,8 @@ export function AssistantDrawer({
     setSavedItemId(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
+    setSpecialType(null);
+    held.current = null;
     idempotency.current = null;
     setSlotHold(null);
   }
@@ -931,79 +950,106 @@ export function AssistantDrawer({
     setText("");
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const splitPromise = splitItems(source, today, {
+      timeZone: zone,
+      receivedAt: new Date().toISOString(),
+      defaultCurrency,
+    });
     const decided = await classifyIntentFallback(source);
+    const split = await splitPromise;
     if (requestRef.current !== request) return;
+    splitRef.current = split;
+    const pageAnswered = decided.ok && intentIsConfident(decided.halachaPageConfidence);
+    halachaRef.current = pageAnswered ? decided.halachaPage : null;
     setIntentConfidence(decided.ok ? decided.confidence : null);
-    const counted = decided.ok ? { count: decided.count, confidence: decided.countConfidence } : NO_COUNT;
-    setCountAnswer(counted);
     setChecking(false);
-    const next = shownIntent(source, today, decided);
+    const next = decided.ok
+      ? shownIntent(source, today, {
+        ok: true,
+        intent: decided.intent,
+        confidence: decided.confidence,
+        halachaPage: pageAnswered ? decided.halachaPage : undefined,
+      })
+      : shownIntent(source, today, { ok: false });
+    releaseUnused(next);
     if (next === "ask") {
       setAskIntent(true);
       setIntent(null);
       setReceiptFields(null);
       setClarification(null);
+      setSpecialType(null);
       setPendingText(source);
-      setChosenType(null);
       setParsedRule(null);
       setRuleChoice(null);
       setHalachaNamespace(null);
-      showDraft(null, "");
+      showDraft(null);
       setRecurring(null);
       savedRecurring.current = null;
       setStatus(null);
       setSavedItemId(null);
       return;
     }
-    showIntent(source, today, next, counted);
+    showIntent(source, next);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
     const source = pendingText;
-    const today = todayIso();
-    if (nextIntent === "create_rule" && !parseUserRule(source)) {
-      showIntent(source, today, "out_of_scope", countAnswer);
-      return;
-    }
-    showIntent(source, today, nextIntent, countAnswer);
+    releaseUnused(nextIntent);
+    showIntent(source, nextIntent);
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
     if (receiptFields) {
-      setChosenType(type);
-      showDraft(receiptAsDraft(receiptFields, type), receiptFields.description);
+      showDraft(receiptAsDraft(receiptFields, type));
       setReceiptFields(null);
       setClarification(null);
       return;
     }
-    const next = draftFromText(pendingText, todayIso());
-    setChosenType(type);
-    if (next) {
-      showDraft({ ...next, type }, pendingText);
-      setClarification(null);
+    const next = held.current;
+    if (!next) {
+      setClarification("amount");
       return;
     }
-    showDraft(null, pendingText);
-    setClarification("amount");
+    const filled = { ...next, type, typeQuestion: null };
+    showHeld(filled);
+  }
+
+  function handleChooseSpecial(yes: boolean) {
+    const next = held.current;
+    if (!next) return;
+    const filled = yes && next.typeQuestion ? { ...next, type: next.typeQuestion, typeQuestion: null } : { ...next, typeQuestion: null };
+    showHeld(filled);
   }
 
   function handleAmountReply(reply = amountReply) {
     const trimmed = reply.trim();
     if (!trimmed) return;
-    requestRef.current += 1;
+    const previous = held.current;
+    const source = `${pendingText} ${trimmed}`.trim();
+    const request = ++requestRef.current;
     beginTurn({ kind: "text", text: trimmed });
-    setIntent("add_transaction");
     setText("");
-    const source = `${pendingText} ${trimmed}`;
-    if (recordsOneAtATime("add_transaction", source, countAnswer.count, countAnswer.confidence)) {
-      setClarification(null);
-      setStatus("oneAtATime");
+    setIntent("add_transaction");
+    setPendingText(source);
+    held.current = previous;
+    const digits = digitsOnlyAmount(trimmed);
+    if (digits !== null && previous) {
+      showHeld({ ...previous, amount: digits, checkAmount: false });
       return;
     }
-    const next = draftFromText(source, todayIso());
-    if (!next) return;
-    showDraft(chosenType ? { ...next, type: chosenType } : next, source);
-    setClarification(null);
+    setPendingPhase("reading");
+    setChecking(true);
+    void splitItems(source, todayIso(), {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      receivedAt: new Date().toISOString(),
+      defaultCurrency,
+    }).then((split) => {
+      if (requestRef.current !== request) return;
+      setChecking(false);
+      splitRef.current = split;
+      showIntent(source, "add_transaction");
+    });
   }
 
   async function handleApproveRule() {
@@ -1069,7 +1115,6 @@ export function AssistantDrawer({
       return;
     }
     if (result.ok) {
-      void recordShadowType(result.itemId, chosenType !== null);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
@@ -1195,6 +1240,7 @@ export function AssistantDrawer({
         handlers={{
           onChooseIntent: handleChooseIntent,
           onChooseType: handleChooseType,
+          onChooseSpecial: handleChooseSpecial,
           onChooseFamily: (family, source) => {
             void loadDataAnswer(source, false, family);
           },

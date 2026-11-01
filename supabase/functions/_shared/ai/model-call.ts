@@ -55,6 +55,13 @@ function dollars(value: unknown): number | null {
   return typeof parsed === "number" && Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
+/** The model id on the response, when the gateway names the model that answered. */
+export function readRespondedModel(payload: unknown, requested: string): string {
+  const body = record(payload);
+  const model = body && typeof body.model === "string" ? body.model.trim() : "";
+  return model.length > 0 ? model : requested;
+}
+
 /**
  * Jev and Responses put tokens in `usage` and cost in `provider_metadata.gateway`.
  * Transcription has no tokens and uses `providerMetadata`.
@@ -98,6 +105,7 @@ export async function callModel(input: ModelCallInput): Promise<ModelCallResult>
   const started = now();
   let result: ModelCallResult;
   let usage = NO_USAGE;
+  let respondedModel = input.model;
   try {
     const response = await fetchImpl(input.url, {
       ...input.init,
@@ -114,6 +122,7 @@ export async function callModel(input: ModelCallInput): Promise<ModelCallResult>
       try {
         const payload = await response.json();
         usage = readModelUsage(payload);
+        respondedModel = readRespondedModel(payload, input.model);
         result = { ok: true, status: response.status, payload };
       } catch (error) {
         result = {
@@ -130,7 +139,7 @@ export async function callModel(input: ModelCallInput): Promise<ModelCallResult>
   await keepRecording(input.record({
     userId: input.userId,
     operation: input.operation,
-    model: input.model,
+    model: respondedModel,
     ok: result.ok,
     httpStatus: result.status,
     errorCode: result.ok ? null : result.errorCode,

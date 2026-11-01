@@ -16,7 +16,6 @@ const ai = vi.hoisted(() => ({
   approveUserRule: vi.fn(),
   listDuplicateCandidates: vi.fn(),
   rankDuplicateCandidates: vi.fn(),
-  recordShadowType: vi.fn(),
   readReceiptImage: vi.fn(),
   openAiReceipt: vi.fn(),
   loadDuplicateScan: vi.fn(),
@@ -31,6 +30,7 @@ const ai = vi.hoisted(() => ({
   createRecurringTransaction: vi.fn(),
   updateRecurringTransaction: vi.fn(),
   splitItems: vi.fn(),
+  releaseSplit: vi.fn(),
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -59,8 +59,7 @@ vi.mock("@/lib/ai/user-rules", () => ({
 }));
 vi.mock("@/lib/ai/duplicate-candidates", () => ({ listDuplicateCandidates: ai.listDuplicateCandidates }));
 vi.mock("@/lib/ai/rank-duplicates", () => ({ rankDuplicateCandidates: ai.rankDuplicateCandidates }));
-vi.mock("@/lib/ai/shadow-type", () => ({ recordShadowType: ai.recordShadowType }));
-vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems }));
+vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems, releaseSplit: ai.releaseSplit }));
 vi.mock("@/lib/ai/read-receipt", () => ({ readReceiptImage: ai.readReceiptImage }));
 vi.mock("@/lib/ai/open-receipt", () => ({ openAiReceipt: ai.openAiReceipt }));
 vi.mock("@/lib/ai/load-duplicate-scan", () => ({
@@ -133,8 +132,83 @@ beforeEach(() => {
   ai.listActiveUserRules.mockResolvedValue([]);
   ai.listDuplicateCandidates.mockResolvedValue([]);
   ai.rankDuplicateCandidates.mockResolvedValue(null);
-  ai.recordShadowType.mockResolvedValue(undefined);
-  ai.splitItems.mockResolvedValue({ ok: true, route: "unreadable" });
+  ai.splitItems.mockImplementation(async (sentence: string) => {
+    if (sentence.includes("הוראת קבע")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "כולל",
+          amount: 200,
+          currency: "ILS",
+          date: "2026-11-01",
+          checkDate: false,
+          typeHint: "donation",
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: {
+            frequency: "monthly",
+            calendarType: "gregorian",
+            startDate: "2026-11-01",
+            dayOfMonth: 1,
+            weekday: null,
+            totalOccurrences: null,
+            alreadyCharged: false,
+          },
+        }],
+      };
+    }
+    if (sentence.includes("גן")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 0,
+        dropped: 0,
+        usageId: null,
+        items: [],
+        question: null,
+        rule: { match: "גן", action: "recognized-expense" },
+      };
+    }
+    if (sentence.includes("מאפים")) {
+      const amount = /\d/.test(sentence) ? 15 : null;
+      const typeHint = sentence.includes("קניתי") ? "expense" : "";
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "מאפים באליס",
+          amount,
+          currency: "ILS",
+          date: "2026-10-30",
+          checkDate: false,
+          typeHint,
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: null,
+        }],
+      };
+    }
+    return { ok: true, route: "unreadable", usageId: null };
+  });
 });
 
 afterEach(() => cleanup());
@@ -194,7 +268,7 @@ describe("AssistantDrawer characterization", () => {
     });
     const user = setup();
     await send(user, "50 במכולת ו־120 לישיבה");
-    expect(await screen.findByText("aiIntake.oneAtATime")).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.couldNotRead")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
   });
@@ -265,6 +339,87 @@ describe("AssistantDrawer characterization", () => {
     await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "15");
     await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("shows the amount reply and drops a late reader", async () => {
+    confident("add_transaction");
+    let finish: (value: unknown) => void = () => {};
+    const user = setup();
+    await send(user, "קניתי מאפים באליס");
+    expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
+    let hangReply = true;
+    ai.splitItems.mockImplementation((sentence: string) => {
+      if (hangReply && String(sentence).includes("חמישה")) {
+        hangReply = false;
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "לחם",
+          amount: 10,
+          currency: "ILS",
+          date: "2026-10-30",
+          checkDate: false,
+          checkAmount: false,
+          typeHint: "expense",
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: null,
+        }],
+      });
+    });
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "חמישה");
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+    expect(await screen.findByText("חמישה")).toBeInTheDocument();
+    expect(screen.getAllByText("aiIntake.thinking.reading").length).toBeGreaterThan(0);
+    const composer = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
+    await user.clear(composer);
+    await send(user, "קניתי לחם ב-10");
+    expect(await screen.findByText("קניתי לחם ב-10")).toBeInTheDocument();
+    finish({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "מאוחר",
+        amount: 5,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        checkAmount: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByText("מאוחר")).not.toBeInTheDocument();
+    expect(screen.getByText("קניתי לחם ב-10")).toBeInTheDocument();
+    expect(screen.getAllByText("חמישה").length).toBeGreaterThan(0);
   });
 
   it("warns about a duplicate and keeps the old one on 'same event'", async () => {

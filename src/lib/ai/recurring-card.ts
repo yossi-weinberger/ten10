@@ -116,6 +116,7 @@ export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | 
   if (card.currency === null) return "currency";
   if (card.type === null) return "type";
   if (card.frequency === null) return "frequency";
+  if (dayOf(card) === null) return "day";
   if (card.startDate === null) return "day";
   if (card.alreadyCharged && card.includeThisMonth === null) return "includeThisMonth";
   return null;
@@ -151,7 +152,7 @@ export function recurringSummaryPieces(
   }
   pieces.push(
     { field: null, text: labels.monthly },
-    { field: "day", text: String(card.dayOfMonth ?? "") },
+    { field: "day", text: String(dayOf(card) ?? "") },
     { field: null, text: labels.from },
     { field: "start", text: labels.start },
   );

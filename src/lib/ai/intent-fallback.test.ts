@@ -21,6 +21,8 @@ describe("classifyIntentFallback", () => {
       confidence: 0.9,
       count: "several",
       countConfidence: 0.8,
+      halachaPage: null,
+      halachaPageConfidence: null,
     });
   });
 

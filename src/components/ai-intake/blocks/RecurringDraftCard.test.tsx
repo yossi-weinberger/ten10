@@ -11,7 +11,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => ({
       "aiIntake.recurring.summaryLead": "הוראת קבע: ",
-      "aiIntake.recurring.summaryPayee": " ל",
+      "aiIntake.recurring.summaryPayee": " · ",
       "aiIntake.recurring.summaryMonthly": ", כל חודש ב-",
       "aiIntake.recurring.summaryFrom": ", החל מ-",
       "aiIntake.types.donation": "תרומה",
