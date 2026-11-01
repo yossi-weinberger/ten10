@@ -54,6 +54,25 @@ describe("decideTurn", () => {
     expect(decision.card).toEqual({ type: "clarify", field: "type" });
   });
 
+  it("asks about a guessed special type and shows a stated one on the card", () => {
+    const guessed = decideTurn(base({
+      reader: { ok: true, route: "several", items: [item({ typeHint: "income", typeQuestion: "exempt-income" })], rule: null, question: null },
+    }));
+    expect(guessed.card).toEqual({ type: "clarify", field: "special" });
+    const statedInput = base({
+      reader: {
+        ok: true,
+        route: "several",
+        items: [item({ typeHint: "income", typeQuestion: "exempt-income", specialStated: true })],
+        rule: null,
+        question: null,
+      },
+    });
+    const stated = decideTurn(statedInput);
+    expect(stated.card.type).toBe("draft");
+    expect(summarizeTurn(statedInput, stated).type).toBe("exempt-income");
+  });
+
   it("waits for an amount when the reader has none", () => {
     const decision = decideTurn(base({
       reader: { ok: true, route: "several", items: [item({ amount: null })], rule: null, question: null },

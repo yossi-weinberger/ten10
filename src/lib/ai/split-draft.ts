@@ -1,7 +1,7 @@
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import { cardFromRecurringDraft } from "@/lib/ai/recurring-card";
-import type { AnchoredSplitItem, SpecialType } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+import { statedSpecialType, type AnchoredSplitItem, type SpecialType } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 
 export interface HeldDraft {
   description: string;
@@ -43,19 +43,20 @@ export function heldFromItem(
   const currency = item.currency === "USD" || item.currency === "EUR" || item.currency === "ILS"
     ? item.currency
     : fallbackCurrency;
+  const stated = statedSpecialType(item);
   return {
     description: item.description,
     amount: item.amount,
     currency,
     date: item.date ?? "",
-    type: item.typeHint === "" ? null : item.typeHint,
+    type: stated ?? (item.typeHint === "" ? null : item.typeHint),
     requestedRate: item.requestedRate,
     category: categoryOf(item.category),
     paymentMethod: paymentOf(item.paymentMethod),
     ruleName: item.ruleName,
     checkDate: item.checkDate,
     checkAmount: item.checkAmount === true,
-    typeQuestion: item.typeQuestion,
+    typeQuestion: stated ? null : item.typeQuestion,
   };
 }
 

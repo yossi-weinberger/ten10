@@ -1,7 +1,7 @@
 import type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent.ts";
 import { questionFromSlots, type YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 import type { QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
-import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+import { statedSpecialType, type AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import { namedHalachaPage, shownIntent, type ShownIntent } from "../../components/ai-intake/assistant-shown-intent.ts";
 import { yearSumFromReader } from "./reader-question.ts";
@@ -259,7 +259,7 @@ function transactionCard(reader: TurnReader | null): TurnCard {
   const item = reader.items[0];
   if (!item) return { type: "could_not_read" };
   if (item.typeHint === "") return { type: "clarify", field: "type" };
-  if (item.typeQuestion) return { type: "clarify", field: "special" };
+  if (item.typeQuestion && !statedSpecialType(item)) return { type: "clarify", field: "special" };
   if (item.amount === null) return { type: "clarify", field: "amount" };
   return { type: "draft", checkAmount: item.checkAmount === true, checkDate: item.checkDate === true };
 }
@@ -374,7 +374,7 @@ export function decideTurn(input: TurnInput): TurnDecision {
   const routed = route(input);
   const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
   const intent = card.type === "recurring" ? "create_recurring" : routed.intent;
-  const wantsData = intent === "ask_data" || (routed.withData && intent === "add_transaction");
+  const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
   const data = routed.mode === "show"
     ? dataFor(input, wantsData, routed.preferRabbi)
     : { data: { status: "skip" as const }, needsQuestion: false, needsNameCheck: false };
@@ -408,7 +408,7 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
   return {
     kind,
     amount: item?.amount ?? null,
-    type: item?.typeHint ? item.typeHint : question?.type ?? null,
+    type: (item ? statedSpecialType(item) : null) ?? (item?.typeHint ? item.typeHint : question?.type ?? null),
     date: item?.date ?? null,
     frequency: item?.recurrence?.frequency ?? null,
     day: item?.recurrence?.dayOfMonth ?? null,

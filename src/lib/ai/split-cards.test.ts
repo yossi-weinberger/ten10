@@ -12,4 +12,12 @@ describe("cardsFromSplit", () => {
     expect(cards[1]?.type).toBeNull();
     expect(cards[2]?.date).toBeNull();
   });
+
+  it("keeps a special type the message stated, and not one the model guessed", () => {
+    const cards = cardsFromSplit([
+      { description: "ביטוח לאומי", amount: 250, currency: "ILS", date: "2026-11-01", typeHint: "income", typeQuestion: "exempt-income", specialStated: true },
+      { description: "ההורים", amount: 500, currency: "ILS", date: "2026-11-01", typeHint: "income", typeQuestion: "exempt-income", specialStated: false },
+    ]);
+    expect(cards.map((card) => card.type)).toEqual(["exempt-income", "income"]);
+  });
 });

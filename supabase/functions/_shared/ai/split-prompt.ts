@@ -69,7 +69,6 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "A date said once applies to every item, unless the message names another date.",
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
     "type_question is exempt-income, recognized-expense, or non_tithe_donation when the case is a gift, an inheritance, or a refund of expenses, and null for an ordinary purchase. Do not put that special type into type unless the message says it.",
-    "When the message itself says the special type, such as income exempt from tithe, a recognized expense, or a donation not from tithe money, type is that special type and type_question is null.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
     "A day named on the Hebrew calendar, including the first day of a Hebrew month, uses calendar hebrew.",
     `The user's calendar is ${context.calendar ?? "gregorian"}. A numbered day of the month uses that calendar, unless the message names a Hebrew date or a Hebrew month.`,
