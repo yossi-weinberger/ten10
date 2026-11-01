@@ -25,6 +25,7 @@ import {
 import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { CurrencyConversionSection } from "./CurrencyConversionSection";
+import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
 
 /** Minimum space for one validation line; grows when text wraps on narrow viewports. */
 const FIELD_MESSAGE_SLOT_CLASS = "mt-1 min-h-5 text-sm leading-snug";
@@ -34,11 +35,16 @@ const FIELD_LABEL_CLASS = "flex h-5 items-center gap-1.5";
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
   isRecurring?: boolean;
+  onDateInputStatusChange?: (
+    status: GregorianDateParseResult["status"],
+    inputMethod: "typed" | "calendar"
+  ) => void;
 }
 
 export function AmountCurrencyDateFields({
   form,
   isRecurring = false,
+  onDateInputStatusChange,
 }: AmountCurrencyDateFieldsProps) {
   const { t } = useTranslation("transactions");
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
@@ -162,6 +168,7 @@ export function AmountCurrencyDateFields({
                       : undefined
                   }
                   minDate={minDate}
+                  onInputStatusChange={onDateInputStatusChange}
                   setDate={(date) => {
                     if (date && !Number.isNaN(date.getTime())) {
                       form.setValue("date", formatLocalDate(date) || "invalid", {

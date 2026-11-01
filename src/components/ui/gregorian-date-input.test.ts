@@ -31,23 +31,46 @@ describe("autoFormatDigitsOnly", () => {
 });
 
 describe("formatAsUserTypes", () => {
-  it("preserves manually typed values", () => {
-    let result = formatAsUserTypes("", "3", 1);
-    expect(result.formatted).toBe("3");
-    
-    result = formatAsUserTypes("3", "31", 2);
-    expect(result.formatted).toBe("31");
-    
-    result = formatAsUserTypes("31", "31/", 3);
+  it("auto-inserts slash after 2nd day digit", () => {
+    const result = formatAsUserTypes("3", "31", 2);
     expect(result.formatted).toBe("31/");
-    
-    result = formatAsUserTypes("31/", "31/1", 4);
-    expect(result.formatted).toBe("31/1");
+    expect(result.caretPos).toBe(3);
+  });
+
+  it("auto-inserts slash after 2nd month digit", () => {
+    const result = formatAsUserTypes("31/1", "31/10", 5);
+    expect(result.formatted).toBe("31/10/");
+    expect(result.caretPos).toBe(6);
+  });
+
+  it("accepts manually typed separator (allows d/M)", () => {
+    const result = formatAsUserTypes("3", "3/", 2);
+    expect(result.formatted).toBe("3/");
+    expect(result.caretPos).toBe(2);
+  });
+
+  it("maps dot to slash", () => {
+    const result = formatAsUserTypes("31", "31.", 3);
+    expect(result.formatted).toBe("31/");
+    expect(result.caretPos).toBe(3);
+  });
+
+  it("maps dash to slash", () => {
+    const result = formatAsUserTypes("31", "31-", 3);
+    expect(result.formatted).toBe("31/");
+    expect(result.caretPos).toBe(3);
   });
 
   it("does not re-insert separators on backspace", () => {
     const result = formatAsUserTypes("31/10/2026", "31/10/202", 9);
     expect(result.formatted).toBe("31/10/202");
+    expect(result.caretPos).toBe(9);
+  });
+
+  it("preserves mid-text edits", () => {
+    const result = formatAsUserTypes("31/10/2026", "32/10/2026", 2);
+    expect(result.formatted).toBe("32/10/2026");
+    expect(result.caretPos).toBe(2);
   });
 
   it("handles paste of 8 digits", () => {

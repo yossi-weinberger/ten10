@@ -25,6 +25,7 @@ import {
   parseCompleteFourDigitGregorianDateInput,
   parseFlexibleGregorianDateInput,
   formatAsUserTypes,
+  type GregorianDateParseResult,
 } from "./gregorian-date-input";
 
 function isValidDate(d: unknown): d is Date {
@@ -75,10 +76,15 @@ export function DatePicker({
   date,
   setDate,
   minDate,
+  onInputStatusChange,
 }: {
   date?: Date;
   setDate: (date?: Date) => void;
   minDate?: Date;
+  onInputStatusChange?: (
+    status: GregorianDateParseResult["status"],
+    inputMethod: "typed" | "calendar"
+  ) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
@@ -87,6 +93,9 @@ export function DatePicker({
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValueRef = React.useRef(inputValue);
   const lastInputMethodRef = React.useRef<"typed" | "calendar">("typed");
+  const onInputStatusChangeRef = React.useRef(onInputStatusChange);
+  const caretPositionRef = React.useRef<number>(0);
+  const needsCaretUpdate = React.useRef(false);
   const { i18n } = useTranslation(["dashboard", "transactions"]);
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
@@ -97,6 +106,18 @@ export function DatePicker({
     minDate && minDate > yearBounds.startMonth
       ? minDate
       : yearBounds.startMonth;
+
+  React.useEffect(() => {
+    onInputStatusChangeRef.current = onInputStatusChange;
+  }, [onInputStatusChange]);
+
+  // Update caret position after render when needed
+  React.useLayoutEffect(() => {
+    if (needsCaretUpdate.current && inputRef.current) {
+      inputRef.current.setSelectionRange(caretPositionRef.current, caretPositionRef.current);
+      needsCaretUpdate.current = false;
+    }
+  });
 
   const formatFieldDate = React.useCallback(
     (value: Date): string => {
@@ -143,42 +164,24 @@ export function DatePicker({
         dirtyRef.current = false;
         setFieldText("");
         setDate(undefined);
+        onInputStatusChangeRef.current?.(result.status, lastInputMethodRef.current);
         return;
       case "parsed": {
         dirtyRef.current = false;
         setFieldText(formatFieldDate(result.date));
         setMonth(result.date);
         setDate(result.date);
-        return;
-      }
-      case "out_of_range": {
-        // Date is valid but before 2000 - pass it through so Zod's min check triggers
-        // This requires us to re-parse to get the actual date
-        const manualParse = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/.exec(rawValue.trim());
-        if (manualParse) {
-          const day = Number(manualParse[1]);
-          const month = Number(manualParse[2]);
-          const rawYear = manualParse[3];
-          const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear);
-          const date = new Date(year, month - 1, day);
-          dirtyRef.current = true;
-          setFieldText(rawValue);
-          setMonth(date);
-          setDate(date); // Pass the actual date so Zod can validate it properly
-          return;
-        }
-        // Fallback to NaN if we can't parse for some reason
-        dirtyRef.current = true;
-        setFieldText(rawValue);
-        setDate(new Date(Number.NaN));
+        onInputStatusChangeRef.current?.(result.status, lastInputMethodRef.current);
         return;
       }
       case "partial":
       case "invalid_format":
       case "nonexistent":
+      case "out_of_range":
         dirtyRef.current = true;
         setFieldText(rawValue);
         setDate(new Date(Number.NaN));
+        onInputStatusChangeRef.current?.(result.status, lastInputMethodRef.current);
         return;
       default: {
         const exhaustive: never = result;
@@ -202,12 +205,12 @@ export function DatePicker({
     dirtyRef.current = true;
     setFieldText(formatted);
     
-    // Restore caret position after React renders the new value
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.setSelectionRange(caretPos, caretPos);
-      }
-    }, 0);
+    // Only update caret if we actually changed the string
+    if (formatted !== newValue) {
+      // Store the desired caret position for the effect
+      caretPositionRef.current = caretPos;
+      needsCaretUpdate.current = true;
+    }
 
     const result = parseCompleteFourDigitGregorianDateInput(formatted);
     switch (result.status) {
@@ -237,9 +240,11 @@ export function DatePicker({
     if (isValidDate(selectedDate)) {
       setDate(selectedDate);
       setFieldText(formatFieldDate(selectedDate));
+      onInputStatusChangeRef.current?.("parsed", "calendar");
     } else {
       setDate(undefined);
       setFieldText("");
+      onInputStatusChangeRef.current?.("empty", "calendar");
     }
     setOpen(false);
   };
@@ -273,11 +278,7 @@ export function DatePicker({
   };
 
   // Export last input method for telemetry
-  React.useEffect(() => {
-    if (inputRef.current) {
-      (inputRef.current as HTMLInputElement & { __lastInputMethod?: "typed" | "calendar" }).__lastInputMethod = lastInputMethodRef.current;
-    }
-  }, [date]);
+  // Removed - now using onInputStatusChange callback instead
 
   return (
     <div className="relative">
@@ -290,7 +291,8 @@ export function DatePicker({
           commitInput(inputValueRef.current);
         }}
         readOnly={calendarType === "hebrew"}
-        className="bg-background pr-10 ph-no-mask"
+        className="bg-background pr-10"
+        data-ph-unmask-date="true"
         inputMode={calendarType === "hebrew" ? undefined : "numeric"}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {

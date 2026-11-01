@@ -156,6 +156,14 @@ export function initPostHog(): void {
       ? {
           maskAllInputs: true,
           maskTextSelector: "[data-ph-mask], .ph-mask",
+          maskInputFn: (text, element) => {
+            // Unmask date inputs with data-ph-unmask-date attribute
+            if (element && element.getAttribute("data-ph-unmask-date") === "true") {
+              return text;
+            }
+            // Mask everything else
+            return "*".repeat(text.length);
+          },
           maskCapturedNetworkRequestFn: (request) => {
             if (typeof request.name === "string") {
               request.name = scrubSensitiveUrl(request.name);

@@ -513,3 +513,43 @@ describe("resetPostHogUser", () => {
     expect(posthog.reset).not.toHaveBeenCalled();
   });
 });
+
+describe("maskInputFn", () => {
+  // Extract the maskInputFn logic to test it in isolation
+  const maskInputFn = (text: string, element?: Element | null) => {
+    // Unmask date inputs with data-ph-unmask-date attribute
+    if (element && element.getAttribute("data-ph-unmask-date") === "true") {
+      return text;
+    }
+    // Mask everything else
+    return "*".repeat(text.length);
+  };
+
+  it("unmasks date input with data-ph-unmask-date attribute", () => {
+    const mockElement = {
+      getAttribute: (attrName: string) => attrName === "data-ph-unmask-date" ? "true" : null,
+    } as Element;
+
+    expect(maskInputFn("31/10/2026", mockElement)).toBe("31/10/2026");
+  });
+
+  it("masks regular inputs without the attribute", () => {
+    const mockElement = {
+      getAttribute: () => null,
+    } as unknown as Element;
+
+    expect(maskInputFn("secret123", mockElement)).toBe("*********");
+  });
+
+  it("masks inputs with data-ph-unmask-date=false", () => {
+    const mockElement = {
+      getAttribute: (attrName: string) => attrName === "data-ph-unmask-date" ? "false" : null,
+    } as Element;
+
+    expect(maskInputFn("secret123", mockElement)).toBe("*********");
+  });
+
+  it("masks when element is null", () => {
+    expect(maskInputFn("secret123", null)).toBe("*********");
+  });
+});

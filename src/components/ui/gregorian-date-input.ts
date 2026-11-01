@@ -29,8 +29,8 @@ function localDateIfValid(year: number, month: number, day: number): Date | null
   return date;
 }
 
-const COMPLETE_FOUR_DIGIT_DATE = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/;
-const FLEXIBLE_COMMIT_DATE = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/;
+const COMPLETE_FOUR_DIGIT_DATE = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/;
+const FLEXIBLE_COMMIT_DATE = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})$/;
 
 /**
  * Auto-format digits-only input by inserting slashes.
@@ -69,23 +69,12 @@ export function formatAsUserTypes(
   newValue: string,
   selectionStart: number | null
 ): { formatted: string; caretPos: number } {
-  // If text was deleted (shorter or same length), check if it's a special case first
-  const digitsOnly = newValue.replace(/\D/g, "");
+  const defaultPos = selectionStart ?? newValue.length;
   
-  // Special case: if new value is exactly 6 or 8 pure digits, it's likely a paste/replacement
-  if ((digitsOnly.length === 6 || digitsOnly.length === 8) && digitsOnly === newValue) {
-    const formatted = autoFormatDigitsOnly(digitsOnly);
-    return { formatted, caretPos: formatted.length };
-  }
-
-  // If text was deleted (shorter or same length), don't auto-format
-  if (newValue.length <= currentValue.length) {
-    return { formatted: newValue, caretPos: selectionStart ?? newValue.length };
-  }
-
-  // Detect paste: more than 1 character added at once
+  // Detect paste: more than 1 character added at once, OR old value was replaced
   const charsAdded = newValue.length - currentValue.length;
-  const isPossiblePaste = charsAdded > 1;
+  const digitsOnly = newValue.replace(/\D/g, "");
+  const isPossiblePaste = charsAdded > 1 || charsAdded < 0 || (digitsOnly.length >= 6 && digitsOnly === newValue);
 
   if (isPossiblePaste) {
     // Check if it's a pure digits paste (6 or 8 digits)
@@ -93,11 +82,65 @@ export function formatAsUserTypes(
       const formatted = autoFormatDigitsOnly(digitsOnly);
       return { formatted, caretPos: formatted.length };
     }
+    // Other pastes/replacements: keep as-is
+    return { formatted: newValue, caretPos: defaultPos };
+  }
+  
+  // If text was deleted (shorter length), don't auto-format
+  if (newValue.length < currentValue.length) {
+    return { formatted: newValue, caretPos: defaultPos };
   }
 
-  // For normal typing, preserve the value as-is
-  // This allows users to type separators manually or type any format they want
-  return { formatted: newValue, caretPos: selectionStart ?? newValue.length };
+  // Single character typed - check if we should auto-format
+  const caretPos = selectionStart ?? newValue.length;
+  
+  // Detect if user typed a separator that was already auto-inserted
+  // e.g. "31/" -> "31//" when user types "/" after auto-insert
+  if (newValue.includes("//")) {
+    // Remove the duplicate slash
+    const cleaned = newValue.replace(/\/\//g, "/");
+    return { formatted: cleaned, caretPos: cleaned.length };
+  }
+  
+  // Map . and - to /
+  const normalizedValue = newValue.replace(/[.-]/g, "/");
+  
+  // If user typed a separator, accept it (allows d/M format)
+  if (normalizedValue !== newValue) {
+    return { formatted: normalizedValue, caretPos };
+  }
+  
+  // If the character was added at the end, check if we should auto-insert /
+  const wasAddedAtEnd = caretPos === newValue.length;
+  
+  if (!wasAddedAtEnd) {
+    // Mid-text edit: preserve as-is
+    return { formatted: newValue, caretPos };
+  }
+  
+  // Extract digits and separators
+  const digits = newValue.replace(/\D/g, "");
+  const separators = (newValue.match(/\//g) || []).length;
+  
+  // Auto-insert / after 2nd day digit (if no separators yet and exactly 2 digits)
+  if (separators === 0 && digits.length === 2) {
+    const formatted = `${digits}/`;
+    return { formatted, caretPos: formatted.length };
+  }
+  
+  // Auto-insert / after 2nd month digit (if only one separator and exactly 4 digits)
+  if (separators === 1 && digits.length === 4) {
+    const parts = newValue.split("/");
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      const day = parts[0];
+      const month = parts[1];
+      const formatted = `${day}/${month}/`;
+      return { formatted, caretPos: formatted.length };
+    }
+  }
+  
+  // Otherwise, keep the value as-is
+  return { formatted: newValue, caretPos };
 }
 
 function parseSlashDate(
@@ -113,7 +156,7 @@ function parseSlashDate(
   if (!match) {
     // Check if it looks like partial input (contains digits but doesn't match)
     const hasDigits = /\d/.test(trimmed);
-    const separators = (trimmed.match(/[\/.\-]/g) || []).length;
+    const separators = (trimmed.match(/[/.-]/g) || []).length;
     const digitsOnly = trimmed.replace(/\D/g, "");
     
     // Partial: has structure but incomplete
@@ -125,7 +168,7 @@ function parseSlashDate(
       }
       if (separators === 2) {
         // Has two separators but didn't match - check year length
-        const parts = trimmed.split(/[\/.\-]/);
+        const parts = trimmed.split(/[/.-]/);
         if (parts.length === 3 && parts[2]) {
           const yearLength = parts[2].replace(/\D/g, "").length;
           // Year is too short (1-3 digits) -> partial
