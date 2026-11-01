@@ -1,4 +1,4 @@
-import type { YearTypeSum } from "@/lib/ai/classify-intake";
+import type { YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;

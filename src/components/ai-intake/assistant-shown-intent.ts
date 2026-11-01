@@ -1,7 +1,5 @@
-import {
-  intentIsConfident,
-  type IntakeIntent,
-} from "@/lib/ai/classify-intake";
+import type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent.ts";
+import { intentIsConfident } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
 
 export type ShownIntent = IntakeIntent | "ask" | "ask_rabbi";
 
