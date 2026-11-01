@@ -1,0 +1,64 @@
+import { describe, expect, it } from "vitest";
+import { INSPIRATION_LIBRARY } from "./inspiration-library";
+import {
+  itemsForLanguage,
+  pickInspiration,
+  readRecentIds,
+  rememberInspiration,
+  type IdStorage,
+  type InspirationView,
+} from "./inspiration-pick";
+
+function memoryStorage(): IdStorage & { data: Record<string, string> } {
+  const data: Record<string, string> = {};
+  return {
+    data,
+    getItem: (key) => (key in data ? data[key] : null),
+    setItem: (key, value) => {
+      data[key] = value;
+    },
+  };
+}
+
+const items: InspirationView[] = [
+  { id: "a", title: "A", body: "one", source: "s" },
+  { id: "b", title: "B", body: "two", source: "" },
+  { id: "c", title: "C", body: "three", source: "t" },
+];
+
+describe("inspiration pick", () => {
+  it("skips the ten most recent ids", () => {
+    const recent = ["a", "b"];
+    const picked = pickInspiration(items, recent, () => 0);
+    expect(picked?.id).toBe("c");
+  });
+
+  it("uses the whole pool when every item is recent", () => {
+    const picked = pickInspiration(items, ["a", "b", "c"], () => 0.9);
+    expect(picked?.id).toBe("c");
+  });
+
+  it("remembers an id and ignores a broken store", () => {
+    const storage = memoryStorage();
+    rememberInspiration(storage, "a");
+    rememberInspiration(storage, "b");
+    expect(readRecentIds(storage)).toEqual(["a", "b"]);
+    const broken: IdStorage = {
+      getItem: () => {
+        throw new Error("denied");
+      },
+      setItem: () => {
+        throw new Error("denied");
+      },
+    };
+    expect(readRecentIds(broken)).toEqual([]);
+    expect(() => rememberInspiration(broken, "a")).not.toThrow();
+  });
+
+  it("shows Hebrew from the master and English only from the email text", () => {
+    expect(itemsForLanguage(INSPIRATION_LIBRARY, "he")).toHaveLength(75);
+    const english = itemsForLanguage(INSPIRATION_LIBRARY, "en");
+    expect(english).toHaveLength(12);
+    expect(english.every((item) => item.body.length > 0)).toBe(true);
+  });
+});

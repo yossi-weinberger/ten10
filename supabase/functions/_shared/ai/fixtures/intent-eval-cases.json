@@ -80,5 +80,32 @@
   {"id": "he-recurring-03", "language": "he", "note": "hard-boundary", "text": "תפתח תרומה קבועה של 36 שקל לחב״ד כל שבוע, ל־12 שבועות", "expected": "create_recurring"},
   {"id": "en-recurring-01", "language": "en", "note": "standard", "text": "Set up a monthly donation of 100 NIS to Ezer Mizion starting next month", "expected": "create_recurring"},
   {"id": "en-recurring-02", "language": "en", "note": "hard-boundary", "text": "From now on log 180 shekels every year on Purim for matanot la'evyonim", "expected": "create_recurring"},
-  {"id": "en-recurring-03", "language": "en", "note": "transcript", "text": "make my fifty dollar pledge to the kollel recurring every month until the end of the year", "expected": "create_recurring"}
+  {"id": "en-recurring-03", "language": "en", "note": "transcript", "text": "make my fifty dollar pledge to the kollel recurring every month until the end of the year", "expected": "create_recurring"},
+
+  {"id": "he-inspire-01", "language": "he", "note": "standard", "text": "תן לי חיזוק", "expected": "inspiration"},
+  {"id": "he-inspire-02", "language": "he", "note": "standard", "text": "ספר לי סיפור על צדקה", "expected": "inspiration"},
+  {"id": "he-inspire-03", "language": "he", "note": "standard", "text": "תן לי מילה טובה על מעשר", "expected": "inspiration"},
+  {"id": "he-inspire-04", "language": "he", "note": "standard", "text": "אני צריך עידוד", "expected": "inspiration"},
+  {"id": "he-inspire-05", "language": "he", "note": "standard", "text": "ספר לי משהו על נתינה", "expected": "inspiration"},
+  {"id": "he-inspire-06", "language": "he", "note": "standard", "text": "יש לך סיפור על גמ״ח", "expected": "inspiration"},
+  {"id": "he-inspire-07", "language": "he", "note": "standard", "text": "תחזק אותי", "expected": "inspiration"},
+  {"id": "he-inspire-08", "language": "he", "note": "standard", "text": "משהו מעורר השראה על צדקה", "expected": "inspiration"},
+  {"id": "en-inspire-01", "language": "en", "note": "standard", "text": "Give me some encouragement", "expected": "inspiration"},
+  {"id": "en-inspire-02", "language": "en", "note": "standard", "text": "Tell me a story about charity", "expected": "inspiration"},
+  {"id": "en-inspire-03", "language": "en", "note": "standard", "text": "Something inspiring about tithing", "expected": "inspiration"},
+  {"id": "en-inspire-04", "language": "en", "note": "standard", "text": "I need a good word", "expected": "inspiration"},
+  {"id": "en-inspire-05", "language": "en", "note": "standard", "text": "Tell me a story about giving", "expected": "inspiration"},
+  {"id": "en-inspire-06", "language": "en", "note": "standard", "text": "Say something encouraging about maaser", "expected": "inspiration"},
+  {"id": "en-inspire-07", "language": "en", "note": "standard", "text": "Share a story about tzedakah", "expected": "inspiration"},
+
+  {"id": "he-near-01", "language": "he", "note": "hard-boundary", "text": "מה זה מעשר כספים לפי ההלכה", "expected": "domain_adjacent"},
+  {"id": "he-near-02", "language": "he", "note": "hard-boundary", "text": "תן לי סיכום תרומות", "expected": "ask_data"},
+  {"id": "he-near-03", "language": "he", "note": "hard-boundary", "text": "מה אתה יודע לעשות בשבילי", "expected": "help"},
+  {"id": "he-near-04", "language": "he", "note": "hard-boundary", "text": "תרמתי 100, תן לי חיזוק", "expected": "add_transaction"},
+  {"id": "he-near-05", "language": "he", "note": "hard-boundary", "text": "תסביר מה זה חומש", "expected": "domain_adjacent"},
+  {"id": "he-near-06", "language": "he", "note": "hard-boundary", "text": "כמה תרמתי השנה, בלי סיפור", "expected": "ask_data"},
+  {"id": "en-near-01", "language": "en", "note": "hard-boundary", "text": "Give me a summary of my donations", "expected": "ask_data"},
+  {"id": "en-near-02", "language": "en", "note": "hard-boundary", "text": "What do you know how to do", "expected": "help"},
+  {"id": "en-near-03", "language": "en", "note": "hard-boundary", "text": "I donated 100 shekels, give me encouragement", "expected": "add_transaction"},
+  {"id": "en-near-04", "language": "en", "note": "hard-boundary", "text": "What does the halacha say about tithing expenses", "expected": "domain_adjacent"}
 ]
