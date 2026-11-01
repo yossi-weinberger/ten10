@@ -12,6 +12,7 @@ import { DataAnswer, DataNotice, NameMissing } from "./blocks/DataAnswer";
 import { DraftCard } from "./blocks/DraftCard";
 import { DuplicateScanCard } from "./blocks/DuplicateScanCard";
 import { HalachaCard } from "./blocks/HalachaCard";
+import { RabbiCard } from "./blocks/RabbiCard";
 import { ReceiptAttachment } from "./blocks/ReceiptAttachment";
 import { RuleCard } from "./blocks/RuleCard";
 import { RecurringDraftCard } from "./blocks/RecurringDraftCard";
@@ -45,6 +46,8 @@ export interface ReplyHandlers {
   onConfirmDelete: (id: string) => void;
   onCancelDelete: () => void;
   onDismissPair: (pair: DuplicatePair) => void;
+  onRabbiSent: (ticket: string) => void;
+  onRabbiDismiss: () => void;
   saving: boolean;
   undoing: boolean;
   questionCalendar: "hebrew" | "gregorian";
@@ -224,6 +227,15 @@ export function ReplyBlockView({
             </Button>
           ) : null}
         </div>
+      );
+    case "rabbi":
+      return (
+        <RabbiCard
+          text={block.text}
+          ticket={block.ticket}
+          onSent={handlers.onRabbiSent}
+          onDismiss={handlers.onRabbiDismiss}
+        />
       );
     case "undo":
       if (!interactive) return null;

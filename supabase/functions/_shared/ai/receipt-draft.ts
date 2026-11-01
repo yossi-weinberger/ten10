@@ -20,6 +20,14 @@ export interface ReceiptDraft {
 /** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
 export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
 
+export const RECEIPT_COPY_PROMPT = [
+  "Copy this document line by line, as written.",
+  "The photo may be rotated or upside down.",
+  "The text may be Hebrew or English. Copy what you can read. Do not refuse.",
+  "Do not interpret, translate, calculate, or add fields.",
+  "Keep the original language and the original digits.",
+].join("\n");
+
 const ARTIFACT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** Private bucket path: user id, UTC year, UTC month, artifact id. No original filename. */
@@ -211,4 +219,27 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
     currency: currency as ReceiptCurrency,
     kind: "receipt",
   };
+}
+
+export interface CopiedReceiptItem {
+  description: string;
+  amount: number | null;
+  date: string | null;
+  currency: string;
+}
+
+/** One copied receipt becomes one draft. Several receipts or a statement do not list rows. */
+export function receiptDraftFromItems(
+  route: "list" | "unreadable" | "several",
+  items: readonly CopiedReceiptItem[],
+): { kind: ReceiptKind; description?: string; date?: string; amount?: number; currency?: string } | null {
+  if (route === "list") return { kind: "statement" };
+  if (route !== "several") return null;
+  if (items.length > 1) return { kind: "several_receipts" };
+  const item = items[0];
+  if (!item || item.amount === null || item.amount <= 0) return null;
+  const description = item.description.trim();
+  if (description.length < 2 || !item.date || !isIsoDate(item.date)) return null;
+  const currency = item.currency === "USD" || item.currency === "EUR" ? item.currency : "ILS";
+  return { kind: "receipt", description, date: item.date, amount: item.amount, currency };
 }

@@ -1,4 +1,5 @@
 import {
+  receiptDraftFromItems,
   decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
@@ -107,4 +108,20 @@ Deno.test("model text is the message output, not the reasoning", () => {
   assert(text === "{\"amount\":10}", "message only");
   assert(readModelText({ output_text: "{\"amount\":12}" }) === "{\"amount\":12}", "direct text");
   assert(readModelText({ content: [{ type: "text", text: "{\"amount\":11}" }] }) === "{\"amount\":11}", "anthropic text");
+});
+
+Deno.test("a copied receipt becomes one draft, and a list becomes a statement", () => {
+  const one = receiptDraftFromItems("several", [{
+    description: "סופר",
+    amount: 40,
+    date: "2026-10-15",
+    currency: "ILS",
+  }]);
+  assert(one?.kind === "receipt" && one.amount === 40, "one receipt");
+  const many = receiptDraftFromItems("several", [
+    { description: "א", amount: 10, date: "2026-10-15", currency: "ILS" },
+    { description: "ב", amount: 12, date: "2026-10-15", currency: "ILS" },
+  ]);
+  assert(many?.kind === "several_receipts", "several");
+  assert(receiptDraftFromItems("list", [])?.kind === "statement", "statement");
 });

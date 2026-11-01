@@ -72,7 +72,7 @@ import {
   type StatusKey,
   type UserTurn,
 } from "./assistant-reply-view";
-import { shownIntent } from "./assistant-shown-intent";
+import { shownIntent, type ShownIntent } from "./assistant-shown-intent";
 import { levelFromSamples } from "./assistant-audio-level";
 
 export interface AssistantDrawerHandle {
@@ -137,6 +137,8 @@ export function AssistantDrawer({
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
+  const [rabbiText, setRabbiText] = useState<string | null>(null);
+  const [rabbiTicket, setRabbiTicket] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
   const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
@@ -548,7 +550,7 @@ export function AssistantDrawer({
     else if (next.checkDate) setStatus("checkDate");
   }
 
-  function releaseUnused(nextIntent: IntakeIntent | "ask") {
+  function releaseUnused(nextIntent: ShownIntent) {
     const split = splitRef.current;
     const reads = nextIntent === "add_transaction" || nextIntent === "create_recurring" || nextIntent === "create_rule" || nextIntent === "ask_data" || nextIntent === "ask";
     if (!reads && split && split.ok && split.usageId) void releaseSplit(split.usageId);
@@ -576,6 +578,8 @@ export function AssistantDrawer({
       : null);
     setRuleChoice(null);
     setHalachaNamespace(nextIntent === "domain_adjacent" ? pageNamespace(halachaRef.current) : null);
+    setRabbiText(null);
+    setRabbiTicket(null);
     showDraft(null);
     const recurringCard = nextIntent === "create_recurring" && several?.items[0]
       ? recurringCardFromItem(several.items[0], defaultCurrency)
@@ -869,6 +873,8 @@ export function AssistantDrawer({
       confirmDeleteId,
       duplicateActionFailed,
       halachaNamespace,
+      rabbiText,
+      rabbiTicket,
       parsedRule,
       ruleChoice,
       clarification,
@@ -938,6 +944,8 @@ export function AssistantDrawer({
     setRuleChoice(null);
     setAppliedRuleName(null);
     setHalachaNamespace(null);
+    setRabbiText(null);
+    setRabbiTicket(null);
     setAskIntent(false);
     setDataReply(null);
     setDuplicateScan(null);
@@ -985,6 +993,25 @@ export function AssistantDrawer({
       })
       : shownIntent(source, today, { ok: false });
     releaseUnused(next);
+    if (next === "ask_rabbi") {
+      setAskIntent(false);
+      setIntent(null);
+      setRabbiText(source);
+      setRabbiTicket(null);
+      setHalachaNamespace(null);
+      setReceiptFields(null);
+      setClarification(null);
+      setSpecialType(null);
+      setPendingText(source);
+      setParsedRule(null);
+      setRuleChoice(null);
+      showDraft(null);
+      setRecurring(null);
+      savedRecurring.current = null;
+      setStatus(null);
+      setSavedItemId(null);
+      return;
+    }
     if (next === "ask") {
       setAskIntent(true);
       setIntent(null);
@@ -1331,6 +1358,8 @@ export function AssistantDrawer({
           onDismissPair: (pair) => {
             void dismissPair(pair);
           },
+          onRabbiSent: setRabbiTicket,
+          onRabbiDismiss: () => setRabbiText(null),
           saving,
           undoing,
           questionCalendar,

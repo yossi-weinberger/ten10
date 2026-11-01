@@ -26,13 +26,13 @@ describe("shownIntent", () => {
     })).toBe("out_of_scope");
   });
 
-  it("keeps a personal ruling out of scope", () => {
+  it("offers to send a personal ruling to the rabbi", () => {
     expect(shownIntent("האם מותר לי לקזז את זה מהמעשר", today, {
       ok: true,
       intent: "out_of_scope",
       confidence: 0.95,
       halachaPage: "personal",
-    })).toBe("out_of_scope");
+    })).toBe("ask_rabbi");
   });
 
   it("keeps a confident data question even when it mentions tithe", () => {

@@ -108,6 +108,7 @@ export type ReplyBlock =
   | { kind: "dataNotice"; status: "unsupported" | "mixed" | "failed" }
   | { kind: "duplicateScan"; scan: DuplicateScanState; confirmDeleteId: string | null; actionFailed: boolean }
   | { kind: "halacha"; namespace: string }
+  | { kind: "rabbi"; text: string; ticket: string | null }
   | { kind: "rule"; rule: ParsedUserRule; choice: RuleActionType | null }
   | { kind: "askType"; receipt: ReceiptFields | null }
   | { kind: "askSpecial"; type: "exempt-income" | "recognized-expense" | "non_tithe_donation" }
@@ -134,6 +135,8 @@ export interface ReplyState {
   confirmDeleteId: string | null;
   duplicateActionFailed: boolean;
   halachaNamespace: string | null;
+  rabbiText: string | null;
+  rabbiTicket: string | null;
   parsedRule: ParsedUserRule | null;
   ruleChoice: RuleActionType | null;
   clarification: ClarificationField | null;
@@ -160,6 +163,8 @@ export function emptyReplyState(): ReplyState {
     confirmDeleteId: null,
     duplicateActionFailed: false,
     halachaNamespace: null,
+    rabbiText: null,
+    rabbiTicket: null,
     parsedRule: null,
     ruleChoice: null,
     clarification: null,
@@ -212,6 +217,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       });
     }
     if (state.halachaNamespace) blocks.push({ kind: "halacha", namespace: state.halachaNamespace });
+    if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });
     if (state.parsedRule) blocks.push({ kind: "rule", rule: state.parsedRule, choice: state.ruleChoice });
     if (state.clarification === "special" && state.specialType) {
       blocks.push({ kind: "askSpecial", type: state.specialType });
