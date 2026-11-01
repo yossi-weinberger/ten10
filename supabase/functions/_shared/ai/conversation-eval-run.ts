@@ -133,6 +133,7 @@ async function askQuestion(
 
 function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   const flags: string[] = [];
+  const accepted = [expect.kind, ...(expect.alsoOk ?? [])];
   const card = summary.kind === "draft" || summary.kind === "drafts" || summary.kind === "recurring";
   if (card && expect.amount !== undefined && summary.amount !== expect.amount) flags.push("wrong_save");
   if (card && expect.type !== undefined && summary.type !== expect.type) flags.push("wrong_save");
@@ -140,8 +141,8 @@ function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   if (summary.kind === "recurring" && expect.frequency !== undefined && summary.frequency !== expect.frequency) flags.push("wrong_save");
   if (summary.kind === "recurring" && expect.day !== undefined && summary.day !== expect.day) flags.push("wrong_save");
   if (expect.kind === "recurring" && (summary.kind === "draft" || summary.kind === "drafts")) flags.push("recurring_as_one_time");
-  if ((summary.kind === "out_of_scope" || summary.kind === "could_not_read") && expect.kind !== "out_of_scope") flags.push("dead_end");
-  if (summary.kind === "question" && expect.kind !== "question") flags.push("unnecessary_question");
+  if ((summary.kind === "out_of_scope" || summary.kind === "could_not_read") && !accepted.includes("out_of_scope")) flags.push("dead_end");
+  if (summary.kind === "question" && !accepted.includes("question")) flags.push("unnecessary_question");
   return [...new Set(flags)];
 }
 

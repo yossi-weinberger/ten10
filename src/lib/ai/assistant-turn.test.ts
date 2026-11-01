@@ -159,6 +159,16 @@ describe("decideTurn", () => {
 
     const several: TurnReader = { ok: true, route: "several", items: [monthly, item({ amount: 30 })], rule: null, question: null };
     expect(decideTurn(base({ reader: several })).card.type).toBe("drafts");
+
+    const chosen = decideTurn(base({ reader, forcedIntent: "add_transaction" }));
+    expect(chosen.card.type).toBe("draft");
+    expect(chosen.intent).toBe("add_transaction");
+
+    const ruled = decideTurn(base({
+      jev: { ok: true, intent: "create_rule", confidence: 0.95 },
+      reader: { ...reader, rule: { match: "כולל", action: "non_tithe_donation" } },
+    }));
+    expect(ruled.card.type).toBe("rule");
   });
 
   it("keeps a standing order behind an out-of-scope label as no card", () => {
@@ -170,7 +180,7 @@ describe("decideTurn", () => {
       question: null,
     };
     const decision = decideTurn(base({ jev: { ok: true, intent: "out_of_scope", confidence: 0.95 }, reader }));
-    expect(decision.card.type).not.toBe("recurring");
+    expect(decision.card.type).toBe("none");
   });
 
   it("blocks an unsupported frequency whatever Jev's label", () => {

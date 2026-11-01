@@ -297,6 +297,24 @@ function Question({
           {leave}
         </div>
       );
+    case "special": {
+      const special = card.typeQuestion;
+      if (!special) return null;
+      return (
+        <div className="grid gap-2">
+          <ChoiceRow
+            prompt={t(`aiIntake.askSpecial.${special}`)}
+            disabled={disabled}
+            options={[
+              { value: "yes", label: t("aiIntake.askSpecialYes") },
+              { value: "no", label: t("aiIntake.askSpecialNo") },
+            ]}
+            onChoose={(answer) => onChange(answer === "yes" ? { ...card, type: special, typeQuestion: null } : { ...card, typeQuestion: null })}
+          />
+          {leave}
+        </div>
+      );
+    }
     case "frequency":
       return (
         <div className="grid gap-2">

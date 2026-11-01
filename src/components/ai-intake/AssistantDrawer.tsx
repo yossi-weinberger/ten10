@@ -662,6 +662,7 @@ export function AssistantDrawer({
         break;
       case "recurring":
         setRecurring(several?.items[0] ? recurringCardFromItem(several.items[0], defaultCurrency) : null);
+        if (several?.items[0]?.checkAmount) setStatus("checkAmount");
         break;
       case "frequency_unsupported":
         setStatus("frequencyUnsupported");

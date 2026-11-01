@@ -81,6 +81,7 @@ export function recurringCardFromItem(item: AnchoredSplitItem, fallbackCurrency:
     amount: held.amount,
     currency: held.currency,
     type: held.type,
+    typeQuestion: held.typeQuestion,
     description: held.description,
     category: held.category,
     paymentMethod: held.paymentMethod,

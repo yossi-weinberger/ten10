@@ -268,7 +268,7 @@ function frequencyBlocked(reader: TurnReader | null): boolean {
   return severalOf(reader)?.items.some((item) => item.unsupportedFrequency) === true;
 }
 
-function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCard {
+function cardFor(intent: IntakeIntent | null, reader: TurnReader | null, chosen: boolean): TurnCard {
   const several = severalOf(reader);
   const rule = intent === "create_rule" ? several?.rule ?? null : null;
   if (rule) return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
@@ -277,8 +277,9 @@ function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCa
     if (several?.items[0]) return { type: "recurring" };
     return { type: "none" };
   }
-  // A standing order the reader read is one, whatever Jev's label. Several items stay drafts, as before.
-  if (intent === "add_transaction" && several?.items.length === 1 && several.items[0]?.recurrence) {
+  // A standing order the reader read is one, whatever Jev's label, but not when the user chose a transaction.
+  // Several items stay drafts, as before.
+  if (intent === "add_transaction" && !chosen && several?.items.length === 1 && several.items[0]?.recurrence) {
     return { type: "recurring" };
   }
   if (intent === "add_transaction") return transactionCard(reader);
@@ -372,7 +373,7 @@ function copyState(state: ConversationState): ConversationState {
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
   const routed = route(input);
-  const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
+  const card = routed.mode === "show" ? cardFor(routed.intent, input.reader, Boolean(input.forcedIntent)) : { type: "none" as const };
   const intent = card.type === "recurring" ? "create_recurring" : routed.intent;
   const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
   const data = routed.mode === "show"
