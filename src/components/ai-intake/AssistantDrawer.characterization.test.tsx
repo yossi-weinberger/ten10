@@ -30,6 +30,7 @@ const ai = vi.hoisted(() => ({
   refreshAfterIntakeSave: vi.fn(),
   deleteTransaction: vi.fn(),
   createRecurringTransaction: vi.fn(),
+  getRecurringTransactionById: vi.fn(),
   updateRecurringTransaction: vi.fn(),
   splitItems: vi.fn(),
   releaseSplit: vi.fn(),
@@ -84,6 +85,7 @@ vi.mock("@/lib/ai/transcribe-speech", () => ({ transcribeSpeech: ai.transcribeSp
 vi.mock("@/lib/ai/refresh-after-intake", () => ({ refreshAfterIntakeSave: ai.refreshAfterIntakeSave }));
 vi.mock("@/lib/data-layer/recurringTransactions.service", () => ({
   createRecurringTransaction: ai.createRecurringTransaction,
+  getRecurringTransactionById: ai.getRecurringTransactionById,
 }));
 vi.mock("@/lib/tableTransactions/recurringTable.service", () => ({
   updateRecurringTransaction: ai.updateRecurringTransaction,
@@ -250,7 +252,7 @@ describe("AssistantDrawer characterization", () => {
     fireEvent.paste(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), {
       clipboardData: { files: [file] },
     });
-    await waitFor(() => expect(ai.readReceiptImage).toHaveBeenCalledWith(file));
+    await waitFor(() => expect(ai.readReceiptImage).toHaveBeenCalledWith(file, expect.any(String)));
   });
 
   it("renders nothing outside web", () => {
@@ -718,10 +720,19 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows a standing order and saves it only after the click", async () => {
     confident("create_recurring");
+    const createdAt = new Date().toISOString();
     ai.createRecurringTransaction.mockResolvedValue({
       id: "r1",
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
       execution_count: 0,
+      amount: 200,
+    });
+    // The table changed the amount after the save. Cancel must send the fresh row, not the old copy.
+    ai.getRecurringTransactionById.mockResolvedValue({
+      id: "r1",
+      created_at: createdAt,
+      execution_count: 0,
+      amount: 250,
     });
     ai.updateRecurringTransaction.mockResolvedValue({ id: "r1", status: "cancelled" });
     const user = setup();
@@ -736,9 +747,24 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
     await waitFor(() => expect(ai.updateRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(ai.getRecurringTransactionById).toHaveBeenCalledWith("r1");
     expect(ai.updateRecurringTransaction.mock.calls[0][1].status).toBe("cancelled");
+    expect(ai.updateRecurringTransaction.mock.calls[0][1].amount).toBe(250);
     expect(await screen.findByText("aiIntake.recurring.cancelled")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
+  });
+
+  it("does not cancel when the fresh row shows a charge since the save", async () => {
+    confident("create_recurring");
+    const createdAt = new Date().toISOString();
+    ai.createRecurringTransaction.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 0 });
+    ai.getRecurringTransactionById.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 1 });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
+    expect(await screen.findByText("aiIntake.recurring.cancelFailed")).toBeInTheDocument();
+    expect(ai.updateRecurringTransaction).not.toHaveBeenCalled();
   });
 
   it("hides cancel after the standing order has already charged", async () => {

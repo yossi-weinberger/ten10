@@ -10,9 +10,9 @@ export interface CommitPayload {
   description: string;
   type: TextTransactionDraft["type"];
   category: string | null;
-  recipient: null;
+  recipient: string | null;
   payment_method: string | null;
-  is_chomesh: false;
+  is_chomesh: boolean;
   original_amount?: number | null;
   original_currency?: string | null;
   conversion_rate?: number | null;
@@ -24,12 +24,23 @@ export type BuildCommitResult =
   | { ok: true; payload: CommitPayload }
   | { ok: false; reason: "NO_RATE" };
 
+const DONATION_TYPES: ReadonlySet<TextTransactionDraft["type"]> = new Set(["donation", "non_tithe_donation"]);
+
+/** The payee of a donation, as the form saves it. The card's description is the name when no payee was read. */
+export function donationRecipient(draft: Pick<TextTransactionDraft, "type" | "recipient" | "description">): string | null {
+  if (!DONATION_TYPES.has(draft.type)) return null;
+  const named = draft.recipient?.trim() || draft.description.trim();
+  return named.length > 0 ? named : null;
+}
+
 export function buildCommitPayload(input: {
   draft: TextTransactionDraft;
   defaultCurrency: string;
   autoRate: number | null;
   idempotencyKey: string;
   timezone: string;
+  /** Chomesh on an income, from the card (which starts from settings.autoCalcChomesh). */
+  isChomesh: boolean;
 }): BuildCommitResult {
   const rate = input.draft.requestedRate ?? input.autoRate;
   if (input.draft.currency !== input.defaultCurrency && (rate === null || rate <= 0)) {
@@ -56,9 +67,10 @@ export function buildCommitPayload(input: {
       description: input.draft.description,
       type: input.draft.type,
       category: input.draft.category,
-      recipient: null,
+      recipient: donationRecipient(input.draft),
       payment_method: input.draft.paymentMethod,
-      is_chomesh: false,
+      // Only an ordinary income carries chomesh. exempt-income never does, like the form.
+      is_chomesh: input.draft.type === "income" ? Boolean(input.isChomesh) : false,
       original_amount: converted.original_amount,
       original_currency: converted.original_currency,
       conversion_rate: converted.conversion_rate,

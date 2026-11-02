@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { SUPPORTED_CURRENCY_CODES } from "../transaction-domain/normalize-core.ts";
 
 /** One closed object. Unused fields are null. The model does not calculate. */
 
-const CURRENCIES = ["ILS", "USD", "EUR"] as const;
+const CURRENCIES = SUPPORTED_CURRENCY_CODES;
 const TYPES = [
   "income",
   "expense",

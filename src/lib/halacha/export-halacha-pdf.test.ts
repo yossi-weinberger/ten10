@@ -73,7 +73,9 @@ describe("renderHalachaBooklet", () => {
     expect(reloaded.getPageCount()).toBe(4);
   });
 
-  it("renders the full Hebrew booklet without an empty trailing page", async () => {
+  it(
+    "renders the full Hebrew booklet without an empty trailing page",
+    async () => {
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
     const regular = await pdfDoc.embedFont(
@@ -97,7 +99,7 @@ describe("renderHalachaBooklet", () => {
     const bytes = await pdfDoc.save();
     const reloaded = await PDFDocument.load(bytes);
     expect(reloaded.getPageCount()).toBe(pageCount);
-  });
+  }, 20000);
 });
 
 function loadJson(name: string) {

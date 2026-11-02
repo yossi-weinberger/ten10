@@ -40,9 +40,7 @@ export function heldFromItem(
   item: AnchoredSplitItem,
   fallbackCurrency: TextTransactionDraft["currency"],
 ): HeldDraft {
-  const currency = item.currency === "USD" || item.currency === "EUR" || item.currency === "ILS"
-    ? item.currency
-    : fallbackCurrency;
+  const currency = item.currency === "" ? fallbackCurrency : item.currency;
   const stated = statedSpecialType(item);
   return {
     description: item.description,
