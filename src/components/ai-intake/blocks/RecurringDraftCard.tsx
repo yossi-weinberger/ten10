@@ -5,11 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
-import { getCurrencySymbol } from "@/lib/currencies";
+import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { formatCurrency } from "@/lib/utils/currency";
+import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { SUPPORTED_CURRENCY_CODES } from "../../../../supabase/functions/_shared/transaction-domain/normalize-core.ts";
+import {
+  EXPENSE_CATEGORY_KEYS,
+  INCOME_CATEGORY_KEYS,
+  isPredefinedCategory,
+} from "../../../../supabase/functions/_shared/transaction-domain/category-keys.ts";
 import {
   RECURRING_EDIT_FIELDS,
+  maxRecurringDay,
   nextRecurringQuestion,
   recurringCancelOpen,
   recurringCardReady,
@@ -28,9 +37,30 @@ import {
 import { ChoiceRow } from "./ChoiceRow";
 import { TypeChoice } from "./TypeChoice";
 
-const CURRENCIES = ["ILS", "USD", "EUR"] as const;
+const CURRENCIES = SUPPORTED_CURRENCY_CODES;
 const TYPES = ["expense", "income", "donation", "exempt-income", "recognized-expense", "non_tithe_donation"] as const;
-const CATEGORIES = ["food", "transportation"] as const;
+/** The payment methods a draft can carry. Labels come from the form's translations. */
+const PAYMENT_METHODS = ["credit_card", "cash", "bank_transfer", "bit_paybox", "check"] as const;
+
+/** The form's predefined categories for the card's type. A donation has no category. */
+function categoriesFor(type: TextTransactionDraft["type"] | null): { base: "income" | "expense"; keys: readonly string[] } | null {
+  if (type === "income" || type === "exempt-income") return { base: "income", keys: INCOME_CATEGORY_KEYS };
+  if (type === "expense" || type === "recognized-expense") return { base: "expense", keys: EXPENSE_CATEGORY_KEYS };
+  return null;
+}
+
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+/** The form's labels, from the transactions namespace. A custom category or method shows as saved. */
+function categoryLabel(t: TranslateFn, base: "income" | "expense", value: string): string {
+  return isPredefinedCategory(value)
+    ? t(`transactionForm.category.${base}.${value}`, { ns: "transactions", defaultValue: value })
+    : value;
+}
+
+function paymentLabel(t: TranslateFn, value: string): string {
+  return t(`transactionForm.paymentMethod.options.${value}`, { ns: "transactions", defaultValue: value });
+}
 
 const fieldClass = "border-input bg-background h-9 w-full rounded-md border ps-3 pe-10 text-sm rtl:ps-10 rtl:pe-3";
 
@@ -44,6 +74,7 @@ function fieldLabelKey(field: RecurringEditField | "amount"): string {
     case "type":
     case "recipient":
     case "category":
+    case "paymentMethod":
     case "day":
     case "start":
     case "count":
@@ -72,7 +103,7 @@ export function RecurringDraftCard({
   onDismiss: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation("navigation");
+  const { t, i18n } = useTranslation("navigation");
   const formatDisplayDate = useDisplayDate();
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
@@ -91,6 +122,9 @@ export function RecurringDraftCard({
   const labels = {
     type: card.type ? t(`aiIntake.types.${card.type}`) : "",
     currency: getCurrencySymbol(card.currency),
+    amount: card.amount !== null && card.currency !== null
+      ? formatCurrency(card.amount, card.currency as CurrencyCode, i18n.language.toLowerCase().startsWith("en") ? "en" : "he")
+      : undefined,
     start: start ? recurringShortDate(start, card.calendarType) : "",
     lead: t("aiIntake.recurring.summaryLead"),
     payeePrefix: t("aiIntake.recurring.summaryPayee"),
@@ -175,6 +209,11 @@ export function RecurringDraftCard({
   return (
     <div className="grid gap-3 rounded-lg border p-3">
       {showSummary ? summary : null}
+      {showSummary && card.paymentMethod ? (
+        <p className="text-sm text-muted-foreground">
+          {t("aiIntake.recurring.paymentMethod")}: {paymentLabel(t, card.paymentMethod)}
+        </p>
+      ) : null}
       {showSummary ? dateList : null}
       {question && !openField && !picking ? (
         <Question
@@ -322,6 +361,7 @@ function Question({
       return (
         <DayAsk
           disabled={disabled}
+          maxDay={maxRecurringDay(card.calendarType)}
           onCommit={(day) => onChange(withRecurringDay(card, day, today))}
           extra={leave}
         />
@@ -372,8 +412,8 @@ function AmountAsk({
 }) {
   const { t } = useTranslation("navigation");
   const [draft, setDraft] = useState(initial === null ? "" : String(initial));
-  const amount = Number(draft);
-  const valid = draft !== "" && Number.isFinite(amount) && amount > 0;
+  const amount = parseDraftAmount(draft);
+  const valid = amount !== null;
   return (
     <div className="grid gap-2">
       <Label>{t("aiIntake.recurring.askAmount")}</Label>
@@ -385,7 +425,7 @@ function AmountAsk({
         onChange={(event) => setDraft(event.target.value)}
       />
       <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" disabled={disabled || !valid} onClick={() => onCommit(amount)}>
+        <Button type="button" size="sm" disabled={disabled || !valid} onClick={() => { if (amount !== null) onCommit(amount); }}>
           {t("aiIntake.recurring.continue")}
         </Button>
         {extra}
@@ -396,17 +436,19 @@ function AmountAsk({
 
 function DayAsk({
   disabled,
+  maxDay,
   onCommit,
   extra,
 }: {
   disabled: boolean;
+  maxDay: number;
   onCommit: (day: number) => void;
   extra: ReactNode;
 }) {
   const { t } = useTranslation("navigation");
   const [draft, setDraft] = useState("");
   const day = Number(draft);
-  const valid = Number.isInteger(day) && day >= 1 && day <= 31;
+  const valid = Number.isInteger(day) && day >= 1 && day <= maxDay;
   return (
     <div className="grid gap-2">
       <Label>{t("aiIntake.recurring.askDay")}</Label>
@@ -443,21 +485,7 @@ function FieldControl({
   const { t } = useTranslation("navigation");
   switch (field) {
     case "amount":
-      return (
-        <div className="grid gap-1">
-          <Label>{t("aiIntake.editAmount")}</Label>
-          <Input
-            aria-label={t("aiIntake.editAmount")}
-            inputMode="decimal"
-            disabled={disabled}
-            value={card.amount ?? ""}
-            onChange={(event) => {
-              const amount = Number(event.target.value);
-              onChange({ ...card, amount: Number.isFinite(amount) && event.target.value !== "" ? amount : null });
-            }}
-          />
-        </div>
-      );
+      return <AmountField card={card} disabled={disabled} onChange={onChange} />;
     case "currency":
       return (
         <div className="grid gap-1">
@@ -522,14 +550,15 @@ function FieldControl({
           />
         </div>
       );
-    case "category":
+    case "category": {
+      const options = categoriesFor(card.type);
       return (
         <div className="grid gap-1">
           <Label>{t("aiIntake.recurring.category")}</Label>
           <select
             aria-label={t("aiIntake.recurring.category")}
             className={fieldClass}
-            disabled={disabled}
+            disabled={disabled || options === null}
             value={card.category ?? ""}
             onChange={(event) => onChange({
               ...card,
@@ -537,8 +566,33 @@ function FieldControl({
             })}
           >
             <option value="" />
-            {CATEGORIES.map((category) => (
-              <option key={category} value={category}>{t(`aiIntake.recurring.categories.${category}`)}</option>
+            {card.category && options && !options.keys.includes(card.category) ? (
+              <option value={card.category}>{card.category}</option>
+            ) : null}
+            {options?.keys.map((category) => (
+              <option key={category} value={category}>{categoryLabel(t, options.base, category)}</option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+    case "paymentMethod":
+      return (
+        <div className="grid gap-1">
+          <Label>{t("aiIntake.recurring.paymentMethod")}</Label>
+          <select
+            aria-label={t("aiIntake.recurring.paymentMethod")}
+            className={fieldClass}
+            disabled={disabled}
+            value={card.paymentMethod ?? ""}
+            onChange={(event) => onChange({
+              ...card,
+              paymentMethod: event.target.value === "" ? null : event.target.value as TextTransactionDraft["paymentMethod"],
+            })}
+          >
+            <option value="" />
+            {PAYMENT_METHODS.map((method) => (
+              <option key={method} value={method}>{paymentLabel(t, method)}</option>
             ))}
           </select>
         </div>
@@ -554,7 +608,7 @@ function FieldControl({
             value={card.dayOfMonth ?? ""}
             onChange={(event) => {
               const day = Number(event.target.value);
-              if (!Number.isInteger(day) || day < 1 || day > 31) return;
+              if (!Number.isInteger(day) || day < 1 || day > maxRecurringDay(card.calendarType)) return;
               onChange(withRecurringDay(card, day, today));
             }}
           />
@@ -601,4 +655,33 @@ function FieldControl({
       return never;
     }
   }
+}
+
+/** The amount as typed. "1,500" is 1500. A value Save would refuse leaves the amount empty. */
+function AmountField({
+  card,
+  disabled,
+  onChange,
+}: {
+  card: RecurringCard;
+  disabled: boolean;
+  onChange: (card: RecurringCard) => void;
+}) {
+  const { t } = useTranslation("navigation");
+  const [text, setText] = useState(card.amount === null ? "" : String(card.amount));
+  return (
+    <div className="grid gap-1">
+      <Label>{t("aiIntake.editAmount")}</Label>
+      <Input
+        aria-label={t("aiIntake.editAmount")}
+        inputMode="decimal"
+        disabled={disabled}
+        value={text}
+        onChange={(event) => {
+          setText(event.target.value);
+          onChange({ ...card, amount: parseDraftAmount(event.target.value) });
+        }}
+      />
+    </div>
+  );
 }

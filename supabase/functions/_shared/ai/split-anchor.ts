@@ -1,8 +1,9 @@
 import { resolveDateStruct, type DateStruct } from "./split-date.ts";
 import { resolveRecurrence, type ResolvedRecurrence } from "./split-recurrence.ts";
 import type { SplitItemInput } from "./split-schema.ts";
+import type { SupportedCurrencyCode } from "../transaction-domain/normalize-core.ts";
 
-export type SplitCurrency = "ILS" | "USD" | "EUR" | "";
+export type SplitCurrency = SupportedCurrencyCode | "";
 export type SplitTypeHint =
   | "income"
   | "expense"
@@ -23,7 +24,7 @@ export interface SplitRuleRef {
 
 export interface SplitReadContext {
   today: string;
-  defaultCurrency: "ILS" | "USD" | "EUR";
+  defaultCurrency: SupportedCurrencyCode;
   categories: readonly string[];
   rules: readonly SplitRuleRef[];
   recipients: readonly string[];
@@ -125,7 +126,7 @@ function numberKey(value: number): string {
 /** Numbers in the text. Separators, hyphens, and currency signs are not part of the number. */
 function numbersIn(text: string): number[] {
   const stripped = text
-    .replace(/[₪$€]/g, " ")
+    .replace(/[₪$€£₣₴]/g, " ")
     .replace(/\u00a0/g, " ")
     .replace(/[־–—-]/g, "");
   const pattern = /\d{1,3}(?:[ ,]\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g;

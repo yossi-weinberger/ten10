@@ -90,6 +90,7 @@ export const RECURRING_EDIT_FIELDS = [
   "description",
   "recipient",
   "category",
+  "paymentMethod",
   "day",
   "start",
   "count",
@@ -144,13 +145,15 @@ export function recurringSummaryPieces(
     payeePrefix: string;
     monthly: string;
     from: string;
+    /** The amount formatted with its currency. Without it, the number and the currency symbol. */
+    amount?: string;
   },
 ): RecurringSummaryPiece[] {
   const pieces: RecurringSummaryPiece[] = [
     { field: null, text: labels.lead },
     { field: "type", text: labels.type },
     { field: null, text: " " },
-    { field: "amount", text: `${card.amount ?? ""} ${labels.currency}` },
+    { field: "amount", text: labels.amount ?? `${card.amount ?? ""} ${labels.currency}` },
   ];
   const payee = card.description.trim();
   if (payee) {
@@ -280,11 +283,17 @@ export function recurringCardReady(card: RecurringCard, today: string): boolean 
   );
 }
 
+/** The last day a monthly order may name. A Hebrew month has at most 30 days, and the DB checks it. */
+export function maxRecurringDay(calendarType: CalendarType): number {
+  return calendarType === "hebrew" ? 30 : 31;
+}
+
 export function withRecurringDay(card: RecurringCard, day: number, today: string): RecurringCard {
+  const safeDay = Math.min(Math.max(1, Math.trunc(day)), maxRecurringDay(card.calendarType));
   return {
     ...card,
-    dayOfMonth: day,
-    startDate: firstRecurringDueDate(today, card.calendarType, day),
+    dayOfMonth: safeDay,
+    startDate: firstRecurringDueDate(today, card.calendarType, safeDay),
     monthDuplicate: false,
   };
 }

@@ -43,7 +43,7 @@ async function shrinkReceiptImage(file: File): Promise<File | null> {
   }
 }
 
-export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
+export async function readReceiptImage(file: File, defaultCurrency?: string): Promise<ReadReceiptResult> {
   if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   if (!ALLOWED_TYPES.has(file.type)) return { ok: false, reason: "UNREADABLE" };
   const image = IMAGE_TYPES.has(file.type);
@@ -66,7 +66,12 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   }
 
   const { data: payload, error } = await supabase.functions.invoke("ai-read-receipt", {
-    body: { media_type: prepared.type, data, time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    body: {
+      media_type: prepared.type,
+      data,
+      time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...(defaultCurrency ? { default_currency: defaultCurrency } : {}),
+    },
   });
   if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const reason = (payload as { reason?: unknown }).reason;
