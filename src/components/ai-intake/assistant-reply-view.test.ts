@@ -59,10 +59,16 @@ describe("buildReplyBlocks", () => {
 
   it("shows calculating while a data answer is still loading", () => {
     const blocks = buildReplyBlocks(state({ intent: "ask_data" }));
-    expect(blocks).toEqual([
-      { kind: "intent", intent: "ask_data", showNotSaved: false, formLink: false },
-      { kind: "thinking", phase: "data" },
+    expect(blocks).toEqual([{ kind: "thinking", phase: "data" }]);
+  });
+
+  it("keeps the intent line only when it is the answer or nothing else answers", () => {
+    expect(buildReplyBlocks(state({ intent: "help" }))).toEqual([{ kind: "intent", intent: "help", formLink: false }]);
+    expect(buildReplyBlocks(state({ intent: "create_recurring" }))).toEqual([
+      { kind: "intent", intent: "create_recurring", formLink: true },
     ]);
+    const page = buildReplyBlocks(state({ intent: "domain_adjacent", halachaNamespace: "halacha-1" }));
+    expect(page.map((block) => block.kind)).toEqual(["intent", "halacha"]);
   });
 
   it("locks a saved draft and keeps undo last", () => {
@@ -78,9 +84,8 @@ describe("buildReplyBlocks", () => {
       status: "saved",
       savedItemId: "item-1",
     }));
-    expect(blocks.map((block) => block.kind)).toEqual(["intent", "draft", "status", "undo"]);
-    expect(blocks[0]).toMatchObject({ kind: "intent", showNotSaved: false });
-    expect(blocks[1]).toMatchObject({ kind: "draft", view: { locked: true } });
+    expect(blocks.map((block) => block.kind)).toEqual(["draft", "status", "undo"]);
+    expect(blocks[0]).toMatchObject({ kind: "draft", view: { locked: true } });
   });
 
   it("shows a movement card and a data answer together", () => {
@@ -95,7 +100,7 @@ describe("buildReplyBlocks", () => {
       },
       dataReply: { status: "family_missing", source: "כמה" },
     }));
-    expect(blocks.map((block) => block.kind)).toEqual(["intent", "draft", "askFamily"]);
+    expect(blocks.map((block) => block.kind)).toEqual(["draft", "askFamily"]);
   });
 
   it("asks which family without claiming nothing was saved", () => {
@@ -103,8 +108,7 @@ describe("buildReplyBlocks", () => {
       intent: "ask_data",
       dataReply: { status: "family_missing", source: "כמה" },
     }));
-    expect(blocks.map((block) => block.kind)).toEqual(["intent", "askFamily"]);
-    expect(blocks[0]).toMatchObject({ showNotSaved: false });
+    expect(blocks.map((block) => block.kind)).toEqual(["askFamily"]);
   });
 
   it("shows a receipt only beside a type question or a draft", () => {
@@ -119,7 +123,7 @@ describe("buildReplyBlocks", () => {
       clarification: "type",
       receiptArtifactId: "art-1",
     }));
-    expect(asked.map((block) => block.kind)).toEqual(["intent", "askType", "receipt"]);
+    expect(asked.map((block) => block.kind)).toEqual(["askType", "receipt"]);
   });
 
   it("shows a receipt failure even when no intent was chosen", () => {

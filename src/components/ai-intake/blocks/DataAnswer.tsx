@@ -10,6 +10,8 @@ import { useDonationStore } from "@/lib/store";
 import type { CurrencyCode } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils/currency";
 import type { ReadyDataReply, StatusKey } from "../assistant-reply-view";
+import type { BalanceAnswer, StandingOrderRow } from "@/lib/ai/assistant-extras";
+import { Link } from "@tanstack/react-router";
 import { StatusNote } from "./StatusNote";
 
 function hebrewPeriodPhrase(label: string, language: string): string {
@@ -128,4 +130,51 @@ export function NameMissing({
 
 export function DataNotice({ status }: { status: "unsupported" | "mixed" | "failed" | "period_missing" }) {
   return <StatusNote status={DATA_NOTICE_STATUS[status]} />;
+}
+
+/** The dashboard's tithe balance, in the default currency. */
+export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
+  const { t, i18n } = useTranslation("navigation");
+  const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  const money = (value: number) => formatCurrency(value, defaultCurrency as CurrencyCode, i18n.language);
+  return (
+    <div className="grid gap-1">
+      <p className="text-sm font-medium">{t("aiIntake.balance.title")}</p>
+      {balance.total > 0 ? (
+        <p className="text-lg font-semibold tabular-nums">{money(balance.total)}</p>
+      ) : (
+        <p className="text-sm">{t("aiIntake.balance.done")}</p>
+      )}
+      {balance.chomesh !== 0 ? (
+        <p className="text-xs text-muted-foreground">
+          {t("aiIntake.balance.maaser")}: {money(balance.maaser)} · {t("aiIntake.balance.chomesh")}: {money(balance.chomesh)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Active standing orders, with a link to the table. */
+export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
+  const { t, i18n } = useTranslation("navigation");
+  return (
+    <div className="grid gap-2">
+      <p className="text-sm">
+        {rows.length === 0 ? t("aiIntake.standingOrders.none") : t("aiIntake.standingOrders.count", { count: rows.length })}
+      </p>
+      {rows.length > 0 ? (
+        <ul className="grid gap-1 text-sm">
+          {rows.slice(0, 5).map((row) => (
+            <li key={row.id} className="flex justify-between gap-2">
+              <span className="truncate">{row.description}</span>
+              <span className="tabular-nums">{formatCurrency(row.amount, row.currency as CurrencyCode, i18n.language)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <Button asChild variant="outline" size="sm" className="w-fit">
+        <Link to="/transactions-table/recurring-transactions">{t("aiIntake.standingOrders.open")}</Link>
+      </Button>
+    </div>
+  );
 }

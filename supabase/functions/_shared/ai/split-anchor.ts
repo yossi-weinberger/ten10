@@ -207,7 +207,7 @@ function anchoredDate(
   return { date: resolved, checkDate: false };
 }
 
-export const NAME_PREFIX_LETTERS = "ובלהשכ";
+export const NAME_PREFIX_LETTERS = "משהוכלב";
 
 function isLetter(char: string): boolean {
   return /\p{L}|\p{N}/u.test(char);
@@ -225,8 +225,10 @@ export function nameStands(text: string, name: string): boolean {
     const after = source[at + word.length] ?? "";
     const before = at === 0 ? "" : source[at - 1];
     const afterOk = after === "" || !isLetter(after);
+    // מ before a two-letter name usually makes a new word (מגן is not "from גן").
+    const prefixOk = NAME_PREFIX_LETTERS.includes(before) && (before !== "מ" || word.length > 2);
     const beforeOk = before === "" || !isLetter(before)
-      || (NAME_PREFIX_LETTERS.includes(before) && (at === 1 || !isLetter(source[at - 2] ?? "")));
+      || (prefixOk && (at === 1 || !isLetter(source[at - 2] ?? "")));
     if (afterOk && beforeOk) return true;
     from = at + word.length;
   }

@@ -36,7 +36,8 @@ Deno.test("a predefined category criterion includes its Hebrew label", () => {
 
 Deno.test("a slot choice below 0.7 is not chosen", () => {
   const body = buildQuestionSlotBody("כמה תרמתי לישיבה השנה", LISTS);
-  assert(Object.keys(body.questions).length === 5, "five choices");
+  assert(Object.keys(body.questions).length === 6, "six choices");
+  assert(Object.keys(body.questions.subject.criteria).join(",") === "transactions,balance,standing_orders", "subject choices");
   assert(body.questions.payment_method.criteria.cash.includes("מזומן"), "payment label");
   assert(body.questions.payment_method.instructions.includes("הוראת קבע"), "standing order");
   assert(body.questions.payment_method.instructions.includes("is none"), "standing order is none");
@@ -47,9 +48,11 @@ Deno.test("a slot choice below 0.7 is not chosen", () => {
       recipient: { choice: "ישיבה", confidence: 0.91 },
       category: { choice: "none", confidence: 1 },
       payment_method: { choice: "cash", confidence: 0.4 },
+      subject: { choice: "balance", confidence: 0.9 },
     },
   }, LISTS);
   assert(slots?.family === null, "family below the floor");
+  assert(slots?.subject === "balance", "subject");
   assert(slots?.measure === "sum", "measure at the floor");
   assert(slots?.recipient === "ישיבה", "recipient");
   assert(slots?.category === null, "none");

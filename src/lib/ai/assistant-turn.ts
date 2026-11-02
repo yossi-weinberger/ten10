@@ -179,6 +179,8 @@ export type TurnCard =
 export type TurnData =
   | { status: "skip" }
   | { status: "loading" }
+  | { status: "balance" }
+  | { status: "standing_orders" }
   | { status: "period_missing" }
   | { status: "family_missing"; hold: QuestionSlots | null }
   | { status: "unsupported" }
@@ -226,7 +228,9 @@ export type TurnAnswerKind =
   | "frequency_unsupported"
   | "find_duplicates"
   | "discarded"
-  | "already_saved";
+  | "already_saved"
+  | "balance"
+  | "standing_orders";
 
 export interface TurnSummary {
   kind: TurnAnswerKind;
@@ -401,6 +405,10 @@ function dataFor(input: TurnInput, wantsData: boolean, preferRabbi: boolean): { 
   if (!input.questionAttempted) return { data: { status: "loading" }, needsQuestion: true, needsNameCheck: false };
   const movement = readerHasMovement(input.reader);
   const slots = slotsFor(input);
+  // The balance and the standing orders are answered as they are, with no family or period.
+  if (slots?.subject === "balance" || slots?.subject === "standing_orders") {
+    return { data: { status: slots.subject }, needsQuestion: false, needsNameCheck: false };
+  }
   const asked = slots && movement ? { ...slots, category: null, recipient: null } : slots;
   const period = input.question?.period ?? input.periodHold ?? null;
   const nameText = input.question?.nameText ?? input.nameHold ?? null;
@@ -482,6 +490,8 @@ function screenOf(message: string, decision: Omit<TurnDecision, "nextState">, re
     const question = decision.data.question;
     return { kind: "data_answer", sourceText: message, line: `an answer about ${question.type} from ${question.from} to ${question.to}.` };
   }
+  if (decision.data.status === "balance") return { kind: "data_answer", sourceText: message, line: "the user's tithe balance." };
+  if (decision.data.status === "standing_orders") return { kind: "data_answer", sourceText: message, line: "the list of the user's standing orders." };
   if (decision.publishedPage) return { kind: "halacha", sourceText: message, line: "a published halacha page." };
   if (decision.side === "inspiration") return { kind: "inspiration", sourceText: message, line: "an inspiration item from the library." };
   return null;
@@ -606,6 +616,8 @@ function summaryKind(decision: TurnDecision): TurnAnswerKind {
     return "question";
   }
   if (decision.data.status === "ready") return "data_answer";
+  if (decision.data.status === "balance") return "balance";
+  if (decision.data.status === "standing_orders") return "standing_orders";
   if (decision.data.status === "unsupported") return "out_of_scope";
   if (decision.intent === "domain_adjacent" && decision.publishedPage) return "halacha";
   if (decision.intent === "inspiration" || decision.side === "inspiration") return "inspiration";

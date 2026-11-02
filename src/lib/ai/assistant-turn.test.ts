@@ -276,6 +276,25 @@ describe("decideTurn", () => {
     expect(decision.mode).toBe("show");
   });
 
+  it("answers the balance and the standing orders with no period or family", () => {
+    for (const subject of ["balance", "standing_orders"] as const) {
+      const decision = decideTurn(base({
+        jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+        reader: { ok: true, route: "unreadable" },
+        questionAttempted: true,
+        question: {
+          slots: { family: null, measure: null, recipient: null, category: null, paymentMethod: null, subject },
+          period: null,
+          nameText: null,
+        },
+      }));
+      expect(decision.data.status).toBe(subject);
+      expect(decision.pending).toBeNull();
+      expect(summarizeTurn(base(), decision).kind).toBe(subject);
+      expect(decision.nextState.onScreen?.kind).toBe("data_answer");
+    }
+  });
+
   it("asks which period when the question reader has no period", () => {
     const decision = decideTurn(base({
       message: "כמה הוצאות?",

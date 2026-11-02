@@ -8,7 +8,7 @@ import type { IntakeIntent, RuleActionType, TextTransactionDraft } from "@/lib/a
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import type { ReplyBlock } from "./assistant-reply-view";
 import { ChoiceRow } from "./blocks/ChoiceRow";
-import { DataAnswer, DataNotice, NameMissing } from "./blocks/DataAnswer";
+import { BalanceAnswerCard, DataAnswer, DataNotice, NameMissing, StandingOrdersCard } from "./blocks/DataAnswer";
 import { DraftCard } from "./blocks/DraftCard";
 import { DuplicateScanCard } from "./blocks/DuplicateScanCard";
 import { HalachaCard } from "./blocks/HalachaCard";
@@ -90,10 +90,7 @@ export function ReplyBlockView({
     case "intent":
       return (
         <div className="grid gap-2">
-          <p className="text-sm">
-            {t(`aiIntake.intents.${block.intent}`)}{" "}
-            {block.showNotSaved ? <span className="text-muted-foreground">{t("aiIntake.notSaved")}</span> : null}
-          </p>
+          <p className="text-sm">{t(`aiIntake.intents.${block.intent}`)}</p>
           {block.intent === "create_recurring" && block.formLink ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link to="/add-transaction" search={{ recurring: 1 }}>
@@ -132,6 +129,10 @@ export function ReplyBlockView({
       );
     case "dataNotice":
       return <DataNotice status={block.status} />;
+    case "balanceAnswer":
+      return <BalanceAnswerCard balance={block.balance} />;
+    case "standingOrders":
+      return <StandingOrdersCard rows={block.rows} />;
     case "duplicateScan":
       return (
         <DuplicateScanCard

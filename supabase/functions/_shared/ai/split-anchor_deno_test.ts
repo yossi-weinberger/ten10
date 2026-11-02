@@ -1,4 +1,4 @@
-import { anchorSplitItems, digitValue, statedSpecialType, splitReadContext, type AnchoredSplitItem } from "./split-anchor.ts";
+import { anchorSplitItems, digitValue, nameStands, statedSpecialType, splitReadContext, type AnchoredSplitItem } from "./split-anchor.ts";
 import type { SplitItemInput } from "./split-schema.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
@@ -290,4 +290,9 @@ Deno.test("digit evidence ignores thousand separators", () => {
   assert(digitValue("חמישים") === null, "words");
   const result = anchor("שילמתי 1,250", [item({ amount: 1250, amount_text: "1,250" })]);
   assert(result.items[0]?.amount === 1250, "anchored");
+});
+
+Deno.test("a rule name stands after any of the letters משה וכלב", () => {
+  assert(nameStands("הכנסה מביטוח לאומי", "ביטוח לאומי"), "mem");
+  assert(!nameStands("הכנסה ממביטוח לאומי", "ביטוח לאומי"), "two letters");
 });

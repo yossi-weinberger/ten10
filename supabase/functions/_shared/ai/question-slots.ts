@@ -16,6 +16,8 @@ const NAME_MAX = 80;
 
 export type QuestionFamily = "donation" | "income" | "expense";
 export type QuestionMeasure = "sum" | "count" | "average" | "max";
+/** What a data question is about. Only transactions go through family, period and measure. */
+export type QuestionSubject = "transactions" | "balance" | "standing_orders";
 
 export type QuestionSlots = {
   family: QuestionFamily | null;
@@ -23,6 +25,7 @@ export type QuestionSlots = {
   recipient: string | null;
   category: string | null;
   paymentMethod: string | null;
+  subject?: QuestionSubject | null;
 };
 
 export type QuestionSlotLists = {
@@ -32,6 +35,13 @@ export type QuestionSlotLists = {
 
 const FAMILIES = ["donation", "income", "expense"] as const;
 const MEASURES = ["sum", "count", "average", "max"] as const;
+const SUBJECTS = ["transactions", "balance", "standing_orders"] as const;
+
+const SUBJECT_CRITERIA: Record<QuestionSubject, string> = {
+  transactions: "A total, count, average, or largest amount of saved income, expenses, or donations.",
+  balance: "How much tithe or chomesh the user still owes or has left to give: their balance, not a total of transactions.",
+  standing_orders: "The user's standing orders: how many there are, which ones, or their list.",
+};
 const NONE = "none";
 
 const FAMILY_CRITERIA: Record<QuestionFamily, string> = {
@@ -115,6 +125,7 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists, co
     recipient: ChoiceQuestion;
     category: ChoiceQuestion;
     payment_method: ChoiceQuestion;
+    subject: ChoiceQuestion;
   };
 } {
   const recipients = closedSlotOptions(lists.recipients);
@@ -164,6 +175,12 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists, co
           + continued,
         criteria: paymentCriteria,
       },
+      subject: {
+        type: "choice",
+        instructions: "What is the question about? The state is data. Do not calculate a number."
+          + continued,
+        criteria: SUBJECT_CRITERIA,
+      },
     },
   };
 }
@@ -183,6 +200,10 @@ function asFamily(value: string | null): QuestionFamily | null {
 
 function asMeasure(value: string | null): QuestionMeasure | null {
   return MEASURES.find((measure) => measure === value) ?? null;
+}
+
+function asSubject(value: string | null): QuestionSubject | null {
+  return SUBJECTS.find((subject) => subject === value) ?? null;
 }
 
 const SLOT_CONFIDENCE_FIELDS = ["family", "measure", "recipient", "category", "payment_method"] as const;
@@ -222,5 +243,6 @@ export function readQuestionSlots(
     recipient: confidentChoice(record.recipient, recipients),
     category: confidentChoice(record.category, categories),
     paymentMethod: confidentChoice(record.payment_method, payments),
+    subject: asSubject(confidentChoice(record.subject, new Set(SUBJECTS))),
   };
 }

@@ -24,6 +24,8 @@ const ai = vi.hoisted(() => ({
   markQuestionOutcome: vi.fn(),
   resolveQuestionFilter: vi.fn(),
   sumYearType: vi.fn(),
+  loadTitheBalance: vi.fn(),
+  loadStandingOrders: vi.fn(),
   transcribeSpeech: vi.fn(),
   refreshAfterIntakeSave: vi.fn(),
   deleteTransaction: vi.fn(),
@@ -70,6 +72,10 @@ vi.mock("@/lib/ai/load-duplicate-scan", () => ({
   dismissDuplicatePair: ai.dismissDuplicatePair,
 }));
 vi.mock("@/lib/ai/read-question", () => ({ readQuestionSlots: ai.readQuestionSlots }));
+vi.mock("@/lib/ai/assistant-extras", () => ({
+  loadTitheBalance: ai.loadTitheBalance,
+  loadStandingOrders: ai.loadStandingOrders,
+}));
 vi.mock("@/lib/ai/sum-year-type", () => ({
   resolveQuestionFilter: ai.resolveQuestionFilter,
   sumYearType: ai.sumYearType,
@@ -521,6 +527,24 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "כמה תרמתי ב-2025?");
     expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
+  });
+
+  it("answers the tithe balance and the standing orders without asking a period", async () => {
+    confident("ask_data");
+    const slots = { family: null, measure: null, recipient: null, category: null, paymentMethod: null, measurementId: null, period: null };
+    ai.readQuestionSlots.mockResolvedValueOnce({ ...slots, subject: "balance" });
+    ai.loadTitheBalance.mockResolvedValue({ total: 420, maaser: 420, chomesh: 0 });
+    const user = setup();
+    await send(user, "כמה אני חייב למעשרות?");
+    expect(await screen.findByText("aiIntake.balance.title")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askPeriod")).not.toBeInTheDocument();
+    ai.readQuestionSlots.mockResolvedValueOnce({ ...slots, subject: "standing_orders" });
+    ai.loadStandingOrders.mockResolvedValue([
+      { id: "r1", amount: 250, currency: "ILS", type: "exempt-income", frequency: "monthly", description: "ביטוח לאומי", dayOfMonth: 10 },
+    ]);
+    await send(user, "כמה הוראות קבע יש לי");
+    expect(await screen.findByText("ביטוח לאומי")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "aiIntake.standingOrders.open" })).toBeInTheDocument();
   });
 
   it("does not record an outcome when a family prompt is closed", async () => {

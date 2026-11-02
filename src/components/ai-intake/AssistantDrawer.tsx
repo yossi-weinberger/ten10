@@ -53,6 +53,8 @@ import {
   type QuestionOutcomeEvent,
 } from "@/lib/ai/question-outcome";
 import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
+import { loadStandingOrders, loadTitheBalance, type BalanceAnswer, type StandingOrderRow } from "@/lib/ai/assistant-extras";
+import { useAuth } from "@/contexts/AuthContext";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
@@ -115,6 +117,7 @@ export function AssistantDrawer({
   receiveRef,
 }: AssistantDrawerProps) {
   const { platform } = usePlatform();
+  const { user } = useAuth();
   const { t, i18n } = useTranslation([
     "navigation",
     "transactions",
@@ -173,6 +176,8 @@ export function AssistantDrawer({
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient"; suggestions: string[]; family: "donation" | "expense" | "income" }
+    | ({ status: "balance" } & BalanceAnswer)
+    | { status: "standing_orders"; rows: StandingOrderRow[] }
     | { status: "family_missing"; source: string }
     | { status: "mixed" | "unsupported" | "failed" | "period_missing" }
     | null
@@ -964,6 +969,7 @@ export function AssistantDrawer({
               recipient: read.recipient,
               category: read.category,
               paymentMethod: read.paymentMethod,
+              subject: read.subject ?? null,
             },
             period: read.period,
             nameText: read.nameText,
@@ -992,6 +998,18 @@ export function AssistantDrawer({
       }
       if (decision.data.status === "rabbi") {
         showRabbi(source);
+        return;
+      }
+      if (decision.data.status === "balance") {
+        const balance = await loadTitheBalance(user?.id ?? null);
+        if (requestRef.current !== request) return;
+        setDataReply(balance ? { status: "balance", ...balance } : { status: "failed" });
+        return;
+      }
+      if (decision.data.status === "standing_orders") {
+        const rows = await loadStandingOrders().catch(() => null);
+        if (requestRef.current !== request) return;
+        setDataReply(rows ? { status: "standing_orders", rows } : { status: "failed" });
         return;
       }
       if (decision.data.status !== "ready") {

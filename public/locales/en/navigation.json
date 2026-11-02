@@ -71,7 +71,6 @@
     "openImport": "Open import",
     "checking": "Checking the sentence.",
     "calculating": "Calculating from your transactions…",
-    "notSaved": "Nothing was saved.",
     "noRate": "none",
     "save": "Approve and save",
     "askType": "What kind of transaction is this?",
@@ -137,6 +136,18 @@
     "saved": "Saved.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
+    "balance": {
+      "title": "Tithe balance",
+      "maaser": "Maaser",
+      "chomesh": "Chomesh",
+      "done": "All paid. Nothing left to give."
+    },
+    "standingOrders": {
+      "count_one": "You have one active standing order.",
+      "count_other": "You have {{count}} active standing orders.",
+      "none": "You have no active standing orders.",
+      "open": "Open the standing orders table"
+    },
     "discarded": "OK, I dropped that card.",
     "alreadySaved": "That one is already saved. You can undo it and write it again.",
     "undoNotAllowed": "This cannot be undone. You can delete the transaction in the table.",
@@ -243,9 +254,9 @@
       "create_recurring": "This is a standing order.",
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",
-      "help": "You can send a transaction, a rule, a data question, a duplicate search, or ask for encouragement or a story.",
+      "help": "You can write a transaction or a standing order, ask about your data or your tithe balance, ask for encouragement, or ask a question about tithing.",
       "inspiration": "Here is some encouragement.",
-      "out_of_scope": "I only handle your transactions and your data.",
+      "out_of_scope": "I can't do that one. You can write a transaction, ask about your data or your tithe balance, or ask a question about tithing.",
       "domain_adjacent": "This is what Ten10's halacha page says."
     },
     "inspiration": {
