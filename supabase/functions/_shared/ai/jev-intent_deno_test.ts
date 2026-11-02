@@ -1,6 +1,5 @@
 import {
   buildIntentBody,
-  INTAKE_COUNTS,
   intentIsConfident,
   readCountChoice,
   readIntentChoice,
@@ -38,10 +37,9 @@ Deno.test("intent reader keeps a closed choice and a confidence inside 0 to 1", 
   }) === null, "unknown");
 });
 
-Deno.test("the same intent call asks how many transactions there are", () => {
+Deno.test("intent body omits count to save tokens and latency", () => {
   const body = buildIntentBody("50 במכולת ו־120 לישיבה");
-  assert(body.questions.count.type === "choice", "choice");
-  assert(Object.keys(body.questions.count.criteria).join() === INTAKE_COUNTS.join(), "closed set");
+  assert(!("count" in body.questions), "count omitted to save tokens");
   assert(!JSON.stringify(body.questions).includes("במכולת"), "sentence is not an instruction");
 });
 

@@ -362,6 +362,19 @@ function route(input: TurnInput): Routed {
   if (movement && leansRecurring) {
     return { releaseAs: shown, mode: "ask", intent: null, withData: false, preferRabbi: false, publishedPage: null };
   }
+  const isContinuingCard = readerSays(input.reader, "continues")
+    && (input.state.onScreen?.kind === "draft" || input.state.onScreen?.kind === "recurring");
+  if (movement && isContinuingCard) {
+    const continuingIntent: IntakeIntent = input.state.onScreen?.kind === "recurring" ? "create_recurring" : "add_transaction";
+    return {
+      releaseAs: continuingIntent,
+      mode: "show",
+      intent: continuingIntent,
+      withData: dataCandidate,
+      preferRabbi: false,
+      publishedPage: null,
+    };
+  }
   if (
     movement
     && (shown === "ask" || shown === "ask_data" || shown === "ask_rabbi" || shown === "add_transaction" || shown === "inspiration")

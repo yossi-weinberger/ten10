@@ -95,6 +95,8 @@ async function post(key: string, url: string, body: unknown): Promise<unknown> {
 const root = new URL("./fixtures/receipts/", import.meta.url);
 const lines = Deno.readTextFileSync(new URL("answers.jsonl", root)).split(/\r?\n/).filter((line) => line.length > 0);
 const cases = lines.map((line) => JSON.parse(line) as ReceiptCase);
+const only = new Set((Deno.args[3] ?? "").split(",").filter((id) => id.length > 0));
+const selectedCases = only.size === 0 ? cases : cases.filter((item) => only.has(item.id));
 const key = readKey();
 const sentences: {
   id: string;
@@ -111,7 +113,7 @@ const sentences: {
 }[] = [];
 let failed = 0;
 
-for (const item of cases) {
+for (const item of selectedCases) {
   try {
     const type = mediaType(item.file);
     const bytes = Deno.readFileSync(new URL(item.file, root));

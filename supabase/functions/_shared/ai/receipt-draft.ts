@@ -34,8 +34,9 @@ export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
 
 export const RECEIPT_COPY_PROMPT = [
   "Copy this document line by line, as written.",
-  "The photo may be rotated or upside down.",
+  "The photo may be rotated or upside down. Orient and read it in its upright orientation.",
   "The text may be Hebrew or English. Copy what you can read. Do not refuse.",
+  "Clearly distinguish the total amount paid, cash tendered, and change.",
   "Do not interpret, translate, calculate, or add fields.",
   "Keep the original language and the original digits.",
 ].join("\n");

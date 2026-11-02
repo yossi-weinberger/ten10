@@ -482,6 +482,20 @@ describe("decideTurn", () => {
     expect(summarizeTurn(base(), more).kind).toBe("already_saved");
   });
 
+  it("continues an open draft even when Jev returns out_of_scope", () => {
+    const openDraft = decideTurn(base()).nextState;
+    const input2 = base({
+      message: "בעצם 25",
+      jev: { ok: true, intent: "out_of_scope", confidence: 0.8 },
+      reader: { ok: true, route: "several", items: [item({ amount: 25 })], rule: null, question: null, continues: true },
+      state: openDraft,
+    });
+    const more = decideTurn(input2);
+    expect(more.intent).toBe("add_transaction");
+    expect(more.card.type).toBe("draft");
+    expect(summarizeTurn(input2, more).amount).toBe(25);
+  });
+
   it("treats a list route as movement", () => {
     expect(readerHasMovement({ ok: true, route: "list" })).toBe(true);
     expect(readerHasMovement({ ok: true, route: "unreadable" })).toBe(false);

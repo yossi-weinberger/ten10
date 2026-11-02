@@ -328,6 +328,22 @@ export function anchorSplitItems(
       },
     });
   }
+  // When the model splits a special classification into an amountless item (e.g. "הוצאה מוכרת"),
+  // and exactly one real transaction item was kept without special classification, apply it to that item.
+  if (kept.length === 1 && !kept[0].item.specialStated && !kept[0].item.typeQuestion && !kept[0].item.ruleId) {
+    const droppedSpecial = items.find((item) => (
+      item.amount === null
+      && ((item.type !== null && SPECIAL_TYPES.has(item.type)) || (item.type_question !== null && SPECIAL_TYPES.has(item.type_question)))
+    ));
+    if (droppedSpecial) {
+      const specialType = (droppedSpecial.type && SPECIAL_TYPES.has(droppedSpecial.type)
+        ? droppedSpecial.type
+        : droppedSpecial.type_question) as SpecialType;
+      kept[0].item.typeHint = ordinaryType(specialType);
+      kept[0].item.typeQuestion = specialType;
+      kept[0].item.specialStated = true;
+    }
+  }
   const totals = new Set<number>();
   kept.forEach((entry, index) => {
     if (!entry.total || entry.item.amount === null || entry.item.checkAmount) return;
