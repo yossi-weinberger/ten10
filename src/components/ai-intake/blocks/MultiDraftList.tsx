@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import type { CurrencyCode } from "@/lib/currencies";
+import { formatCurrency } from "@/lib/utils/currency";
 import type { SplitDraft } from "@/lib/ai/split-cards";
 import { TypeChoice } from "./TypeChoice";
 
@@ -21,7 +24,9 @@ export function MultiDraftList({
   onSave: () => void;
   onUndo: (key: string) => void;
 }) {
-  const { t } = useTranslation("navigation");
+  const { t, i18n } = useTranslation("navigation");
+  const formatDisplayDate = useDisplayDate();
+  const locale = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
   const checked = cards.filter((card) => card.checked && card.transactionId === null).length;
   return (
     <div className="grid gap-3">
@@ -46,11 +51,9 @@ export function MultiDraftList({
               <span>
                 {card.description || t("aiIntake.splitUntitled")}
                 {" · "}
-                {card.amount}
-                {" "}
-                {card.currency}
+                {formatCurrency(card.amount, card.currency as CurrencyCode, locale)}
                 {" · "}
-                {card.date ?? t("aiIntake.splitCheckDate")}
+                {card.date ? formatDisplayDate(card.date, "numeric").primary : t("aiIntake.splitCheckDate")}
                 {card.type ? ` · ${t(`aiIntake.types.${card.type}`)}` : ""}
               </span>
             </label>

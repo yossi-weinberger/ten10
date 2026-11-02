@@ -1,3 +1,4 @@
+import type { BalanceAnswer, StandingOrderRow } from "@/lib/ai/assistant-extras";
 import type { DuplicateCandidate } from "@/lib/ai/duplicate-candidates";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
@@ -17,6 +18,8 @@ export type StatusTone = "success" | "error" | "info";
 export const STATUS_MESSAGES = {
   saved: { key: "aiIntake.saved", tone: "success" },
   undone: { key: "aiIntake.undone", tone: "success" },
+  discarded: { key: "aiIntake.discarded", tone: "success" },
+  alreadySaved: { key: "aiIntake.alreadySaved", tone: "info" },
   ruleSaved: { key: "aiIntake.ruleSaved", tone: "success" },
   duplicateKept: { key: "aiIntake.duplicateKept", tone: "success" },
   recurringSaved: { key: "aiIntake.recurring.saved", tone: "success" },
@@ -76,6 +79,8 @@ export type ReadyDataReply = {
 
 export type DataReply =
   | ReadyDataReply
+  | ({ status: "balance" } & BalanceAnswer)
+  | { status: "standing_orders"; rows: StandingOrderRow[] }
   | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient"; suggestions: string[]; family: "donation" | "expense" | "income" }
   | { status: "family_missing"; source: string }
   | { status: "mixed" | "unsupported" | "failed" | "period_missing" };
@@ -101,9 +106,11 @@ export interface DraftView {
 }
 
 export type ReplyBlock =
+  | { kind: "balanceAnswer"; balance: BalanceAnswer }
+  | { kind: "standingOrders"; rows: StandingOrderRow[] }
   | { kind: "thinking"; phase: "reading" | "receipt" | "voice" | "data" | "duplicates" }
   | { kind: "askIntent" }
-  | { kind: "intent"; intent: IntakeIntent; showNotSaved: boolean; formLink: boolean }
+  | { kind: "intent"; intent: IntakeIntent; formLink: boolean }
   | { kind: "recurring"; card: RecurringCard }
   | { kind: "dataAnswer"; reply: ReadyDataReply }
   | { kind: "askFamily"; source: string }
@@ -187,19 +194,15 @@ export function emptyReplyState(): ReplyState {
   };
 }
 
+/** Intents whose line is the answer itself. Other intent lines show only when nothing else answers, or to link the recurring form. */
+const LINE_ANSWERS: ReadonlySet<IntakeIntent> = new Set(["help", "out_of_scope", "domain_adjacent"]);
+
 export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   const blocks: ReplyBlock[] = [];
   if (state.checking) blocks.push({ kind: "thinking", phase: state.pendingPhase ?? "reading" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
+  const lineAt = blocks.length;
   if (state.intent) {
-    if (state.status !== "oneAtATime" && state.status !== "splitList" && state.status !== "couldNotRead") {
-      blocks.push({
-        kind: "intent",
-        intent: state.intent,
-        showNotSaved: state.status === null && state.intent !== "ask_data" && state.intent !== "inspiration",
-        formLink: state.intent === "create_recurring" && state.recurring === null,
-      });
-    }
     if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
       blocks.push({ kind: "thinking", phase: "data" });
     }
@@ -243,6 +246,8 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     if ((state.intent === "ask_data" || state.intent === "add_transaction") && state.dataReply) {
       const reply = state.dataReply;
       if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
+      else if (reply.status === "balance") blocks.push({ kind: "balanceAnswer", balance: reply });
+      else if (reply.status === "standing_orders") blocks.push({ kind: "standingOrders", rows: reply.rows });
       else if (reply.status === "family_missing") blocks.push({ kind: "askFamily", source: reply.source });
       else if (reply.status === "category_missing") {
         blocks.push({
@@ -259,6 +264,10 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });
   if (state.status) blocks.push({ kind: "status", status: state.status });
   if (state.savedItemId) blocks.push({ kind: "undo" });
+  const formLink = state.intent === "create_recurring" && state.recurring === null;
+  if (state.intent && (LINE_ANSWERS.has(state.intent) || formLink || blocks.length === 0)) {
+    blocks.splice(lineAt, 0, { kind: "intent", intent: state.intent, formLink });
+  }
   return blocks;
 }
 

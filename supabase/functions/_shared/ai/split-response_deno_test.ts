@@ -76,3 +76,14 @@ Deno.test("a reply that keeps nothing is unreadable, and one misread amount is a
   const wrapped = readSplitResponse("50 לכולל", JSON.stringify({ items: [row(50, "50")] }), TODAY);
   assert(wrapped.route === "several", "wrapped json");
 });
+
+Deno.test("only a message that continues the open card takes its amount from the chat", () => {
+  const earlier = "1. \"קניתי לחם ב-20\"";
+  const continued = readSplitResponse("זו תרומה", { items: [row(20, "20", { description: "לחם" })], continues: true }, TODAY, earlier);
+  assert(continued.continues === true && continued.route === "several", "continues");
+  assert(continued.route === "several" && continued.items[0]?.amount === 20 && continued.items[0].checkAmount === false, "the earlier 20 anchors");
+  const fresh = readSplitResponse("תרמתי לעזר מציון", { items: [row(20, "20", { description: "עזר מציון" })], continues: false }, TODAY, earlier);
+  assert(fresh.route !== "several" || fresh.items[0]?.amount !== 20 || fresh.items[0].checkAmount === true, "a new item does not take the earlier 20");
+  const dropped = readSplitResponse("לא משנה", { items: [], discards: true }, TODAY, earlier);
+  assert(dropped.route === "unreadable" && dropped.discards === true, "discards comes with an unreadable route");
+});

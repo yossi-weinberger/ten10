@@ -7,6 +7,7 @@ import {
   JEV_SYSTEMONE_URL,
 } from "../_shared/ai/jev-duplicate-rank.ts";
 import { buildIntentBody, readCountChoice, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
+import { readContextField } from "../_shared/ai/conversation-context.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
@@ -40,7 +41,7 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { intent: null }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; context?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
   if (!text) return json(origin, { intent: "out_of_scope" }, 200);
 
@@ -63,7 +64,7 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), {
+        body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text, readContextField(body?.context)), {
           source: "app",
         })),
       },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
-import { decideTurn, emptyConversation, readerHasMovement, summarizeTurn, type TurnInput, type TurnReader } from "./assistant-turn";
+import { contextFor, decideTurn, emptyConversation, openCardEvidence, readerHasMovement, rememberClosed, rememberDraft, rememberSaved, rememberUndone, summarizeTurn, withLiveCard, type TurnInput, type TurnReader } from "./assistant-turn";
 
 function item(partial: Partial<AnchoredSplitItem>): AnchoredSplitItem {
   return {
@@ -276,6 +276,25 @@ describe("decideTurn", () => {
     expect(decision.mode).toBe("show");
   });
 
+  it("answers the balance and the standing orders with no period or family", () => {
+    for (const subject of ["balance", "standing_orders"] as const) {
+      const decision = decideTurn(base({
+        jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+        reader: { ok: true, route: "unreadable" },
+        questionAttempted: true,
+        question: {
+          slots: { family: null, measure: null, recipient: null, category: null, paymentMethod: null, subject },
+          period: null,
+          nameText: null,
+        },
+      }));
+      expect(decision.data.status).toBe(subject);
+      expect(decision.pending).toBeNull();
+      expect(summarizeTurn(base(), decision).kind).toBe(subject);
+      expect(decision.nextState.onScreen?.kind).toBe("data_answer");
+    }
+  });
+
   it("asks which period when the question reader has no period", () => {
     const decision = decideTurn(base({
       message: "כמה הוצאות?",
@@ -363,11 +382,104 @@ describe("decideTurn", () => {
     expect(decision.pending?.kind).toBe("name");
   });
 
-  it("leaves the conversation state unchanged", () => {
+  it("remembers the user's words and the open draft, from the state before the turn", () => {
     const state = emptyConversation();
-    const decision = decideTurn(base({ state }));
-    expect(decision.nextState).toEqual(state);
-    expect(decision.nextState).not.toBe(state);
+    const first = decideTurn(base({ state }));
+    expect(first.nextState.recentUserTexts).toEqual(["קניתי לחם ב-15"]);
+    expect(first.nextState.onScreen?.kind).toBe("draft");
+    expect(first.nextState.onScreen?.line).toContain("expense 15 ILS");
+    expect(state.recentUserTexts).toEqual([]);
+    // A second decision in the same turn does not add the message twice.
+    expect(decideTurn(base({ state })).nextState).toEqual(first.nextState);
+    expect(contextFor(first.nextState)).toContain("1. \"קניתי לחם ב-15\"");
+  });
+
+  it("keeps three messages, uses the user's own words, and remembers a pending question", () => {
+    let state = emptyConversation();
+    for (const text of ["א", "ב", "ג", "ד"]) state = decideTurn(base({ state, message: text })).nextState;
+    expect(state.recentUserTexts).toEqual(["ב", "ג", "ד"]);
+    const joined = decideTurn(base({ state: emptyConversation(), message: "קניתי לחם 20", userText: "20" }));
+    expect(joined.nextState.recentUserTexts).toEqual(["20"]);
+    const waiting = decideTurn(base({
+      jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: { slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null }, period: null, nameText: null },
+    }));
+    expect(waiting.nextState.pending?.kind).toBe("period");
+    expect(waiting.nextState.onScreen).toBeNull();
+  });
+
+  it("closes the card after a save and an undo", () => {
+    const open = decideTurn(base()).nextState;
+    const saved = rememberSaved(open, "item-1");
+    expect(saved.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(saved.pending).toBeNull();
+    expect(rememberUndone(saved).onScreen).toBeNull();
+  });
+
+  it("drops the open card when the reader says so, and only then", () => {
+    const open = decideTurn(base()).nextState;
+    const drop = { ok: true as const, route: "unreadable" as const, discards: true };
+    const dropped = decideTurn(base({ message: "לא משנה", jev: { ok: true, intent: "out_of_scope", confidence: 0.9 }, reader: drop, state: open }));
+    expect(dropped.card.type).toBe("discarded");
+    expect(dropped.nextState.onScreen).toBeNull();
+    const nothingOpen = decideTurn(base({ message: "לא משנה", jev: { ok: true, intent: "out_of_scope", confidence: 0.9 }, reader: drop }));
+    expect(nothingOpen.card.type).not.toBe("discarded");
+    const chosen = decideTurn(base({ reader: drop, state: open, forcedIntent: "add_transaction" }));
+    expect(chosen.card.type).not.toBe("discarded");
+    const dropAndGive = decideTurn(base({
+      message: "לא, תמחק. תרמתי 50 לעזר מציון",
+      reader: { ok: true, route: "several", items: [item({ amount: 50, description: "עזר מציון" })], rule: null, question: null, discards: true },
+      state: open,
+    }));
+    expect(dropAndGive.card.type).not.toBe("discarded");
+  });
+
+  it("redraws the open card from the user's own edits, and only its words and amounts back an amount", () => {
+    const fields = { amount: 120, currency: "ILS", type: "expense", description: "חלב", date: "2026-11-02" };
+    const open = rememberDraft(emptyConversation(), "חלב 120", fields);
+    const live = { recurring: null, saved: null };
+    const edited = withLiveCard(open, { ...live, draft: { ...fields, amount: 150 } });
+    expect(edited.onScreen?.line).toBe('one transaction, not saved: expense 150 ILS, "חלב", 2026-11-02, one time.');
+    expect(openCardEvidence(edited)).toBe("150");
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: fields }))).toBe("חלב 120\n120");
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, date: "2026-11-01" } }))).toBe("120");
+    expect(contextFor(edited)).not.toContain("120 ILS");
+    const receipt = withLiveCard(rememberDraft(emptyConversation(), null, fields, "one receipt"), { ...live, draft: fields });
+    expect(receipt.onScreen?.line.startsWith("one receipt, not saved")).toBe(true);
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, amount: null } }))).toBe("");
+    const savedLate = withLiveCard(open, { draft: fields, recurring: null, saved: { itemId: "item-1" } });
+    expect(savedLate.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(openCardEvidence(savedLate)).toBe("");
+    expect(openCardEvidence(rememberClosed(open))).toBe("");
+  });
+
+  it("backs a list with every amount, and a standing order without the numbers the code wrote", () => {
+    const list = decideTurn(base({
+      message: "חלב 15 ולחם 30",
+      reader: { ok: true, route: "several", items: [item({ amount: 15 }), item({ amount: 30, description: "לחם" })], rule: null, question: null },
+    })).nextState;
+    expect(openCardEvidence(list)).toBe("חלב 15 ולחם 30\n15 30");
+    const order = decideTurn(base({
+      message: "כל חודש 300 לעזר מציון",
+      jev: { ok: true, intent: "create_recurring", confidence: 0.9 },
+      reader: { ok: true, route: "several", items: [item({ amount: 300, recurrence: { frequency: "monthly", calendarType: "gregorian", startDate: null, dayOfMonth: 10, weekday: null, totalOccurrences: null, alreadyCharged: false } })], rule: null, question: null },
+    })).nextState;
+    expect(order.onScreen?.line).toContain("on day 10");
+    expect(openCardEvidence(order)).toBe("כל חודש 300 לעזר מציון\n300");
+  });
+
+  it("says a continued card was already saved and keeps it as saved", () => {
+    const saved = rememberSaved(decideTurn(base()).nextState, "item-1");
+    const more = decideTurn(base({
+      message: "בעצם 20",
+      reader: { ok: true, route: "several", items: [item({ amount: 20 })], rule: null, question: null, continues: true },
+      state: saved,
+    }));
+    expect(more.card.type).toBe("already_saved");
+    expect(more.nextState.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(summarizeTurn(base(), more).kind).toBe("already_saved");
   });
 
   it("treats a list route as movement", () => {

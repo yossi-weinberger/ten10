@@ -18,10 +18,11 @@ function readConfidence(value: unknown): number | null {
   return typeof value === "number" && value >= 0 && value <= 1 ? value : null;
 }
 
-export async function classifyIntentFallback(text: string): Promise<IntentFallbackResult> {
+/** `context` is the earlier-turns block from conversationContext, or "". */
+export async function classifyIntentFallback(text: string, context = ""): Promise<IntentFallbackResult> {
   if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   const { data, error } = await supabase.functions.invoke("ai-classify-intent", {
-    body: { text },
+    body: context ? { text, context } : { text },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const record = data as {

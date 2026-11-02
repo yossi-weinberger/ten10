@@ -13,7 +13,8 @@ export interface ResolvedQuestion {
   to: string | null;
 }
 
-export type SplitResponse =
+/** continues and discards are about the card on screen. They come with every route. */
+export type SplitResponse = { continues: boolean; discards: boolean } & (
   | { route: "list" }
   | { route: "unreadable" }
   | {
@@ -23,7 +24,8 @@ export type SplitResponse =
     dropped: number;
     rule: SplitRuleInput | null;
     question: ResolvedQuestion | null;
-  };
+  }
+);
 
 function asContext(todayOrContext: string | SplitReadContext): SplitReadContext | null {
   if (typeof todayOrContext === "string") {
@@ -66,28 +68,37 @@ function questionInLists(question: SplitQuestionInput, context: SplitReadContext
   };
 }
 
-/** Schema first, then amount evidence. A single unanchored amount stays and is asked. */
+const NO_FLAGS = { continues: false, discards: false };
+
+/**
+ * Schema first, then amount evidence. A single unanchored amount stays and is asked.
+ * `earlier` is the open card's words and amounts. Only a message that continues that card may take an amount or a date from it.
+ */
 export function readSplitResponse(
   source: string,
   payload: unknown,
   todayOrContext: string | SplitReadContext,
+  earlier = "",
 ): SplitResponse {
   const context = asContext(todayOrContext);
-  if (!context) return { route: "unreadable" };
+  if (!context) return { route: "unreadable", ...NO_FLAGS };
   const raw = jsonValue(payload);
   if (raw && typeof raw === "object" && !Array.isArray(raw) && (raw as { more_than_five?: unknown }).more_than_five === true) {
-    return { route: "list" };
+    return { route: "list", ...NO_FLAGS };
   }
   const parsed = parseSplitPayload(payload);
-  if (!parsed) return { route: "unreadable" };
-  if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list" };
-  const anchored = anchorSplitItems(source, parsed.items, context);
+  if (!parsed) return { route: "unreadable", ...NO_FLAGS };
+  const flags = { continues: parsed.continues, discards: parsed.discards };
+  if (parsed.more_than_five || parsed.items.length > MAX_ITEMS_PER_MESSAGE) return { route: "list", ...flags };
+  const anchorSource = parsed.continues && earlier ? `${earlier}\n${source}` : source;
+  const anchored = anchorSplitItems(anchorSource, parsed.items, context);
   const question = parsed.question ? questionInLists(parsed.question, context) : null;
   const rule = parsed.rule && parsed.rule.match.trim().length >= 2
     ? { match: parsed.rule.match.trim(), action: parsed.rule.action }
     : null;
-  if (anchored.items.length === 0 && !question && !rule) return { route: "unreadable" };
+  if (anchored.items.length === 0 && !question && !rule) return { route: "unreadable", ...flags };
   return {
+    ...flags,
     route: "several",
     items: anchored.items,
     found: anchored.items.length,

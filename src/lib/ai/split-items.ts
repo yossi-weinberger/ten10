@@ -4,10 +4,13 @@ import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/s
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import type { SplitRuleInput } from "../../../supabase/functions/_shared/ai/split-schema.ts";
 
+/** continues and discards are about the card on screen, on every route. */
+type CardFlags = { continues?: boolean; discards?: boolean };
+
 export type SplitItemsResult =
-  | { ok: true; route: "list"; usageId: string | null }
-  | { ok: true; route: "unreadable"; usageId: string | null }
-  | {
+  | ({ ok: true; route: "list"; usageId: string | null } & CardFlags)
+  | ({ ok: true; route: "unreadable"; usageId: string | null } & CardFlags)
+  | ({
     ok: true;
     route: "several";
     items: AnchoredSplitItem[];
@@ -16,7 +19,7 @@ export type SplitItemsResult =
     rule: SplitRuleInput | null;
     question: ResolvedQuestion | null;
     usageId: string | null;
-  }
+  } & CardFlags)
   | { ok: false; reason: "UNAVAILABLE" };
 
 export interface SplitCallOptions {
@@ -24,6 +27,10 @@ export interface SplitCallOptions {
   receivedAt?: string;
   defaultCurrency?: string;
   calendar?: "gregorian" | "hebrew";
+  /** The earlier-turns block from conversationContext. */
+  context?: string;
+  /** The words and amounts of the open draft or standing order. A continuing message may keep an amount only from them. */
+  cardEvidence?: string;
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -44,6 +51,8 @@ export async function splitItems(
       receivedAt: options.receivedAt,
       defaultCurrency: options.defaultCurrency,
       calendar: options.calendar,
+      ...(options.context ? { context: options.context } : {}),
+      ...(options.cardEvidence ? { cardEvidence: options.cardEvidence } : {}),
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
@@ -56,12 +65,15 @@ export async function splitItems(
     rule?: unknown;
     question?: unknown;
     usage_id?: unknown;
+    continues?: unknown;
+    discards?: unknown;
   };
   if (body.reason === "unavailable" || body.reason === "quota_exhausted" || body.reason === "rate_limited" || body.reason === "daily_limit") {
     return { ok: false, reason: "UNAVAILABLE" };
   }
   const usageId = usageIdOf(body);
-  if (body.route === "list" || body.route === "unreadable") return { ok: true, route: body.route, usageId };
+  const flags = { continues: body.continues === true, discards: body.discards === true };
+  if (body.route === "list" || body.route === "unreadable") return { ok: true, route: body.route, usageId, ...flags };
   if (body.route === "several" && Array.isArray(body.items)) {
     const rule = body.rule && typeof body.rule === "object" ? body.rule as SplitRuleInput : null;
     const question = body.question && typeof body.question === "object" ? body.question as ResolvedQuestion : null;
@@ -74,6 +86,7 @@ export async function splitItems(
       rule,
       question,
       usageId,
+      ...flags,
     };
   }
   return { ok: false, reason: "UNAVAILABLE" };

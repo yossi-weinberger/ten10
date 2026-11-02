@@ -7,7 +7,7 @@ import { splitReadContext } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "./question-period.ts";
-import { decideTurn, emptyConversation, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
+import { contextFor, decideTurn, emptyConversation, openCardEvidence, rememberData, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
 
 interface ExpectTurn {
   kind: string;
@@ -93,15 +93,16 @@ function statusOf(payload: unknown): number {
   return typeof status === "number" ? status : 200;
 }
 
-async function askJev(key: string, text: string): Promise<unknown> {
-  return post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildIntentBody(text), { source: "eval" }));
+async function askJev(key: string, text: string, context: string): Promise<unknown> {
+  return post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildIntentBody(text, context), { source: "eval" }));
 }
 
-async function askReader(key: string, text: string, fixture: Fixture, categories: string[]): Promise<unknown> {
+async function askReader(key: string, text: string, fixture: Fixture, categories: string[], context: string): Promise<unknown> {
   const body = splitRequestBody(text, fixture.today, {
     categories,
     recipients: fixture.recipients,
     calendar: fixture.calendar,
+    ...(context ? { conversation: context } : {}),
   }, "eval");
   const first = await post(key, SPLIT_RESPONSES_URL, body);
   if (parseSplitPayload(readModelText(first))) return first;
@@ -113,10 +114,11 @@ async function askQuestion(
   text: string,
   fixture: Fixture,
   lists: { recipients: string[]; categories: string[] },
+  context: string,
 ): Promise<{ question: TurnQuestion; costUsd: number }> {
   const [slotsPayload, periodPayload] = await Promise.all([
-    post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildQuestionSlotBody(text, lists), { source: "eval" })),
-    post(key, SPLIT_RESPONSES_URL, periodRequestBody(text, fixture.today, "eval", fixture.calendar)),
+    post(key, JEV_SYSTEMONE_URL, gatewaySystemOneBody(buildQuestionSlotBody(text, lists, context), { source: "eval" })),
+    post(key, SPLIT_RESPONSES_URL, periodRequestBody(text, fixture.today, "eval", fixture.calendar, context)),
   ]);
   const costUsd = (readModelUsage(slotsPayload).costUsd ?? 0) + (readModelUsage(periodPayload).costUsd ?? 0);
   const slots = readQuestionSlots(slotsPayload, lists);
@@ -136,8 +138,11 @@ function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   const flags: string[] = [];
   const accepted = [expect.kind, ...(expect.alsoOk ?? [])];
   const card = summary.kind === "draft" || summary.kind === "drafts" || summary.kind === "recurring";
-  if (card && expect.amount !== undefined && summary.amount !== expect.amount) flags.push("wrong_save");
-  if (card && expect.type !== undefined && summary.type !== expect.type) flags.push("wrong_save");
+  // A missing amount or type is asked on the card before saving, so only a wrong value is a wrong save.
+  if (card && expect.amount !== undefined && summary.amount !== null && summary.amount !== expect.amount) flags.push("wrong_save");
+  // A special type the card asks about is not saved until the user answers.
+  const typeOk = summary.type === expect.type || (summary.typeAsked !== null && summary.typeAsked === expect.type);
+  if (card && expect.type !== undefined && summary.type !== null && !typeOk) flags.push("wrong_save");
   if (card && expect.date !== undefined && summary.date !== expect.date) flags.push("wrong_save");
   if (summary.kind === "recurring" && expect.frequency !== undefined && summary.frequency !== expect.frequency) flags.push("wrong_save");
   if (summary.kind === "recurring" && expect.day !== undefined && summary.day !== expect.day) flags.push("wrong_save");
@@ -149,11 +154,12 @@ function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
 
 function fieldsMatch(expect: ExpectTurn, summary: TurnSummary): boolean {
   if (expect.amount !== undefined && summary.kind !== "question" && summary.amount !== expect.amount) return false;
-  if (expect.type !== undefined && summary.kind !== "question" && summary.type !== expect.type) return false;
+  if (expect.type !== undefined && summary.kind !== "question" && summary.type !== expect.type && summary.typeAsked !== expect.type) return false;
   if (expect.frequency !== undefined && summary.frequency !== expect.frequency) return false;
   if (expect.day !== undefined && summary.day !== expect.day) return false;
   if (expect.family !== undefined && summary.family !== expect.family) return false;
-  if (expect.pending !== undefined && summary.pending !== expect.pending) return false;
+  // A kind accepted through alsoOk has no pending question to compare.
+  if (expect.pending !== undefined && summary.kind === expect.kind && summary.pending !== expect.pending) return false;
   return true;
 }
 
@@ -165,20 +171,22 @@ async function runConversation(
 ) {
   const lists = { recipients: fixture.recipients, categories };
   const rows = [];
+  // The same memory the drawer keeps: every decision in a turn starts from the state before it.
+  let memory = emptyConversation();
   for (const [index, turn] of conversation.turns.entries()) {
+    const turnStart = memory;
+    const context = contextFor(turnStart);
     const [jevRaw, readerRaw] = await Promise.all([
-      askJev(key, turn.user),
-      askReader(key, turn.user, fixture, categories),
+      askJev(key, turn.user, context),
+      askReader(key, turn.user, fixture, categories, context),
     ]);
     const intent = readIntentChoice(jevRaw);
     const page = readHalachaChoice(jevRaw);
     const split = readSplitResponse(turn.user, readModelText(readerRaw), splitReadContext(fixture.today, {
       categories,
       recipients: fixture.recipients,
-    }));
-    const reader = split.route === "several"
-      ? { ok: true as const, route: "several" as const, items: split.items, dropped: split.dropped, rule: split.rule, question: split.question }
-      : { ok: true as const, route: split.route };
+    }), openCardEvidence(turnStart));
+    const reader = { ok: true as const, ...split };
     const first = decideTurn({
       message: turn.user,
       jev: intent
@@ -187,11 +195,12 @@ async function runConversation(
       reader,
       question: null,
       questionAttempted: false,
-      state: emptyConversation(),
+      state: turnStart,
       today: fixture.today,
       calendar: fixture.calendar,
     });
-    const asked = first.needsQuestion ? await askQuestion(key, turn.user, fixture, lists) : null;
+    memory = first.nextState;
+    const asked = first.needsQuestion ? await askQuestion(key, turn.user, fixture, lists, context) : null;
     const question = asked?.question ?? null;
     const decision = first.needsQuestion
       ? decideTurn({
@@ -202,18 +211,19 @@ async function runConversation(
         reader,
         question,
         questionAttempted: true,
-        state: emptyConversation(),
+        state: turnStart,
         today: fixture.today,
         calendar: fixture.calendar,
       })
       : first;
+    if (decision !== first) memory = rememberData(memory, decision.nextState);
     const summary = summarizeTurn({
       message: turn.user,
       jev: { ok: false },
       reader,
       question,
       questionAttempted: question !== null,
-      state: emptyConversation(),
+      state: turnStart,
       today: fixture.today,
       calendar: fixture.calendar,
     }, decision);
@@ -227,7 +237,7 @@ async function runConversation(
       conversation: conversation.id,
       topic: conversation.topic,
       user: turn.user,
-      context: "",
+      context,
       expect: turn.expect,
       summary,
       jev: {

@@ -1,10 +1,15 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import { PAYMENT_METHOD_KEYS } from "@/lib/payment-methods";
-import type { QuestionFamily, QuestionMeasure, QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
+import type { QuestionFamily, QuestionMeasure, QuestionSlots, QuestionSubject } from "../../../supabase/functions/_shared/ai/question-slots.ts";
 
 const FAMILIES = ["donation", "income", "expense"] as const;
 const MEASURES = ["sum", "count", "average", "max"] as const;
+const SUBJECTS = ["transactions", "balance", "standing_orders"] as const;
+
+function asSubject(value: unknown): QuestionSubject | null {
+  return SUBJECTS.find((subject) => subject === value) ?? null;
+}
 
 function asFamily(value: unknown): QuestionFamily | null {
   return FAMILIES.find((family) => family === value) ?? null;
@@ -29,11 +34,11 @@ export type ReadQuestionSlotsResult = QuestionSlots & {
 /** Null when Jev did not answer. The caller then uses the word parser. */
 export async function readQuestionSlots(
   text: string,
-  options: { calendar?: "gregorian" | "hebrew"; today?: string } = {},
+  options: { calendar?: "gregorian" | "hebrew"; today?: string; context?: string } = {},
 ): Promise<ReadQuestionSlotsResult | null> {
   if (!aiCallsAllowed()) return null;
   const { data, error } = await supabase.functions.invoke("ai-read-question", {
-    body: { text, calendar: options.calendar, today: options.today },
+    body: { text, calendar: options.calendar, today: options.today, ...(options.context ? { context: options.context } : {}) },
   });
   if (error || !data || typeof data !== "object") return null;
   const record = data as {
@@ -46,6 +51,7 @@ export async function readQuestionSlots(
     measurement_id?: unknown;
     period?: unknown;
     name_text?: unknown;
+    subject?: unknown;
   };
   if (record.reason === "unavailable" || !("family" in record)) return null;
   const payment = typeof record.paymentMethod === "string" ? record.paymentMethod : null;
@@ -66,5 +72,6 @@ export async function readQuestionSlots(
     measurementId: typeof record.measurement_id === "string" ? record.measurement_id : null,
     period,
     nameText: asName(record.name_text),
+    subject: asSubject(record.subject),
   };
 }

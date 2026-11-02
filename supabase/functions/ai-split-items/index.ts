@@ -19,6 +19,7 @@ import {
   splitRequestBody,
   type SplitPromptContext,
 } from "../_shared/ai/split-prompt.ts";
+import { readContextField } from "../_shared/ai/conversation-context.ts";
 
 const USAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -54,6 +55,9 @@ Deno.serve(async (req: Request) => {
     receivedAt?: unknown;
     defaultCurrency?: unknown;
     calendar?: unknown;
+    context?: unknown;
+    /** The open card's words and amounts. A continuing message may keep an amount only from them, not from the whole chat. */
+    cardEvidence?: unknown;
     release?: unknown;
   } | null;
 
@@ -98,7 +102,8 @@ Deno.serve(async (req: Request) => {
   const prepMs = Date.now() - prepStarted;
   if (!firstGate.allowed) return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
-  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar };
+  const conversation = readContextField(body?.context);
+  const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar, ...(conversation ? { conversation } : {}) };
   let modelMs = 0;
 
   async function ask(usageId: string | null): Promise<{ payload: unknown; usageId: string | null } | null> {
@@ -154,6 +159,7 @@ Deno.serve(async (req: Request) => {
         rules: lists.rules,
         recipients: lists.context.recipients ?? [],
       }),
+      readContextField(body?.cardEvidence),
     );
     return json(origin, { ...split, usage_id: usageId, retried, prep_ms: prepMs, model_ms: modelMs }, 200);
   } catch (error) {
