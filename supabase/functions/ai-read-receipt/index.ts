@@ -177,6 +177,7 @@ Deno.serve(async (req: Request) => {
               source: "app",
               only: ["anthropic"],
             }),
+            anthropic: { thinking: { type: "disabled" } },
           },
         }),
       },

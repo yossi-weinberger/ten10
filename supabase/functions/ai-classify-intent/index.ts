@@ -6,7 +6,7 @@ import {
   JEV_DUPLICATE_MODEL,
   JEV_SYSTEMONE_URL,
 } from "../_shared/ai/jev-duplicate-rank.ts";
-import { buildIntentBody, readCountChoice, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
+import { buildIntentBody, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
@@ -79,13 +79,12 @@ Deno.serve(async (req: Request) => {
     const payload = result.payload;
     const choice = readIntentChoice(payload);
     if (!choice) return json(origin, { intent: null }, 200);
-    const count = readCountChoice(payload);
     const page = readHalachaChoice(payload);
     return json(origin, {
       intent: choice.intent,
       confidence: choice.confidence,
-      count: count?.count ?? null,
-      count_confidence: count?.confidence ?? null,
+      count: null,
+      count_confidence: null,
       halacha_page: page?.page ?? null,
       halacha_page_confidence: page?.confidence ?? null,
     }, 200);

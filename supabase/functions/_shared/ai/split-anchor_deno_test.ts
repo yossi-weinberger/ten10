@@ -297,3 +297,13 @@ Deno.test("a rule name stands after any of the letters משה וכלב", () => {
   assert(!nameStands("הכנסה ממביטוח לאומי", "ביטוח לאומי"), "two letters");
   assert(prefixesName("מ", "ביטוח לאומי") && !prefixesName("מ", "גן") && prefixesName("ל", "גן"), "mem needs a longer name");
 });
+
+Deno.test("a dropped amountless item carrying a special type transfers to a single kept item", () => {
+  const result = anchor("שילמתי 200 לגן והוצאה מוכרת", [
+    item({ amount: 200, amount_text: "200", description: "גן", type: "expense" }),
+    item({ amount: null, amount_text: null, description: "הוצאה מוכרת", type: "recognized-expense" }),
+  ]);
+  assert(result.items.length === 1, "one item kept");
+  assert(result.items[0]?.amount === 200, "amount 200");
+  assert(statedSpecialType(result.items[0]!) === "recognized-expense", "transferred special type");
+});
