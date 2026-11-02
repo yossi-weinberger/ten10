@@ -16,6 +16,8 @@ export interface ConversationOnScreen {
   line: string;
   /** The open card's amounts as the card shows them, including the user's own edits. */
   amounts?: number[];
+  /** The single card's date as shown, to notice when the user changes it. */
+  date?: string | null;
   savedItemId?: string;
 }
 
@@ -96,6 +98,7 @@ export function rememberDraft(before: ConversationState, userText: string | null
       sourceText: userText ?? "",
       line: `${label}, not saved: ${fieldsLine(fields)}, one time.`,
       amounts: amountsOf([fields]),
+      date: fields.date,
     },
     pending: null,
   };
@@ -112,6 +115,13 @@ export interface LiveCards {
   saved: { itemId: string | null } | null;
 }
 
+/** Once the user changes the card's amount or date, the words that opened it no longer back either. */
+function redrawn(open: ConversationOnScreen, line: string, fields: ScreenFields): ConversationOnScreen {
+  const amounts = amountsOf([fields]);
+  const same = amounts.join(" ") === (open.amounts ?? []).join(" ") && fields.date === (open.date ?? null);
+  return { ...open, line, amounts, date: fields.date, sourceText: same ? open.sourceText : "" };
+}
+
 /** The open card as it is now: saved, or redrawn with the user's own edits. */
 export function withLiveCard(state: ConversationState, live: LiveCards): ConversationState {
   const open = state.onScreen;
@@ -119,13 +129,12 @@ export function withLiveCard(state: ConversationState, live: LiveCards): Convers
   if (live.saved) return rememberSaved(state, live.saved.itemId);
   if (open.kind === "recurring" && live.recurring) {
     const line = `a standing order, not saved: ${fieldsLine(live.recurring)}, ${whenLine(live.recurring.frequency, live.recurring.dayOfMonth)}.`;
-    return { ...state, onScreen: { ...open, line, amounts: amountsOf([live.recurring]) } };
+    return { ...state, onScreen: redrawn(open, line, live.recurring) };
   }
   // A list keeps its line; only a single draft is redrawn, with the label it was shown with.
   if (open.kind === "draft" && live.draft && open.line.startsWith("one ")) {
     const label = open.line.slice(0, open.line.indexOf(","));
-    const line = `${label}, not saved: ${fieldsLine(live.draft)}, one time.`;
-    return { ...state, onScreen: { ...open, line, amounts: amountsOf([live.draft]) } };
+    return { ...state, onScreen: redrawn(open, `${label}, not saved: ${fieldsLine(live.draft)}, one time.`, live.draft) };
   }
   return state;
 }
@@ -522,10 +531,10 @@ function screenOf(message: string, decision: Omit<TurnDecision, "nextState">, re
   const card = decision.card;
   if (card.type === "recurring" && first) {
     const when = whenLine(first.recurrence?.frequency ?? null, first.recurrence?.dayOfMonth ?? null);
-    return { kind: "recurring", sourceText: message, line: `a standing order, not saved: ${itemLine(first)}, ${when}.`, amounts: amountsOf([first]) };
+    return { kind: "recurring", sourceText: message, line: `a standing order, not saved: ${itemLine(first)}, ${when}.`, amounts: amountsOf([first]), date: first.date };
   }
   if ((card.type === "draft" || card.type === "clarify") && first) {
-    return { kind: "draft", sourceText: message, line: `one transaction, not saved: ${itemLine(first)}, one time.`, amounts: amountsOf([first]) };
+    return { kind: "draft", sourceText: message, line: `one transaction, not saved: ${itemLine(first)}, one time.`, amounts: amountsOf([first]), date: first.date };
   }
   if (card.type === "drafts" && first) {
     return { kind: "draft", sourceText: message, line: `${items.length} transactions, not saved, first: ${itemLine(first)}.`, amounts: amountsOf(items) };

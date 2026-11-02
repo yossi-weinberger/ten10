@@ -442,11 +442,13 @@ describe("decideTurn", () => {
     const live = { recurring: null, saved: null };
     const edited = withLiveCard(open, { ...live, draft: { ...fields, amount: 150 } });
     expect(edited.onScreen?.line).toBe('one transaction, not saved: expense 150 ILS, "חלב", 2026-11-02, one time.');
-    expect(openCardEvidence(edited)).toBe("חלב 120\n150");
+    expect(openCardEvidence(edited)).toBe("150");
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: fields }))).toBe("חלב 120\n120");
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, date: "2026-11-01" } }))).toBe("120");
     expect(contextFor(edited)).not.toContain("120 ILS");
     const receipt = withLiveCard(rememberDraft(emptyConversation(), null, fields, "one receipt"), { ...live, draft: fields });
     expect(receipt.onScreen?.line.startsWith("one receipt, not saved")).toBe(true);
-    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, amount: null } }))).toBe("חלב 120");
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, amount: null } }))).toBe("");
     const savedLate = withLiveCard(open, { draft: fields, recurring: null, saved: { itemId: "item-1" } });
     expect(savedLate.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
     expect(openCardEvidence(savedLate)).toBe("");
