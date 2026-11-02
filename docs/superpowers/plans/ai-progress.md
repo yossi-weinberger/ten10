@@ -651,3 +651,4 @@
   (2) הושלמה אידמפוטנטיות מלאה (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`) בכל מיגרציות ה-AI ונוספו קובצי rollback ל-`20261019195500`, `20261019210000` ו-`20261023030000`;
   (3) הוטמע Kill Switch הרמטי Safe-by-default ב-`src/lib/ai/flags.ts` המנוטרל כש-`VITE_AI_INTAKE_ENABLED !== "true"` (חוסם UI וקריאות רשת);
   (4) כל 5 השערים הדטרמיניסטיים עברו ב-100% (`typecheck`, `lint:ratchet`, `check-supabase-imports`, `test:infra` 17/17, `npm test` 185/185 קבצים ו-1,350/1,350 טסטים). 0 קריאות מודל בתשלום ($0.00). לא ל-`main`.
+- **2026-11-02:** [#653](https://github.com/yossi-weinberger/ten10/pull/653) (גל 6) מוזג ל־`feat/ai-intake`. כל 7 הגלים הושלמו במלואם. הענף `feat/ai-intake` מוכן ועוצר כאן ללא מיזוג ל-`main` בהתאם להנחיית יוסי. לא ל-`main`.
