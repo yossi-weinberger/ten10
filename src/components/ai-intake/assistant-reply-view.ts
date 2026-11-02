@@ -42,7 +42,6 @@ export const STATUS_MESSAGES = {
   couldNotRead: { key: "aiIntake.couldNotRead", tone: "info" },
   checkDate: { key: "aiIntake.splitCheckDate", tone: "info" },
   checkAmount: { key: "aiIntake.checkAmount", tone: "info" },
-  oneAtATime: { key: "aiIntake.oneAtATime", tone: "info" },
   splitList: { key: "aiIntake.splitList", tone: "info" },
   severalReceipts: { key: "aiIntake.severalReceipts", tone: "info" },
   bankStatement: { key: "aiIntake.bankStatement", tone: "info" },

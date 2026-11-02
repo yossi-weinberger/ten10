@@ -10,34 +10,44 @@ import { classifyIntentFallback } from "./intent-fallback";
 beforeEach(() => invoke.mockReset());
 
 describe("classifyIntentFallback", () => {
-  it("carries the count next to the intent", async () => {
+  it("reads the intent, confidence, and optional halacha page", async () => {
     invoke.mockResolvedValue({
-      data: { intent: "add_transaction", confidence: 0.9, count: "several", count_confidence: 0.8 },
+      data: { intent: "add_transaction", confidence: 0.9, halacha_page: "tithes", halacha_page_confidence: 0.8 },
       error: null,
     });
     await expect(classifyIntentFallback("x")).resolves.toEqual({
       ok: true,
       intent: "add_transaction",
       confidence: 0.9,
-      count: "several",
-      countConfidence: 0.8,
+      halachaPage: "tithes",
+      halachaPageConfidence: 0.8,
+    });
+  });
+
+  it("drops an intent outside the closed set", async () => {
+    invoke.mockResolvedValue({
+      data: { intent: "unknown_intent", confidence: 0.9, halacha_page: "tithes", halacha_page_confidence: 0.8 },
+      error: null,
+    });
+    const result = await classifyIntentFallback("x");
+    expect(result).toEqual({
+      ok: true,
+      intent: null,
+      confidence: null,
       halachaPage: null,
       halachaPageConfidence: null,
     });
   });
 
-  it("drops a count outside the closed set and its confidence with it", async () => {
-    invoke.mockResolvedValue({
-      data: { intent: "add_transaction", confidence: 0.9, count: "two", count_confidence: 0.8 },
-      error: null,
+  it("treats an out-of-range confidence as null", async () => {
+    invoke.mockResolvedValue({ data: { intent: "help", confidence: 1.5 }, error: null });
+    const result = await classifyIntentFallback("x");
+    expect(result).toEqual({
+      ok: true,
+      intent: "help",
+      confidence: null,
+      halachaPage: null,
+      halachaPageConfidence: null,
     });
-    const result = await classifyIntentFallback("x");
-    expect(result).toMatchObject({ ok: true, count: null, countConfidence: null });
-  });
-
-  it("reads a missing count as null", async () => {
-    invoke.mockResolvedValue({ data: { intent: "help", confidence: 0.9 }, error: null });
-    const result = await classifyIntentFallback("x");
-    expect(result).toMatchObject({ ok: true, intent: "help", count: null, countConfidence: null });
   });
 });

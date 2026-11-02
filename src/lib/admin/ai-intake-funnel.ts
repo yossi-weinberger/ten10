@@ -1,3 +1,5 @@
+import { aiShare } from "@/lib/admin/ai-usage";
+
 export type IntakeDraftCounts = {
   ready: number;
   needs_review: number;
@@ -37,11 +39,6 @@ export function intakeFunnel(
   };
 }
 
-export function shareOfCreated(part: number, created: number): number {
-  if (created <= 0) return 0;
-  return Math.round((part / created) * 100);
-}
-
 export type FunnelStepPercents = {
   ofPrevious: number;
   ofTotal: number;
@@ -51,20 +48,15 @@ export type FunnelStepPercents = {
 
 const MIN_VISIBLE_BAR = 2;
 
-function percentOf(part: number, whole: number): number {
-  if (!Number.isFinite(part) || !Number.isFinite(whole) || whole <= 0) return 0;
-  return Math.round((part / whole) * 100);
-}
-
 /** Percents for one funnel row. Zero denominators stay 0, never NaN. */
 export function funnelStepPercents(value: number, previous: number, total: number): FunnelStepPercents {
-  const ofTotal = percentOf(value, total);
+  const ofTotal = aiShare(value, total);
   if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0 || value <= 0) {
-    return { ofPrevious: percentOf(value, previous), ofTotal, bar: 0 };
+    return { ofPrevious: aiShare(value, previous), ofTotal, bar: 0 };
   }
   const raw = Math.min(100, (value / total) * 100);
   return {
-    ofPrevious: percentOf(value, previous),
+    ofPrevious: aiShare(value, previous),
     ofTotal,
     bar: Math.min(100, Math.max(raw, MIN_VISIBLE_BAR)),
   };

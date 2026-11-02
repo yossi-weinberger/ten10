@@ -106,7 +106,7 @@ function sanitizeText(val: string): string {
   return val.replace(/^[=+\-@\t\r]+/, "");
 }
 
-function isOnOrAfterMinTransactionDate(isoDate: string): boolean {
+export function isOnOrAfterMinTransactionDate(isoDate: string): boolean {
   if (!CANONICAL_ISO_DATE.test(isoDate)) return false;
   return isoDate >= MIN_TRANSACTION_DATE;
 }

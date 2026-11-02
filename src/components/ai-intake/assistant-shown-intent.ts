@@ -26,7 +26,7 @@ function modelPage(decided: Decided): string | null {
  * Word lists do not choose a page or turn a question into help.
  * A personal page becomes the rabbi card only when the turn has nothing else (`occupied`).
  */
-export function shownIntent(_source: string, _today: string, decided: Decided, occupied = false): ShownIntent {
+export function shownIntent(decided: Decided, occupied = false): ShownIntent {
   const personal = decided.ok && decided.halachaPage === "personal" && !occupied;
   const page = modelPage(decided);
   const confident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);

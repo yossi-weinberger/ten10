@@ -1,4 +1,4 @@
-import { AlertTriangle, CircleCheck, Sparkles, Undo2 } from "lucide-react";
+import { AlertTriangle, CircleCheck, Sparkles } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { GoldenBubbles } from "@/components/ui/golden-bubbles";
@@ -15,17 +15,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { isIsoDate } from "@/lib/ai/receipt-card";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
-import { CURRENCIES, type CurrencyCode } from "@/lib/currencies";
+import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { BASE_TYPE_ICON, BASE_TYPE_TINT, type BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
-import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { DraftView } from "../assistant-reply-view";
-
-function currencySymbol(code: string): string {
-  return CURRENCIES.find((item) => item.code === code)?.symbol ?? code;
-}
 
 function draftDateProblem(date: string): "invalid" | "min" | null {
   if (!isIsoDate(date)) return "invalid";
@@ -45,20 +40,14 @@ export function DraftCard({
   onDescriptionChange,
   onAmountChange,
   onSave,
-  onUndo,
-  undoing,
-  showUndo,
 }: {
   view: DraftView;
   interactive: boolean;
   saving: boolean;
-  undoing: boolean;
   onDateChange: (date: string) => void;
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
   onSave: (choice?: "saved_anyway" | "same_event") => void;
-  onUndo: () => void;
-  showUndo: boolean;
 }) {
   const { t, i18n } = useTranslation(["navigation", "transactions"]);
   const formatDisplayDate = useDisplayDate();
@@ -81,21 +70,15 @@ export function DraftCard({
           {view.locked ? <CircleCheck className="size-4 text-success" aria-hidden /> : (
             <TypeIcon className={`size-4 ${BASE_TYPE_TINT[typeKey]} rounded-full p-0.5`} aria-hidden />
           )}
-        <ItemContent>
-          <ItemTitle>{draft.description || t(`aiIntake.types.${draft.type}`)}</ItemTitle>
-          <ItemDescription>
-            {formatCurrency(Number(view.amountInput) || draft.amount, draft.currency, locale)}
-            {" · "}
-            {formatDisplayDate(draft.date, "numeric").primary}
-          </ItemDescription>
-        </ItemContent>
-        {showUndo && interactive ? (
-          <Button type="button" variant="ghost" size="sm" disabled={undoing} onClick={onUndo}>
-            <Undo2 aria-hidden />
-            {t("aiIntake.undo")}
-          </Button>
-        ) : null}
-      </Item>
+          <ItemContent>
+            <ItemTitle>{draft.description || t(`aiIntake.types.${draft.type}`)}</ItemTitle>
+            <ItemDescription>
+              {formatCurrency(Number(view.amountInput) || draft.amount, draft.currency, locale)}
+              {" · "}
+              {formatDisplayDate(draft.date, "numeric").primary}
+            </ItemDescription>
+          </ItemContent>
+        </Item>
       </div>
     );
   }
@@ -115,11 +98,11 @@ export function DraftCard({
         <CardDescription>
             {draft.requestedRate === null
               ? t("aiIntake.draftSummary", {
-                currency: currencySymbol(draft.currency),
+                currency: getCurrencySymbol(draft.currency),
                 type: t(`aiIntake.types.${draft.type}`),
               })
               : t("aiIntake.draftMeta", {
-                currency: currencySymbol(draft.currency),
+                currency: getCurrencySymbol(draft.currency),
                 type: t(`aiIntake.types.${draft.type}`),
                 rate: draft.requestedRate,
               })}
@@ -143,7 +126,7 @@ export function DraftCard({
               onChange={(event) => onAmountChange(event.target.value)}
             />
             <InputGroupAddon align="inline-end">
-              <InputGroupText>{currencySymbol(draft.currency)}</InputGroupText>
+              <InputGroupText>{getCurrencySymbol(draft.currency)}</InputGroupText>
             </InputGroupAddon>
           </InputGroup>
           </div>
@@ -212,5 +195,3 @@ export function DraftCard({
     </Card>
   );
 }
-
-export type { TextTransactionDraft };

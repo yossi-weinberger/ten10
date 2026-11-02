@@ -194,16 +194,22 @@ function confidentChoice(answer: unknown, allowed: ReadonlySet<string>): string 
   return choice;
 }
 
-function asFamily(value: string | null): QuestionFamily | null {
+export function asQuestionFamily(value: unknown): QuestionFamily | null {
   return FAMILIES.find((family) => family === value) ?? null;
 }
 
-function asMeasure(value: string | null): QuestionMeasure | null {
+export function asQuestionMeasure(value: unknown): QuestionMeasure | null {
   return MEASURES.find((measure) => measure === value) ?? null;
 }
 
-function asSubject(value: string | null): QuestionSubject | null {
+export function asQuestionSubject(value: unknown): QuestionSubject | null {
   return SUBJECTS.find((subject) => subject === value) ?? null;
+}
+
+export function trimQuestionSlotName(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, NAME_MAX) : null;
 }
 
 const SLOT_CONFIDENCE_FIELDS = ["family", "measure", "recipient", "category", "payment_method"] as const;
@@ -238,11 +244,11 @@ export function readQuestionSlots(
   const categories = new Set(closedSlotOptions(lists.categories));
   const payments = new Set(closedSlotOptions(PAYMENT_METHOD_KEYS));
   return {
-    family: asFamily(confidentChoice(record.family, new Set(FAMILIES))),
-    measure: asMeasure(confidentChoice(record.measure, new Set(MEASURES))),
+    family: asQuestionFamily(confidentChoice(record.family, new Set(FAMILIES))),
+    measure: asQuestionMeasure(confidentChoice(record.measure, new Set(MEASURES))),
     recipient: confidentChoice(record.recipient, recipients),
     category: confidentChoice(record.category, categories),
     paymentMethod: confidentChoice(record.payment_method, payments),
-    subject: asSubject(confidentChoice(record.subject, new Set(SUBJECTS))),
+    subject: asQuestionSubject(confidentChoice(record.subject, new Set(SUBJECTS))),
   };
 }

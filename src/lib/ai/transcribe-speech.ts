@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { blobToBase64 } from "@/lib/ai/blob-base64";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import { speechToWav } from "@/lib/ai/speech-wav";
 import { readTranscript } from "../../../supabase/functions/_shared/ai/speech-transcript.ts";
@@ -8,19 +9,6 @@ const MAX_BYTES = 2 * 1024 * 1024;
 export type TranscribeSpeechResult =
   | { ok: true; text: string }
   | { ok: false; reason: "TOO_LONG" | "UNHEARD" | "UNAVAILABLE" };
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = typeof reader.result === "string" ? reader.result : "";
-      const comma = value.indexOf(",");
-      resolve(comma >= 0 ? value.slice(comma + 1) : "");
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
 
 export async function transcribeSpeech(recording: Blob): Promise<TranscribeSpeechResult> {
   if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };

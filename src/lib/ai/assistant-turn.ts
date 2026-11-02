@@ -348,13 +348,13 @@ function route(input: TurnInput): Routed {
   const page = namedPage(input.jev);
   const movement = readerHasMovement(input.reader);
   const shown = input.jev.ok
-    ? shownIntent(input.message, input.today, {
+    ? shownIntent({
       ok: true,
       intent: input.jev.intent,
       confidence: input.jev.confidence,
       halachaPage: page ?? undefined,
     }, movement)
-    : shownIntent(input.message, input.today, { ok: false }, movement);
+    : shownIntent({ ok: false }, movement);
   const dataCandidate = input.jev.ok && (input.jev.intent === "ask_data" || readerQuestion(input.reader) !== null);
   // An unsure Jev leaning to a standing order, with no recurrence read, asks rather than guessing a one-time draft.
   const leansRecurring = shown === "ask" && input.jev.ok && input.jev.intent === "create_recurring"

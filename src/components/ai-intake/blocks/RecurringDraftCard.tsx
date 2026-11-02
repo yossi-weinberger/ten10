@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { getCurrencySymbol } from "@/lib/currencies";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import {
   RECURRING_EDIT_FIELDS,
@@ -31,17 +33,6 @@ const TYPES = ["expense", "income", "donation", "exempt-income", "recognized-exp
 const CATEGORIES = ["food", "transportation"] as const;
 
 const fieldClass = "border-input bg-background h-9 w-full rounded-md border ps-3 pe-10 text-sm rtl:ps-10 rtl:pe-3";
-
-function todayIso(): string {
-  return new Intl.DateTimeFormat("en-CA").format(new Date());
-}
-
-function currencySymbol(currency: RecurringCard["currency"]): string {
-  if (currency === "ILS") return "₪";
-  if (currency === "USD") return "$";
-  if (currency === "EUR") return "€";
-  return currency ?? "";
-}
 
 function fieldLabelKey(field: RecurringEditField | "amount"): string {
   switch (field) {
@@ -85,7 +76,7 @@ export function RecurringDraftCard({
   const formatDisplayDate = useDisplayDate();
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
-  const today = todayIso();
+  const today = getCurrentLocalDate();
   const locked = !interactive || card.saved || saving;
   const start = saveStartDate(card, today);
   const dates = upcomingRecurringDates(card, today);
@@ -99,7 +90,7 @@ export function RecurringDraftCard({
     && recurringCancelOpen(card.savedCreatedAt, card.executionCount, new Date());
   const labels = {
     type: card.type ? t(`aiIntake.types.${card.type}`) : "",
-    currency: currencySymbol(card.currency),
+    currency: getCurrencySymbol(card.currency),
     start: start ? recurringShortDate(start, card.calendarType) : "",
     lead: t("aiIntake.recurring.summaryLead"),
     payeePrefix: t("aiIntake.recurring.summaryPayee"),

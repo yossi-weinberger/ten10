@@ -107,7 +107,7 @@ collect_from_changed_files() {
       redeploy_all=true
       break
     fi
-    if [[ "$file" == supabase/functions/_shared/* ]]; then
+    if [[ "$file" == supabase/functions/_shared/* || "$file" == "supabase/functions/deno.json" || "$file" == "supabase/functions/deno.lock" ]]; then
       for fn in "${SHARED_DEPENDENT[@]}"; do
         DEPLOY_SET["$fn"]=1
       done
