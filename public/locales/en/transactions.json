@@ -96,6 +96,9 @@
       "isRecurring": "Recurring Transaction",
       "tooltip": "Check if this is a transaction that repeats regularly.",
       "explanation": "When setting up a recurring transaction, the system will save the definition but will not create an immediate transaction. Transactions will be generated automatically on the defined dates (e.g., on the 1st of each month).",
+      "status": {
+        "label": "Status"
+      },
       "frequency": {
         "label": "Frequency",
         "placeholder": "Select frequency",
