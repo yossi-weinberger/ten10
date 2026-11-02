@@ -65,12 +65,12 @@ handleSubmit, handleReceipt, finishVoice ו־handleAmountReply מעדכנים א
 
 PR לכל שלב, מול feat/ai-intake. אחרי כל שינוי בפונקציית Edge: פריסה ל־testing ודיווח.
 
-C1. החלטת התור בפונקציה טהורה, בלי שינוי התנהגות
+C1. החלטת התור בפונקציה טהורה, בלי שינוי התנהגות (בוצע, #640)
 - להוציא מ־handleSubmit, shownIntent ו־showIntent את ההחלטה «מה להציג ומה pending» לפונקציה decideTurn ב־src/lib/ai/assistant-turn.ts. הקלט: הודעה, תוצאת Jev, תוצאת הקורא, תוצאת השאלה ו־ConversationState. הפלט: מה להציג ומה המצב הבא. המגירה רק מחילה את התוצאה.
 - סט שיחות: fixtures/conversation-eval-cases.json, ו־runner בשם conversation-eval-run.ts. ה־runner קורא ל־Jev, לקורא ולשאלה עם אותם request builders ואותם קלטים כמו האפליקציה, ואז ל־decideTurn. לא מעתיקים לוגיקה לתוך הבדיקה.
 - ריצה אחת = הבסיס של היום.
 
-C2. ההחלטה לפי מה שנקרא
+C2. ההחלטה לפי מה שנקרא (בוצע, #643)
 - פריט עם recurrence, ובלי unsupportedFrequency, מקבל כרטיס הוראת קבע, בלי קשר לתווית של Jev.
 - כרטיס כלל רק כשהקורא החזיר rule, לא לפי התווית.
 - «זה פטור ממעשרות» ליד תנועה: הסוג המיוחד בכרטיס (type או type_question), בלי להציע כלל.
@@ -81,7 +81,7 @@ C2. ההחלטה לפי מה שנקרא
   - HALACHA_CRITERIA.personal: «A question about tithe or charity money that no published page answers, or a personal ruling about the user's own money. Do not answer the ruling.»
   - INTENT_CRITERIA.out_of_scope: להוריד ממנו «a personal halachic ruling».
 
-C3. זיכרון והקשר
+C3. זיכרון והקשר (בוצע, #645; followed_up עוד לא נבנה)
 - ConversationState כמו שמתואר למעלה.
 - ai-classify-intent, ai-split-items ו־ai-read-question מקבלים שדה context, הבלוק מלמעלה, שמוצג במודל לפני ההודעה.
 - Jev:
@@ -105,7 +105,7 @@ C3. זיכרון והקשר
 - שאלה: ההוראה ב־periodPrompt: «When the question continues the previous question, use its period unless it names a new one.» גם Jev slots מקבל את ההקשר.
 - מדידת השאלות (question-outcome.ts): שאלה שהיא המשך של השאלה הקודמת לא נספרת כ־asked_again. מוסיפים outcome בשם followed_up, והשאלה הקודמת מסומנת answered. אם יש CHECK על הערכים ב־mark_ai_question_outcome, צריך מיגרציה עם rollback.
 
-C4. תשובות חסרות
+C4. תשובות חסרות (בוצע, #645)
 - יתרה:
   - INTENT_CRITERIA.ask_data: להוסיף «including the user's tithe balance, such as how much tithe they still owe».
   - measure חדש ב־question-slots, balance. הוא עונה מ־fetchServerTitheBalance (analytics.service.ts, ה־RPC calculate_user_tithe_balance), אותו מספר שבדשבורד. בלי תקופה ובלי משפחה.
@@ -115,14 +115,14 @@ C4. תשובות חסרות
 - out_of_scope: טקסט קבוע אחד בנוסח «את זה אני לא יודע לעשות. אפשר לכתוב לי תנועה, לשאול על הנתונים, על יתרת המעשר, או שאלה על מעשרות».
 - העוזר לא מציע פעולה שאין לה מסלול בקוד.
 
-C5. ניסוח ותיקונים קטנים
+C5. ניסוח ותיקונים קטנים (בוצע, #645)
 - להסיר את showNotSaved ואת «שום דבר לא נשמר» מהתשובות. הם נשארים רק בטקסט הפתיחה כשהשיחה ריקה (emptyDescription).
 - להסיר את שורת «זו נראית כמו...» כשמוצג כרטיס.
 - הכרטיס מראה בעצמו אם הוא טיוטה או שכבר נשמר.
 - MultiDraftList: התאריך והמטבע באותו פורמט כמו בכרטיס הבודד (01/11/2026, ₪). היום הרשימה מציגה card.date ו־card.currency כמו שהם.
 - NAME_PREFIX_LETTERS ב־split-anchor.ts: להוסיף את האות מ (מש״ה וכל״ב). בדיקת יחידה: חוק «ביטוח לאומי» על «הכנסה מביטוח לאומי».
 
-C6. בדיקה סופית
+C6. בדיקה סופית (בוצע, שתי ריצות; הספים לא הושגו, ראו ai-progress)
 - סט השיחות פעמיים.
 - סט הכוונות (intent-eval-cases), סטי השאלות והתקופות, 264, הוראות הקבע והקבלות: פעם אחת בזמן העבודה ופעמיים בסוף. זה נדרש כי ההוראות של Jev ושל הקורא השתנו.
 - מדידת זמן אחת, כמידע בלבד.
