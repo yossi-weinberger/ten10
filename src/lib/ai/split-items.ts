@@ -29,8 +29,8 @@ export interface SplitCallOptions {
   calendar?: "gregorian" | "hebrew";
   /** The earlier-turns block from conversationContext. */
   context?: string;
-  /** The open draft or standing order's line. A continuing message may keep an amount only from it. */
-  cardLine?: string;
+  /** The words and amounts of the open draft or standing order. A continuing message may keep an amount only from them. */
+  cardEvidence?: string;
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -52,7 +52,7 @@ export async function splitItems(
       defaultCurrency: options.defaultCurrency,
       calendar: options.calendar,
       ...(options.context ? { context: options.context } : {}),
-      ...(options.cardLine ? { cardLine: options.cardLine } : {}),
+      ...(options.cardEvidence ? { cardEvidence: options.cardEvidence } : {}),
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };

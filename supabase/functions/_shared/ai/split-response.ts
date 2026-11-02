@@ -72,7 +72,7 @@ const NO_FLAGS = { continues: false, discards: false };
 
 /**
  * Schema first, then amount evidence. A single unanchored amount stays and is asked.
- * `earlier` is the chat so far. Only a message that continues the open card may take an amount or a date from it.
+ * `earlier` is the open card's words and amounts. Only a message that continues that card may take an amount or a date from it.
  */
 export function readSplitResponse(
   source: string,

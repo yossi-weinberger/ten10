@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
-import { contextFor, decideTurn, emptyConversation, openCardLine, readerHasMovement, rememberClosed, rememberDraft, rememberSaved, rememberUndone, summarizeTurn, withLiveCard, type TurnInput, type TurnReader } from "./assistant-turn";
+import { contextFor, decideTurn, emptyConversation, openCardEvidence, readerHasMovement, rememberClosed, rememberDraft, rememberSaved, rememberUndone, summarizeTurn, withLiveCard, type TurnInput, type TurnReader } from "./assistant-turn";
 
 function item(partial: Partial<AnchoredSplitItem>): AnchoredSplitItem {
   return {
@@ -436,16 +436,36 @@ describe("decideTurn", () => {
     expect(dropAndGive.card.type).not.toBe("discarded");
   });
 
-  it("redraws the open card from the user's own edits, and only the card line backs an amount", () => {
+  it("redraws the open card from the user's own edits, and only its words and amounts back an amount", () => {
     const fields = { amount: 120, currency: "ILS", type: "expense", description: "חלב", date: "2026-11-02" };
     const open = rememberDraft(emptyConversation(), "חלב 120", fields);
-    const edited = withLiveCard(open, { draft: { ...fields, amount: 150 }, recurring: null });
-    expect(openCardLine(edited)).toBe('one transaction, not saved: expense 150 ILS, "חלב", 2026-11-02, one time.');
+    const live = { recurring: null, saved: null };
+    const edited = withLiveCard(open, { ...live, draft: { ...fields, amount: 150 } });
+    expect(edited.onScreen?.line).toBe('one transaction, not saved: expense 150 ILS, "חלב", 2026-11-02, one time.');
+    expect(openCardEvidence(edited)).toBe("חלב 120\n150");
     expect(contextFor(edited)).not.toContain("120 ILS");
-    const receipt = withLiveCard(rememberDraft(emptyConversation(), null, fields, "one receipt"), { draft: fields, recurring: null });
-    expect(openCardLine(receipt).startsWith("one receipt, not saved")).toBe(true);
-    expect(openCardLine(rememberSaved(open, "item-1"))).toBe("");
-    expect(openCardLine(rememberClosed(open))).toBe("");
+    const receipt = withLiveCard(rememberDraft(emptyConversation(), null, fields, "one receipt"), { ...live, draft: fields });
+    expect(receipt.onScreen?.line.startsWith("one receipt, not saved")).toBe(true);
+    expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, amount: null } }))).toBe("חלב 120");
+    const savedLate = withLiveCard(open, { draft: fields, recurring: null, saved: { itemId: "item-1" } });
+    expect(savedLate.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(openCardEvidence(savedLate)).toBe("");
+    expect(openCardEvidence(rememberClosed(open))).toBe("");
+  });
+
+  it("backs a list with every amount, and a standing order without the numbers the code wrote", () => {
+    const list = decideTurn(base({
+      message: "חלב 15 ולחם 30",
+      reader: { ok: true, route: "several", items: [item({ amount: 15 }), item({ amount: 30, description: "לחם" })], rule: null, question: null },
+    })).nextState;
+    expect(openCardEvidence(list)).toBe("חלב 15 ולחם 30\n15 30");
+    const order = decideTurn(base({
+      message: "כל חודש 300 לעזר מציון",
+      jev: { ok: true, intent: "create_recurring", confidence: 0.9 },
+      reader: { ok: true, route: "several", items: [item({ amount: 300, recurrence: { frequency: "monthly", calendarType: "gregorian", startDate: null, dayOfMonth: 10, weekday: null, totalOccurrences: null, alreadyCharged: false } })], rule: null, question: null },
+    })).nextState;
+    expect(order.onScreen?.line).toContain("on day 10");
+    expect(openCardEvidence(order)).toBe("כל חודש 300 לעזר מציון\n300");
   });
 
   it("says a continued card was already saved and keeps it as saved", () => {

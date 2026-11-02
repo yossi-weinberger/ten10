@@ -65,7 +65,7 @@ import {
   contextFor,
   decideTurn,
   emptyConversation,
-  openCardLine,
+  openCardEvidence,
   rememberClosed,
   rememberData,
   withLiveCard,
@@ -1164,9 +1164,12 @@ export function AssistantDrawer({
     const current = conversationRef.current;
     const shown = current.reply.draft;
     const card = current.reply.recurring;
+    // The typed amount is read the way Save reads it. An amount Save would refuse is no amount.
+    const typed = shown ? Number(shown.amountInput.replace(",", ".")) : NaN;
     memoryRef.current = withLiveCard(memoryRef.current, {
-      draft: shown ? { ...shown.draft, amount: Number(shown.amountInput) || shown.draft.amount } : null,
+      draft: shown ? { ...shown.draft, amount: Number.isFinite(typed) && typed !== 0 ? typed : null } : null,
       recurring: card ? { ...card, date: card.startDate } : null,
+      saved: current.reply.savedItemId ? { itemId: current.reply.savedItemId } : card?.saved ? { itemId: null } : null,
     });
     turnStart.current = memoryRef.current;
     contextRef.current = contextFor(memoryRef.current);
@@ -1234,7 +1237,7 @@ export function AssistantDrawer({
       defaultCurrency,
       calendar: questionCalendar,
       context: contextRef.current,
-      cardLine: openCardLine(turnStart.current),
+      cardEvidence: openCardEvidence(turnStart.current),
     });
     const decided = await classifyIntentFallback(source, contextRef.current);
     const split = await splitPromise;
@@ -1328,7 +1331,7 @@ export function AssistantDrawer({
       defaultCurrency,
       calendar: questionCalendar,
       context: contextRef.current,
-      cardLine: openCardLine(turnStart.current),
+      cardEvidence: openCardEvidence(turnStart.current),
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);

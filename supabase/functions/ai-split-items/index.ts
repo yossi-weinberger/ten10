@@ -56,8 +56,8 @@ Deno.serve(async (req: Request) => {
     defaultCurrency?: unknown;
     calendar?: unknown;
     context?: unknown;
-    /** The open card's line. A continuing message may keep an amount only from it, not from the whole chat. */
-    cardLine?: unknown;
+    /** The open card's words and amounts. A continuing message may keep an amount only from them, not from the whole chat. */
+    cardEvidence?: unknown;
     release?: unknown;
   } | null;
 
@@ -159,7 +159,7 @@ Deno.serve(async (req: Request) => {
         rules: lists.rules,
         recipients: lists.context.recipients ?? [],
       }),
-      readContextField(body?.cardLine),
+      readContextField(body?.cardEvidence),
     );
     return json(origin, { ...split, usage_id: usageId, retried, prep_ms: prepMs, model_ms: modelMs }, 200);
   } catch (error) {
