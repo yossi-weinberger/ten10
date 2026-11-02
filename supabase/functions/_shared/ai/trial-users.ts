@@ -22,13 +22,9 @@ function safeEnv(name: string): string | undefined {
 
 export function isTrialUser(userId: string | undefined): boolean {
   if (!userId) return false;
-  // If AI_TRIAL_ONLY is explicitly "false", all authenticated users are allowed (production launch)
+  // Explicit opt-in: all authenticated users are allowed ONLY when AI_TRIAL_ONLY is explicitly "false".
+  // Safe-by-default: stays restricted to trial users even in production unless explicitly flipped.
   if (safeEnv("AI_TRIAL_ONLY") === "false") {
-    return true;
-  }
-  // In production environment, all authenticated users are allowed unless AI_TRIAL_ONLY is explicitly "true"
-  const env = (safeEnv("ENVIRONMENT") ?? safeEnv("DENO_ENV") ?? "").toLowerCase();
-  if (env === "production" && safeEnv("AI_TRIAL_ONLY") !== "true") {
     return true;
   }
   return ALLOWED.has(userId);

@@ -28,7 +28,7 @@ Deno.test("AI_TRIAL_ONLY=false allows any valid user id", () => {
   }
 });
 
-Deno.test("production environment allows any valid user id unless AI_TRIAL_ONLY=true", () => {
+Deno.test("production environment remains restricted by default unless AI_TRIAL_ONLY=false", () => {
   let prevEnv: string | undefined;
   let prevTrial: string | undefined;
   try {
@@ -40,10 +40,10 @@ Deno.test("production environment allows any valid user id unless AI_TRIAL_ONLY=
   try {
     Deno.env.set("ENVIRONMENT", "production");
     Deno.env.delete("AI_TRIAL_ONLY");
-    assert(isTrialUser("00000000-0000-4000-8000-000000000000") === true, "production allows users");
+    assert(isTrialUser("00000000-0000-4000-8000-000000000000") === false, "production stays restricted by default (safe-by-default)");
 
-    Deno.env.set("AI_TRIAL_ONLY", "true");
-    assert(isTrialUser("00000000-0000-4000-8000-000000000000") === false, "explicit AI_TRIAL_ONLY=true restricts in production");
+    Deno.env.set("AI_TRIAL_ONLY", "false");
+    assert(isTrialUser("00000000-0000-4000-8000-000000000000") === true, "explicit AI_TRIAL_ONLY=false opens access in production");
   } finally {
     if (prevEnv === undefined) Deno.env.delete("ENVIRONMENT");
     else Deno.env.set("ENVIRONMENT", prevEnv);
