@@ -20,6 +20,7 @@ import {
   type SplitPromptContext,
 } from "../_shared/ai/split-prompt.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
+import { isSupportedCurrencyCode } from "../_shared/transaction-domain/normalize-core.ts";
 
 const USAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -88,7 +89,7 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { reason: "unavailable" }, 200);
 
-  const currency = body?.defaultCurrency === "USD" || body?.defaultCurrency === "EUR" ? body.defaultCurrency : "ILS";
+  const currency = isSupportedCurrencyCode(body?.defaultCurrency) ? body.defaultCurrency : "ILS";
   const prepStarted = Date.now();
   const [lists, firstGate] = await Promise.all([
     admin

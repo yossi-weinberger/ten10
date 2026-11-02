@@ -20,9 +20,24 @@ function asDraft(card: SplitDraft): TextTransactionDraft | null {
     type: card.type,
     requestedRate: null,
     description: card.description,
-    category: null,
-    paymentMethod: null,
+    category: card.category,
+    paymentMethod: card.paymentMethod,
+    isChomesh: card.isChomesh,
   };
+}
+
+/** The rows the next save sends: checked and not saved yet. */
+export function cardsToSave(cards: readonly SplitDraft[]): SplitDraft[] {
+  return cards.filter((card) => card.checked && card.transactionId === null);
+}
+
+/**
+ * One idempotency key per set of rows. A second save of other rows, or of a row that was undone,
+ * gets a new key. A retry of the same rows after a failure keeps the key.
+ */
+export function splitSaveKey(listKey: string, chosen: readonly Pick<SplitDraft, "key">[], attempt = 0): string {
+  const rows = chosen.map((card) => card.key).sort().join("|");
+  return `${listKey}:${attempt}:${rows}`;
 }
 
 export async function saveSplitDrafts(
@@ -30,7 +45,7 @@ export async function saveSplitDrafts(
   idempotencyKey: string,
 ): Promise<SaveSplitResult> {
   if (!aiCallsAllowed()) return { ok: false, reason: "SAVE_FAILED" };
-  const chosen = cards.filter((card) => card.checked && card.transactionId === null);
+  const chosen = cardsToSave(cards);
   if (chosen.length === 0) return { ok: false, reason: "SAVE_FAILED" };
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -61,13 +76,18 @@ export async function saveSplitDrafts(
       autoRate,
       idempotencyKey: `${idempotencyKey}:${card.key}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
+      isChomesh: card.isChomesh,
     });
     if (!built.ok) return built;
     items.push({ key: card.key, payload: textIntakePayload(built.payload, { description: card.description, amount: card.amount }) });
   }
 
   const { data, error } = await supabase.rpc("create_ai_text_intake_items", {
-    p_payload: { idempotency_key: idempotencyKey, items: items.map((item) => item.payload) },
+    p_payload: {
+      idempotency_key: idempotencyKey,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
+      items: items.map((item) => item.payload),
+    },
   });
   const created = data as { item_id?: string; version?: number; item_index?: number }[] | null;
   if (error || !created || created.length !== items.length) return { ok: false, reason: "SAVE_FAILED" };

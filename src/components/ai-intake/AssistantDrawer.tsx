@@ -58,7 +58,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
-import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
 import { releaseSplit, splitItems, type SplitItemsResult } from "@/lib/ai/split-items";
@@ -77,9 +76,12 @@ import {
 } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount, draftFromHeld, heldFromItem, recurringCardFromItem, type HeldDraft } from "@/lib/ai/split-draft";
 import { cardsFromSplit, type SplitDraft } from "@/lib/ai/split-cards";
-import { saveSplitDrafts } from "@/lib/ai/save-split-drafts";
+import { cardsToSave, saveSplitDrafts, splitSaveKey } from "@/lib/ai/save-split-drafts";
+import { parseDraftAmount } from "@/lib/ai/draft-amount";
+import { donationRecipient } from "@/lib/ai/build-commit-payload";
 import type { RecurringTransaction } from "@/types/transaction";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
+import { createRecurringTransaction, getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
 import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
@@ -130,7 +132,9 @@ export function AssistantDrawer({
   ]);
   const calendarType = useDonationStore((state) => state.settings.calendarType);
   const storedCurrency = useDonationStore((state) => state.settings.defaultCurrency);
-  const defaultCurrency = storedCurrency === "USD" || storedCurrency === "EUR" ? storedCurrency : "ILS";
+  const autoCalcChomesh = useDonationStore((state) => state.settings.autoCalcChomesh);
+  // The profile currency as is. A message without a currency word is in this currency.
+  const defaultCurrency = storedCurrency;
   const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
@@ -139,6 +143,10 @@ export function AssistantDrawer({
   const [recurring, setRecurring] = useState<RecurringCard | null>(null);
   const idempotency = useRef<DraftIdempotency | null>(null);
   const splitKey = useRef<string | null>(null);
+  /** Bumped after each list save or undo, so the next save of the same rows gets a new key. */
+  const splitAttempt = useRef(0);
+  /** The list rows a duplicate warning was shown for. Saving the same rows again saves anyway. */
+  const splitDuplicateWarned = useRef<string | null>(null);
   const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
   const savedRecurring = useRef<RecurringTransaction | null>(null);
   const previewUrls = useRef<string[]>([]);
@@ -327,8 +335,8 @@ export function AssistantDrawer({
     if (duplicateTimer.current) clearTimeout(duplicateTimer.current);
     const request = duplicateRequest.current + 1;
     duplicateRequest.current = request;
-    const amount = Number(amountText.replace(",", "."));
-    if (!next || !Number.isFinite(amount) || amount === 0) {
+    const amount = parseDraftAmount(amountText);
+    if (!next || amount === null) {
       setDuplicates([]);
       setDuplicatesRanked(false);
       return;
@@ -358,8 +366,8 @@ export function AssistantDrawer({
     }, 400);
   }
 
-  function showDraft(next: TextTransactionDraft | null, ruleName: string | null = null) {
-    if (!next) {
+  function showDraft(input: TextTransactionDraft | null, ruleName: string | null = null) {
+    if (!input) {
       setDraft(null);
       originalDraft.current = null;
       idempotency.current = null;
@@ -368,6 +376,11 @@ export function AssistantDrawer({
       refreshDuplicates(null, "");
       return;
     }
+    // Chomesh starts from the setting, like the form. Only an ordinary income carries it.
+    const next: TextTransactionDraft = {
+      ...input,
+      isChomesh: input.type === "income" ? input.isChomesh ?? autoCalcChomesh : false,
+    };
     setDraft(next);
     setAmountInput(String(next.amount));
     idempotency.current = nextDraftIdempotency(idempotency.current, {
@@ -407,7 +420,7 @@ export function AssistantDrawer({
     setPendingPhase("receipt");
     setChecking(true);
     setStatus(null);
-    const result = await readReceiptImage(file);
+    const result = await readReceiptImage(file, defaultCurrency);
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!result.ok) {
@@ -673,8 +686,10 @@ export function AssistantDrawer({
         break;
       case "drafts":
         splitKey.current = crypto.randomUUID();
+        splitAttempt.current = 0;
+        splitDuplicateWarned.current = null;
         setSplitDropped(decision.card.dropped);
-        setSplitDrafts(several ? cardsFromSplit(several.items) : null);
+        setSplitDrafts(several ? cardsFromSplit(several.items, { defaultCurrency, autoCalcChomesh }) : null);
         break;
       case "clarify":
       case "draft":
@@ -742,18 +757,40 @@ export function AssistantDrawer({
     trackProductEvent("ai_inspiration_shown", { id: next.id });
   }
 
+  /** True when a checked row has a saved transaction of the same type, within three days and 2%. */
+  async function splitHasDuplicates(cards: readonly SplitDraft[]): Promise<boolean> {
+    const found = await Promise.all(cards.map((card) => (
+      card.type === null || card.date === null
+        ? Promise.resolve([])
+        : listDuplicateCandidates({ type: card.type, date: card.date, amount: card.amount, currency: card.currency })
+    )));
+    return found.some((rows) => rows.length > 0);
+  }
+
   async function handleSaveSplit() {
     if (!splitDrafts || saving) return;
-    const key = splitKey.current ?? crypto.randomUUID();
-    splitKey.current = key;
+    const chosen = cardsToSave(splitDrafts);
+    if (chosen.length === 0) return;
+    const listKey = splitKey.current ?? crypto.randomUUID();
+    splitKey.current = listKey;
+    const key = splitSaveKey(listKey, chosen, splitAttempt.current);
     setSaving(true);
     const request = requestRef.current;
+    if (splitDuplicateWarned.current !== key && await splitHasDuplicates(chosen)) {
+      setSaving(false);
+      if (requestRef.current !== request) return;
+      splitDuplicateWarned.current = key;
+      setStatus("splitDuplicates");
+      return;
+    }
     const result = await saveSplitDrafts(splitDrafts, key);
     setSaving(false);
     if (!result.ok) {
       setStatus(result.reason === "NO_RATE" ? "noRateAvailable" : "saveFailed");
       return;
     }
+    splitAttempt.current += 1;
+    splitDuplicateWarned.current = null;
     setSplitDrafts(splitDrafts.map((card) => {
       const saved = result.saved.find((row) => row.key === card.key);
       return saved
@@ -776,6 +813,7 @@ export function AssistantDrawer({
       setStatus(result.reason === "NOT_ALLOWED" ? "undoNotAllowed" : "undoFailed");
       return;
     }
+    splitAttempt.current += 1;
     setSplitDrafts((current) => current?.map((item) => (
       item.key === key ? { ...item, transactionId: null, itemId: null, checked: true } : item
     )) ?? null);
@@ -821,7 +859,12 @@ export function AssistantDrawer({
         description: recurring.description || null,
         type: recurring.type,
         category: recurring.category,
-        recipient: recurring.recipient || null,
+        is_chomesh: recurring.type === "income" ? autoCalcChomesh : undefined,
+        recipient: recurring.recipient || donationRecipient({
+          type: recurring.type,
+          recipient: null,
+          description: recurring.description,
+        }),
         payment_method: recurring.paymentMethod,
       });
       const saved = await createRecurringTransaction({ ...definition, origin: "ai" });
@@ -858,8 +901,17 @@ export function AssistantDrawer({
     setSaving(true);
     const request = requestRef.current;
     try {
-      await updateRecurringTransaction(row.id, { ...row, status: "cancelled" }, row);
-      savedRecurring.current = { ...row, status: "cancelled" };
+      // Read the row again. A charge or a table edit since the save must not be undone by an old copy.
+      const fresh = await getRecurringTransactionById(row.id);
+      if (fresh.created_at === undefined || !recurringCancelOpen(fresh.created_at, fresh.execution_count, new Date())) {
+        savedRecurring.current = fresh;
+        setRecurring({ ...recurring, executionCount: fresh.execution_count });
+        setStatus("recurringCancelFailed");
+        return;
+      }
+      // The RPC writes every column, so the fresh row goes with it. Only the status changes.
+      await updateRecurringTransaction(fresh.id, { ...fresh, status: "cancelled" }, fresh);
+      savedRecurring.current = { ...fresh, status: "cancelled" };
       setRecurring({ ...recurring, cancelled: true });
       setStatus("recurringCancelled");
       if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
@@ -1156,9 +1208,9 @@ export function AssistantDrawer({
     const shown = current.reply.draft;
     const card = current.reply.recurring;
     // The typed amount is read the way Save reads it. An amount Save would refuse is no amount.
-    const typed = shown ? Number(shown.amountInput.replace(",", ".")) : NaN;
+    const typed = shown ? parseDraftAmount(shown.amountInput) : null;
     memoryRef.current = withLiveCard(memoryRef.current, {
-      draft: shown ? { ...shown.draft, amount: Number.isFinite(typed) && typed !== 0 ? typed : null } : null,
+      draft: shown ? { ...shown.draft, amount: typed } : null,
       recurring: card ? { ...card, date: card.startDate } : null,
       saved: current.reply.savedItemId ? { itemId: current.reply.savedItemId } : card?.saved ? { itemId: null } : null,
     });
@@ -1356,8 +1408,8 @@ export function AssistantDrawer({
       setStatus("dateMin");
       return;
     }
-    const amount = Number(amountInput.replace(",", "."));
-    if (!Number.isFinite(amount) || amount === 0) {
+    const amount = parseDraftAmount(amountInput);
+    if (amount === null) {
       setStatus("editAmountInvalid");
       return;
     }
@@ -1576,6 +1628,10 @@ export function AssistantDrawer({
           },
           onSave: (choice) => {
             void handleSave(choice);
+          },
+          onChomeshChange: (isChomesh) => {
+            if (!draft || draft.type !== "income") return;
+            setDraft({ ...draft, isChomesh });
           },
           onRecurringChange: setRecurring,
           onSaveRecurring: () => {

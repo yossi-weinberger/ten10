@@ -70,6 +70,7 @@ export async function saveTextDraft(
     autoRate,
     idempotencyKey,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
+    isChomesh: draft.isChomesh === true,
   });
   if (!built.ok) return built;
 

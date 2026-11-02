@@ -40,6 +40,36 @@ export const CURRENCIES = [
 export type SupportedCurrencyCode = (typeof CURRENCIES)[number]["code"];
 type CurrencyCode = SupportedCurrencyCode;
 
+/** Every supported code, as a literal tuple for enums and schemas. A missing or extra code fails typecheck. */
+export const SUPPORTED_CURRENCY_CODES = [
+  "ILS",
+  "USD",
+  "EUR",
+  "CAD",
+  "GBP",
+  "AUD",
+  "CHF",
+  "ARS",
+  "BRL",
+  "ZAR",
+  "MXN",
+  "UAH",
+] as const satisfies readonly SupportedCurrencyCode[];
+
+type _AllCurrenciesListed = Exclude<
+  SupportedCurrencyCode,
+  (typeof SUPPORTED_CURRENCY_CODES)[number]
+> extends never
+  ? true
+  : never;
+const _currencyCodesCoverDomain: _AllCurrenciesListed = true;
+void _currencyCodesCoverDomain;
+
+/** True for one of the twelve codes, exactly as written. */
+export function isSupportedCurrencyCode(value: unknown): value is SupportedCurrencyCode {
+  return typeof value === "string" && (SUPPORTED_CURRENCY_CODES as readonly string[]).includes(value);
+}
+
 export interface MappedTransactionInput {
   date?: unknown;
   amount?: unknown;

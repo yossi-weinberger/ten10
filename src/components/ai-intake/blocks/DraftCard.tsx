@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -13,6 +14,7 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/comp
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { isIsoDate } from "@/lib/ai/receipt-card";
+import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
@@ -39,6 +41,7 @@ export function DraftCard({
   onDateChange,
   onDescriptionChange,
   onAmountChange,
+  onChomeshChange,
   onSave,
 }: {
   view: DraftView;
@@ -47,6 +50,7 @@ export function DraftCard({
   onDateChange: (date: string) => void;
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
+  onChomeshChange?: (isChomesh: boolean) => void;
   onSave: (choice?: "saved_anyway" | "same_event") => void;
 }) {
   const { t, i18n } = useTranslation(["navigation", "transactions"]);
@@ -61,6 +65,9 @@ export function DraftCard({
   const reduce = useReducedMotion();
   const inferred = view.inferred;
   const donation = draft.type === "donation" || draft.type === "non_tithe_donation";
+  // The amount Save will store. A field Save would refuse shows the read amount.
+  const typedAmount = parseDraftAmount(view.amountInput);
+  const income = draft.type === "income";
 
   if (readOnly) {
     return (
@@ -73,9 +80,10 @@ export function DraftCard({
           <ItemContent>
             <ItemTitle>{draft.description || t(`aiIntake.types.${draft.type}`)}</ItemTitle>
             <ItemDescription>
-              {formatCurrency(Number(view.amountInput) || draft.amount, draft.currency, locale)}
+              {formatCurrency(typedAmount ?? draft.amount, draft.currency, locale)}
               {" · "}
               {formatDisplayDate(draft.date, "numeric").primary}
+              {income && draft.isChomesh ? ` · ${t("aiIntake.chomesh")}` : null}
             </ItemDescription>
           </ItemContent>
         </Item>
@@ -153,6 +161,17 @@ export function DraftCard({
             onChange={(event) => onDescriptionChange(event.target.value)}
           />
         </div>
+        {income ? (
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <Checkbox
+              id="ai-draft-chomesh"
+              checked={draft.isChomesh === true}
+              disabled={!onChomeshChange}
+              onCheckedChange={(checked) => onChomeshChange?.(checked === true)}
+            />
+            <Label htmlFor="ai-draft-chomesh">{t("aiIntake.chomesh")}</Label>
+          </div>
+        ) : null}
         {view.duplicates.length > 0 ? (
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Alert variant="warning">

@@ -54,16 +54,22 @@ export interface RecurringDefinition {
   rate_source?: RateSource;
 }
 
+/** A Hebrew month has at most 30 days. recurring_transactions_calendar_day_check enforces the same. */
+export const HEBREW_MAX_DAY_OF_MONTH = 30;
+
 /**
  * Without day_of_month, the day is the Gregorian day number of start_date,
- * also for the Hebrew calendar.
+ * also for the Hebrew calendar. On the Hebrew calendar a day above 30 becomes 30.
  */
 export function buildRecurringDefinition(
   input: RecurringDefinitionInput,
 ): RecurringDefinition {
   const calendarType = input.calendar_type ?? "gregorian";
-  const dayOfMonth = input.day_of_month ??
+  const requestedDay = input.day_of_month ??
     getCalendarAdapter("gregorian").fromIsoDate(input.start_date).day;
+  const dayOfMonth = calendarType === "hebrew"
+    ? Math.min(requestedDay, HEBREW_MAX_DAY_OF_MONTH)
+    : requestedDay;
   const anchorMonthCode = input.frequency === "yearly"
     ? getCalendarAdapter(calendarType).fromIsoDate(input.start_date).monthCode
     : null;

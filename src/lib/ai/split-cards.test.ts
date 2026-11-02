@@ -20,4 +20,21 @@ describe("cardsFromSplit", () => {
     ]);
     expect(cards.map((card) => card.type)).toEqual(["exempt-income", "income"]);
   });
+
+  it("keeps the category and payment method the reader anchored", () => {
+    const [card] = cardsFromSplit([
+      { description: "מכולת", amount: 50, currency: "ILS", date: "2026-10-29", typeHint: "expense", category: "food", paymentMethod: "credit_card" },
+    ]);
+    expect(card?.category).toBe("food");
+    expect(card?.paymentMethod).toBe("credit_card");
+  });
+
+  it("uses the profile currency when the message named none, and chomesh only on income", () => {
+    const cards = cardsFromSplit([
+      { description: "משכורת", amount: 9000, currency: "", date: "2026-10-29", typeHint: "income" },
+      { description: "מכולת", amount: 20, currency: "", date: "2026-10-29", typeHint: "expense" },
+    ], { defaultCurrency: "GBP", autoCalcChomesh: true });
+    expect(cards.map((card) => card.currency)).toEqual(["GBP", "GBP"]);
+    expect(cards.map((card) => card.isChomesh)).toEqual([true, false]);
+  });
 });

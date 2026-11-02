@@ -3,6 +3,7 @@
 import { gatewayProviderOptions, type GatewayProviderOptions } from "./gateway-tags.ts";
 import { SPLIT_JSON_SCHEMA } from "./split-schema.ts";
 import { weekdayName } from "./split-date.ts";
+import { SUPPORTED_CURRENCY_CODES } from "../transaction-domain/normalize-core.ts";
 
 export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 
@@ -79,7 +80,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "continues is true when the message changes or completes the card the earlier lines say is on screen. Then return the full updated items, keeping what the message does not change. Otherwise continues is false.",
     "discards is true when the message asks to drop the card on screen without saving it. Otherwise discards is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
-    "currency is ILS, USD, or EUR, or null when no currency was named.",
+    `currency is the ISO code of the currency the message names, one of ${SUPPORTED_CURRENCY_CODES.join(", ")}. For example שקל or ₪ is ILS, dollar is USD, euro is EUR, pound or פאונד is GBP. null when no currency was named.`,
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",
     "Set rule_id when the payee or description contains that rule's name as a whole word, or that word with one prefix letter ו, ב, ל, ה, ש, or כ. Also set it when the payee clearly refers to the same thing as that rule's examples. Set rule_id only when exactly one rule fits. If none or more than one fits, rule_id is null. A name that is only part of a longer word is not a match.",
     "category must be copied from the list below, or null.",

@@ -179,3 +179,30 @@ describe("recurring card dates", () => {
     expect(recurringCancelOpen(created, 1, createdAt)).toBe(false);
   });
 });
+
+describe("withRecurringDay on the Hebrew calendar", () => {
+  it("never keeps day 31, which a Hebrew month does not have", () => {
+    const next = withRecurringDay(card({ calendarType: "hebrew" }), 31, "2026-11-02");
+    expect(next.dayOfMonth).toBe(30);
+  });
+
+  it("keeps day 31 on the Gregorian calendar", () => {
+    expect(withRecurringDay(card(), 31, "2026-11-02").dayOfMonth).toBe(31);
+  });
+});
+
+describe("recurringSummaryPieces amount label", () => {
+  it("uses the formatted amount when given", () => {
+    const pieces = recurringSummaryPieces(card(), {
+      type: "t",
+      currency: "₪",
+      start: "s",
+      lead: "",
+      payeePrefix: "",
+      monthly: "",
+      from: "",
+      amount: "₪200.00",
+    });
+    expect(pieces.find((piece) => piece.field === "amount")?.text).toBe("₪200.00");
+  });
+});

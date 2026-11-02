@@ -1,11 +1,17 @@
 /** Fields read from a receipt image. The model does not choose the transaction type. */
 
-const CURRENCIES = ["ILS", "USD", "EUR"] as const;
+import {
+  isSupportedCurrencyCode,
+  SUPPORTED_CURRENCY_CODES,
+  type SupportedCurrencyCode,
+} from "../transaction-domain/normalize-core.ts";
+
+const CURRENCIES = SUPPORTED_CURRENCY_CODES;
 
 /** Base64 of a larger file is rejected. The client uses the same byte ceiling. */
 export const RECEIPT_MAX_BASE64_CHARS = 5_500_000;
 export const RECEIPT_MAX_BYTES = Math.floor(RECEIPT_MAX_BASE64_CHARS / 4) * 3;
-type ReceiptCurrency = (typeof CURRENCIES)[number];
+type ReceiptCurrency = SupportedCurrencyCode;
 
 export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 
@@ -224,7 +230,7 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
   const amount = typeof source.amount === "number" ? source.amount : Number(source.amount);
   if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return null;
   const currency = typeof source.currency === "string" ? source.currency.trim().toUpperCase() : "";
-  if (!CURRENCIES.includes(currency as ReceiptCurrency)) return null;
+  if (!(CURRENCIES as readonly string[]).includes(currency)) return null;
   const dated = typeof source.date === "string" && isIsoDate(source.date);
   const ruleName = typeof source.rule_name === "string" ? source.rule_name.trim() : "";
   const ruledType = ruleName.length >= 2 ? ruledTypeOf(source.type) : null;
@@ -253,6 +259,7 @@ export interface CopiedReceiptItem {
 export function receiptDraftFromItems(
   route: "list" | "unreadable" | "several",
   items: readonly CopiedReceiptItem[],
+  defaultCurrency: SupportedCurrencyCode = "ILS",
 ): {
   kind: ReceiptKind;
   description?: string;
@@ -270,7 +277,7 @@ export function receiptDraftFromItems(
   if (!item || item.amount === null || item.amount <= 0) return null;
   const description = item.description.trim();
   if (description.length < 2) return null;
-  const currency = item.currency === "USD" || item.currency === "EUR" ? item.currency : "ILS";
+  const currency = isSupportedCurrencyCode(item.currency) ? item.currency : defaultCurrency;
   const dated = item.date !== null && isIsoDate(item.date);
   const ruledType = item.ruleName && ruledTypeOf(item.type);
   return {

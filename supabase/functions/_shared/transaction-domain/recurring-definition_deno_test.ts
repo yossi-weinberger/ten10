@@ -28,6 +28,24 @@ Deno.test("hebrew without a day keeps the Gregorian day number, like the form", 
   assertEquals([definition.day_of_month, definition.next_due_date], [28, "2026-11-08"], "28 Cheshvan");
 });
 
+Deno.test("hebrew never names day 31, which the DB check refuses", () => {
+  assertEquals(
+    buildRecurringDefinition({ ...BASE, calendar_type: "hebrew", day_of_month: 31 }).day_of_month,
+    30,
+    "explicit 31",
+  );
+  assertEquals(
+    buildRecurringDefinition({ ...BASE, start_date: "2026-10-31", calendar_type: "hebrew" }).day_of_month,
+    30,
+    "Gregorian 31st as the default day",
+  );
+  assertEquals(
+    buildRecurringDefinition({ ...BASE, start_date: "2026-10-31" }).day_of_month,
+    31,
+    "gregorian keeps 31",
+  );
+});
+
 Deno.test("yearly anchors the month of the start date in the chosen calendar", () => {
   assertEquals(
     buildRecurringDefinition({ ...BASE, frequency: "yearly", calendar_type: "hebrew", day_of_month: 20 })

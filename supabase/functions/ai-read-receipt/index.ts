@@ -12,6 +12,7 @@ import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
+import { isSupportedCurrencyCode } from "../_shared/transaction-domain/normalize-core.ts";
 import {
   decodeReceiptBase64,
   readModelText,
@@ -115,7 +116,13 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { draft: null }, 200);
 
-  const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown; time_zone?: unknown } | null;
+  const body = await req.json().catch(() => null) as {
+    media_type?: unknown;
+    data?: unknown;
+    time_zone?: unknown;
+    default_currency?: unknown;
+  } | null;
+  const defaultCurrency = isSupportedCurrencyCode(body?.default_currency) ? body.default_currency : "ILS";
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
   if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
@@ -222,6 +229,7 @@ Deno.serve(async (req: Request) => {
     }
     const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, {
       missingDate: "check",
+      defaultCurrency,
       categories: lists.context.categories ?? [],
       rules: lists.rules,
       recipients: lists.context.recipients ?? [],
@@ -238,6 +246,7 @@ Deno.serve(async (req: Request) => {
           ruleName: item.ruleName,
         }))
         : [],
+      defaultCurrency,
     );
     if (!draft) return json(origin, { draft: null, reason: "unreadable" }, 200);
     const artifactId = readReceiptArtifactId(stored.artifactId);
