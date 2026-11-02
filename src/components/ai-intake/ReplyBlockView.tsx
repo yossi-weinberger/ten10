@@ -223,13 +223,10 @@ export function ReplyBlockView({
           view={block.view}
           interactive={interactive}
           saving={handlers.saving}
-          undoing={handlers.undoing}
-          showUndo={false}
           onDateChange={handlers.onDateChange}
           onDescriptionChange={handlers.onDescriptionChange}
           onAmountChange={handlers.onAmountChange}
           onSave={handlers.onSave}
-          onUndo={handlers.onUndo}
         />
       );
     case "status":

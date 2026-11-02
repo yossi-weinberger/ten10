@@ -165,21 +165,6 @@ export function recurringSummaryPieces(
   return pieces;
 }
 
-export function recurringSummarySentence(
-  card: RecurringCard,
-  labels: {
-    type: string;
-    currency: string;
-    start: string;
-    lead: string;
-    payeePrefix: string;
-    monthly: string;
-    from: string;
-  },
-): string {
-  return recurringSummaryPieces(card, labels).map((piece) => piece.text).join("");
-}
-
 /** The assistant cancel button stays up for 7 days, and only before the first charge. */
 export function recurringCancelOpen(createdAt: string, executionCount: number, now: Date): boolean {
   if (executionCount !== 0) return false;

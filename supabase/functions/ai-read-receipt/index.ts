@@ -27,7 +27,6 @@ import {
   RECEIPT_VISION_MODEL,
 } from "../_shared/ai/receipt-draft.ts";
 
-const RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 const RECEIPT_BUCKET = "intake-artifacts";
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
@@ -149,7 +148,7 @@ Deno.serve(async (req: Request) => {
       userId: userData.user.id,
       operation: "receipt",
       model: RECEIPT_VISION_MODEL,
-      url: RESPONSES_URL,
+      url: SPLIT_RESPONSES_URL,
       init: {
         method: "POST",
         headers: {
@@ -194,7 +193,7 @@ Deno.serve(async (req: Request) => {
     const listsStarted = Date.now();
     const lists = admin
       ? await loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
-        logger.error(`receipt lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+        logger.error(`receipt lists failed: ${error instanceof Error ? error.name : "unknown"}`);
         return { context: {}, rules: [] };
       })
       : { context: {}, rules: [] };

@@ -6,7 +6,7 @@ import {
   recurringCancelOpen,
   recurringCardReady,
   recurringShortDate,
-  recurringSummarySentence,
+  recurringSummaryPieces,
   saveStartDate,
   unsupportedRecurringFrequency,
   upcomingRecurringDates,
@@ -118,7 +118,7 @@ describe("recurring card dates", () => {
     const complete = card({ amount: 100, dayOfMonth: 10, startDate: "2026-11-10" });
     expect(nextRecurringQuestion(complete)).toBeNull();
     expect(recurringShortDate("2026-11-10", "gregorian")).toBe("10/11");
-    expect(recurringSummarySentence(complete, hebrewSummary)).toBe(
+    expect(recurringSummaryPieces(complete, hebrewSummary).map((piece) => piece.text).join("")).toBe(
       "הוראת קבע: תרומה 100 ₪ · כולל, כל חודש ב-10, החל מ-10/11",
     );
   });
@@ -126,7 +126,7 @@ describe("recurring card dates", () => {
   it("uses the start date's day when the monthly day is empty", () => {
     const open = card({ amount: 200, description: "לבית כנסת", dayOfMonth: null, startDate: "2026-10-30" });
     expect(nextRecurringQuestion(open)).toBeNull();
-    expect(recurringSummarySentence(open, { ...hebrewSummary, start: "30/10" })).toBe(
+    expect(recurringSummaryPieces(open, { ...hebrewSummary, start: "30/10" }).map((piece) => piece.text).join("")).toBe(
       "הוראת קבע: תרומה 200 ₪ · לבית כנסת, כל חודש ב-30, החל מ-30/10",
     );
     expect(nextRecurringQuestion(card({ startDate: null, dayOfMonth: null }))).toBe("day");

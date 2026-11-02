@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
   const [lists, firstGate] = await Promise.all([
     admin
       ? loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
-        logger.error(`split lists failed: ${error instanceof Error ? error.message : "unknown"}`);
+        logger.error(`split lists failed: ${error instanceof Error ? error.name : "unknown"}`);
         return { context: {}, rules: [] as SplitRuleRef[] };
       })
       : Promise.resolve({ context: {}, rules: [] as SplitRuleRef[] }),

@@ -6,6 +6,7 @@
 import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
+import { MIN_TRANSACTION_DATE } from "../transaction-domain/normalize-core.ts";
 import { type QuestionSlots } from "./question-slots.ts";
 import { prefixesName } from "./split-anchor.ts";
 
@@ -210,7 +211,7 @@ export function questionFromSlots(
 ): YearTypeSum | "ask_family" | "ask_period" | null {
   if (!slots) return null;
   const period = readerPeriod?.kind === "all"
-    ? boundsAsQuestionPeriod("2000-01-01", today, calendar)
+    ? boundsAsQuestionPeriod(MIN_TRANSACTION_DATE, today, calendar)
     : readerPeriod?.kind === "span"
       ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
       : "ask_period";

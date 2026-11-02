@@ -1,17 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { shownIntent, namedHalachaPage } from "./assistant-shown-intent";
 
-const today = "2026-10-22";
-
 describe("shownIntent", () => {
   it("shows a page only when Jev named one", () => {
-    expect(shownIntent("האם מעשרות משכורת הן מהברוטו או מהנטו?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "out_of_scope",
       confidence: 0.95,
       halachaPage: "tithes",
     })).toBe("domain_adjacent");
-    expect(shownIntent("מה זה מעשר?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "out_of_scope",
       confidence: 0.4,
@@ -19,7 +17,7 @@ describe("shownIntent", () => {
   });
 
   it("does not guess a page from the words when Jev did not name one", () => {
-    expect(shownIntent("מה זה מעשר?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "out_of_scope",
       confidence: 0.95,
@@ -27,7 +25,7 @@ describe("shownIntent", () => {
   });
 
   it("offers to send a personal ruling to the rabbi", () => {
-    expect(shownIntent("האם מותר לי לקזז את זה מהמעשר", today, {
+    expect(shownIntent({
       ok: true,
       intent: "out_of_scope",
       confidence: 0.95,
@@ -36,7 +34,7 @@ describe("shownIntent", () => {
   });
 
   it("keeps a confident data question even when it mentions tithe", () => {
-    expect(shownIntent("כמה תרמתי למעשר השנה?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "ask_data",
       confidence: 0.95,
@@ -44,7 +42,7 @@ describe("shownIntent", () => {
   });
 
   it("asks when Jev is not confident, including a capability question", () => {
-    expect(shownIntent("אתה יכול?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "help",
       confidence: 0.4,
@@ -52,7 +50,7 @@ describe("shownIntent", () => {
   });
 
   it("offers the rabbi for a personal question even when the page confidence is low", () => {
-    expect(shownIntent("קיבלתי ירושה מאבא שלי, האם אני חייב לתת ממנה מעשר?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "out_of_scope",
       confidence: 0.9,
@@ -61,7 +59,7 @@ describe("shownIntent", () => {
   });
 
   it("keeps a movement when a personal page was also named", () => {
-    expect(shownIntent("קניתי לחם ב-15 וכמה הוצאתי החודש?", today, {
+    expect(shownIntent({
       ok: true,
       intent: "ask_data",
       confidence: 0.66,

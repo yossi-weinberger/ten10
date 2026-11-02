@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { blobToBase64 } from "@/lib/ai/blob-base64";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import {
@@ -17,19 +18,6 @@ export type ReadReceiptResult =
   | { ok: true; route: "receipt"; fields: ReceiptFields; artifactId: string | null }
   | { ok: true; route: "several_receipts" | "statement" }
   | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" };
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = typeof reader.result === "string" ? reader.result : "";
-      const comma = value.indexOf(",");
-      resolve(comma >= 0 ? value.slice(comma + 1) : "");
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 async function shrinkReceiptImage(file: File): Promise<File | null> {
   if (typeof document === "undefined" || typeof createImageBitmap !== "function") return null;
@@ -66,13 +54,13 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
     if (!shrunk || shrunk.size > RECEIPT_MAX_BYTES) return { ok: false, reason: "TOO_LARGE" };
     prepared = shrunk;
   }
-  let data = await fileToBase64(prepared);
+  let data = await blobToBase64(prepared);
   if (!data) return { ok: false, reason: "UNREADABLE" };
   if (data.length > RECEIPT_MAX_BASE64_CHARS) {
     if (!image || prepared !== file) return { ok: false, reason: "TOO_LARGE" };
     const shrunk = await shrinkReceiptImage(file);
     if (!shrunk) return { ok: false, reason: "TOO_LARGE" };
-    data = await fileToBase64(shrunk);
+    data = await blobToBase64(shrunk);
     if (!data || data.length > RECEIPT_MAX_BASE64_CHARS) return { ok: false, reason: "TOO_LARGE" };
     prepared = shrunk;
   }

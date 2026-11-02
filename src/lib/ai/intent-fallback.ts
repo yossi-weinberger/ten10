@@ -1,14 +1,12 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
-import { INTAKE_COUNTS, INTAKE_INTENTS, type IntakeCount, type IntakeIntent } from "@/lib/ai/classify-intake";
+import { INTAKE_INTENTS, type IntakeIntent } from "@/lib/ai/classify-intake";
 
 export type IntentFallbackResult =
   | {
     ok: true;
     intent: IntakeIntent | null;
     confidence: number | null;
-    count: IntakeCount | null;
-    countConfidence: number | null;
     halachaPage: string | null;
     halachaPageConfidence: number | null;
   }
@@ -29,25 +27,18 @@ export async function classifyIntentFallback(text: string, context = ""): Promis
     intent?: unknown;
     reason?: unknown;
     confidence?: unknown;
-    count?: unknown;
-    count_confidence?: unknown;
     halacha_page?: unknown;
     halacha_page_confidence?: unknown;
   };
   if (record.reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
   const intent = record.intent;
   if (typeof intent !== "string" || !(INTAKE_INTENTS as readonly string[]).includes(intent)) {
-    return { ok: true, intent: null, confidence: null, count: null, countConfidence: null, halachaPage: null, halachaPageConfidence: null };
+    return { ok: true, intent: null, confidence: null, halachaPage: null, halachaPageConfidence: null };
   }
-  const count = typeof record.count === "string" && (INTAKE_COUNTS as readonly string[]).includes(record.count)
-    ? record.count as IntakeCount
-    : null;
   return {
     ok: true,
     intent: intent as IntakeIntent,
     confidence: readConfidence(record.confidence),
-    count,
-    countConfidence: count === null ? null : readConfidence(record.count_confidence),
     halachaPage: typeof record.halacha_page === "string" ? record.halacha_page : null,
     halachaPageConfidence: readConfidence(record.halacha_page_confidence),
   };

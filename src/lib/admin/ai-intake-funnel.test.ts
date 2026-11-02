@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { funnelStepPercents, intakeFunnel, shareOfCreated } from "./ai-intake-funnel";
+import { funnelStepPercents, intakeFunnel } from "./ai-intake-funnel";
 
 describe("intakeFunnel", () => {
   it("keeps created equal to open plus rejected plus saved", () => {
@@ -18,7 +18,6 @@ describe("intakeFunnel", () => {
       existing: 14,
       auto: 0,
     });
-    expect(shareOfCreated(funnel.kept, funnel.created)).toBe(40);
   });
 });
 

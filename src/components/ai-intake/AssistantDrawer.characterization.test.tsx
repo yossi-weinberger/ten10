@@ -308,8 +308,6 @@ describe("AssistantDrawer characterization", () => {
       ok: true,
       intent: "add_transaction",
       confidence: 0.95,
-      count: "one",
-      countConfidence: 0.5,
     });
     const user = setup();
     await send(user, "50 במכולת ו־120 לישיבה");
@@ -323,8 +321,6 @@ describe("AssistantDrawer characterization", () => {
       ok: true,
       intent: "add_transaction",
       confidence: 0.95,
-      count: "one",
-      countConfidence: 0.5,
     });
     ai.splitItems.mockResolvedValue({
       ok: true,
@@ -346,8 +342,6 @@ describe("AssistantDrawer characterization", () => {
       ok: true,
       intent: "add_transaction",
       confidence: 0.95,
-      count: "one",
-      countConfidence: 0.9,
     });
     const user = setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");

@@ -30,3 +30,13 @@ import_map = "./functions/deno.json"
 [functions.process-recurring-transactions]
 import_map = "./functions/deno.json"
 
+[functions.ai-read-question]
+import_map = "./functions/deno.json"
+
+[functions.ai-read-receipt]
+import_map = "./functions/deno.json"
+
+[functions.ai-split-items]
+import_map = "./functions/deno.json"
+
+

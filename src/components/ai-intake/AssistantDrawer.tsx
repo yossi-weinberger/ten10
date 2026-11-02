@@ -56,6 +56,7 @@ import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/a
 import { loadStandingOrders, loadTitheBalance, type BalanceAnswer, type StandingOrderRow } from "@/lib/ai/assistant-extras";
 import { useAuth } from "@/contexts/AuthContext";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
@@ -154,7 +155,6 @@ export function AssistantDrawer({
   const preferRabbi = useRef(false);
   const [pendingText, setPendingText] = useState("");
   const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
-  const [amountReply, setAmountReply] = useState("");
   const [parsedRule, setParsedRule] = useState<ParsedUserRule | null>(null);
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
@@ -195,10 +195,6 @@ export function AssistantDrawer({
     | { status: "failed" }
     | null
   >(null);
-
-  function todayIso(): string {
-    return new Intl.DateTimeFormat("en-CA").format(new Date());
-  }
 
   const [history, setHistory] = useState<AssistantTurn[]>([]);
   const [activeUser, setActiveUser] = useState<UserTurn | null>(null);
@@ -279,7 +275,6 @@ export function AssistantDrawer({
     setClarification(null);
     setPendingText("");
     setReceiptFields(null);
-    setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
     setAppliedRuleName(null);
@@ -326,7 +321,6 @@ export function AssistantDrawer({
   }, []);
 
   const duplicateRequest = useRef(0);
-  const receiptInput = useRef<HTMLInputElement | null>(null);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
@@ -416,7 +410,6 @@ export function AssistantDrawer({
     const result = await readReceiptImage(file);
     if (requestRef.current !== request) return;
     setChecking(false);
-    if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
       memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
@@ -454,7 +447,6 @@ export function AssistantDrawer({
     }
     setIntent("add_transaction");
     setPendingText("");
-    setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
     setHalachaNamespace(null);
@@ -645,7 +637,6 @@ export function AssistantDrawer({
     setIntent(decision.intent);
     setReceiptFields(null);
     setPendingText(source);
-    setAmountReply("");
     setClarification(null);
     setSpecialType(null);
     held.current = null;
@@ -736,7 +727,7 @@ export function AssistantDrawer({
       knownHalachaPage: halachaRef.current,
       state: turnStart.current,
       userText,
-      today: todayIso(),
+      today: getCurrentLocalDate(),
       calendar: questionCalendar,
     }));
   }
@@ -795,7 +786,7 @@ export function AssistantDrawer({
 
   async function handleSaveRecurring() {
     if (!recurring || saving) return;
-    const today = todayIso();
+    const today = getCurrentLocalDate();
     const start = saveStartDate(recurring, today);
     if (
       start === null
@@ -953,7 +944,7 @@ export function AssistantDrawer({
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source, {
         calendar: questionCalendar,
-        today: todayIso(),
+        today: getCurrentLocalDate(),
         context: contextRef.current,
       });
       if (read) {
@@ -988,7 +979,7 @@ export function AssistantDrawer({
         periodHold: periodHold.current,
         nameHold: nameHold.current,
         state: turnStart.current,
-        today: todayIso(),
+        today: getCurrentLocalDate(),
         calendar: questionCalendar,
       });
       memoryRef.current = rememberData(memoryRef.current, decision.nextState);
@@ -1040,7 +1031,7 @@ export function AssistantDrawer({
       settledQuestion: question,
       nameCheck: filter,
       state: turnStart.current,
-      today: todayIso(),
+      today: getCurrentLocalDate(),
       calendar: questionCalendar,
     });
     memoryRef.current = rememberData(memoryRef.current, named.nextState);
@@ -1198,7 +1189,6 @@ export function AssistantDrawer({
     setClarification(null);
     setPendingText("");
     setReceiptFields(null);
-    setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
     setAppliedRuleName(null);
@@ -1223,7 +1213,7 @@ export function AssistantDrawer({
 
   async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text") {
     const source = spoken ?? text;
-    const today = todayIso();
+    const today = getCurrentLocalDate();
     if (!source.trim()) return;
     const request = ++requestRef.current;
     beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
@@ -1306,7 +1296,7 @@ export function AssistantDrawer({
     }
   }
 
-  function handleAmountReply(reply = amountReply) {
+  function handleAmountReply(reply: string) {
     const trimmed = reply.trim();
     if (!trimmed) return;
     const previous = held.current;
@@ -1325,7 +1315,7 @@ export function AssistantDrawer({
     }
     setPendingPhase("reading");
     setChecking(true);
-    void splitItems(source, todayIso(), {
+    void splitItems(source, getCurrentLocalDate(), {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       receivedAt: new Date().toISOString(),
       defaultCurrency,
@@ -1345,7 +1335,7 @@ export function AssistantDrawer({
     const type = parsedRule.action === "ambiguous" ? ruleChoice : parsedRule.action;
     if (!type) return;
     setSaving(true);
-    const saved = await approveUserRule(parsedRule.name, type, todayIso());
+    const saved = await approveUserRule(parsedRule.name, type, getCurrentLocalDate());
     setSaving(false);
     if (!saved) {
       setStatus("ruleFailed");

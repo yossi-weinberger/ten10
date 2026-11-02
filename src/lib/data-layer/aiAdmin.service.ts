@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import type { IntakeDraftCounts } from "@/lib/admin/ai-intake-funnel";
+import type { AiBucketGrain } from "../../../supabase/functions/_shared/ai/admin-buckets.ts";
 
 export type AdminAiBucket = {
   bucket: string;
@@ -25,16 +27,9 @@ export type AdminAiUsage = {
 export type AdminAiCounts = {
   from: string;
   to: string;
-  grain: "day" | "week" | "month";
+  grain: AiBucketGrain;
   first_on: string | null;
-  drafts: {
-    ready: number;
-    needs_review: number;
-    approved: number;
-    rejected: number;
-    committed: number;
-    reverted: number;
-  };
+  drafts: IntakeDraftCounts;
   messages_by_kind: Record<string, number>;
   origins: { ai: number; ai_auto: number };
   receipt_links: number;

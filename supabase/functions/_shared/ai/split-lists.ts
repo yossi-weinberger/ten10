@@ -44,7 +44,7 @@ function ruleRefs(data: unknown): SplitRuleRef[] {
 async function readerRules(admin: SupabaseClient, userId: string): Promise<unknown> {
   const rpc = await admin.rpc("list_ai_reader_rules", { p_user_id: userId });
   if (rpc.error) {
-    logger.error(`saved rules were not loaded: ${rpc.error.message}`);
+    logger.error(`saved rules were not loaded: ${rpc.error.code || "rpc_error"}`);
     return [];
   }
   return typeof rpc.data === "string" ? JSON.parse(rpc.data) : rpc.data;
