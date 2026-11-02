@@ -56,8 +56,8 @@ Deno.serve(async (req: Request) => {
     defaultCurrency?: unknown;
     calendar?: unknown;
     context?: unknown;
-    /** The client has a draft or standing order open, so a continuing message may take values from the chat. */
-    continuable?: unknown;
+    /** The open card's line. A continuing message may keep an amount only from it, not from the whole chat. */
+    cardLine?: unknown;
     release?: unknown;
   } | null;
 
@@ -159,7 +159,7 @@ Deno.serve(async (req: Request) => {
         rules: lists.rules,
         recipients: lists.context.recipients ?? [],
       }),
-      body?.continuable === true ? conversation : "",
+      readContextField(body?.cardLine),
     );
     return json(origin, { ...split, usage_id: usageId, retried, prep_ms: prepMs, model_ms: modelMs }, 200);
   } catch (error) {

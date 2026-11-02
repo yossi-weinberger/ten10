@@ -7,7 +7,7 @@ import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
 import { type QuestionSlots } from "./question-slots.ts";
-import { NAME_PREFIX_LETTERS } from "./split-anchor.ts";
+import { prefixesName } from "./split-anchor.ts";
 
 export type YearTypeSum = {
   year: number;
@@ -159,7 +159,7 @@ function suggestionNeedles(text: string): string[] {
   const english = text.toLowerCase().startsWith("to ") ? text.slice(3).trim() : "";
   if (english.length > 1) needles.push(english);
   const first = text[0] ?? "";
-  if (NAME_PREFIX_LETTERS.includes(first) && text.length > 2) needles.push(text.slice(1));
+  if (text.length > 2 && prefixesName(first, text.slice(1))) needles.push(text.slice(1));
   return [...new Set(needles)];
 }
 

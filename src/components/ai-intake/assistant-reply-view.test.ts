@@ -69,6 +69,8 @@ describe("buildReplyBlocks", () => {
     ]);
     const page = buildReplyBlocks(state({ intent: "domain_adjacent", halachaNamespace: "halacha-1" }));
     expect(page.map((block) => block.kind)).toEqual(["intent", "halacha"]);
+    const unsupported = buildReplyBlocks(state({ intent: "create_recurring", status: "frequencyUnsupported" }));
+    expect(unsupported[0]).toEqual({ kind: "intent", intent: "create_recurring", formLink: true });
   });
 
   it("locks a saved draft and keeps undo last", () => {

@@ -194,7 +194,7 @@ export function emptyReplyState(): ReplyState {
   };
 }
 
-/** Intents whose line is the answer itself. Other intent lines show only when nothing else answers. */
+/** Intents whose line is the answer itself. Other intent lines show only when nothing else answers, or to link the recurring form. */
 const LINE_ANSWERS: ReadonlySet<IntakeIntent> = new Set(["help", "out_of_scope", "domain_adjacent"]);
 
 export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
@@ -264,12 +264,9 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.rabbiText) blocks.push({ kind: "rabbi", text: state.rabbiText, ticket: state.rabbiTicket });
   if (state.status) blocks.push({ kind: "status", status: state.status });
   if (state.savedItemId) blocks.push({ kind: "undo" });
-  if (state.intent && (LINE_ANSWERS.has(state.intent) || blocks.length === 0)) {
-    blocks.splice(lineAt, 0, {
-      kind: "intent",
-      intent: state.intent,
-      formLink: state.intent === "create_recurring" && state.recurring === null,
-    });
+  const formLink = state.intent === "create_recurring" && state.recurring === null;
+  if (state.intent && (LINE_ANSWERS.has(state.intent) || formLink || blocks.length === 0)) {
+    blocks.splice(lineAt, 0, { kind: "intent", intent: state.intent, formLink });
   }
   return blocks;
 }

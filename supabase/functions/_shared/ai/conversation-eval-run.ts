@@ -7,7 +7,7 @@ import { splitReadContext } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "./question-period.ts";
-import { cardOpen, contextFor, decideTurn, emptyConversation, rememberData, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
+import { contextFor, decideTurn, emptyConversation, openCardLine, rememberData, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
 
 interface ExpectTurn {
   kind: string;
@@ -185,7 +185,7 @@ async function runConversation(
     const split = readSplitResponse(turn.user, readModelText(readerRaw), splitReadContext(fixture.today, {
       categories,
       recipients: fixture.recipients,
-    }), cardOpen(turnStart) ? context : "");
+    }), openCardLine(turnStart));
     const reader = { ok: true as const, ...split };
     const first = decideTurn({
       message: turn.user,

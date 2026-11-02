@@ -16,8 +16,7 @@ export type MeasurementHold = {
   at: number;
 };
 
-/** "follow" is a new question that builds on the answer on screen: the previous answer counts as answered. */
-export type QuestionOutcomeEvent = "family" | "search" | "ask" | "follow" | "timeout";
+export type QuestionOutcomeEvent = "family" | "search" | "ask" | "timeout";
 
 /** The first follow-up within 60 seconds wins. A numeric answer waits out the window. */
 export function nextQuestionOutcome(input: {

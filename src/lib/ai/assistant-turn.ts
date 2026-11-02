@@ -41,9 +41,13 @@ export function contextFor(state: ConversationState): string {
   });
 }
 
-/** A draft or standing order is open, so a continuing message may change it. */
-export function cardOpen(state: ConversationState): boolean {
-  return state.onScreen?.kind === "draft" || state.onScreen?.kind === "recurring";
+/**
+ * The line of an open draft or standing order, or "". Only this line may back an amount
+ * that a continuing message keeps: not the earlier messages, which may hold saved or dropped cards.
+ */
+export function openCardLine(state: ConversationState): string {
+  const open = state.onScreen;
+  return open && (open.kind === "draft" || open.kind === "recurring") ? open.line : "";
 }
 
 /** After a save: the card is closed and nothing is pending. */
@@ -68,20 +72,44 @@ export interface ScreenFields {
   date: string | null;
 }
 
+function fieldsLine(fields: ScreenFields): string {
+  const amount = fields.amount === null ? "no amount" : `${fields.amount} ${fields.currency || "ILS"}`;
+  return `${fields.type ?? "type not set"} ${amount}, "${fields.description}", ${fields.date || "no date"}`;
+}
+
+function whenLine(frequency: string | null, dayOfMonth: number | null): string {
+  return frequency ? `${frequency}${dayOfMonth ? ` on day ${dayOfMonth}` : ""}` : "frequency not set";
+}
+
 /** A draft shown without a reader decision: a typed amount answer, or a receipt. */
 export function rememberDraft(before: ConversationState, userText: string | null, fields: ScreenFields, label = "one transaction"): ConversationState {
   const text = userText ? clipText(userText) : "";
-  const amount = fields.amount === null ? "no amount" : `${fields.amount} ${fields.currency ?? "ILS"}`;
   return {
     recentUserTexts: text ? [...before.recentUserTexts, text].slice(-REMEMBERED_TEXTS) : before.recentUserTexts.slice(),
     receiptText: null,
-    onScreen: {
-      kind: "draft",
-      sourceText: userText ?? "",
-      line: `${label}, not saved: ${fields.type ?? "type not set"} ${amount}, "${fields.description}", ${fields.date || "no date"}, one time.`,
-    },
+    onScreen: { kind: "draft", sourceText: userText ?? "", line: `${label}, not saved: ${fieldsLine(fields)}, one time.` },
     pending: null,
   };
+}
+
+export interface LiveCards {
+  draft: ScreenFields | null;
+  recurring: (ScreenFields & { frequency: string | null; dayOfMonth: number | null }) | null;
+}
+
+/** The open card's line from the card as it is now, so the user's own edits on the card count. */
+export function withLiveCard(state: ConversationState, live: LiveCards): ConversationState {
+  const open = state.onScreen;
+  if (open?.kind === "recurring" && live.recurring) {
+    const line = `a standing order, not saved: ${fieldsLine(live.recurring)}, ${whenLine(live.recurring.frequency, live.recurring.dayOfMonth)}.`;
+    return { ...state, onScreen: { ...open, line } };
+  }
+  // A list keeps its line; only a single draft is redrawn, with the label it was shown with.
+  if (open?.kind === "draft" && live.draft && open.line.startsWith("one ")) {
+    const label = open.line.slice(0, open.line.indexOf(","));
+    return { ...state, onScreen: { ...open, line: `${label}, not saved: ${fieldsLine(live.draft)}, one time.` } };
+  }
+  return state;
 }
 
 /** A turn that leaves nothing open, such as an unreadable receipt. */
@@ -465,8 +493,7 @@ function typeOf(item: AnchoredSplitItem): string {
 }
 
 function itemLine(item: AnchoredSplitItem): string {
-  const amount = item.amount === null ? "no amount" : `${item.amount} ${item.currency || "ILS"}`;
-  return `${typeOf(item)} ${amount}, "${item.description}", ${item.date ?? "no date"}`;
+  return fieldsLine({ ...item, type: typeOf(item) });
 }
 
 /** The open card, from what this turn shows. Null when nothing stays open. */
@@ -476,8 +503,7 @@ function screenOf(message: string, decision: Omit<TurnDecision, "nextState">, re
   const first = items[0];
   const card = decision.card;
   if (card.type === "recurring" && first) {
-    const recurrence = first.recurrence;
-    const when = recurrence ? `${recurrence.frequency}${recurrence.dayOfMonth ? ` on day ${recurrence.dayOfMonth}` : ""}` : "frequency not set";
+    const when = whenLine(first.recurrence?.frequency ?? null, first.recurrence?.dayOfMonth ?? null);
     return { kind: "recurring", sourceText: message, line: `a standing order, not saved: ${itemLine(first)}, ${when}.` };
   }
   if ((card.type === "draft" || card.type === "clarify") && first) {
@@ -524,7 +550,9 @@ function readerSays(reader: TurnReader | null, flag: "continues" | "discards"): 
 function cardTurn(input: TurnInput): TurnDecision | null {
   if (input.forcedIntent) return null;
   const open = input.state.onScreen;
-  const card: TurnCard | null = readerSays(input.reader, "discards") && (open?.kind === "draft" || open?.kind === "recurring")
+  // "Drop it, I gave 50 to Ezer Mizion" brings a new card, so it is routed like any message.
+  const onlyDrops = !readerHasMovement(input.reader) && !severalOf(input.reader)?.items.length;
+  const card: TurnCard | null = readerSays(input.reader, "discards") && onlyDrops && (open?.kind === "draft" || open?.kind === "recurring")
     ? { type: "discarded" }
     : readerSays(input.reader, "continues") && open?.kind === "saved"
       ? { type: "already_saved" }

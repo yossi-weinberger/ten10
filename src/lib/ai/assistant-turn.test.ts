@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
-import { contextFor, decideTurn, emptyConversation, readerHasMovement, rememberSaved, rememberUndone, summarizeTurn, type TurnInput, type TurnReader } from "./assistant-turn";
+import { contextFor, decideTurn, emptyConversation, openCardLine, readerHasMovement, rememberClosed, rememberDraft, rememberSaved, rememberUndone, summarizeTurn, withLiveCard, type TurnInput, type TurnReader } from "./assistant-turn";
 
 function item(partial: Partial<AnchoredSplitItem>): AnchoredSplitItem {
   return {
@@ -428,6 +428,24 @@ describe("decideTurn", () => {
     expect(nothingOpen.card.type).not.toBe("discarded");
     const chosen = decideTurn(base({ reader: drop, state: open, forcedIntent: "add_transaction" }));
     expect(chosen.card.type).not.toBe("discarded");
+    const dropAndGive = decideTurn(base({
+      message: "לא, תמחק. תרמתי 50 לעזר מציון",
+      reader: { ok: true, route: "several", items: [item({ amount: 50, description: "עזר מציון" })], rule: null, question: null, discards: true },
+      state: open,
+    }));
+    expect(dropAndGive.card.type).not.toBe("discarded");
+  });
+
+  it("redraws the open card from the user's own edits, and only the card line backs an amount", () => {
+    const fields = { amount: 120, currency: "ILS", type: "expense", description: "חלב", date: "2026-11-02" };
+    const open = rememberDraft(emptyConversation(), "חלב 120", fields);
+    const edited = withLiveCard(open, { draft: { ...fields, amount: 150 }, recurring: null });
+    expect(openCardLine(edited)).toBe('one transaction, not saved: expense 150 ILS, "חלב", 2026-11-02, one time.');
+    expect(contextFor(edited)).not.toContain("120 ILS");
+    const receipt = withLiveCard(rememberDraft(emptyConversation(), null, fields, "one receipt"), { draft: fields, recurring: null });
+    expect(openCardLine(receipt).startsWith("one receipt, not saved")).toBe(true);
+    expect(openCardLine(rememberSaved(open, "item-1"))).toBe("");
+    expect(openCardLine(rememberClosed(open))).toBe("");
   });
 
   it("says a continued card was already saved and keeps it as saved", () => {

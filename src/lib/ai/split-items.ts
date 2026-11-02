@@ -29,8 +29,8 @@ export interface SplitCallOptions {
   calendar?: "gregorian" | "hebrew";
   /** The earlier-turns block from conversationContext. */
   context?: string;
-  /** A draft or standing order is open, so a continuing message may take values from the chat. */
-  continuable?: boolean;
+  /** The open draft or standing order's line. A continuing message may keep an amount only from it. */
+  cardLine?: string;
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -52,7 +52,7 @@ export async function splitItems(
       defaultCurrency: options.defaultCurrency,
       calendar: options.calendar,
       ...(options.context ? { context: options.context } : {}),
-      ...(options.continuable ? { continuable: true } : {}),
+      ...(options.cardLine ? { cardLine: options.cardLine } : {}),
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };

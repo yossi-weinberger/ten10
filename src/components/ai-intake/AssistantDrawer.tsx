@@ -62,12 +62,13 @@ import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTab
 import { recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
 import { releaseSplit, splitItems, type SplitItemsResult } from "@/lib/ai/split-items";
 import {
-  cardOpen,
   contextFor,
   decideTurn,
   emptyConversation,
+  openCardLine,
   rememberClosed,
   rememberData,
+  withLiveCard,
   rememberDraft,
   rememberSaved,
   rememberUndone,
@@ -755,6 +756,7 @@ export function AssistantDrawer({
     const key = splitKey.current ?? crypto.randomUUID();
     splitKey.current = key;
     setSaving(true);
+    const request = requestRef.current;
     const result = await saveSplitDrafts(splitDrafts, key);
     setSaving(false);
     if (!result.ok) {
@@ -768,7 +770,7 @@ export function AssistantDrawer({
         : card;
     }));
     setStatus("saved");
-    memoryRef.current = rememberSaved(memoryRef.current, null);
+    if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, null);
     void refreshAfterIntakeSave();
   }
 
@@ -776,6 +778,7 @@ export function AssistantDrawer({
     const card = splitDrafts?.find((item) => item.key === key);
     if (!card?.itemId) return;
     setUndoing(true);
+    const request = requestRef.current;
     const result = await undoTextIntake(card.itemId);
     setUndoing(false);
     if (!result.ok) {
@@ -786,7 +789,7 @@ export function AssistantDrawer({
       item.key === key ? { ...item, transactionId: null, itemId: null, checked: true } : item
     )) ?? null);
     setStatus("undone");
-    memoryRef.current = rememberUndone(memoryRef.current);
+    if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
     void refreshAfterIntakeSave();
   }
 
@@ -802,6 +805,7 @@ export function AssistantDrawer({
       || recurring.frequency !== "monthly"
     ) return;
     setSaving(true);
+    const request = requestRef.current;
     try {
       if (recurring.includeThisMonth === "yes") {
         const candidates = await listDuplicateCandidates({
@@ -847,7 +851,7 @@ export function AssistantDrawer({
         executionCount: saved.execution_count,
       });
       setStatus("recurringSaved");
-      memoryRef.current = rememberSaved(memoryRef.current, null);
+      if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, null);
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
       setStatus("recurringSaveFailed");
@@ -861,12 +865,13 @@ export function AssistantDrawer({
     if (!row || !recurring || saving || recurring.cancelled || row.created_at === undefined) return;
     if (!recurringCancelOpen(row.created_at, row.execution_count, new Date())) return;
     setSaving(true);
+    const request = requestRef.current;
     try {
       await updateRecurringTransaction(row.id, { ...row, status: "cancelled" }, row);
       savedRecurring.current = { ...row, status: "cancelled" };
       setRecurring({ ...recurring, cancelled: true });
       setStatus("recurringCancelled");
-      memoryRef.current = rememberUndone(memoryRef.current);
+      if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
       setStatus("recurringCancelFailed");
@@ -942,7 +947,7 @@ export function AssistantDrawer({
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
     const request = requestRef.current;
-    followQuestion(family ? "family" : searchDescriptions ? "search" : turnStart.current.onScreen?.kind === "data_answer" ? "follow" : "ask");
+    followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
@@ -1156,9 +1161,15 @@ export function AssistantDrawer({
   };
 
   function beginTurn(user: UserTurn) {
+    const current = conversationRef.current;
+    const shown = current.reply.draft;
+    const card = current.reply.recurring;
+    memoryRef.current = withLiveCard(memoryRef.current, {
+      draft: shown ? { ...shown.draft, amount: Number(shown.amountInput) || shown.draft.amount } : null,
+      recurring: card ? { ...card, date: card.startDate } : null,
+    });
     turnStart.current = memoryRef.current;
     contextRef.current = contextFor(memoryRef.current);
-    const current = conversationRef.current;
     const next = nextConversation(
       current.history,
       current.active,
@@ -1223,7 +1234,7 @@ export function AssistantDrawer({
       defaultCurrency,
       calendar: questionCalendar,
       context: contextRef.current,
-      continuable: cardOpen(turnStart.current),
+      cardLine: openCardLine(turnStart.current),
     });
     const decided = await classifyIntentFallback(source, contextRef.current);
     const split = await splitPromise;
@@ -1317,7 +1328,7 @@ export function AssistantDrawer({
       defaultCurrency,
       calendar: questionCalendar,
       context: contextRef.current,
-      continuable: cardOpen(turnStart.current),
+      cardLine: openCardLine(turnStart.current),
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);
@@ -1358,6 +1369,7 @@ export function AssistantDrawer({
       return;
     }
     setSaving(true);
+    const request = requestRef.current;
     setStatus(null);
     const savingDraft = { ...draft, amount };
     idempotency.current = nextDraftIdempotency(idempotency.current, {
@@ -1388,7 +1400,7 @@ export function AssistantDrawer({
       return;
     }
     if (result.ok) {
-      memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
+      if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
@@ -1409,10 +1421,11 @@ export function AssistantDrawer({
   async function handleUndo() {
     if (!savedItemId || undoing) return;
     setUndoing(true);
+    const request = requestRef.current;
     const result = await undoTextIntake(savedItemId);
     setUndoing(false);
     if (result.ok) {
-      memoryRef.current = rememberUndone(memoryRef.current);
+      if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
       setSavedItemId(null);
       refreshAfterIntakeSave();
       setStatus("undone");
@@ -1578,6 +1591,7 @@ export function AssistantDrawer({
           onDismissRecurring: () => {
             savedRecurring.current = null;
             setRecurring(null);
+            memoryRef.current = rememberClosed(memoryRef.current);
           },
           onCancelRecurring: () => {
             void handleCancelRecurring();

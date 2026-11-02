@@ -425,7 +425,7 @@
           }
         }
       ],
-      "note": "A question that names no period is answered for all time (plan rule), so a direct answer is also right."
+      "note": "A question that names no period asks for one (the rule since #640). A direct all-time answer is accepted too, because the period reader may read no period as all time."
     },
     {
       "id": "conv-014",
