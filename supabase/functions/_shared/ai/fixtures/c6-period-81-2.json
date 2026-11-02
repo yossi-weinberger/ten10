@@ -1,0 +1,738 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "fixture": "supabase/functions/_shared/ai/fixtures/question-slot-eval-cases.json",
+  "cases": 81,
+  "labeled": 71,
+  "labeledCorrect": 71,
+  "rows": [
+    {
+      "id": "slot-001",
+      "text": "כמה תרמתי ב-2025?",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-002",
+      "text": "how much did I spend in 2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-003",
+      "text": "כמה קיבלתי ב-2024",
+      "modelOk": true,
+      "from": "2024-01-01",
+      "to": "2024-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"to\":null,\"kind\":\"year\",\"year\":2024,\"month\":null,\"n\":null,\"offset\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-004",
+      "text": "קניתי מאפים ב-15 שח",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":null}",
+      "nameText": null
+    },
+    {
+      "id": "slot-005",
+      "text": "כמה זה מעשר?",
+      "modelOk": false,
+      "from": "2026-09-12",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-006",
+      "text": "כמה תרמתי השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-007",
+      "text": "how much did I donate this month",
+      "modelOk": true,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-008",
+      "text": "כמה תרומות ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-009",
+      "text": "how many donations this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-010",
+      "text": "כמה תרמתי ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-011",
+      "text": "כמה תרמתי ב-3 חודשים אחרונים",
+      "modelOk": true,
+      "from": "2026-07-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-012",
+      "text": "how many expenses in the last 2 months",
+      "modelOk": true,
+      "from": "2026-08-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":2,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-013",
+      "text": "כמה תרמתי ב-0 חודשים אחרונים",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":0,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-014",
+      "text": "כמה נתתי לצדקה השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"to\":null,\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"name_text\":\"צדקה\"}}",
+      "nameText": "צדקה"
+    },
+    {
+      "id": "slot-015",
+      "text": "כמה נתתי צדקה ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-016",
+      "text": "כמה הכנסתי השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-017",
+      "text": "כמה יצא לי על הוצאות השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-018",
+      "text": "כמה תרמתי ב-3 החודשים האחרונים",
+      "modelOk": true,
+      "from": "2026-07-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-019",
+      "text": "כמה תרמתי בשלושת החודשים האחרונים",
+      "modelOk": true,
+      "from": "2026-07-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-020",
+      "text": "כמה תרמתי החודש",
+      "modelOk": true,
+      "from": "2026-10-01",
+      "to": "2026-10-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"month\",\"year\":2026,\"month\":10,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-021",
+      "text": "כמה תרמתי למעשר בשלושת החודשים האחרונים",
+      "modelOk": true,
+      "from": "2026-07-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"מעשר\"}}",
+      "nameText": "מעשר"
+    },
+    {
+      "id": "slot-022",
+      "text": "כמה תרמתי בשנים עשר החודשים האחרונים",
+      "modelOk": true,
+      "from": "2025-10-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":12,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-023",
+      "text": "כמה תרמתי השנה שעברה",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-024",
+      "text": "כמה תרמתי בחצי השנה האחרונה",
+      "modelOk": true,
+      "from": "2026-04-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":6,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-025",
+      "text": "כמה תרמתי בחודש האחרון",
+      "modelOk": true,
+      "from": "2026-09-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":1,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-026",
+      "text": "how much did I spend on food from 1.1.2025 to 31.3.2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"calendar\":\"gregorian\",\"name_text\":\"food\"}}}",
+      "nameText": "food"
+    },
+    {
+      "id": "slot-027",
+      "text": "כמה הוצאתי מינואר עד מרץ 2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-028",
+      "text": "כמה תרמתי לישיבה ולבית חבד השנה",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"לישיבה ולבית חבד\"}}}",
+      "nameText": "לישיבה ולבית חבד"
+    },
+    {
+      "id": "slot-029",
+      "text": "כמה תרמתי לפינת חי השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"פינת חי\"}}",
+      "nameText": "פינת חי"
+    },
+    {
+      "id": "slot-030",
+      "text": "כמה תרמתי לכולל השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"כולל\"}}",
+      "nameText": "כולל"
+    },
+    {
+      "id": "slot-031",
+      "text": "כמה תרמתי לישיבה ב-3 החודשים האחרונים",
+      "modelOk": true,
+      "from": "2026-07-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":3,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"ישיבה\"}}}",
+      "nameText": "ישיבה"
+    },
+    {
+      "id": "slot-032",
+      "text": "כמה הוצאתי במרץ 2025",
+      "modelOk": true,
+      "from": "2025-03-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":2025,\"month\":3,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-033",
+      "text": "כמה הוצאתי על אוכל מינואר עד מרץ 2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"kind\":\"range\",\"month\":null,\"n\":null,\"name_text\":\"אוכל\",\"offset\":null,\"year\":null}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-034",
+      "text": "כמה תרמתי בשנת המעשר 5786",
+      "modelOk": true,
+      "from": "2025-09-23",
+      "to": "2026-09-11",
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":5786,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-035",
+      "text": "how much did I donate to Chabad and to Mir this year",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"Chabad and Mir\"}}",
+      "nameText": "Chabad and Mir"
+    },
+    {
+      "id": "slot-036",
+      "text": "כמה תרמתי מינואר 2024 עד מרץ 2025",
+      "modelOk": true,
+      "from": "2024-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2024},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-037",
+      "text": "כמה תרמתי לישיבה בשנת המעשר",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"ישיבה\"}}",
+      "nameText": "ישיבה"
+    },
+    {
+      "id": "slot-038",
+      "text": "כמה תרמתי בשנת המעשר 2025",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-039",
+      "text": "כמה הוצאתי ב-31.2.2025",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":2,\"year\":2025},\"to\":null,\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-040",
+      "text": "כמה הוצאתי מ-31.3.2025 עד 1.1.2025",
+      "modelOk": false,
+      "from": null,
+      "to": null,
+      "model": "{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-041",
+      "text": "how much did I spend from 1/1/2025 to 3/31/2025",
+      "modelOk": false,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-042",
+      "text": "כמה תרמתי בשנת המעשר הקודמת",
+      "modelOk": true,
+      "from": "2025-09-23",
+      "to": "2026-09-11",
+      "model": "{\"period\":{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":-1,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-043",
+      "text": "how much did I donate last maaser year",
+      "modelOk": true,
+      "from": "2025-09-23",
+      "to": "2026-09-11",
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":-1,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-044",
+      "text": "כמה תרמתי ל-ישיבה השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"ישיבה\"}}",
+      "nameText": "ישיבה"
+    },
+    {
+      "id": "slot-045",
+      "text": "how much did I donate to the yeshiva this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"yeshiva\"}}",
+      "nameText": "yeshiva"
+    },
+    {
+      "id": "slot-046",
+      "text": "כמה תרמתי לישיבת מיר השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"ישיבת מיר\"}}",
+      "nameText": "ישיבת מיר"
+    },
+    {
+      "id": "slot-047",
+      "text": "כמה תרמתי לעניים השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"עניים\"}}",
+      "nameText": "עניים"
+    },
+    {
+      "id": "slot-048",
+      "text": "כמה תרמתי למעשר השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"מעשר\"}}",
+      "nameText": "מעשר"
+    },
+    {
+      "id": "slot-049",
+      "text": "כמה תרמתי לפי שנת המעשר",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-050",
+      "text": "כמה הוצאתי על אוכל מ-1.1.2025 עד 31.3.2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"calendar\":\"gregorian\",\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-051",
+      "text": "כמה תרמתי לישיבה השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"ישיבה\"}}}",
+      "nameText": "ישיבה"
+    },
+    {
+      "id": "slot-052",
+      "text": "כמה תרמתי לצדקה השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"צדקה\"}}}",
+      "nameText": "צדקה"
+    },
+    {
+      "id": "slot-053",
+      "text": "כמה תרמתי בשנת המעשר",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-054",
+      "text": "כמה הוצאתי מ-1.1.2025 עד 31.3.2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-03-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"range\",\"year\":null,\"month\":null,\"n\":null,\"offset\":null,\"from\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":1,\"month\":1,\"year\":2025},\"to\":{\"kind\":\"exact\",\"n\":null,\"weekday\":null,\"day\":31,\"month\":3,\"year\":2025},\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-055",
+      "text": "כמה הוצאתי על אוכל השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-056",
+      "text": "כמה הוצאתי על אוכל השנה?",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-057",
+      "text": "כמה הוצאתי על אוכל ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"from\":null,\"to\":null,\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-058",
+      "text": "כמה הוצאתי על אוכל בשנה שעברה",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-059",
+      "text": "כמה הוצאתי על אוכל בחודש האחרון",
+      "modelOk": true,
+      "from": "2026-09-20",
+      "to": "2026-10-19",
+      "model": "{\"period\":{\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":1,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"אוכל\"}}",
+      "nameText": "אוכל"
+    },
+    {
+      "id": "slot-060",
+      "text": "כמה הוצאתי על אוכל באשראי השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-061",
+      "text": "how much did I spend on food in 2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"food\"}}",
+      "nameText": "food"
+    },
+    {
+      "id": "slot-062",
+      "text": "כמה הוצאתי על ביטוח השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"ביטוח\"}}",
+      "nameText": "ביטוח"
+    },
+    {
+      "id": "slot-063",
+      "text": "כמה הוצאתי על ביטול השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"ביטול\"}}",
+      "nameText": "ביטול"
+    },
+    {
+      "id": "slot-064",
+      "text": "כמה הוצאתי בכרטיס דביט השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-065",
+      "text": "check how much I donated this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-066",
+      "text": "כמה הוצאתי על בצק השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":\"בצק\"}}}",
+      "nameText": "בצק"
+    },
+    {
+      "id": "slot-067",
+      "text": "כמה הוצאתי באשראי השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-068",
+      "text": "how much cash did I donate this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-069",
+      "text": "כמה הוצאתי במזומן ובאשראי השנה",
+      "modelOk": false,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-070",
+      "text": "מה התרומה הכי גדולה השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-071",
+      "text": "largest expense this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-072",
+      "text": "ממוצע תרומות השנה",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-073",
+      "text": "average donations this year",
+      "modelOk": true,
+      "from": "2026-01-01",
+      "to": "2026-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2026,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-074",
+      "text": "ממוצע תרומות ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"period\":{\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"gregorian\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-075",
+      "text": "כמה תרמתי ב-1 חודשים אחרונים",
+      "modelOk": true,
+      "from": "2026-03-01",
+      "to": "2026-03-31",
+      "model": "{\"period\":{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"last_n_months\",\"year\":null,\"month\":null,\"n\":1,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-076",
+      "text": "כמה הוצאתי החודש",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2026-10-11",
+      "model": "{\"period\":{\"kind\":\"month\",\"year\":5787,\"month\":1,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-077",
+      "text": "כמה הוצאתי השנה",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2027-10-01",
+      "model": "{\"period\":{\"kind\":\"year\",\"year\":5787,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-078",
+      "text": "כמה הוצאתי ב-2025",
+      "modelOk": true,
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "model": "{\"period\":{\"calendar\":\"gregorian\",\"kind\":\"year\",\"year\":2025,\"month\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"name_text\":null}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-079",
+      "text": "כמה תרמתי בשנת המעשר",
+      "modelOk": true,
+      "from": "2026-09-12",
+      "to": "2026-09-20",
+      "model": "{\"period\":{\"period\":{\"kind\":\"maaser_year\",\"year\":null,\"month\":null,\"n\":null,\"offset\":0,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-080",
+      "text": "כמה הוצאתי החודש",
+      "modelOk": true,
+      "from": "2026-09-01",
+      "to": "2026-09-30",
+      "model": "{\"period\":{\"period\":{\"kind\":\"month\",\"year\":2026,\"month\":9,\"calendar\":\"gregorian\",\"name_text\":null,\"n\":null,\"offset\":null,\"from\":null,\"to\":null}}}",
+      "nameText": null
+    },
+    {
+      "id": "slot-081",
+      "text": "כמה הוצאתי החודש",
+      "modelOk": true,
+      "from": "2024-03-11",
+      "to": "2024-04-08",
+      "model": "{\"period\":{\"kind\":\"month\",\"year\":5784,\"month\":7,\"n\":null,\"offset\":null,\"from\":null,\"to\":null,\"calendar\":\"hebrew\",\"name_text\":null}}",
+      "nameText": null
+    }
+  ]
+}

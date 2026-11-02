@@ -1,0 +1,69 @@
+{
+  "promptSeesExamples": false,
+  "cases": 8,
+  "passed": 7,
+  "rows": [
+    {
+      "id": "pos-receipt",
+      "expect": "rule-gan",
+      "ruleIds": [],
+      "pass": false,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":1200,\"amount_text\":\"1,200\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"גן ילדים שושנים שכר לימוד גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
+    },
+    {
+      "id": "pos-paid",
+      "expect": "rule-gan",
+      "ruleIds": [
+        "rule-gan"
+      ],
+      "pass": true,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":900,\"amount_text\":\"900\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":\"rule-gan\"}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
+    },
+    {
+      "id": "pos-bare",
+      "expect": "rule-gan",
+      "ruleIds": [
+        "rule-gan"
+      ],
+      "pass": true,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":900,\"amount_text\":\"900\",\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":\"rule-gan\"}],\"more_than_five\":false,\"rule\":null,\"question\":null}"
+    },
+    {
+      "id": "pos-tuition",
+      "expect": "rule-gan",
+      "ruleIds": [
+        "rule-gan"
+      ],
+      "pass": true,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":900,\"amount_text\":\"900\",\"currency\":\"ILS\",\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"שכר לימוד גן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":\"rule-gan\"}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
+    },
+    {
+      "id": "neg-thief",
+      "expect": null,
+      "ruleIds": [],
+      "pass": true,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"גנב\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
+    },
+    {
+      "id": "neg-shield",
+      "expect": null,
+      "ruleIds": [],
+      "pass": true,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"מגן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":\"rule-gan\"}],\"more_than_five\":false,\"rule\":null,\"question\":null,\"continues\":false,\"discards\":false}"
+    },
+    {
+      "id": "neg-gardener",
+      "expect": null,
+      "ruleIds": [],
+      "pass": true,
+      "model": "{\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":null,\"type_question\":null,\"recurrence\":null,\"description\":\"גנן\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":\"rule-gan\"}],\"more_than_five\":false,\"rule\":{\"match\":\"גנן\",\"action\":null},\"question\":null,\"continues\":false,\"discards\":false}"
+    },
+    {
+      "id": "neg-garden",
+      "expect": null,
+      "ruleIds": [],
+      "pass": true,
+      "model": "{\"continues\":false,\"discards\":false,\"items\":[{\"amount\":null,\"amount_text\":null,\"currency\":null,\"requested_rate\":null,\"date\":null,\"date_text\":null,\"type\":\"expense\",\"type_question\":null,\"recurrence\":null,\"description\":\"גינה\",\"is_total\":false,\"unsupported_frequency\":false,\"payment_method\":null,\"category\":null,\"rule_id\":null}],\"more_than_five\":false,\"question\":null,\"rule\":null}"
+    }
+  ]
+}
