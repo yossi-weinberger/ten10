@@ -54,6 +54,25 @@ describe("decideTurn", () => {
     expect(decision.card).toEqual({ type: "clarify", field: "type" });
   });
 
+  it("asks about a guessed special type and shows a stated one on the card", () => {
+    const guessed = decideTurn(base({
+      reader: { ok: true, route: "several", items: [item({ typeHint: "income", typeQuestion: "exempt-income" })], rule: null, question: null },
+    }));
+    expect(guessed.card).toEqual({ type: "clarify", field: "special" });
+    const statedInput = base({
+      reader: {
+        ok: true,
+        route: "several",
+        items: [item({ typeHint: "income", typeQuestion: "exempt-income", specialStated: true })],
+        rule: null,
+        question: null,
+      },
+    });
+    const stated = decideTurn(statedInput);
+    expect(stated.card.type).toBe("draft");
+    expect(summarizeTurn(statedInput, stated).type).toBe("exempt-income");
+  });
+
   it("waits for an amount when the reader has none", () => {
     const decision = decideTurn(base({
       reader: { ok: true, route: "several", items: [item({ amount: null })], rule: null, question: null },
@@ -119,27 +138,60 @@ describe("decideTurn", () => {
     }), decision).kind).toBe("recurring");
   });
 
-  it("does not show a standing order when Jev says add_transaction", () => {
+  it("shows the standing order the reader read when Jev says add_transaction", () => {
+    const monthly = item({
+      recurrence: {
+        frequency: "monthly",
+        calendarType: "gregorian",
+        startDate: "2026-11-01",
+        dayOfMonth: 10,
+        weekday: null,
+        totalOccurrences: null,
+        alreadyCharged: false,
+      },
+    });
+    const reader: TurnReader = { ok: true, route: "several", items: [monthly], rule: null, question: null };
+    const decision = decideTurn(base({ reader }));
+    expect(decision.card.type).toBe("recurring");
+    expect(decision.intent).toBe("create_recurring");
+    expect(decision.releaseAs).toBe("create_recurring");
+    expect(summarizeTurn(base({ reader }), decision).kind).toBe("recurring");
+
+    const several: TurnReader = { ok: true, route: "several", items: [monthly, item({ amount: 30 })], rule: null, question: null };
+    expect(decideTurn(base({ reader: several })).card.type).toBe("drafts");
+
+    const chosen = decideTurn(base({ reader, forcedIntent: "add_transaction" }));
+    expect(chosen.card.type).toBe("draft");
+    expect(chosen.intent).toBe("add_transaction");
+
+    const ruled = decideTurn(base({
+      jev: { ok: true, intent: "create_rule", confidence: 0.95 },
+      reader: { ...reader, rule: { match: "כולל", action: "non_tithe_donation" } },
+    }));
+    expect(ruled.card.type).toBe("rule");
+  });
+
+  it("asks when an unsure Jev leans to a standing order the reader could not read", () => {
+    const reader: TurnReader = { ok: true, route: "several", items: [item({ amount: 100 })], rule: null, question: null };
+    const unsure = decideTurn(base({ jev: { ok: true, intent: "create_recurring", confidence: 0.57 }, reader }));
+    expect(unsure.mode).toBe("ask");
+    expect(unsure.card.type).toBe("none");
+    const sure = decideTurn(base({ jev: { ok: true, intent: "create_recurring", confidence: 0.95 }, reader }));
+    expect(sure.card.type).toBe("recurring");
+    const otherLabel = decideTurn(base({ jev: { ok: true, intent: "create_rule", confidence: 0.4 }, reader }));
+    expect(otherLabel.intent).toBe("add_transaction");
+  });
+
+  it("keeps a standing order behind an out-of-scope label as no card", () => {
     const reader: TurnReader = {
       ok: true,
       route: "several",
-      items: [item({
-        recurrence: {
-          frequency: "monthly",
-          calendarType: "gregorian",
-          startDate: "2026-11-01",
-          dayOfMonth: 10,
-          weekday: null,
-          totalOccurrences: null,
-          alreadyCharged: false,
-        },
-      })],
+      items: [item({ amount: null, recurrence: { frequency: "monthly", calendarType: "gregorian", startDate: "2026-11-01", dayOfMonth: 10, weekday: null, totalOccurrences: null, alreadyCharged: false } })],
       rule: null,
       question: null,
     };
-    const decision = decideTurn(base({ reader }));
-    expect(decision.card.type).toBe("draft");
-    expect(summarizeTurn(base({ reader }), decision).kind).toBe("draft");
+    const decision = decideTurn(base({ jev: { ok: true, intent: "out_of_scope", confidence: 0.95 }, reader }));
+    expect(decision.card.type).toBe("none");
   });
 
   it("blocks an unsupported frequency whatever Jev's label", () => {

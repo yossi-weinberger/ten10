@@ -140,6 +140,14 @@ describe("recurring card dates", () => {
     expect(nextRecurringQuestion(card({ alreadyCharged: true }))).toBe("includeThisMonth");
   });
 
+  it("asks about a guessed special type after the type and blocks the save until answered", () => {
+    const guessed = card({ type: "income", typeQuestion: "exempt-income" });
+    expect(nextRecurringQuestion(guessed)).toBe("special");
+    expect(recurringCardReady(guessed, "2026-11-01")).toBe(false);
+    expect(nextRecurringQuestion(card({ type: null, typeQuestion: "exempt-income" }))).toBe("type");
+    expect(recurringCardReady(card({ type: "exempt-income", typeQuestion: null }), "2026-11-01")).toBe(true);
+  });
+
   it("refuses a weekly or yearly order instead of saving it as monthly", () => {
     expect(unsupportedRecurringFrequency("weekly")).toBe(true);
     expect(unsupportedRecurringFrequency("yearly")).toBe(true);

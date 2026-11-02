@@ -40,6 +40,8 @@ export interface AnchoredSplitItem {
   checkAmount: boolean;
   typeHint: SplitTypeHint;
   typeQuestion: SpecialType | null;
+  /** The message itself stated the special type, so the card carries it without asking. */
+  specialStated?: boolean;
   requestedRate: number | null;
   paymentMethod: SplitPayment | null;
   category: string | null;
@@ -47,6 +49,11 @@ export interface AnchoredSplitItem {
   ruleName: string | null;
   recurrence: ResolvedRecurrence | null;
   unsupportedFrequency: boolean;
+}
+
+/** The special type the message stated. A guessed one stays a question. */
+export function statedSpecialType(item: Pick<AnchoredSplitItem, "specialStated" | "typeQuestion">): SpecialType | null {
+  return item.specialStated && item.typeQuestion ? item.typeQuestion : null;
 }
 
 export function splitReadContext(today: string, extra: Partial<SplitReadContext> = {}): SplitReadContext {
@@ -304,6 +311,7 @@ export function anchorSplitItems(
         checkAmount: amount.checkAmount,
         typeHint: rejected ? "" : rule ? rule.type : special ? ordinaryType(item.type) : item.type ?? "",
         typeQuestion: rejected || rule ? null : askedSpecial(item.type) ?? item.type_question,
+        specialStated: special && !rejected && !rule,
         requestedRate: item.requested_rate !== null && item.requested_rate > 0 ? item.requested_rate : null,
         paymentMethod: item.payment_method,
         category,

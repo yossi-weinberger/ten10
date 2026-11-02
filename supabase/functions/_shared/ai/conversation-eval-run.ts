@@ -11,6 +11,8 @@ import { decideTurn, emptyConversation, summarizeTurn, type TurnQuestion, type T
 
 interface ExpectTurn {
   kind: string;
+  /** Another answer that is also right, such as a published page instead of the rabbi card. */
+  alsoOk?: string[];
   amount?: number;
   type?: string;
   date?: string;
@@ -40,6 +42,7 @@ interface Fixture {
 
 const TOPIC_COUNTS: Record<string, number> = {
   real_chat: 1,
+  recurring_no_frequency: 1,
   draft_fix: 6,
   assistant_answer: 8,
   data_followup: 5,
@@ -131,6 +134,7 @@ async function askQuestion(
 
 function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   const flags: string[] = [];
+  const accepted = [expect.kind, ...(expect.alsoOk ?? [])];
   const card = summary.kind === "draft" || summary.kind === "drafts" || summary.kind === "recurring";
   if (card && expect.amount !== undefined && summary.amount !== expect.amount) flags.push("wrong_save");
   if (card && expect.type !== undefined && summary.type !== expect.type) flags.push("wrong_save");
@@ -138,8 +142,8 @@ function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   if (summary.kind === "recurring" && expect.frequency !== undefined && summary.frequency !== expect.frequency) flags.push("wrong_save");
   if (summary.kind === "recurring" && expect.day !== undefined && summary.day !== expect.day) flags.push("wrong_save");
   if (expect.kind === "recurring" && (summary.kind === "draft" || summary.kind === "drafts")) flags.push("recurring_as_one_time");
-  if ((summary.kind === "out_of_scope" || summary.kind === "could_not_read") && expect.kind !== "out_of_scope") flags.push("dead_end");
-  if (summary.kind === "question" && expect.kind !== "question") flags.push("unnecessary_question");
+  if ((summary.kind === "out_of_scope" || summary.kind === "could_not_read") && !accepted.includes("out_of_scope")) flags.push("dead_end");
+  if (summary.kind === "question" && !accepted.includes("question")) flags.push("unnecessary_question");
   return [...new Set(flags)];
 }
 
@@ -214,7 +218,8 @@ async function runConversation(
       calendar: fixture.calendar,
     }, decision);
     const flags = flagsFor(turn.expect, summary);
-    const turnCorrect = summary.kind === turn.expect.kind && fieldsMatch(turn.expect, summary) && flags.length === 0;
+    const kindOk = summary.kind === turn.expect.kind || (turn.expect.alsoOk ?? []).includes(summary.kind);
+    const turnCorrect = kindOk && fieldsMatch(turn.expect, summary) && flags.length === 0;
     const reason = turnCorrect ? "turn_correct" : flags[0] ?? "wrong_kind";
     const usage = [readModelUsage(jevRaw), readModelUsage(readerRaw)];
     rows.push({

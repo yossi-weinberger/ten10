@@ -1,7 +1,7 @@
 import type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent.ts";
 import { questionFromSlots, type YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 import type { QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
-import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+import { statedSpecialType, type AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import { namedHalachaPage, shownIntent, type ShownIntent } from "../../components/ai-intake/assistant-shown-intent.ts";
 import { yearSumFromReader } from "./reader-question.ts";
@@ -212,6 +212,12 @@ function route(input: TurnInput): Routed {
     }, movement)
     : shownIntent(input.message, input.today, { ok: false }, movement);
   const dataCandidate = input.jev.ok && (input.jev.intent === "ask_data" || readerQuestion(input.reader) !== null);
+  // An unsure Jev leaning to a standing order, with no recurrence read, asks rather than guessing a one-time draft.
+  const leansRecurring = shown === "ask" && input.jev.ok && input.jev.intent === "create_recurring"
+    && !severalOf(input.reader)?.items.some((item) => item.recurrence);
+  if (movement && leansRecurring) {
+    return { releaseAs: shown, mode: "ask", intent: null, withData: false, preferRabbi: false, publishedPage: null };
+  }
   if (
     movement
     && (shown === "ask" || shown === "ask_data" || shown === "ask_rabbi" || shown === "add_transaction" || shown === "inspiration")
@@ -259,7 +265,7 @@ function transactionCard(reader: TurnReader | null): TurnCard {
   const item = reader.items[0];
   if (!item) return { type: "could_not_read" };
   if (item.typeHint === "") return { type: "clarify", field: "type" };
-  if (item.typeQuestion) return { type: "clarify", field: "special" };
+  if (item.typeQuestion && !statedSpecialType(item)) return { type: "clarify", field: "special" };
   if (item.amount === null) return { type: "clarify", field: "amount" };
   return { type: "draft", checkAmount: item.checkAmount === true, checkDate: item.checkDate === true };
 }
@@ -268,7 +274,7 @@ function frequencyBlocked(reader: TurnReader | null): boolean {
   return severalOf(reader)?.items.some((item) => item.unsupportedFrequency) === true;
 }
 
-function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCard {
+function cardFor(intent: IntakeIntent | null, reader: TurnReader | null, chosen: boolean): TurnCard {
   const several = severalOf(reader);
   const rule = intent === "create_rule" ? several?.rule ?? null : null;
   if (rule) return { type: "rule", name: rule.match, action: rule.action ?? "ambiguous" };
@@ -276,6 +282,11 @@ function cardFor(intent: IntakeIntent | null, reader: TurnReader | null): TurnCa
   if (intent === "create_recurring") {
     if (several?.items[0]) return { type: "recurring" };
     return { type: "none" };
+  }
+  // A standing order the reader read is one, whatever Jev's label, but not when the user chose a transaction.
+  // Several items stay drafts, as before.
+  if (intent === "add_transaction" && !chosen && several?.items.length === 1 && several.items[0]?.recurrence) {
+    return { type: "recurring" };
   }
   if (intent === "add_transaction") return transactionCard(reader);
   return { type: "none" };
@@ -368,19 +379,20 @@ function copyState(state: ConversationState): ConversationState {
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
   const routed = route(input);
+  const card = routed.mode === "show" ? cardFor(routed.intent, input.reader, Boolean(input.forcedIntent)) : { type: "none" as const };
+  const intent = card.type === "recurring" ? "create_recurring" : routed.intent;
   const wantsData = routed.intent === "ask_data" || (routed.withData && routed.intent === "add_transaction");
-  const card = routed.mode === "show" ? cardFor(routed.intent, input.reader) : { type: "none" as const };
   const data = routed.mode === "show"
     ? dataFor(input, wantsData, routed.preferRabbi)
     : { data: { status: "skip" as const }, needsQuestion: false, needsNameCheck: false };
   return {
-    releaseAs: routed.releaseAs,
+    releaseAs: card.type === "recurring" ? "create_recurring" : routed.releaseAs,
     mode: routed.mode,
-    intent: routed.intent,
+    intent,
     publishedPage: routed.publishedPage,
     card,
     data: data.data,
-    side: routed.mode === "show" ? sideFor(routed.intent) : "none",
+    side: routed.mode === "show" ? sideFor(intent) : "none",
     needsQuestion: data.needsQuestion,
     needsNameCheck: data.needsNameCheck,
     pending: pendingFor(input.message, card, data.data),
@@ -403,7 +415,7 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
   return {
     kind,
     amount: item?.amount ?? null,
-    type: item?.typeHint ? item.typeHint : question?.type ?? null,
+    type: (item ? statedSpecialType(item) : null) ?? (item?.typeHint ? item.typeHint : question?.type ?? null),
     date: item?.date ?? null,
     frequency: item?.recurrence?.frequency ?? null,
     day: item?.recurrence?.dayOfMonth ?? null,

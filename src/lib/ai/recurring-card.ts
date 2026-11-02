@@ -9,11 +9,13 @@ import {
   type RecurrenceRule,
 } from "@/lib/calendar";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import type { SpecialType } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 
 export function cardFromRecurringDraft(draft: {
   amount: number | null;
   currency: RecurringCard["currency"];
   type: RecurringCard["type"];
+  typeQuestion?: SpecialType | null;
   description: string | null;
   category: RecurringCard["category"];
   paymentMethod: RecurringCard["paymentMethod"];
@@ -29,6 +31,7 @@ export function cardFromRecurringDraft(draft: {
     amount: draft.amount,
     currency: draft.currency,
     type: draft.type,
+    typeQuestion: draft.typeQuestion ?? null,
     description: draft.description ?? "",
     category: draft.category,
     paymentMethod: draft.paymentMethod,
@@ -54,6 +57,8 @@ export interface RecurringCard {
   amount: number | null;
   currency: TextTransactionDraft["currency"] | null;
   type: TextTransactionDraft["type"] | null;
+  /** A special type the model guessed. The card asks about it, like a one-time draft. */
+  typeQuestion?: SpecialType | null;
   description: string;
   category: TextTransactionDraft["category"];
   paymentMethod: TextTransactionDraft["paymentMethod"];
@@ -76,7 +81,7 @@ export interface RecurringCard {
 
 const CANCEL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type RecurringQuestion = "amount" | "currency" | "type" | "frequency" | "day" | "includeThisMonth";
+export type RecurringQuestion = "amount" | "currency" | "type" | "special" | "frequency" | "day" | "includeThisMonth";
 
 export const RECURRING_EDIT_FIELDS = [
   "amount",
@@ -115,6 +120,7 @@ export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | 
   if (card.amount === null || !(card.amount > 0)) return "amount";
   if (card.currency === null) return "currency";
   if (card.type === null) return "type";
+  if (card.typeQuestion) return "special";
   if (card.frequency === null) return "frequency";
   if (dayOf(card) === null) return "day";
   if (card.startDate === null) return "day";
@@ -279,6 +285,7 @@ export function recurringCardReady(card: RecurringCard, today: string): boolean 
   if (card.saved || card.monthDuplicate) return false;
   if (card.frequency !== "monthly") return false;
   if (card.alreadyCharged && card.includeThisMonth === null) return false;
+  if (card.typeQuestion) return false;
   return (
     card.amount !== null &&
     card.amount > 0 &&

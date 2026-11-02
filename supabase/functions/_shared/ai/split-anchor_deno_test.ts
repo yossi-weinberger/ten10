@@ -1,4 +1,4 @@
-import { anchorSplitItems, digitValue, splitReadContext, type AnchoredSplitItem } from "./split-anchor.ts";
+import { anchorSplitItems, digitValue, statedSpecialType, splitReadContext, type AnchoredSplitItem } from "./split-anchor.ts";
 import type { SplitItemInput } from "./split-schema.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
@@ -175,6 +175,40 @@ Deno.test("the amount is anchored by its number, not by the written string", () 
     type_question: "recognized-expense",
   })]);
   assert(stated.items[0]?.typeHint === "expense" && stated.items[0]?.typeQuestion === "recognized-expense", "a special type asks once");
+  assert(stated.items[0]?.specialStated === true, "the message stated the special type");
+});
+
+Deno.test("a card keeps a special type only when the message stated it", () => {
+  const monthly = {
+    frequency: "monthly" as const,
+    calendar: "gregorian" as const,
+    day_of_month: 10,
+    weekday: null,
+    start_kind: null,
+    start: null,
+    end_kind: null,
+    end_count: null,
+    end: null,
+    already_charged: false,
+  };
+  const stated = anchor("כל 10 לחודש נכנס לי 250 מביטוח לאומי, פטור ממעשרות", [item({
+    amount: 250,
+    amount_text: "250",
+    description: "ביטוח לאומי",
+    type: "exempt-income",
+    type_question: "exempt-income",
+    recurrence: monthly,
+  })]);
+  assert(stated.items[0] !== undefined && statedSpecialType(stated.items[0]) === "exempt-income", "stated: kept");
+  const guessed = anchor("כל חודש ההורים נותנים לי 500", [item({
+    amount: 500,
+    amount_text: "500",
+    description: "ההורים",
+    type: "income",
+    type_question: "exempt-income",
+    recurrence: monthly,
+  })]);
+  assert(guessed.items[0] !== undefined && statedSpecialType(guessed.items[0]) === null, "guessed: the ordinary type");
 });
 
 Deno.test("a summary row is dropped only when the model marks it and the amount adds up", () => {
