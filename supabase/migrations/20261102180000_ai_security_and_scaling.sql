@@ -86,8 +86,8 @@ GRANT EXECUTE ON FUNCTION public.commit_ai_intake_items(jsonb) TO authenticated;
 REVOKE ALL ON FUNCTION public.approve_ai_user_rule(text, text, date) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.approve_ai_user_rule(text, text, date) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.disable_ai_user_rule(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.disable_ai_user_rule(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.disable_ai_user_rule(text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.disable_ai_user_rule(text, text) TO authenticated;
 
 REVOKE ALL ON FUNCTION public.list_ai_user_rules() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.list_ai_user_rules() TO authenticated;
