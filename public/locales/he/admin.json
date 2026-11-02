@@ -126,10 +126,12 @@
       "operations": {
         "intent": "זיהוי כוונה",
         "question_slots": "שאלת נתונים",
+        "question_period": "תקופת שאלה",
         "receipt": "קבלה",
         "speech": "קול",
         "duplicates": "כפילויות",
-        "shadow": "מדידת צל"
+        "shadow": "מדידת צל",
+        "split": "פיצול תנועות"
       },
       "tips": {
         "failed": "אחוז הקריאות שלא החזירו תשובה תקינה, וקוד השגיאה הנפוץ.",

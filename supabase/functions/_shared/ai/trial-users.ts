@@ -11,6 +11,25 @@ export const TRIAL_USER_IDS = [
 
 const ALLOWED = new Set<string>(TRIAL_USER_IDS);
 
+function safeEnv(name: string): string | undefined {
+  try {
+    return Deno.env.get(name);
+  } catch (error) {
+    if (error instanceof Deno.errors.NotCapable) return undefined;
+    throw error;
+  }
+}
+
 export function isTrialUser(userId: string | undefined): boolean {
-  return !!userId && ALLOWED.has(userId);
+  if (!userId) return false;
+  // If AI_TRIAL_ONLY is explicitly "false", all authenticated users are allowed (production launch)
+  if (safeEnv("AI_TRIAL_ONLY") === "false") {
+    return true;
+  }
+  // In production environment, all authenticated users are allowed unless AI_TRIAL_ONLY is explicitly "true"
+  const env = (safeEnv("ENVIRONMENT") ?? safeEnv("DENO_ENV") ?? "").toLowerCase();
+  if (env === "production" && safeEnv("AI_TRIAL_ONLY") !== "true") {
+    return true;
+  }
+  return ALLOWED.has(userId);
 }

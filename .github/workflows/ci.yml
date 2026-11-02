@@ -126,7 +126,7 @@ jobs:
             exit 1
           fi
           printf 'Deno test: %s\n' "${deno_tests[@]}"
-          deno test --allow-env=AI_INTAKE_ENABLED --config supabase/functions/deno.json "${deno_tests[@]}"
+          deno test --allow-env=AI_INTAKE_ENABLED,AI_TRIAL_ONLY,ENVIRONMENT,DENO_ENV --config supabase/functions/deno.json "${deno_tests[@]}"
 
   # The Rust tests cover only src-tauri, but their setup (Tauri's system packages) can take
   # many minutes, so pull requests run them only when they touch src-tauri or this workflow.

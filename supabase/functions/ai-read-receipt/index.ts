@@ -255,6 +255,7 @@ Deno.serve(async (req: Request) => {
     return json(origin, artifactId ? { draft, artifact_id: artifactId, ...timing } : { draft, ...timing }, 200);
   } catch {
     logger.error("receipt read failed");
+    await usage.release(allowed.usageId);
     return json(origin, { draft: null, reason: "unavailable" }, 200);
   }
 });

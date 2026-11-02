@@ -3,7 +3,16 @@ import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoring
 import { compareDailyCost } from "@/lib/admin/ai-cost-compare";
 import type { AdminAiCalls, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
 
-const OPERATIONS = ["intent", "question_slots", "receipt", "speech", "duplicates", "shadow"] as const;
+const OPERATIONS = [
+  "intent",
+  "question_slots",
+  "question_period",
+  "receipt",
+  "speech",
+  "duplicates",
+  "shadow",
+  "split",
+] as const;
 
 function dollars(value: number): string {
   return new Intl.NumberFormat("en-US", {

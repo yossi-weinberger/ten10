@@ -7,6 +7,7 @@
 export type GatewayFeature =
   | "intent"
   | "question_slots"
+  | "question_period"
   | "receipt"
   | "speech"
   | "duplicates"
