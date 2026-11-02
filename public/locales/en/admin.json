@@ -126,10 +126,12 @@
       "operations": {
         "intent": "Intent",
         "question_slots": "Data question",
+        "question_period": "Question period",
         "receipt": "Receipt",
         "speech": "Voice",
         "duplicates": "Duplicates",
-        "shadow": "Shadow measurement"
+        "shadow": "Shadow measurement",
+        "split": "Split items"
       },
       "tips": {
         "failed": "Share of calls without a valid answer, and the most common error code.",

@@ -16,4 +16,13 @@ describe("trial user allowlist", () => {
     }
     expect(sql).toContain("NOT ai.is_trial_user(p_user_id)");
   });
+
+  it("verifies wave 4 migration maintains all trial user IDs and supports app.ai_trial_only override", () => {
+    const wave4Sql = readFileSync("supabase/migrations/20261102180000_ai_security_and_scaling.sql", "utf8");
+    expect(wave4Sql).toContain("CREATE OR REPLACE FUNCTION ai.is_trial_user");
+    expect(wave4Sql).toContain("app.ai_trial_only");
+    for (const id of TRIAL_USER_IDS) {
+      expect(wave4Sql).toContain(id);
+    }
+  });
 });

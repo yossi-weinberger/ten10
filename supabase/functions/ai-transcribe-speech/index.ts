@@ -91,6 +91,7 @@ Deno.serve(async (req: Request) => {
     return json(origin, { text }, 200);
   } catch {
     logger.error("speech transcribe failed");
+    await usage.release(allowed.usageId);
     return json(origin, { text: null, reason: "unavailable" }, 200);
   }
 });

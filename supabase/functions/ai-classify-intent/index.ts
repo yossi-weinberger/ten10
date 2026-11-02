@@ -90,6 +90,7 @@ Deno.serve(async (req: Request) => {
     }, 200);
   } catch {
     logger.error("jev intent failed");
+    await usage.release(allowed.usageId);
     return json(origin, { intent: null, reason: "unavailable" }, 200);
   }
 });
