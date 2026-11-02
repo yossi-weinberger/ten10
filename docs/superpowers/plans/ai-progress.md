@@ -637,3 +637,4 @@
   (3) הוספת `"question_period"` ו-`"split"` ל-`GatewayFeature`, `AdminAiCallsSection.tsx` וקובצי התרגום `he/admin.json` ו-`en/admin.json` (B-3);
   (4) אימות RLS ב-Storage וב-Signed URLs (תוקף 300 שניות, service_role בלבד, בידוד תיקיות משתמשים מלא), ואימות הגנות Prompt Injection (דחיסת קבצים, הגבלת גודל 2MB/10MB/15MB, סריאליזציה בטוחה ואימות Zod/SQL);
   (5) כל השערים עברו: `typecheck`, `lint:ratchet`, `check-supabase-imports`, `test:infra` (17/17 קבצים, 48/48 טסטים), `npm test` מלא (185/185 קבצים, 1,324/1,324 טסטים), ובדיקות Deno (`trial-users_deno_test`, `gateway-tags_deno_test`). 0 ריצות מודל בתשלום. לא ל-`main`.
+- **2026-11-02:** [#650](https://github.com/yossi-weinberger/ten10/pull/650) (גל 4) מוזג ל־`feat/ai-intake`. הצעד הבא: ביקורת Gatekeeper לגל 4 ומעבר לגל 5 (ממשק משתמש, רספונסיביות, שפות עברית/אנגלית, RTL/LTR וערכות נושא). לא ל־`main`.
