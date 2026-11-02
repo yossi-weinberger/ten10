@@ -2,14 +2,14 @@
 -- Units per UTC calendar month, plus a per-minute and a per-day call cap for every model call.
 -- The numbers are placeholders until a month of ai.model_calls data is in.
 
-CREATE TABLE ai.usage_counters (
+CREATE TABLE IF NOT EXISTS ai.usage_counters (
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   period_start date NOT NULL,
   units_used integer NOT NULL CHECK (units_used >= 0),
   PRIMARY KEY (user_id, period_start)
 );
 
-CREATE TABLE ai.usage_rate (
+CREATE TABLE IF NOT EXISTS ai.usage_rate (
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   bucket text NOT NULL CHECK (bucket IN ('minute', 'day')),
   bucket_start timestamptz NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE ai.usage_rate (
   PRIMARY KEY (user_id, bucket, bucket_start)
 );
 
-CREATE TABLE ai.usage_events (
+CREATE TABLE IF NOT EXISTS ai.usage_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   kind text NOT NULL CHECK (kind IN ('text', 'receipt', 'speech')),
@@ -27,7 +27,7 @@ CREATE TABLE ai.usage_events (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX usage_events_created_at_idx ON ai.usage_events (created_at);
+CREATE INDEX IF NOT EXISTS usage_events_created_at_idx ON ai.usage_events (created_at);
 
 ALTER TABLE ai.usage_counters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai.usage_rate ENABLE ROW LEVEL SECURITY;

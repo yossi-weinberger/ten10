@@ -1,7 +1,7 @@
 -- One row per model call from Edge, including failures.
 -- No message text, image, amount, or file path. Kept 13 months.
 
-CREATE TABLE ai.model_calls (
+CREATE TABLE IF NOT EXISTS ai.model_calls (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   operation text NOT NULL CHECK (operation IN (
@@ -22,8 +22,8 @@ CREATE TABLE ai.model_calls (
   CHECK (ok = (error_code IS NULL))
 );
 
-CREATE INDEX model_calls_created_at_idx ON ai.model_calls (created_at);
-CREATE INDEX model_calls_user_created_idx ON ai.model_calls (user_id, created_at);
+CREATE INDEX IF NOT EXISTS model_calls_created_at_idx ON ai.model_calls (created_at);
+CREATE INDEX IF NOT EXISTS model_calls_user_created_idx ON ai.model_calls (user_id, created_at);
 
 ALTER TABLE ai.model_calls ENABLE ROW LEVEL SECURITY;
 

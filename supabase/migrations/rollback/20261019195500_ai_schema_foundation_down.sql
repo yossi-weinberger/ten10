@@ -1,4 +1,4 @@
--- Manual rollback for 20261019020000_ai_schema_foundation.sql.
+-- Manual rollback for 20261019195500_ai_schema_foundation.sql.
 -- Restores the previous 13-arg get_user_transactions. Does not drop
 -- transactions.origin or schema ai. Run only when you mean to.
 

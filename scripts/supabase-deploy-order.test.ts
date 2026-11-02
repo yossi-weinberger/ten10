@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const workflow = readFileSync(
@@ -24,4 +24,47 @@ describe("Supabase production deployment ordering", () => {
     expect(migrationStep).toBeGreaterThan(-1);
     expect(functionStep).toBeGreaterThan(migrationStep);
   });
+
+  it("ensures all AI migrations are chronologically sequenced after main's last migration", () => {
+    const files = readdirSync("supabase/migrations")
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
+
+    const MAIN_LAST_MIGRATION_TIMESTAMP = "20261019195400";
+    const mainLastIndex = files.findIndex((f) => f.startsWith(MAIN_LAST_MIGRATION_TIMESTAMP));
+    expect(mainLastIndex).toBeGreaterThan(-1);
+
+    // Verify chronological order of all files
+    let prevTimestamp = "";
+    for (const file of files) {
+      const match = file.match(/^(\d{8,14})_/);
+      expect(match, `Migration ${file} must have a valid timestamp prefix`).not.toBeNull();
+      const timestamp = match![1];
+      if (prevTimestamp) {
+        expect(
+          timestamp >= prevTimestamp,
+          `Migration ${file} (${timestamp}) must be chronologically >= previous (${prevTimestamp})`,
+        ).toBe(true);
+      }
+      prevTimestamp = timestamp;
+    }
+
+    // Verify that every single AI intake migration is strictly after main's last migration timestamp
+    const aiMigrations = files.filter((f) => f.includes("_ai_"));
+    expect(aiMigrations.length).toBeGreaterThan(0);
+
+    for (const aiMigration of aiMigrations) {
+      const match = aiMigration.match(/^(\d{8,14})_/);
+      expect(match).not.toBeNull();
+      const timestamp = match![1];
+      expect(
+        timestamp > MAIN_LAST_MIGRATION_TIMESTAMP,
+        `AI migration ${aiMigration} (${timestamp}) must be strictly after main's last migration (${MAIN_LAST_MIGRATION_TIMESTAMP})`,
+      ).toBe(true);
+    }
+
+    // Specifically verify the first AI migration sequence foundation starts immediately after main
+    expect(aiMigrations[0]).toBe("20261019195500_ai_schema_foundation.sql");
+  });
 });
+

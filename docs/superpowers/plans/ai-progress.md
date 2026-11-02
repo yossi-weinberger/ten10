@@ -646,3 +646,8 @@
   (5) כל השערים עברו ב-100%: `typecheck` (0 שגיאות), `lint:ratchet` (0 שגיאות), `check-supabase-imports`, `test:infra` (17/17 קבצים, 72/72 טסטים), `npm test` מלא (185/185 קבצים, 1,348/1,348 טסטים). 0 קריאות מודל בתשלום ($0.00). לא ל-`main`.
 - **2026-11-02:** [#651](https://github.com/yossi-weinberger/ten10/pull/651) מוזג ל־`feat/ai-intake`. תוקנה חתימת `disable_ai_user_rule(text, text)` במיגרציה `20261102180000`, והמיגרציה הוחלה ב-testing ונרשמה ב-`schema_migrations`. לא ל־`main`.
 - **2026-11-02:** [#652](https://github.com/yossi-weinberger/ten10/pull/652) (גל 5) מוזג ל־`feat/ai-intake`. יושמה הקשחת Safe-by-default ב-`trial-users.ts` הדורשת `AI_TRIAL_ONLY=false` מפורש. הצעד הבא: גל 6 (רצף מיגרציות, בדיקת Kill Switch ומיזוג סופי ל-`main`). לא ל־`main`.
+- **2026-11-02:** גל 6 של ביקורת המוכנות ל־`main` (`chore/ai-wave6-rollout-migrations`). תיארוך מיגרציות, Rollback, Kill Switch ומוכנות Rollout:
+  (1) תוארוכו מחדש 15 מיגרציות ה-AI מ-`20261019020000`–`190000` לרצף עוקב `20261019195500`–`195720` מיד אחרי המיגרציה האחרונה ב-`main` (`20261019195400`), ונוסף אימות כרונולוגי קבוע ב-`scripts/supabase-deploy-order.test.ts`;
+  (2) הושלמה אידמפוטנטיות מלאה (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`) בכל מיגרציות ה-AI ונוספו קובצי rollback ל-`20261019195500`, `20261019210000` ו-`20261023030000`;
+  (3) הוטמע Kill Switch הרמטי Safe-by-default ב-`src/lib/ai/flags.ts` המנוטרל כש-`VITE_AI_INTAKE_ENABLED !== "true"` (חוסם UI וקריאות רשת);
+  (4) כל 5 השערים הדטרמיניסטיים עברו ב-100% (`typecheck`, `lint:ratchet`, `check-supabase-imports`, `test:infra` 17/17, `npm test` 185/185 קבצים ו-1,350/1,350 טסטים). 0 קריאות מודל בתשלום ($0.00). לא ל-`main`.
