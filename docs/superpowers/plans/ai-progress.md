@@ -638,3 +638,9 @@
   (4) אימות RLS ב-Storage וב-Signed URLs (תוקף 300 שניות, service_role בלבד, בידוד תיקיות משתמשים מלא), ואימות הגנות Prompt Injection (דחיסת קבצים, הגבלת גודל 2MB/10MB/15MB, סריאליזציה בטוחה ואימות Zod/SQL);
   (5) כל השערים עברו: `typecheck`, `lint:ratchet`, `check-supabase-imports`, `test:infra` (17/17 קבצים, 48/48 טסטים), `npm test` מלא (185/185 קבצים, 1,324/1,324 טסטים), ובדיקות Deno (`trial-users_deno_test`, `gateway-tags_deno_test`). 0 ריצות מודל בתשלום. לא ל-`main`.
 - **2026-11-02:** [#650](https://github.com/yossi-weinberger/ten10/pull/650) (גל 4) מוזג ל־`feat/ai-intake`. הצעד הבא: ביקורת Gatekeeper לגל 4 ומעבר לגל 5 (ממשק משתמש, רספונסיביות, שפות עברית/אנגלית, RTL/LTR וערכות נושא). לא ל־`main`.
+- **2026-11-02:** גל 5 של ביקורת המוכנות ל־`main` (`chore/ai-wave5-ui-multiscreen`). ממשק משתמש, רספונסיביות, שפות עברית/אנגלית, RTL/LTR וערכות נושא:
+  (1) סימטריית תרגום מושלמת (100%) בין `he` ל-`en` בכל קובצי הלוקליזציה; הושלמו מפתחות חסרים ב-`en/transactions.json`, `en/data-tables.json`, ו-`he/common.json`;
+  (2) אימות היעדר מחרוזות גלויות/קשיחות בכל רכיבי ה-AI והאדמין (24 קבצי UI) תוך שימוש מלא ב-`useTranslation` וב-`formatDataAnswer`;
+  (3) כיווניות לוגית מלאה ב-Tailwind (`ps-`, `pe-`, `ms-`, `me-`, `text-start`, `text-end`, `dir`) והרחבת טסט התשתית `scripts/ai-primitives-rtl.test.ts` ל-33 בדיקות המכסות את כל 24 רכיבי ה-AI והאדמין;
+  (4) אימות התנהגות מובייל (`dvh`, מקלדת וירטואלית, גלילת `MessageScrollerViewport` חלקה עם כפתור חזרה לתחתית, ופריסת כפתורי פעולה מותאמת מגע); ואימות טוקנים סמנטיים (`bg-card`, `border-border`, משתני CSS) ב-Light וב-Dark Mode.
+  (5) כל השערים עברו ב-100%: `typecheck` (0 שגיאות), `lint:ratchet` (0 שגיאות), `check-supabase-imports`, `test:infra` (17/17 קבצים, 72/72 טסטים), `npm test` מלא (185/185 קבצים, 1,348/1,348 טסטים). 0 קריאות מודל בתשלום ($0.00). לא ל-`main`.

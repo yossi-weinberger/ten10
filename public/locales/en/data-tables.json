@@ -213,6 +213,7 @@
     "defaultRecurringName": "this recurring transaction",
     "deleteErrorWithDescription": "Error deleting \"{{description}}\": {{error}}",
     "platformError": "Cannot delete because the platform is still loading or invalid",
+    "recurringError": "Error loading recurring transaction details",
     "loadingError": "Error loading data: {{error}}",
     "unknownError": "Unknown error",
     "recurringUpdateSuccess": "Recurring transaction updated successfully!",
