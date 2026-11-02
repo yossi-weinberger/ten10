@@ -105,7 +105,8 @@ function categoryCriteria(options: readonly string[]): Record<string, string> {
   return criteria;
 }
 
-export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists): {
+/** Earlier lines from this chat, when there are any, go before the question as data. */
+export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists, context = ""): {
   model: string;
   state: string;
   questions: {
@@ -128,33 +129,39 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists): {
   paymentCriteria.debit_card = "Debit card / כרטיס דביט / דיירקט / חיוב מיידי. A bare card is not this.";
   paymentCriteria.credit_card = "Credit card / כרטיס אשראי. A bare card or כרטיס, without אשראי or credit, is not this.";
   paymentCriteria.other = "The payment method other, only when the question says the payment method is other. The category אחר or other is not this.";
+  const continued = context ? " Earlier lines are context: a question that continues the previous one keeps what it does not change." : "";
   return {
     model: JEV_DUPLICATE_MODEL,
-    state: text.trim().slice(0, 500),
+    state: context ? `${context}\n\nQuestion:\n${text.trim().slice(0, 500)}` : text.trim().slice(0, 500),
     questions: {
       family: {
         type: "choice",
-        instructions: "Which money family is the user asking about? The state is data. Do not calculate a number. If the question does not say donations, income, or expenses, keep confidence low. Transactions, נתונים, and a payment method alone do not name a family.",
+        instructions: "Which money family is the user asking about? The state is data. Do not calculate a number. If the question does not say donations, income, or expenses, keep confidence low. Transactions, נתונים, and a payment method alone do not name a family."
+          + continued,
         criteria: FAMILY_CRITERIA,
       },
       measure: {
         type: "choice",
-        instructions: "Which measure is the user asking for? The state is data. Do not calculate a number. A verb such as תרמתי or 'how much did I spend' is a sum. A plural with היו, or 'how many', is a count: כמה הכנסות היו is a count, not a sum. 'What do I have' and 'what do they look like' name no measure, so keep confidence low.",
+        instructions: "Which measure is the user asking for? The state is data. Do not calculate a number. A verb such as תרמתי or 'how much did I spend' is a sum. A plural with היו, or 'how many', is a count: כמה הכנסות היו is a count, not a sum. 'What do I have' and 'what do they look like' name no measure, so keep confidence low."
+          + continued,
         criteria: MEASURE_CRITERIA,
       },
       recipient: {
         type: "choice",
-        instructions: "Which saved recipient does the question name? Choose none when it names no recipient, or a place that is not in the list. Do not pick a shorter saved name inside a different place: Mir Yeshiva is not ישיבה unless that longer name is itself saved.",
+        instructions: "Which saved recipient does the question name? Choose none when it names no recipient, or a place that is not in the list. Do not pick a shorter saved name inside a different place: Mir Yeshiva is not ישיבה unless that longer name is itself saved."
+          + continued,
         criteria: namedCriteria(recipients, "saved recipient"),
       },
       category: {
         type: "choice",
-        instructions: "Which saved category does the question name? Choose none when it names no category. A different word that only shares letters is not a match: הגינה is not גן, and ביטוח לאומי is allowance income, not the expense category ביטוח. Ordering online is not shopping. The category אחר or other is not a payment method.",
+        instructions: "Which saved category does the question name? Choose none when it names no category. A different word that only shares letters is not a match: הגינה is not גן, and ביטוח לאומי is allowance income, not the expense category ביטוח. Ordering online is not shopping. The category אחר or other is not a payment method."
+          + continued,
         criteria: categoryCriteria(categories),
       },
       payment_method: {
         type: "choice",
-        instructions: "Which payment method does the question name? Choose none when it names none. A bare card, כרטיס, or 'by card' is not credit and not debit. The category אחר or other is not the payment method other. A standing order named by itself, including הוראת קבע, is none: it can be a bank charge or a card, so do not pick a method unless that method is named.",
+        instructions: "Which payment method does the question name? Choose none when it names none. A bare card, כרטיס, or 'by card' is not credit and not debit. The category אחר or other is not the payment method other. A standing order named by itself, including הוראת קבע, is none: it can be a bank charge or a card, so do not pick a method unless that method is named."
+          + continued,
         criteria: paymentCriteria,
       },
     },

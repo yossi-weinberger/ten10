@@ -59,7 +59,18 @@ import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactio
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
 import { releaseSplit, splitItems, type SplitItemsResult } from "@/lib/ai/split-items";
-import { decideTurn, emptyConversation, type TurnDecision } from "@/lib/ai/assistant-turn";
+import {
+  cardOpen,
+  contextFor,
+  decideTurn,
+  emptyConversation,
+  rememberClosed,
+  rememberData,
+  rememberDraft,
+  rememberSaved,
+  rememberUndone,
+  type TurnDecision,
+} from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount, draftFromHeld, heldFromItem, recurringCardFromItem, type HeldDraft } from "@/lib/ai/split-draft";
 import { cardsFromSplit, type SplitDraft } from "@/lib/ai/split-cards";
 import { saveSplitDrafts } from "@/lib/ai/save-split-drafts";
@@ -188,6 +199,12 @@ export function AssistantDrawer({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
   const requestRef = useRef(0);
+  /** What the chat remembers after the last turn. */
+  const memoryRef = useRef(emptyConversation());
+  /** The memory before the current turn. Every decision in one turn starts from it. */
+  const turnStart = useRef(emptyConversation());
+  /** The block sent to the models with the current turn. */
+  const contextRef = useRef("");
   const measurement = useRef<MeasurementHold | null>(null);
   const answerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const conversationRef = useRef<{
@@ -241,6 +258,9 @@ export function AssistantDrawer({
     settleOpenMeasurement();
     requestRef.current += 1;
     conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
+    memoryRef.current = emptyConversation();
+    turnStart.current = emptyConversation();
+    contextRef.current = "";
     setText("");
     setIntent(null);
     setDraft(null);
@@ -392,6 +412,7 @@ export function AssistantDrawer({
     setChecking(false);
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
+      memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
       setIntent(null);
       setReceiptFields(null);
@@ -406,6 +427,7 @@ export function AssistantDrawer({
       return;
     }
     if (!isSingleReceipt(result)) {
+      memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
       setIntent(null);
       setReceiptFields(null);
@@ -431,6 +453,7 @@ export function AssistantDrawer({
     setRuleChoice(null);
     setHalachaNamespace(null);
     setReceiptArtifactId(result.artifactId);
+    memoryRef.current = rememberDraft(turnStart.current, null, { ...result.fields, type: result.fields.ruledType }, "one receipt");
     if (result.fields.ruledType && result.fields.ruleName) {
       setReceiptFields(null);
       setClarification(null);
@@ -587,6 +610,7 @@ export function AssistantDrawer({
   }
 
   function applyTurn(source: string, decision: TurnDecision) {
+    memoryRef.current = decision.nextState;
     if (decision.preferRabbi) preferRabbi.current = true;
     if (decision.mode === "ask") {
       setAskIntent(true);
@@ -667,6 +691,15 @@ export function AssistantDrawer({
       case "frequency_unsupported":
         setStatus("frequencyUnsupported");
         break;
+      case "discarded":
+        setStatus("discarded");
+        break;
+      case "already_saved": {
+        const saved = turnStart.current.onScreen?.savedItemId;
+        if (saved) setSavedItemId(saved);
+        setStatus("alreadySaved");
+        break;
+      }
       default: {
         const unreachable: never = decision.card;
         return unreachable;
@@ -684,7 +717,7 @@ export function AssistantDrawer({
     if (decision.data.status === "skip") setDataReply(null);
   }
 
-  function showIntent(source: string, nextIntent: IntakeIntent, withData = false) {
+  function showIntent(source: string, nextIntent: IntakeIntent, withData = false, userText?: string) {
     applyTurn(source, decideTurn({
       message: source,
       jev: { ok: true, intent: nextIntent, confidence: 1, halachaPage: halachaRef.current, halachaPageConfidence: 1 },
@@ -695,7 +728,8 @@ export function AssistantDrawer({
       withData,
       preferRabbi: preferRabbi.current,
       knownHalachaPage: halachaRef.current,
-      state: emptyConversation(),
+      state: turnStart.current,
+      userText,
       today: todayIso(),
       calendar: questionCalendar,
     }));
@@ -729,6 +763,7 @@ export function AssistantDrawer({
         : card;
     }));
     setStatus("saved");
+    memoryRef.current = rememberSaved(memoryRef.current, null);
     void refreshAfterIntakeSave();
   }
 
@@ -746,6 +781,7 @@ export function AssistantDrawer({
       item.key === key ? { ...item, transactionId: null, itemId: null, checked: true } : item
     )) ?? null);
     setStatus("undone");
+    memoryRef.current = rememberUndone(memoryRef.current);
     void refreshAfterIntakeSave();
   }
 
@@ -806,6 +842,7 @@ export function AssistantDrawer({
         executionCount: saved.execution_count,
       });
       setStatus("recurringSaved");
+      memoryRef.current = rememberSaved(memoryRef.current, null);
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
       setStatus("recurringSaveFailed");
@@ -824,6 +861,7 @@ export function AssistantDrawer({
       savedRecurring.current = { ...row, status: "cancelled" };
       setRecurring({ ...recurring, cancelled: true });
       setStatus("recurringCancelled");
+      memoryRef.current = rememberUndone(memoryRef.current);
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
       setStatus("recurringCancelFailed");
@@ -899,13 +937,14 @@ export function AssistantDrawer({
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
     const request = requestRef.current;
-    followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
+    followQuestion(family ? "family" : searchDescriptions ? "search" : turnStart.current.onScreen?.kind === "data_answer" ? "follow" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source, {
         calendar: questionCalendar,
         today: todayIso(),
+        context: contextRef.current,
       });
       if (read) {
         periodHold.current = read.period;
@@ -937,10 +976,11 @@ export function AssistantDrawer({
         slotHold: family && slotHold ? slotHold : null,
         periodHold: periodHold.current,
         nameHold: nameHold.current,
-        state: emptyConversation(),
+        state: turnStart.current,
         today: todayIso(),
         calendar: questionCalendar,
       });
+      memoryRef.current = rememberData(memoryRef.current, decision.nextState);
       if (decision.data.status === "period_missing") {
         setDataReply({ status: "period_missing" });
         return;
@@ -976,10 +1016,11 @@ export function AssistantDrawer({
       forcedIntent: "ask_data",
       settledQuestion: question,
       nameCheck: filter,
-      state: emptyConversation(),
+      state: turnStart.current,
       today: todayIso(),
       calendar: questionCalendar,
     });
+    memoryRef.current = rememberData(memoryRef.current, named.nextState);
     if (named.data.status === "name_missing") {
       setDataReply({
         status: "category_missing",
@@ -1097,6 +1138,8 @@ export function AssistantDrawer({
   };
 
   function beginTurn(user: UserTurn) {
+    turnStart.current = memoryRef.current;
+    contextRef.current = contextFor(memoryRef.current);
     const current = conversationRef.current;
     const next = nextConversation(
       current.history,
@@ -1161,8 +1204,10 @@ export function AssistantDrawer({
       receivedAt: new Date().toISOString(),
       defaultCurrency,
       calendar: questionCalendar,
+      context: contextRef.current,
+      continuable: cardOpen(turnStart.current),
     });
-    const decided = await classifyIntentFallback(source);
+    const decided = await classifyIntentFallback(source, contextRef.current);
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;
@@ -1185,7 +1230,7 @@ export function AssistantDrawer({
       reader: split,
       question: null,
       questionAttempted: false,
-      state: emptyConversation(),
+      state: turnStart.current,
       today,
       calendar: questionCalendar,
     });
@@ -1243,6 +1288,7 @@ export function AssistantDrawer({
     const digits = digitsOnlyAmount(trimmed);
     if (digits !== null && previous) {
       showHeld({ ...previous, amount: digits, checkAmount: false });
+      memoryRef.current = rememberDraft(turnStart.current, trimmed, { ...previous, amount: digits });
       return;
     }
     setPendingPhase("reading");
@@ -1252,11 +1298,13 @@ export function AssistantDrawer({
       receivedAt: new Date().toISOString(),
       defaultCurrency,
       calendar: questionCalendar,
+      context: contextRef.current,
+      continuable: cardOpen(turnStart.current),
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);
       splitRef.current = split;
-      showIntent(source, "add_transaction");
+      showIntent(source, "add_transaction", false, trimmed);
     });
   }
 
@@ -1322,6 +1370,7 @@ export function AssistantDrawer({
       return;
     }
     if (result.ok) {
+      memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
@@ -1345,6 +1394,7 @@ export function AssistantDrawer({
     const result = await undoTextIntake(savedItemId);
     setUndoing(false);
     if (result.ok) {
+      memoryRef.current = rememberUndone(memoryRef.current);
       setSavedItemId(null);
       refreshAfterIntakeSave();
       setStatus("undone");

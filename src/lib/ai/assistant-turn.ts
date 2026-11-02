@@ -5,16 +5,17 @@ import { statedSpecialType, type AnchoredSplitItem } from "../../../supabase/fun
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import { namedHalachaPage, shownIntent, type ShownIntent } from "../../components/ai-intake/assistant-shown-intent.ts";
 import { yearSumFromReader } from "./reader-question.ts";
+import { conversationContext } from "../../../supabase/functions/_shared/ai/conversation-context.ts";
 
 export type PendingKind = "amount" | "period" | "family" | "name";
 
-export type ConversationOnScreen =
-  | { kind: "draft"; sourceText: string }
-  | { kind: "recurring"; sourceText: string }
-  | { kind: "data_answer"; sourceText: string }
-  | { kind: "halacha"; sourceText: string }
-  | { kind: "inspiration"; sourceText: string }
-  | { kind: "saved"; sourceText: string; savedItemId: string };
+export interface ConversationOnScreen {
+  kind: "draft" | "recurring" | "data_answer" | "halacha" | "inspiration" | "saved";
+  sourceText: string;
+  /** What the code tells the models about this card. Never the assistant's own wording. */
+  line: string;
+  savedItemId?: string;
+}
 
 export interface ConversationState {
   recentUserTexts: string[];
@@ -25,6 +26,78 @@ export interface ConversationState {
 
 export function emptyConversation(): ConversationState {
   return { recentUserTexts: [], receiptText: null, onScreen: null, pending: null };
+}
+
+const REMEMBERED_TEXTS = 3;
+const MAX_REMEMBERED_TEXT = 400;
+
+/** The block the models get before the message: earlier user words, the open card, and the pending question. */
+export function contextFor(state: ConversationState): string {
+  return conversationContext({
+    recentUserTexts: state.recentUserTexts,
+    receiptText: state.receiptText,
+    screenLine: state.onScreen?.line ?? null,
+    waitingFor: state.pending?.kind ?? null,
+  });
+}
+
+/** A draft or standing order is open, so a continuing message may change it. */
+export function cardOpen(state: ConversationState): boolean {
+  return state.onScreen?.kind === "draft" || state.onScreen?.kind === "recurring";
+}
+
+/** After a save: the card is closed and nothing is pending. */
+export function rememberSaved(state: ConversationState, savedItemId: string | null): ConversationState {
+  return {
+    ...state,
+    onScreen: {
+      kind: "saved",
+      sourceText: state.onScreen?.sourceText ?? "",
+      line: "the last card was saved.",
+      ...(savedItemId ? { savedItemId } : {}),
+    },
+    pending: null,
+  };
+}
+
+export interface ScreenFields {
+  amount: number | null;
+  currency: string | null;
+  type: string | null;
+  description: string;
+  date: string | null;
+}
+
+/** A draft shown without a reader decision: a typed amount answer, or a receipt. */
+export function rememberDraft(before: ConversationState, userText: string | null, fields: ScreenFields, label = "one transaction"): ConversationState {
+  const text = userText ? clipText(userText) : "";
+  const amount = fields.amount === null ? "no amount" : `${fields.amount} ${fields.currency ?? "ILS"}`;
+  return {
+    recentUserTexts: text ? [...before.recentUserTexts, text].slice(-REMEMBERED_TEXTS) : before.recentUserTexts.slice(),
+    receiptText: null,
+    onScreen: {
+      kind: "draft",
+      sourceText: userText ?? "",
+      line: `${label}, not saved: ${fields.type ?? "type not set"} ${amount}, "${fields.description}", ${fields.date || "no date"}, one time.`,
+    },
+    pending: null,
+  };
+}
+
+/** A turn that leaves nothing open, such as an unreadable receipt. */
+export function rememberClosed(before: ConversationState): ConversationState {
+  return { ...before, receiptText: null, onScreen: null, pending: null };
+}
+
+/** A data step keeps a draft the same turn opened, and takes the rest from its decision. */
+export function rememberData(current: ConversationState, next: ConversationState): ConversationState {
+  const open = current.onScreen;
+  return open && (open.kind === "draft" || open.kind === "recurring") ? { ...next, onScreen: open } : next;
+}
+
+/** After an undo: nothing is open. */
+export function rememberUndone(state: ConversationState): ConversationState {
+  return { ...state, onScreen: null, pending: null };
 }
 
 export type TurnJev =
@@ -45,18 +118,21 @@ export type TurnQuestion = {
   nameText: string | null;
 } | null;
 
+/** The reader's flags about the card on screen. */
+type CardFlags = { continues?: boolean; discards?: boolean };
+
 export type TurnReader =
   | { ok: false }
-  | { ok: true; route: "list" }
-  | { ok: true; route: "unreadable" }
-  | {
+  | ({ ok: true; route: "list" } & CardFlags)
+  | ({ ok: true; route: "unreadable" } & CardFlags)
+  | ({
     ok: true;
     route: "several";
     items: AnchoredSplitItem[];
     dropped?: number;
     rule: { match: string; action: string | null } | null;
     question: ResolvedQuestion | null;
-  };
+  } & CardFlags);
 
 export type TurnNameCheck =
   | { category: string | null; description: string | null; recipient: string | null }
@@ -79,7 +155,10 @@ export interface TurnInput {
   nameCheck?: TurnNameCheck | null;
   /** Already composed. Skips reading slots again, and only applies the name check. */
   settledQuestion?: YearTypeSum | null;
+  /** The state before this turn. Every decision in one turn gets the same one. */
   state: ConversationState;
+  /** The user's own words for memory, when `message` joins them to an earlier request. */
+  userText?: string;
   today: string;
   calendar: "gregorian" | "hebrew";
 }
@@ -93,7 +172,9 @@ export type TurnCard =
   | { type: "draft"; checkAmount: boolean; checkDate: boolean }
   | { type: "recurring" }
   | { type: "frequency_unsupported" }
-  | { type: "rule"; name: string; action: string };
+  | { type: "rule"; name: string; action: string }
+  | { type: "discarded" }
+  | { type: "already_saved" };
 
 export type TurnData =
   | { status: "skip" }
@@ -143,7 +224,9 @@ export type TurnAnswerKind =
   | "question"
   | "could_not_read"
   | "frequency_unsupported"
-  | "find_duplicates";
+  | "find_duplicates"
+  | "discarded"
+  | "already_saved";
 
 export interface TurnSummary {
   kind: TurnAnswerKind;
@@ -155,6 +238,8 @@ export interface TurnSummary {
   period: string | null;
   family: string | null;
   pending: PendingKind | null;
+  /** A special type the card still asks about before saving. */
+  typeAsked: string | null;
 }
 
 function severalOf(reader: TurnReader | null): Extract<TurnReader, { route: "several" }> | null {
@@ -367,17 +452,96 @@ function pendingFor(message: string, card: TurnCard, data: TurnData): TurnDecisi
   return null;
 }
 
-function copyState(state: ConversationState): ConversationState {
+function typeOf(item: AnchoredSplitItem): string {
+  return statedSpecialType(item) ?? (item.typeHint || "type not set");
+}
+
+function itemLine(item: AnchoredSplitItem): string {
+  const amount = item.amount === null ? "no amount" : `${item.amount} ${item.currency || "ILS"}`;
+  return `${typeOf(item)} ${amount}, "${item.description}", ${item.date ?? "no date"}`;
+}
+
+/** The open card, from what this turn shows. Null when nothing stays open. */
+function screenOf(message: string, decision: Omit<TurnDecision, "nextState">, reader: TurnReader | null): ConversationOnScreen | null {
+  if (decision.mode !== "show") return null;
+  const items = severalOf(reader)?.items ?? [];
+  const first = items[0];
+  const card = decision.card;
+  if (card.type === "recurring" && first) {
+    const recurrence = first.recurrence;
+    const when = recurrence ? `${recurrence.frequency}${recurrence.dayOfMonth ? ` on day ${recurrence.dayOfMonth}` : ""}` : "frequency not set";
+    return { kind: "recurring", sourceText: message, line: `a standing order, not saved: ${itemLine(first)}, ${when}.` };
+  }
+  if ((card.type === "draft" || card.type === "clarify") && first) {
+    return { kind: "draft", sourceText: message, line: `one transaction, not saved: ${itemLine(first)}, one time.` };
+  }
+  if (card.type === "drafts" && first) {
+    return { kind: "draft", sourceText: message, line: `${items.length} transactions, not saved, first: ${itemLine(first)}.` };
+  }
+  if (decision.data.status === "ready") {
+    const question = decision.data.question;
+    return { kind: "data_answer", sourceText: message, line: `an answer about ${question.type} from ${question.from} to ${question.to}.` };
+  }
+  if (decision.publishedPage) return { kind: "halacha", sourceText: message, line: "a published halacha page." };
+  if (decision.side === "inspiration") return { kind: "inspiration", sourceText: message, line: "an inspiration item from the library." };
+  return null;
+}
+
+function clipText(text: string): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  return flat.length <= MAX_REMEMBERED_TEXT ? flat : flat.slice(0, MAX_REMEMBERED_TEXT);
+}
+
+/**
+ * The state after this turn. It always starts from the state before the turn, so the
+ * second decision of one turn (after the data read) replaces the first without adding the message twice.
+ */
+function rememberTurn(before: ConversationState, userText: string, decision: Omit<TurnDecision, "nextState">, reader: TurnReader | null): ConversationState {
+  const text = clipText(userText);
   return {
-    recentUserTexts: state.recentUserTexts.slice(),
-    receiptText: state.receiptText,
-    onScreen: state.onScreen,
-    pending: state.pending,
+    recentUserTexts: text ? [...before.recentUserTexts, text].slice(-REMEMBERED_TEXTS) : before.recentUserTexts.slice(),
+    receiptText: null,
+    onScreen: screenOf(userText, decision, reader),
+    pending: decision.pending,
   };
+}
+
+function readerSays(reader: TurnReader | null, flag: "continues" | "discards"): boolean {
+  return Boolean(reader && reader.ok && reader[flag] === true);
+}
+
+/** A message about the card on screen: drop it, or a change to one that was already saved. */
+function cardTurn(input: TurnInput): TurnDecision | null {
+  if (input.forcedIntent) return null;
+  const open = input.state.onScreen;
+  const card: TurnCard | null = readerSays(input.reader, "discards") && (open?.kind === "draft" || open?.kind === "recurring")
+    ? { type: "discarded" }
+    : readerSays(input.reader, "continues") && open?.kind === "saved"
+      ? { type: "already_saved" }
+      : null;
+  if (!card) return null;
+  const decision: Omit<TurnDecision, "nextState"> = {
+    releaseAs: "add_transaction",
+    mode: "show",
+    intent: null,
+    publishedPage: null,
+    card,
+    data: { status: "skip" },
+    side: "none",
+    needsQuestion: false,
+    needsNameCheck: false,
+    pending: null,
+    preferRabbi: false,
+    frequencyBlocked: false,
+  };
+  const next = rememberTurn(input.state, input.userText ?? input.message, decision, input.reader);
+  return { ...decision, nextState: card.type === "already_saved" ? { ...next, onScreen: open } : next };
 }
 
 /** What this turn shows, and the pending question, from the model results. The drawer only applies it. */
 export function decideTurn(input: TurnInput): TurnDecision {
+  const aboutCard = cardTurn(input);
+  if (aboutCard) return aboutCard;
   const routed = route(input);
   const card = routed.mode === "show" ? cardFor(routed.intent, input.reader, Boolean(input.forcedIntent)) : { type: "none" as const };
   const intent = card.type === "recurring" ? "create_recurring" : routed.intent;
@@ -385,7 +549,7 @@ export function decideTurn(input: TurnInput): TurnDecision {
   const data = routed.mode === "show"
     ? dataFor(input, wantsData, routed.preferRabbi)
     : { data: { status: "skip" as const }, needsQuestion: false, needsNameCheck: false };
-  return {
+  const decision: Omit<TurnDecision, "nextState"> = {
     releaseAs: card.type === "recurring" ? "create_recurring" : routed.releaseAs,
     mode: routed.mode,
     intent,
@@ -398,8 +562,8 @@ export function decideTurn(input: TurnInput): TurnDecision {
     pending: pendingFor(input.message, card, data.data),
     preferRabbi: routed.preferRabbi,
     frequencyBlocked: routed.mode === "show" && frequencyBlocked(input.reader),
-    nextState: copyState(input.state),
   };
+  return { ...decision, nextState: rememberTurn(input.state, input.userText ?? input.message, decision, input.reader) };
 }
 
 function firstItem(reader: TurnReader | null): AnchoredSplitItem | null {
@@ -422,6 +586,7 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
     period: question ? `${question.from}..${question.to}` : null,
     family: question?.type ?? null,
     pending: decision.pending?.kind ?? null,
+    typeAsked: item && item.typeQuestion && !statedSpecialType(item) ? item.typeQuestion : null,
   };
 }
 
@@ -435,6 +600,8 @@ function summaryKind(decision: TurnDecision): TurnAnswerKind {
   if (decision.card.type === "draft") return "draft";
   if (decision.card.type === "recurring") return "recurring";
   if (decision.card.type === "rule") return "rule";
+  if (decision.card.type === "discarded") return "discarded";
+  if (decision.card.type === "already_saved") return "already_saved";
   if (decision.data.status === "period_missing" || decision.data.status === "family_missing" || decision.data.status === "name_missing") {
     return "question";
   }

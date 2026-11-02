@@ -17,6 +17,8 @@ export type StatusTone = "success" | "error" | "info";
 export const STATUS_MESSAGES = {
   saved: { key: "aiIntake.saved", tone: "success" },
   undone: { key: "aiIntake.undone", tone: "success" },
+  discarded: { key: "aiIntake.discarded", tone: "success" },
+  alreadySaved: { key: "aiIntake.alreadySaved", tone: "info" },
   ruleSaved: { key: "aiIntake.ruleSaved", tone: "success" },
   duplicateKept: { key: "aiIntake.duplicateKept", tone: "success" },
   recurringSaved: { key: "aiIntake.recurring.saved", tone: "success" },

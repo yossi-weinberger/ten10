@@ -411,7 +411,10 @@
           "user": "כמה הוצאתי על ירקות",
           "expect": {
             "kind": "question",
-            "pending": "period"
+            "pending": "period",
+            "alsoOk": [
+              "data_answer"
+            ]
           }
         },
         {
@@ -421,7 +424,8 @@
             "family": "expense"
           }
         }
-      ]
+      ],
+      "note": "A question that names no period is answered for all time (plan rule), so a direct answer is also right."
     },
     {
       "id": "conv-014",

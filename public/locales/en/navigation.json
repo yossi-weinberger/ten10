@@ -137,6 +137,8 @@
     "saved": "Saved.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
+    "discarded": "OK, I dropped that card.",
+    "alreadySaved": "That one is already saved. You can undo it and write it again.",
     "undoNotAllowed": "This cannot be undone. You can delete the transaction in the table.",
     "undoFailed": "Undo failed. The transaction is still saved.",
     "noRateAvailable": "No exchange rate. Nothing was saved.",

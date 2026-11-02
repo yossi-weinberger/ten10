@@ -23,6 +23,7 @@ import {
   SPLIT_RESPONSES_URL,
 } from "../_shared/ai/question-period.ts";
 import { SPLIT_MODEL } from "../_shared/ai/split-prompt.ts";
+import { readContextField } from "../_shared/ai/conversation-context.ts";
 
 const CATEGORY_TYPES = ["income", "exempt-income", "expense", "recognized-expense"] as const;
 
@@ -63,7 +64,8 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown; context?: unknown } | null;
+  const context = readContextField(body?.context);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const today = typeof body?.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today)
@@ -92,7 +94,7 @@ Deno.serve(async (req: Request) => {
 
   const slotsCall = (async () => {
     try {
-      const request = buildQuestionSlotBody(text, lists);
+      const request = buildQuestionSlotBody(text, lists, context);
       const result = await callModel({
         userId: userData.user.id,
         operation: "question_slots",
@@ -137,7 +139,7 @@ Deno.serve(async (req: Request) => {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(periodRequestBody(text, today, "app", calendar)),
+          body: JSON.stringify(periodRequestBody(text, today, "app", calendar, context)),
         },
         timeoutMs: 8000,
         record: serviceModelCallRecorder(),

@@ -34,6 +34,8 @@ export interface SplitPromptContext {
   timeZone?: string;
   calendar?: "gregorian" | "hebrew";
   receipt?: boolean;
+  /** Earlier lines from this chat, as data. */
+  conversation?: string;
 }
 
 export function splitPrompt(text: string, today: string, context: SplitPromptContext = {}): string {
@@ -74,6 +76,8 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     `The user's calendar is ${context.calendar ?? "gregorian"}. A numbered day of the month uses that calendar, unless the message names a Hebrew date or a Hebrew month.`,
     "A payee that is a place of Torah study is a donation.",
     "unsupported_frequency is true only when the user asked for a repeating payment whose frequency is not daily, weekly, monthly, or yearly. recurrence is then null. Do not record that request as monthly. Otherwise unsupported_frequency is false.",
+    "continues is true when the message changes or completes the card the earlier lines say is on screen. Then return the full updated items, keeping what the message does not change. Otherwise continues is false.",
+    "discards is true when the message asks to drop the card on screen without saving it. Otherwise discards is false.",
     "rule is null unless the user is saving a standing classification now. rule_id applies a saved rule to this payee. question is null unless the user asks for a saved total.",
     "currency is ILS, USD, or EUR, or null when no currency was named.",
     "payment_method is credit_card, cash, bank_transfer, bit_paybox, check, or null.",
@@ -89,6 +93,9 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
       return examples.length > 0 ? `${rule.id} ${rule.name} | examples: ${examples.join(" | ")}` : `${rule.id} ${rule.name}`;
     }).join("; ") : "none"}.`,
     `Recipients: ${recipients.length > 0 ? recipients.join(", ") : "none"}.`,
+    ...(context.conversation
+      ? ["Earlier in this chat:", context.conversation, "Read the message. Use the earlier lines only to understand what the message refers to."]
+      : []),
     "Message:",
     text,
   ].join("\n");

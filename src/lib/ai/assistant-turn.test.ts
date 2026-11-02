@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
-import { decideTurn, emptyConversation, readerHasMovement, summarizeTurn, type TurnInput, type TurnReader } from "./assistant-turn";
+import { contextFor, decideTurn, emptyConversation, readerHasMovement, rememberSaved, rememberUndone, summarizeTurn, type TurnInput, type TurnReader } from "./assistant-turn";
 
 function item(partial: Partial<AnchoredSplitItem>): AnchoredSplitItem {
   return {
@@ -363,11 +363,64 @@ describe("decideTurn", () => {
     expect(decision.pending?.kind).toBe("name");
   });
 
-  it("leaves the conversation state unchanged", () => {
+  it("remembers the user's words and the open draft, from the state before the turn", () => {
     const state = emptyConversation();
-    const decision = decideTurn(base({ state }));
-    expect(decision.nextState).toEqual(state);
-    expect(decision.nextState).not.toBe(state);
+    const first = decideTurn(base({ state }));
+    expect(first.nextState.recentUserTexts).toEqual(["קניתי לחם ב-15"]);
+    expect(first.nextState.onScreen?.kind).toBe("draft");
+    expect(first.nextState.onScreen?.line).toContain("expense 15 ILS");
+    expect(state.recentUserTexts).toEqual([]);
+    // A second decision in the same turn does not add the message twice.
+    expect(decideTurn(base({ state })).nextState).toEqual(first.nextState);
+    expect(contextFor(first.nextState)).toContain("1. \"קניתי לחם ב-15\"");
+  });
+
+  it("keeps three messages, uses the user's own words, and remembers a pending question", () => {
+    let state = emptyConversation();
+    for (const text of ["א", "ב", "ג", "ד"]) state = decideTurn(base({ state, message: text })).nextState;
+    expect(state.recentUserTexts).toEqual(["ב", "ג", "ד"]);
+    const joined = decideTurn(base({ state: emptyConversation(), message: "קניתי לחם 20", userText: "20" }));
+    expect(joined.nextState.recentUserTexts).toEqual(["20"]);
+    const waiting = decideTurn(base({
+      jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: { slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null }, period: null, nameText: null },
+    }));
+    expect(waiting.nextState.pending?.kind).toBe("period");
+    expect(waiting.nextState.onScreen).toBeNull();
+  });
+
+  it("closes the card after a save and an undo", () => {
+    const open = decideTurn(base()).nextState;
+    const saved = rememberSaved(open, "item-1");
+    expect(saved.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(saved.pending).toBeNull();
+    expect(rememberUndone(saved).onScreen).toBeNull();
+  });
+
+  it("drops the open card when the reader says so, and only then", () => {
+    const open = decideTurn(base()).nextState;
+    const drop = { ok: true as const, route: "unreadable" as const, discards: true };
+    const dropped = decideTurn(base({ message: "לא משנה", jev: { ok: true, intent: "out_of_scope", confidence: 0.9 }, reader: drop, state: open }));
+    expect(dropped.card.type).toBe("discarded");
+    expect(dropped.nextState.onScreen).toBeNull();
+    const nothingOpen = decideTurn(base({ message: "לא משנה", jev: { ok: true, intent: "out_of_scope", confidence: 0.9 }, reader: drop }));
+    expect(nothingOpen.card.type).not.toBe("discarded");
+    const chosen = decideTurn(base({ reader: drop, state: open, forcedIntent: "add_transaction" }));
+    expect(chosen.card.type).not.toBe("discarded");
+  });
+
+  it("says a continued card was already saved and keeps it as saved", () => {
+    const saved = rememberSaved(decideTurn(base()).nextState, "item-1");
+    const more = decideTurn(base({
+      message: "בעצם 20",
+      reader: { ok: true, route: "several", items: [item({ amount: 20 })], rule: null, question: null, continues: true },
+      state: saved,
+    }));
+    expect(more.card.type).toBe("already_saved");
+    expect(more.nextState.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(summarizeTurn(base(), more).kind).toBe("already_saved");
   });
 
   it("treats a list route as movement", () => {

@@ -267,6 +267,36 @@ describe("AssistantDrawer characterization", () => {
     expect(ai.refreshAfterIntakeSave).toHaveBeenCalledTimes(1);
   });
 
+  it("sends the earlier message and the open draft with the next message, and forgets them on a new chat", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(ai.classifyIntentFallback.mock.calls[0][1]).toBe("");
+    await send(user, "בעצם 20");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
+    const context = ai.classifyIntentFallback.mock.calls[1][1] as string;
+    expect(context).toContain("1. \"קניתי מאפים באליס ב-15 שח\"");
+    expect(context).toContain("On screen now: one transaction, not saved: expense 15 ILS");
+    expect(ai.splitItems.mock.calls[1][2]).toMatchObject({ context });
+    await user.click(screen.getByRole("button", { name: "aiIntake.newChat" }));
+    await send(user, "קניתי לחם ב-10");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(3));
+    expect(ai.classifyIntentFallback.mock.calls[2][1]).toBe("");
+  });
+
+  it("tells the next message that the draft was saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.save" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    await send(user, "בעצם 20");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
+    expect(ai.classifyIntentFallback.mock.calls[1][1]).toContain("On screen now: the last card was saved.");
+  });
+
   it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({
       ok: true,
