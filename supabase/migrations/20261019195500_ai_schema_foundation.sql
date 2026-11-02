@@ -12,7 +12,7 @@ GRANT USAGE ON SCHEMA ai TO authenticated, service_role;
 -- ---------------------------------------------------------------------------
 -- intake_messages
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.intake_messages (
+CREATE TABLE IF NOT EXISTS ai.intake_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   schema_version integer NOT NULL DEFAULT 1,
@@ -35,21 +35,21 @@ CREATE TABLE ai.intake_messages (
   UNIQUE (user_id, idempotency_key)
 );
 
-CREATE UNIQUE INDEX intake_messages_channel_external_id_key
+CREATE UNIQUE INDEX IF NOT EXISTS intake_messages_channel_external_id_key
   ON ai.intake_messages (channel, external_message_id)
   WHERE external_message_id IS NOT NULL;
 
-CREATE INDEX intake_messages_user_received_idx
+CREATE INDEX IF NOT EXISTS intake_messages_user_received_idx
   ON ai.intake_messages (user_id, received_at DESC);
 
-CREATE INDEX intake_messages_active_status_idx
+CREATE INDEX IF NOT EXISTS intake_messages_active_status_idx
   ON ai.intake_messages (status)
   WHERE status IN ('queued', 'processing', 'needs_clarification');
 
 -- ---------------------------------------------------------------------------
 -- source_artifacts
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.source_artifacts (
+CREATE TABLE IF NOT EXISTS ai.source_artifacts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   intake_message_id uuid NOT NULL REFERENCES ai.intake_messages (id) ON DELETE CASCADE,
@@ -67,16 +67,16 @@ CREATE TABLE ai.source_artifacts (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX source_artifacts_user_expires_idx
+CREATE INDEX IF NOT EXISTS source_artifacts_user_expires_idx
   ON ai.source_artifacts (user_id, expires_at);
 
-CREATE INDEX source_artifacts_message_idx
+CREATE INDEX IF NOT EXISTS source_artifacts_message_idx
   ON ai.source_artifacts (intake_message_id);
 
 -- ---------------------------------------------------------------------------
 -- intake_items
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.intake_items (
+CREATE TABLE IF NOT EXISTS ai.intake_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   message_id uuid NOT NULL REFERENCES ai.intake_messages (id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
@@ -99,13 +99,13 @@ CREATE TABLE ai.intake_items (
   UNIQUE (message_id, item_index)
 );
 
-CREATE INDEX intake_items_user_status_created_idx
+CREATE INDEX IF NOT EXISTS intake_items_user_status_created_idx
   ON ai.intake_items (user_id, status, created_at DESC);
 
 -- ---------------------------------------------------------------------------
 -- transaction_source_links
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.transaction_source_links (
+CREATE TABLE IF NOT EXISTS ai.transaction_source_links (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   transaction_id uuid NOT NULL REFERENCES public.transactions (id) ON DELETE CASCADE,
   source_artifact_id uuid REFERENCES ai.source_artifacts (id) ON DELETE SET NULL,
@@ -116,16 +116,16 @@ CREATE TABLE ai.transaction_source_links (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX transaction_source_links_transaction_idx
+CREATE INDEX IF NOT EXISTS transaction_source_links_transaction_idx
   ON ai.transaction_source_links (transaction_id);
 
-CREATE INDEX transaction_source_links_item_idx
+CREATE INDEX IF NOT EXISTS transaction_source_links_item_idx
   ON ai.transaction_source_links (intake_item_id);
 
 -- ---------------------------------------------------------------------------
 -- intake_events (service role only)
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.intake_events (
+CREATE TABLE IF NOT EXISTS ai.intake_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   message_id uuid REFERENCES ai.intake_messages (id) ON DELETE CASCADE,
   item_id uuid REFERENCES ai.intake_items (id) ON DELETE CASCADE,
@@ -139,12 +139,12 @@ CREATE TABLE ai.intake_events (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX intake_events_message_idx ON ai.intake_events (message_id, created_at);
+CREATE INDEX IF NOT EXISTS intake_events_message_idx ON ai.intake_events (message_id, created_at);
 
 -- ---------------------------------------------------------------------------
 -- user_rules, duplicate scans
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.user_rules (
+CREATE TABLE IF NOT EXISTS ai.user_rules (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   match jsonb NOT NULL,
@@ -157,9 +157,9 @@ CREATE TABLE ai.user_rules (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX user_rules_user_status_idx ON ai.user_rules (user_id, status);
+CREATE INDEX IF NOT EXISTS user_rules_user_status_idx ON ai.user_rules (user_id, status);
 
-CREATE TABLE ai.duplicate_scans (
+CREATE TABLE IF NOT EXISTS ai.duplicate_scans (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   status text NOT NULL DEFAULT 'queued',
@@ -169,10 +169,10 @@ CREATE TABLE ai.duplicate_scans (
   expires_at timestamptz
 );
 
-CREATE INDEX duplicate_scans_user_requested_idx
+CREATE INDEX IF NOT EXISTS duplicate_scans_user_requested_idx
   ON ai.duplicate_scans (user_id, requested_at DESC);
 
-CREATE TABLE ai.duplicate_dismissals (
+CREATE TABLE IF NOT EXISTS ai.duplicate_dismissals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   transaction_a uuid NOT NULL,
@@ -194,18 +194,22 @@ ALTER TABLE ai.user_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai.duplicate_scans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai.duplicate_dismissals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS intake_messages_select ON ai.intake_messages;
 CREATE POLICY intake_messages_select ON ai.intake_messages
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS source_artifacts_select ON ai.source_artifacts;
 CREATE POLICY source_artifacts_select ON ai.source_artifacts
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS intake_items_select ON ai.intake_items;
 CREATE POLICY intake_items_select ON ai.intake_items
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS transaction_source_links_select ON ai.transaction_source_links;
 CREATE POLICY transaction_source_links_select ON ai.transaction_source_links
   FOR SELECT TO authenticated
   USING (
@@ -217,14 +221,17 @@ CREATE POLICY transaction_source_links_select ON ai.transaction_source_links
     )
   );
 
+DROP POLICY IF EXISTS user_rules_select ON ai.user_rules;
 CREATE POLICY user_rules_select ON ai.user_rules
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS duplicate_scans_select ON ai.duplicate_scans;
 CREATE POLICY duplicate_scans_select ON ai.duplicate_scans
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS duplicate_dismissals_select ON ai.duplicate_dismissals;
 CREATE POLICY duplicate_dismissals_select ON ai.duplicate_dismissals
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
@@ -247,13 +254,16 @@ REVOKE ALL ON ai.intake_events FROM PUBLIC, anon, authenticated;
 -- transactions.origin. Nullable. Existing writers do not set it.
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.transactions
-  ADD COLUMN origin text;
+  ADD COLUMN IF NOT EXISTS origin text;
+
+ALTER TABLE public.transactions
+  DROP CONSTRAINT IF EXISTS transactions_origin_check;
 
 ALTER TABLE public.transactions
   ADD CONSTRAINT transactions_origin_check
   CHECK (origin IS NULL OR origin IN ('ai', 'ai_auto'));
 
-CREATE INDEX transactions_ai_origin_idx
+CREATE INDEX IF NOT EXISTS transactions_ai_origin_idx
   ON public.transactions (user_id, date DESC)
   WHERE origin IS NOT NULL;
 
@@ -261,12 +271,12 @@ CREATE INDEX transactions_ai_origin_idx
 -- Replace the in-use get_user_transactions overload. Same behavior when
 -- p_origin is omitted. t.* already includes the new column in the JSON.
 -- ---------------------------------------------------------------------------
-DROP FUNCTION public.get_user_transactions(
+DROP FUNCTION IF EXISTS public.get_user_transactions(
   uuid, integer, integer, text, text, text[], text, text, text,
   boolean, text[], text[], text[]
 );
 
-CREATE FUNCTION public.get_user_transactions(
+CREATE OR REPLACE FUNCTION public.get_user_transactions(
   p_user_id uuid,
   p_offset integer,
   p_limit integer,

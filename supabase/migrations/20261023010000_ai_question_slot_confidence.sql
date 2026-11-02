@@ -1,7 +1,7 @@
 -- Store per-field slot confidence for a trial user's data question.
 -- The question text is not stored.
 
-CREATE TABLE ai.question_measurements (
+CREATE TABLE IF NOT EXISTS ai.question_measurements (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   quality_signals jsonb NOT NULL,
@@ -10,6 +10,7 @@ CREATE TABLE ai.question_measurements (
 
 ALTER TABLE ai.question_measurements ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS question_measurements_select ON ai.question_measurements;
 CREATE POLICY question_measurements_select ON ai.question_measurements
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
