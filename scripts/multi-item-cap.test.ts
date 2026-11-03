@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { MAX_ITEMS_PER_MESSAGE } from "../supabase/functions/_shared/ai/multi-item.ts";
 
 const sql = readFileSync(
-  "supabase/migrations/20261029160000_ai_text_intake_items.sql",
+  "supabase/migrations/20261103100000_ai_intake.sql",
   "utf8",
 );
 
