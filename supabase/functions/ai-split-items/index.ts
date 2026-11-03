@@ -3,7 +3,6 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
-import { mayReleaseRecentTextUsage } from "../_shared/ai/usage-gate.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -11,7 +10,7 @@ import { readModelText } from "../_shared/ai/receipt-draft.ts";
 import { parseSplitPayload, readSplitResponse } from "../_shared/ai/split-response.ts";
 import { splitReadContext, type SplitRuleRef } from "../_shared/ai/split-anchor.ts";
 import { loadSplitLists } from "../_shared/ai/split-lists.ts";
-import { todayInZone } from "../_shared/ai/split-date.ts";
+import { knownTimeZone, todayInZone } from "../_shared/ai/split-date.ts";
 import {
   SPLIT_MODEL,
   SPLIT_RESPONSES_URL,
@@ -22,7 +21,8 @@ import {
 import { readContextField } from "../_shared/ai/conversation-context.ts";
 import { isSupportedCurrencyCode } from "../_shared/transaction-domain/normalize-core.ts";
 
-const USAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Real messages are a few hundred characters. A longer one is cut, not sent whole. */
+const MAX_TEXT_CHARS = 8000;
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -59,28 +59,14 @@ Deno.serve(async (req: Request) => {
     context?: unknown;
     /** The open card's words and amounts. A continuing message may keep an amount only from them, not from the whole chat. */
     cardEvidence?: unknown;
-    release?: unknown;
   } | null;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
   const admin = serviceKey ? createClient(supabaseUrl, serviceKey) : null;
   const usage = serviceUsageGate();
 
-  if (typeof body?.release === "string") {
-    if (!admin || !USAGE_ID.test(body.release)) return json(origin, { released: false }, 200);
-    const { data } = await admin.schema("ai").from("usage_events")
-      .select("user_id, kind, created_at, released_at")
-      .eq("id", body.release)
-      .maybeSingle();
-    if (!mayReleaseRecentTextUsage(data, userData.user.id, Date.now())) {
-      return json(origin, { released: false }, 200);
-    }
-    await usage.release(body.release);
-    return json(origin, { released: true }, 200);
-  }
-
-  const text = typeof body?.text === "string" ? body.text.trim() : "";
-  const zone = typeof body?.timeZone === "string" && body.timeZone.trim() ? body.timeZone.trim() : "UTC";
+  const text = typeof body?.text === "string" ? body.text.trim().slice(0, MAX_TEXT_CHARS) : "";
+  const zone = knownTimeZone(body?.timeZone);
   const received = typeof body?.receivedAt === "string" ? new Date(body.receivedAt) : new Date();
   const fallbackToday = typeof body?.today === "string" ? body.today : "";
   const today = (Number.isNaN(received.getTime()) ? null : todayInZone(received, zone)) ?? fallbackToday;

@@ -1,4 +1,4 @@
-import { callModel, type ModelCallInput, type ModelCallRow, readModelUsage } from "./model-call.ts";
+import { callModel, failedBeforeBilling, type ModelCallInput, type ModelCallRow, readModelUsage } from "./model-call.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -129,4 +129,14 @@ Deno.test("a failed write does not fail the call", async () => {
     record: () => Promise.reject(new Error("db down")),
   }));
   assert(result.ok, "the call still succeeds");
+});
+
+Deno.test("only a refused or unreached call is unbilled", () => {
+  for (const errorCode of ["http_4xx", "http_5xx", "network"] as const) {
+    assert(failedBeforeBilling({ ok: false, status: null, errorCode }), errorCode);
+  }
+  for (const errorCode of ["timeout", "unreadable"] as const) {
+    assert(!failedBeforeBilling({ ok: false, status: null, errorCode }), errorCode);
+  }
+  assert(!failedBeforeBilling({ ok: true, status: 200, payload: {} }), "ok");
 });

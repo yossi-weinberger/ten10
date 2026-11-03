@@ -6,7 +6,6 @@ import {
   openReceiptFailureStatus,
   parsedRuleFromCard,
   publishedPageNamespace,
-  readsSplitIntent,
   readyDataReply,
   receiptFailureStatus,
   receiptRouteStatus,
@@ -69,18 +68,6 @@ describe("parsedRuleFromCard", () => {
       action: "ambiguous",
     });
     expect(parsedRuleFromCard({ type: "none" })).toBeNull();
-  });
-});
-
-describe("readsSplitIntent", () => {
-  it("holds the reader for a movement, a rule, or a question", () => {
-    expect(readsSplitIntent("add_transaction")).toBe(true);
-    expect(readsSplitIntent("create_recurring")).toBe(true);
-    expect(readsSplitIntent("create_rule")).toBe(true);
-    expect(readsSplitIntent("ask_data")).toBe(true);
-    expect(readsSplitIntent("ask")).toBe(true);
-    expect(readsSplitIntent("help")).toBe(false);
-    expect(readsSplitIntent("inspiration")).toBe(false);
   });
 });
 

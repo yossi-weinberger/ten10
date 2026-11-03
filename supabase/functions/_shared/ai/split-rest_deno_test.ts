@@ -147,4 +147,5 @@ Deno.test("a monthly standing order starts next month and counts to the end of t
   assert(resolved.startDate === "2026-11-01", "next month");
   assert(resolved.frequency === "monthly", "monthly");
   assert(resolved.totalOccurrences === 2, "November and December");
+  assert(resolved.endDate === "2026-12-31", "keeps the end of the year for a later recount");
 });

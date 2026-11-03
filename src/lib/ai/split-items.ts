@@ -92,8 +92,3 @@ export async function splitItems(
   return { ok: false, reason: "UNAVAILABLE" };
 }
 
-/** Gives the call unit back when Jev does not use the reader. */
-export async function releaseSplit(usageId: string): Promise<void> {
-  if (!aiCallsAllowed()) return;
-  await supabase.functions.invoke("ai-split-items", { body: { release: usageId } });
-}

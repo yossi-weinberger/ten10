@@ -8,7 +8,8 @@ export function InspirationCard({
   onAnother,
 }: {
   item: InspirationView | null;
-  onAnother: () => void;
+  /** Missing in history: "another" there would change the active turn. */
+  onAnother?: () => void;
 }) {
   const { t } = useTranslation("navigation");
   const [open, setOpen] = useState(false);
@@ -28,9 +29,11 @@ export function InspirationCard({
             {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
           </Button>
         ) : null}
-        <Button type="button" variant="outline" size="sm" onClick={onAnother}>
-          {t("aiIntake.inspiration.another")}
-        </Button>
+        {onAnother ? (
+          <Button type="button" variant="outline" size="sm" onClick={onAnother}>
+            {t("aiIntake.inspiration.another")}
+          </Button>
+        ) : null}
       </div>
     </figure>
   );

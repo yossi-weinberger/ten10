@@ -18,9 +18,7 @@ export const getCorsHeaders = (
     "http://localhost:5173",
     "http://127.0.0.1:54321",
   ];
-  const PREVIEW_ORIGIN = /^https:\/\/ten10-[a-z0-9-]+-yossi-weinbergers-projects\.vercel\.app$/;
-
-  // TESTING only: any https://*.vercel.app. Team preview deploys stay allowed on every project.
+  // TESTING only: any https://*.vercel.app, team preview deploys included. Production allows none.
   // Deno tests run without env permission, so a denied read stays closed.
   const supabaseUrl = readSupabaseUrl();
   const isTestingProject = supabaseUrl.includes("bbcllewcotypedqsnwmi");
@@ -29,7 +27,6 @@ export const getCorsHeaders = (
   if (
     origin &&
     (ALLOWED_ORIGINS.includes(origin) ||
-      PREVIEW_ORIGIN.test(origin) ||
       (isTestingProject && isVercelPreview))
   ) {
     return {

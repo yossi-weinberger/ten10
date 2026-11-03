@@ -1,8 +1,24 @@
-import { anchoredQuestionName, nameSuggestions } from "./data-question.ts";
+import { anchoredQuestionName, nameSuggestions, questionFromSlots } from "./data-question.ts";
+import { periodBounds } from "./split-period.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
+
+Deno.test("an average divides by the months that passed", () => {
+  const today = "2026-11-03";
+  const slots = { family: "expense", measure: "average", recipient: null, category: null, paymentMethod: null } as const;
+  const monthsOf = (from: string, to: string, calendar: "gregorian" | "hebrew") => {
+    const question = questionFromSlots("", today, calendar, slots, { kind: "span", from, to });
+    return typeof question === "object" && question ? question.months : null;
+  };
+  for (const calendar of ["gregorian", "hebrew"] as const) {
+    const last3 = periodBounds({ kind: "last_n_months", n: 3, calendar }, today);
+    assert(monthsOf(last3!.from!, last3!.to!, calendar) === 3, `last 3 months is 3 on the ${calendar} calendar`);
+  }
+  assert(monthsOf("2026-01-01", "2026-12-31", "gregorian") === 10, "this year asked in November counts to today");
+  assert(monthsOf("2026-10-01", "2026-10-31", "gregorian") === 1, "one month");
+});
 
 Deno.test("a spoken name is kept only when it appears in the question", () => {
   const question = "תרמתי 50 לבית כנסת וכמה תרמתי השנה?";

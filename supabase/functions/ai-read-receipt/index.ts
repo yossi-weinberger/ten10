@@ -9,7 +9,7 @@ import { todayInZone } from "../_shared/ai/split-date.ts";
 import { SPLIT_MODEL, SPLIT_RESPONSES_URL, SPLIT_TIMEOUT_MS, splitRequestBody } from "../_shared/ai/split-prompt.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
-import { callModel } from "../_shared/ai/model-call.ts";
+import { callModel, failedBeforeBilling } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import { isSupportedCurrencyCode } from "../_shared/transaction-domain/normalize-core.ts";
@@ -24,7 +24,7 @@ import {
   receiptMagicMatches,
   receiptSha256,
   receiptStoragePath,
-  RECEIPT_MAX_BASE64_CHARS,
+  receiptTooLarge,
   RECEIPT_VISION_MODEL,
 } from "../_shared/ai/receipt-draft.ts";
 
@@ -125,7 +125,7 @@ Deno.serve(async (req: Request) => {
   const defaultCurrency = isSupportedCurrencyCode(body?.default_currency) ? body.default_currency : "ILS";
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
-  if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
+  if (receiptTooLarge(mediaType, data.length)) return json(origin, { draft: null, reason: "too_large" }, 200);
   if (!ALLOWED_TYPES.has(mediaType) || data.length === 0) {
     return json(origin, { draft: null }, 400);
   }
@@ -143,13 +143,13 @@ Deno.serve(async (req: Request) => {
   const allowed = await usage.consume(userData.user.id, "receipt");
   if (!allowed.allowed) return json(origin, { draft: null, reason: allowed.reason }, 200);
 
-  const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
-  if (stored.status === "failed") {
-    await usage.release(allowed.usageId);
-    return json(origin, { draft: null, reason: "unavailable" }, 200);
-  }
-
+  let billed = false;
   try {
+    const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
+    if (stored.status === "failed") {
+      await usage.release(allowed.usageId);
+      return json(origin, { draft: null, reason: "unavailable" }, 200);
+    }
     const copyStarted = Date.now();
     const result = await callModel({
       userId: userData.user.id,
@@ -186,9 +186,10 @@ Deno.serve(async (req: Request) => {
     });
     if (!result.ok) {
       logger.error(`receipt read failed: ${result.status ?? result.errorCode}`);
-      await usage.release(allowed.usageId);
+      if (failedBeforeBilling(result)) await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
+    billed = true;
     const copyMs = Date.now() - copyStarted;
     const text = readModelText(result.payload);
     if (!text || !/\d/.test(text)) {
@@ -224,10 +225,7 @@ Deno.serve(async (req: Request) => {
       record: serviceModelCallRecorder(),
     });
     const splitMs = Date.now() - splitStarted;
-    if (!read.ok) {
-      await usage.release(allowed.usageId);
-      return json(origin, { draft: null, reason: "unavailable" }, 200);
-    }
+    if (!read.ok) return json(origin, { draft: null, reason: "unavailable" }, 200);
     const split = readSplitResponse(text, readModelText(read.payload), splitReadContext(today, {
       missingDate: "check",
       defaultCurrency,
@@ -255,7 +253,7 @@ Deno.serve(async (req: Request) => {
     return json(origin, artifactId ? { draft, artifact_id: artifactId, ...timing } : { draft, ...timing }, 200);
   } catch {
     logger.error("receipt read failed");
-    await usage.release(allowed.usageId);
+    if (!billed) await usage.release(allowed.usageId).catch(() => logger.error("usage release failed"));
     return json(origin, { draft: null, reason: "unavailable" }, 200);
   }
 });

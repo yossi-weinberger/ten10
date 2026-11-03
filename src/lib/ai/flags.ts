@@ -1,3 +1,4 @@
+import { useEffect, useReducer } from "react";
 import posthog from "posthog-js";
 import { isPostHogSupported } from "@/lib/analytics/posthogClient";
 import { getPlatform } from "@/lib/platformManager";
@@ -27,6 +28,19 @@ export function isAiIntakeEnabled(): boolean {
 export function showAiIntakeUi(platform: string, signedIn: boolean): boolean {
   if (platform !== "web" || !signedIn) return false;
   return isAiIntakeEnabled();
+}
+
+/**
+ * showAiIntakeUi for components: it reads the flag again when PostHog loads or changes flags,
+ * e.g. right after login, instead of keeping whatever the first render saw.
+ */
+export function useAiIntakeUi(platform: string, signedIn: boolean): boolean {
+  const [, rerender] = useReducer((count: number) => count + 1, 0);
+  useEffect(() => {
+    if (!isAiFeatureFlagEnabled() || !isPostHogSupported()) return;
+    return posthog.onFeatureFlags(() => rerender());
+  }, []);
+  return showAiIntakeUi(platform, signedIn);
 }
 
 /** Network calls stop unless AI feature is enabled and the platform is already known to be web. */

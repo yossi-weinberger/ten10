@@ -92,7 +92,6 @@ export function AssistantComposer({
           ref={textareaRef}
           value={value}
           rows={1}
-          enterKeyHint="send"
           inputMode={mode === "amount" ? "decimal" : undefined}
           placeholder={label}
           aria-label={label}

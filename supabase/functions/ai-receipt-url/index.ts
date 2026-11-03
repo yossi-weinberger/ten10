@@ -18,7 +18,6 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
   if (req.method !== "POST") return json(origin, { url: null }, 405);
-  if (!isAiIntakeEnabled()) return json(origin, { url: null, reason: "unavailable" }, 200);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
@@ -34,9 +33,6 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!isTrialUser(userData.user.id) || !serviceKey || !supabaseUrl) {
-    return json(origin, { url: null, reason: "unavailable" }, 200);
-  }
 
   const body = await req.json().catch(() => null) as {
     transaction_id?: unknown;
@@ -44,6 +40,11 @@ Deno.serve(async (req: Request) => {
   } | null;
   const transactionId = typeof body?.transaction_id === "string" ? body.transaction_id : "";
   const artifactId = typeof body?.artifact_id === "string" ? body.artifact_id : "";
+  // A receipt already saved on a transaction stays viewable when AI is off or the trial ends.
+  const savedReceipt = transactionId !== "" && artifactId === "";
+  if ((!savedReceipt && (!isAiIntakeEnabled() || !isTrialUser(userData.user.id))) || !serviceKey || !supabaseUrl) {
+    return json(origin, { url: null, reason: "unavailable" }, 200);
+  }
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if ((transactionId && artifactId) || (!uuid.test(transactionId) && !uuid.test(artifactId))) {
     return json(origin, { url: null, reason: "none" }, 200);

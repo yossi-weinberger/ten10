@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const setLastDbFetchTimestamp = vi.fn();
 const fetchTransactions = vi.fn();
+const pagination = { currentPage: 1 };
 
 vi.mock("@/lib/store", () => ({
   useDonationStore: {
@@ -11,7 +12,7 @@ vi.mock("@/lib/store", () => ({
 
 vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
   useTableTransactionsStore: {
-    getState: () => ({ fetchTransactions }),
+    getState: () => ({ fetchTransactions, pagination }),
   },
 }));
 
@@ -21,6 +22,7 @@ describe("refreshAfterIntakeSave", () => {
   beforeEach(() => {
     setLastDbFetchTimestamp.mockReset();
     fetchTransactions.mockReset();
+    pagination.currentPage = 1;
   });
 
   it("bumps the shared fetch timestamp and reloads the web table", () => {
@@ -37,5 +39,12 @@ describe("refreshAfterIntakeSave", () => {
 
     refreshOnVisible("visible");
     expect(fetchTransactions).toHaveBeenCalledWith(true, "web");
+  });
+
+  it("leaves a table the user paged into where it is", () => {
+    pagination.currentPage = 3;
+    refreshOnVisible("visible");
+    expect(setLastDbFetchTimestamp).toHaveBeenCalledOnce();
+    expect(fetchTransactions).not.toHaveBeenCalled();
   });
 });
