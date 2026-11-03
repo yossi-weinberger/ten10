@@ -144,6 +144,18 @@ export function todayInZone(instant: Date, timeZone: string): string | null {
   }
 }
 
+/** A zone Intl knows, or UTC. The zone goes into the prompt, so other text never does. */
+export function knownTimeZone(value: unknown): string {
+  const zone = typeof value === "string" ? value.trim() : "";
+  if (!zone) return "UTC";
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: zone });
+    return zone;
+  } catch {
+    return "UTC";
+  }
+}
+
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 
 export function weekdayName(isoDate: string): string | null {

@@ -82,6 +82,11 @@ export function readModelUsage(payload: unknown): ModelUsage {
   };
 }
 
+/** The provider refused or was not reached. A timeout or an unreadable 200 may still be billed. */
+export function failedBeforeBilling(result: ModelCallResult): boolean {
+  return !result.ok && (result.errorCode === "http_4xx" || result.errorCode === "http_5xx" || result.errorCode === "network");
+}
+
 function isTimeout(error: unknown): boolean {
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }

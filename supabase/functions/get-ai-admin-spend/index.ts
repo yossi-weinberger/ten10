@@ -15,6 +15,7 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** First UTC day eval scripts tag `source:eval`. Before it, app spend still includes eval runs. */
 const TAGGING_START = "2026-10-23";
 const MAX_MODELS = 8;
+const REPORT_TIMEOUT_MS = 10000;
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -44,7 +45,10 @@ async function report(
   url.searchParams.set("start_date", from);
   url.searchParams.set("end_date", to);
   for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${key}` } });
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${key}` },
+    signal: AbortSignal.timeout(REPORT_TIMEOUT_MS),
+  });
   if (!response.ok) {
     logger.error(`ai gateway report failed: ${response.status}`);
     return null;
