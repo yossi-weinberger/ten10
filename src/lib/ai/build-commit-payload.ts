@@ -1,5 +1,6 @@
 import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 import type { TextTransactionDraft } from "../../../supabase/functions/_shared/ai/text-draft.ts";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 export interface CommitPayload {
   idempotency_key: string;
@@ -52,7 +53,8 @@ export function buildCommitPayload(input: {
     originalCurrency: input.draft.currency,
     defaultCurrency: input.defaultCurrency,
     rate: rate ?? 1,
-    conversionDate: input.draft.date,
+    // The day the rate was taken, like the form: today, for a fetched rate and for a typed one.
+    conversionDate: getCurrentLocalDate(),
     rateSource: input.draft.requestedRate !== null ? "manual" : "auto",
   });
 

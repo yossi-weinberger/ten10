@@ -3,6 +3,8 @@ import { aiCallsAllowed } from "@/lib/ai/flags";
 import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "@/lib/category-registry";
 import { typesForFamily, type YearTypeSum } from "@/lib/ai/classify-intake";
 import { decideQuestionFilter, type MissingName, type QuestionFilter } from "./question-filter";
+import { MIN_TRANSACTION_DATE } from "../../../supabase/functions/_shared/transaction-domain/normalize-core.ts";
+import { questionMonths } from "../../../supabase/functions/_shared/ai/data-question.ts";
 
 export type { MissingName, QuestionFilter };
 
@@ -59,6 +61,13 @@ export async function resolveQuestionFilter(
   }, searchDescriptions);
 }
 
+/** "All time" starts in 2000 for the totals query; an average divides by the months since the user's first transaction. */
+async function monthsSinceFirstTransaction(to: string): Promise<number | null> {
+  const { data, error } = await supabase.from("transactions").select("date").order("date", { ascending: true }).limit(1);
+  const first = !error && Array.isArray(data) ? (data[0] as { date?: unknown } | undefined)?.date : null;
+  return typeof first === "string" ? questionMonths(first.slice(0, 10), to, to, "gregorian") : null;
+}
+
 export async function sumYearType(
   question: YearTypeSum,
   filter: QuestionFilter,
@@ -79,7 +88,9 @@ export async function sumYearType(
   if (question.measure !== "count" && totals.currencies.length > 1) {
     return { ok: false, reason: "MIXED" };
   }
-  const months = question.months < 1 ? 1 : question.months;
+  const months = question.measure === "average" && question.from === MIN_TRANSACTION_DATE
+    ? await monthsSinceFirstTransaction(question.to) ?? question.months
+    : question.months < 1 ? 1 : question.months;
   const total = question.measure === "average"
     ? totals.total / months
     : question.measure === "max"

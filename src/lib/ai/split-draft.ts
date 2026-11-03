@@ -1,6 +1,7 @@
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import { cardFromRecurringDraft } from "@/lib/ai/recurring-card";
+import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { statedSpecialType, type AnchoredSplitItem, type SpecialType } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 
 export interface HeldDraft {
@@ -91,14 +92,13 @@ export function recurringCardFromItem(item: AnchoredSplitItem, fallbackCurrency:
     dayOfMonth: recurrence?.dayOfMonth ?? null,
     anchorMonthCode: null,
     totalOccurrences: recurrence?.totalOccurrences ?? null,
+    endDate: recurrence?.endDate ?? null,
     alreadyCharged: recurrence?.alreadyCharged ?? false,
   });
 }
 
-/** A reply that is only digits fills the amount. Anything else goes back to the reader. */
+/** A reply that is only digits fills the amount, read like the card field. Anything else goes back to the reader. */
 export function digitsOnlyAmount(reply: string): number | null {
-  const trimmed = reply.trim().replace(/,/g, "");
-  if (!/^\d+(?:\.\d+)?$/.test(trimmed)) return null;
-  const value = Number(trimmed);
-  return Number.isFinite(value) && value > 0 ? value : null;
+  const trimmed = reply.trim();
+  return /^[\d.,]+$/.test(trimmed) ? parseDraftAmount(trimmed) : null;
 }

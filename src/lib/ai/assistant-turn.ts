@@ -490,7 +490,7 @@ function dataFor(input: TurnInput, wantsData: boolean, preferRabbi: boolean): { 
   if (readQuestion) {
     const bare = movement ? { ...readQuestion, category: null, recipient: null } : readQuestion;
     const filled = input.chosenFamily && !bare.family ? { ...bare, family: input.chosenFamily } : bare;
-    const built = yearSumFromReader(filled);
+    const built = yearSumFromReader(filled, input.today, input.calendar);
     if (built === "ask_family") return { data: { status: "family_missing", hold: null }, needsQuestion: false, needsNameCheck: false };
     if (built) return readyOrName(input, built);
   }
