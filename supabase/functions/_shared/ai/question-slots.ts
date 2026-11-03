@@ -12,6 +12,8 @@ import { JEV_DUPLICATE_MODEL } from "./jev-duplicate-rank.ts";
 
 /** Choice options in one Jev question, including the required "none". */
 export const QUESTION_SLOT_LIMIT = 255;
+/** Longer question text is cut before any model reads it. */
+export const QUESTION_MAX_CHARS = 500;
 const NAME_MAX = 80;
 
 export type QuestionFamily = "donation" | "income" | "expense";
@@ -143,7 +145,7 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists, co
   const continued = context ? " Earlier lines are context: a question that continues the previous one keeps what it does not change." : "";
   return {
     model: JEV_DUPLICATE_MODEL,
-    state: context ? `${context}\n\nQuestion:\n${text.trim().slice(0, 500)}` : text.trim().slice(0, 500),
+    state: context ? `${context}\n\nQuestion:\n${text.trim().slice(0, QUESTION_MAX_CHARS)}` : text.trim().slice(0, QUESTION_MAX_CHARS),
     questions: {
       family: {
         type: "choice",

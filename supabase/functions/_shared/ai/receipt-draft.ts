@@ -11,7 +11,16 @@ const CURRENCIES = SUPPORTED_CURRENCY_CODES;
 /** Base64 of a larger file is rejected. The client uses the same byte ceiling. */
 export const RECEIPT_MAX_BASE64_CHARS = 5_500_000;
 export const RECEIPT_MAX_BYTES = Math.floor(RECEIPT_MAX_BASE64_CHARS / 4) * 3;
+/**
+ * A PDF is billed per page, and its page count needs a PDF parser, so a PDF gets a lower ceiling (about 3 MB).
+ * The client checks only the shared ceiling; the server answers too_large.
+ */
+export const RECEIPT_MAX_PDF_BASE64_CHARS = 4_000_000;
 type ReceiptCurrency = SupportedCurrencyCode;
+
+export function receiptTooLarge(mediaType: string, base64Chars: number): boolean {
+  return base64Chars > (mediaType === "application/pdf" ? RECEIPT_MAX_PDF_BASE64_CHARS : RECEIPT_MAX_BASE64_CHARS);
+}
 
 export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 

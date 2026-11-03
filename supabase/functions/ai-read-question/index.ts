@@ -10,6 +10,7 @@ import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import {
   buildQuestionSlotBody,
   predefinedQuestionCategories,
+  QUESTION_MAX_CHARS,
   readQuestionSlots,
   slotConfidence,
 } from "../_shared/ai/question-slots.ts";
@@ -66,7 +67,7 @@ Deno.serve(async (req: Request) => {
 
   const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown; context?: unknown } | null;
   const context = readContextField(body?.context);
-  const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const text = typeof body?.text === "string" ? body.text.trim().slice(0, QUESTION_MAX_CHARS) : "";
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const today = typeof body?.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today)
     ? body.today

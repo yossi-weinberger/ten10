@@ -38,6 +38,7 @@ export function DraftCard({
   view,
   interactive,
   saving,
+  checkingDuplicates = false,
   onDateChange,
   onDescriptionChange,
   onAmountChange,
@@ -47,6 +48,7 @@ export function DraftCard({
   view: DraftView;
   interactive: boolean;
   saving: boolean;
+  checkingDuplicates?: boolean;
   onDateChange: (date: string) => void;
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
@@ -117,6 +119,8 @@ export function DraftCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">
+        {/* Locked while saving: the confirmation shows these fields, so they must match what was stored. */}
+        <fieldset disabled={saving} className="contents">
         <div className="flex flex-col gap-1.5">
           <Label className="flex items-center gap-1">
             {t("aiIntake.editAmount")}
@@ -172,6 +176,7 @@ export function DraftCard({
             <Label htmlFor="ai-draft-chomesh">{t("aiIntake.chomesh")}</Label>
           </div>
         ) : null}
+        </fieldset>
         {view.duplicates.length > 0 ? (
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Alert variant="warning">
@@ -202,11 +207,11 @@ export function DraftCard({
       </CardContent>
       <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {view.duplicates.length > 0 ? (
-          <Button type="button" variant="outline" disabled={saving || dateProblem !== null} onClick={() => onSave("same_event")}>
+          <Button type="button" variant="outline" disabled={saving || checkingDuplicates || dateProblem !== null} onClick={() => onSave("same_event")}>
             {t("aiIntake.sameEvent")}
           </Button>
         ) : null}
-        <Button type="button" disabled={saving || dateProblem !== null} onClick={() => onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined)}>
+        <Button type="button" disabled={saving || checkingDuplicates || dateProblem !== null} onClick={() => onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined)}>
           {saving ? <Spinner data-icon="inline-start" /> : null}
           {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
         </Button>

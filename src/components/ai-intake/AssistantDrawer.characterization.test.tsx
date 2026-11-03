@@ -33,7 +33,6 @@ const ai = vi.hoisted(() => ({
   getRecurringTransactionById: vi.fn(),
   updateRecurringTransaction: vi.fn(),
   splitItems: vi.fn(),
-  releaseSplit: vi.fn(),
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -65,7 +64,7 @@ vi.mock("@/lib/ai/user-rules", () => ({
 }));
 vi.mock("@/lib/ai/duplicate-candidates", () => ({ listDuplicateCandidates: ai.listDuplicateCandidates }));
 vi.mock("@/lib/ai/rank-duplicates", () => ({ rankDuplicateCandidates: ai.rankDuplicateCandidates }));
-vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems, releaseSplit: ai.releaseSplit }));
+vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems }));
 vi.mock("@/lib/ai/read-receipt", () => ({ readReceiptImage: ai.readReceiptImage }));
 vi.mock("@/lib/ai/open-receipt", () => ({ openAiReceipt: ai.openAiReceipt }));
 vi.mock("@/lib/ai/load-duplicate-scan", () => ({
@@ -128,6 +127,13 @@ function setup() {
 async function send(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.type(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), text);
   await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+}
+
+/** Save waits for the duplicate check, so the click comes once the button is enabled. */
+async function clickSave(user: ReturnType<typeof userEvent.setup>) {
+  const save = await screen.findByRole("button", { name: "aiIntake.save" });
+  await waitFor(() => expect(save).toBeEnabled());
+  await user.click(save);
 }
 
 function confident(intent: string) {
@@ -268,7 +274,7 @@ describe("AssistantDrawer characterization", () => {
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
     expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("מאפים באליס");
-    await user.click(screen.getByRole("button", { name: "aiIntake.save" }));
+    await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
     expect(ai.saveTextDraft.mock.calls[0][0]).toMatchObject({ type: "expense", amount: 15 });
     expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
@@ -298,7 +304,7 @@ describe("AssistantDrawer characterization", () => {
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
     const user = setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
-    await user.click(await screen.findByRole("button", { name: "aiIntake.save" }));
+    await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
     await send(user, "בעצם 20");
     await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
@@ -357,7 +363,7 @@ describe("AssistantDrawer characterization", () => {
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
     const user = setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
-    await user.click(await screen.findByRole("button", { name: "aiIntake.save" }));
+    await clickSave(user);
     await user.click(await screen.findByRole("button", { name: "aiIntake.undo" }));
     expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
     expect(await screen.findByText("aiIntake.undone")).toBeInTheDocument();
@@ -678,6 +684,39 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
+  it("transcribes a recording made after the drawer was closed and reopened by its host", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "reopen" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    await waitFor(() => expect(ai.transcribeSpeech).toHaveBeenCalledOnce());
+    vi.unstubAllGlobals();
+  });
+
   it("shows a provider failure for a receipt", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
     setup();
@@ -711,7 +750,7 @@ describe("AssistantDrawer characterization", () => {
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
     const user = setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
-    await user.click(await screen.findByRole("button", { name: "aiIntake.save" }));
+    await clickSave(user);
     expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.save" })).not.toBeInTheDocument();
     await send(user, "עוד משפט");

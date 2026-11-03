@@ -6,7 +6,6 @@ import type { TranscribeSpeechResult } from "@/lib/ai/transcribe-speech";
 import type { QuestionFilter } from "@/lib/ai/sum-year-type";
 import type { TurnCard } from "@/lib/ai/assistant-turn";
 import type { ReadyDataReply, StatusKey } from "./assistant-reply-view";
-import type { ShownIntent } from "./assistant-shown-intent";
 
 export function isSingleReceipt(
   result: ReadReceiptResult,
@@ -28,14 +27,6 @@ export function parsedRuleFromCard(card: TurnCard): ParsedUserRule | null {
       ? ruleAction
       : "ambiguous",
   };
-}
-
-export function readsSplitIntent(nextIntent: ShownIntent): boolean {
-  return nextIntent === "add_transaction"
-    || nextIntent === "create_recurring"
-    || nextIntent === "create_rule"
-    || nextIntent === "ask_data"
-    || nextIntent === "ask";
 }
 
 export function receiptFailureStatus(

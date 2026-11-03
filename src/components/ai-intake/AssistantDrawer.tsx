@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef, type RefObject } from "react";
+import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import { RotateCcw } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,16 @@ export interface AssistantDrawerHandle {
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  receiveRef: RefObject<AssistantDrawerHandle | null>;
+  receiveRef: Ref<AssistantDrawerHandle>;
+  /** A link in a reply was followed. The page changes behind the drawer, so the host closes it. */
+  onNavigate?: () => void;
 }
 
 export function AssistantDrawer({
   open,
   onOpenChange,
   receiveRef,
+  onNavigate,
 }: AssistantDrawerProps) {
   const state = useAssistantDrawerState();
   const intent = useAssistantDrawerIntent(state);
@@ -95,7 +98,7 @@ export function AssistantDrawer({
               variant="ghost"
               size="icon-sm"
               aria-label={state.t("aiIntake.newChat")}
-              disabled={!hasConversation}
+              disabled={!hasConversation || state.saving || state.undoing}
               onClick={() => {
                 composer.stopRecording();
                 state.clearConversation();
@@ -134,16 +137,24 @@ export function AssistantDrawer({
         />
       )}
     >
-      <AssistantThread
-        history={thread.history}
-        active={thread.active}
-        activeBlocks={thread.blocks}
-        interactiveActive
-        onSuggestion={(suggestion) => {
-          void intent.handleSubmit(suggestion);
+      {/* Closing here keeps the conversation; only the X or "new chat" clears it. */}
+      <div
+        className="contents"
+        onClickCapture={(event) => {
+          if ((event.target as Element).closest("a[href]")) (onNavigate ?? (() => onOpenChange(false)))();
         }}
-        handlers={thread.handlers}
-      />
+      >
+        <AssistantThread
+          history={thread.history}
+          active={thread.active}
+          activeBlocks={thread.blocks}
+          interactiveActive
+          onSuggestion={(suggestion) => {
+            void intent.handleSubmit(suggestion);
+          }}
+          handlers={thread.handlers}
+        />
+      </div>
     </AssistantShell>
   );
 }

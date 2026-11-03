@@ -9,7 +9,7 @@ import { textIntakePayload } from "./text-intake-payload";
 export type SaveTextDraftResult =
   | { ok: true; transactionId: string; itemId: string; sameEvent?: false }
   | { ok: true; transactionId: null; itemId: string; sameEvent: true }
-  | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED" };
+  | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED"; rejected?: true };
 
 export type DraftIdempotency = {
   key: string;
@@ -91,8 +91,11 @@ export async function saveTextDraft(
   const committed = committedRaw as { transaction_ids?: string[]; already_committed?: string[] } | null;
   const transactionId = committed?.transaction_ids?.[0] ?? committed?.already_committed?.[0];
   if (commitError || !transactionId) {
-    await supabase.rpc("reject_uncommitted_ai_item", { p_item_id: created.item_id });
-    return { ok: false, reason: "SAVE_FAILED" };
+    // A lost reply can hide a commit that went through. Only a confirmed reject frees the key;
+    // otherwise the retry replays this item and the commit answers already_committed.
+    const { data: rejectedRaw } = await supabase.rpc("reject_uncommitted_ai_item", { p_item_id: created.item_id });
+    const rejected = (rejectedRaw as { rejected?: boolean } | null)?.rejected === true;
+    return rejected ? { ok: false, reason: "SAVE_FAILED", rejected: true } : { ok: false, reason: "SAVE_FAILED" };
   }
 
   if (artifactId) {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildCommitPayload, donationRecipient } from "./build-commit-payload";
 import type { TextTransactionDraft } from "./classify-intake";
 
@@ -61,6 +61,19 @@ describe("buildCommitPayload", () => {
     expect(shekel.ok && shekel.payload).toMatchObject({ amount: 920, currency: "ILS", original_currency: "GBP" });
     const own = build(pound, false, "GBP", null);
     expect(own.ok && own.payload).toMatchObject({ amount: 200, currency: "GBP", original_currency: null });
+  });
+
+  it("dates the rate today, like the form, not on the transaction date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 3, 9, 0));
+    try {
+      const auto = build({ ...draft, requestedRate: null }, false, "ILS", 3.7);
+      expect(auto.ok && auto.payload).toMatchObject({ date: "2026-10-18", conversion_date: "2026-11-03", rate_source: "auto" });
+      const typed = build(draft);
+      expect(typed.ok && typed.payload).toMatchObject({ conversion_date: "2026-11-03", rate_source: "manual" });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("saves the payee of a donation as the recipient", () => {

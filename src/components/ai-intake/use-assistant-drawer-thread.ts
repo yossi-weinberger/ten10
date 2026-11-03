@@ -8,7 +8,7 @@ import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { donationRecipient } from "@/lib/ai/build-commit-payload";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { recurringCancelOpen, saveStartDate } from "@/lib/ai/recurring-card";
+import { recurringCancelOpen, recurringTotalOccurrences, saveStartDate } from "@/lib/ai/recurring-card";
 import { rememberClosed, rememberSaved, rememberUndone } from "@/lib/ai/assistant-turn";
 import { cardsToSave, saveSplitDrafts, splitSaveKey } from "@/lib/ai/save-split-drafts";
 import type { SplitDraft } from "@/lib/ai/split-cards";
@@ -70,6 +70,7 @@ export function useAssistantDrawerThread(
     history,
     activeUser,
   } = state;
+  const { recurringSaveId } = state;
 
   /** True when a checked row has a saved transaction of the same type, within three days and 2%. */
   async function splitHasDuplicates(cards: readonly SplitDraft[]): Promise<boolean> {
@@ -99,6 +100,10 @@ export function useAssistantDrawerThread(
     }
     const result = await saveSplitDrafts(splitDrafts, key);
     setSaving(false);
+    if (requestRef.current !== request) {
+      if (result.ok) void refreshAfterIntakeSave();
+      return;
+    }
     if (!result.ok) {
       setStatus(saveFailureStatus(result.reason));
       return;
@@ -107,7 +112,7 @@ export function useAssistantDrawerThread(
     splitDuplicateWarned.current = null;
     setSplitDrafts(splitDraftsAfterSave(splitDrafts, result.saved));
     setStatus("saved");
-    if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, null);
+    memoryRef.current = rememberSaved(memoryRef.current, null);
     void refreshAfterIntakeSave();
   }
 
@@ -118,6 +123,10 @@ export function useAssistantDrawerThread(
     const request = requestRef.current;
     const result = await undoTextIntake(card.itemId);
     setUndoing(false);
+    if (requestRef.current !== request) {
+      if (result.ok) void refreshAfterIntakeSave();
+      return;
+    }
     if (!result.ok) {
       setStatus(undoFailureStatus(result.reason));
       return;
@@ -125,8 +134,30 @@ export function useAssistantDrawerThread(
     splitAttempt.current += 1;
     setSplitDrafts((current) => splitDraftsAfterUndo(current, key));
     setStatus("undone");
-    if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
+    memoryRef.current = rememberUndone(memoryRef.current);
     void refreshAfterIntakeSave();
+  }
+
+  /**
+   * The row id is chosen here and kept while the definition stays the same, so a second tap after
+   * a lost reply hits the primary key and reads the saved row back instead of adding another one.
+   */
+  async function createRecurringOnce(definition: Parameters<typeof createRecurringTransaction>[0]) {
+    const signature = JSON.stringify(definition);
+    if (recurringSaveId.current?.signature !== signature) {
+      recurringSaveId.current = { signature, id: crypto.randomUUID() };
+    }
+    const { id } = recurringSaveId.current;
+    try {
+      const saved = await createRecurringTransaction(definition, id);
+      recurringSaveId.current = null;
+      return saved;
+    } catch (error) {
+      if ((error as { code?: string } | null)?.code !== "23505") throw error;
+      const saved = await getRecurringTransactionById(id);
+      recurringSaveId.current = null;
+      return saved;
+    }
   }
 
   async function handleSaveRecurring() {
@@ -160,7 +191,7 @@ export function useAssistantDrawerThread(
         frequency: recurring.frequency,
         calendar_type: recurring.calendarType,
         day_of_month: recurring.dayOfMonth,
-        total_occurrences: recurring.totalOccurrences ?? undefined,
+        total_occurrences: recurringTotalOccurrences(recurring, today) ?? undefined,
         amount: recurring.amount,
         currency: recurring.currency,
         description: recurring.description || null,
@@ -174,7 +205,11 @@ export function useAssistantDrawerThread(
         }),
         payment_method: recurring.paymentMethod,
       });
-      const saved = await createRecurringTransaction({ ...definition, origin: "ai" });
+      const saved = await createRecurringOnce({ ...definition, origin: "ai" });
+      if (requestRef.current !== request) {
+        void useRecurringTableStore.getState().fetchRecurring();
+        return;
+      }
       savedRecurring.current = saved;
       trackProductEvent("recurring_obligation_created", {
         type: recurring.type,
@@ -192,10 +227,10 @@ export function useAssistantDrawerThread(
         executionCount: saved.execution_count,
       });
       setStatus("recurringSaved");
-      if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, null);
+      memoryRef.current = rememberSaved(memoryRef.current, null);
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
-      setStatus("recurringSaveFailed");
+      if (requestRef.current === request) setStatus("recurringSaveFailed");
     } finally {
       setSaving(false);
     }
@@ -279,6 +314,11 @@ export function useAssistantDrawerThread(
       receiptArtifactId,
     );
     setSaving(false);
+    // A newer turn owns the card now. The save stands; only the list needs it.
+    if (requestRef.current !== request) {
+      if (result.ok && !result.sameEvent) refreshAfterIntakeSave();
+      return;
+    }
     if (result.ok && result.sameEvent) {
       idempotency.current = nextDraftIdempotency(idempotency.current, {
         description: savingDraft.description,
@@ -290,14 +330,14 @@ export function useAssistantDrawerThread(
       return;
     }
     if (result.ok) {
-      if (requestRef.current === request) memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
+      memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
       navigator.vibrate?.(12);
       return;
     }
-    if (result.reason === "SAVE_FAILED") {
+    if (result.reason === "SAVE_FAILED" && result.rejected) {
       idempotency.current = nextDraftIdempotency(idempotency.current, {
         description: savingDraft.description,
         amount: amountInput,
@@ -314,8 +354,14 @@ export function useAssistantDrawerThread(
     const request = requestRef.current;
     const result = await undoTextIntake(savedItemId);
     setUndoing(false);
+    if (requestRef.current !== request) {
+      if (result.ok) refreshAfterIntakeSave();
+      return;
+    }
     if (result.ok) {
-      if (requestRef.current === request) memoryRef.current = rememberUndone(memoryRef.current);
+      memoryRef.current = rememberUndone(memoryRef.current);
+      // The undone item cannot be committed again; a second save needs its own key.
+      idempotency.current = null;
       setSavedItemId(null);
       refreshAfterIntakeSave();
       setStatus("undone");
@@ -344,8 +390,8 @@ export function useAssistantDrawerThread(
     onApproveRule: () => {
       void handleApproveRule();
     },
-    onOpenReceipt: () => {
-      void composer.openReceiptFile();
+    onOpenReceipt: (artifactId) => {
+      void composer.openReceiptFile(artifactId);
     },
     onDateChange: (date) => {
       if (!draft) return;
@@ -422,6 +468,7 @@ export function useAssistantDrawerThread(
     onAnotherInspiration: intent.presentInspiration,
     saving,
     undoing,
+    checkingDuplicates: state.duplicatesPending,
     questionCalendar,
   };
 

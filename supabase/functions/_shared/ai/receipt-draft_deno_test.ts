@@ -12,6 +12,8 @@ import {
   receiptStoragePath,
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_MAX_BYTES,
+  RECEIPT_MAX_PDF_BASE64_CHARS,
+  receiptTooLarge,
 } from "./receipt-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
@@ -49,6 +51,15 @@ Deno.test("the client byte ceiling fits in the server base64 ceiling", () => {
   const encoded = Math.ceil(RECEIPT_MAX_BYTES / 3) * 4;
   assert(encoded <= RECEIPT_MAX_BASE64_CHARS, "base64 of the max file fits");
   assert(Math.ceil((RECEIPT_MAX_BYTES + 1) / 3) * 4 > RECEIPT_MAX_BASE64_CHARS, "one more byte does not");
+});
+
+Deno.test("a pdf has a lower ceiling than a photo", () => {
+  const over = RECEIPT_MAX_PDF_BASE64_CHARS + 1;
+  assert(over < RECEIPT_MAX_BASE64_CHARS, "lower");
+  assert(receiptTooLarge("application/pdf", over), "pdf over");
+  assert(!receiptTooLarge("application/pdf", RECEIPT_MAX_PDF_BASE64_CHARS), "pdf at the ceiling");
+  assert(!receiptTooLarge("image/jpeg", over), "photo of the same size");
+  assert(receiptTooLarge("image/jpeg", RECEIPT_MAX_BASE64_CHARS + 1), "photo over");
 });
 
 Deno.test("a pdf is sent as a file and a photo as an image", () => {

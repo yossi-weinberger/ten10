@@ -1,5 +1,6 @@
 import { resolveDateStruct } from "./split-date.ts";
 import {
+  addIsoDays,
   advanceMonthlyRecurringDate,
   firstRecurringDueDate,
   getCalendarAdapter,
@@ -15,16 +16,21 @@ export interface ResolvedRecurrence {
   dayOfMonth: number | null;
   weekday: number | null;
   totalOccurrences: number | null;
+  /** The last day an order until the end of the year or until a date may charge. The card counts again from its own start. */
+  endDate?: string | null;
   alreadyCharged: boolean;
 }
 
-function occurrencesUntilYearEnd(startDate: string, dayOfMonth: number, calendar: CalendarType): number | null {
+function yearEnd(startDate: string, calendar: CalendarType): string {
   const adapter = getCalendarAdapter(calendar);
-  const limit = adapter.addMonths(adapter.startOfYear(startDate), adapter.fromIsoDate(startDate).monthsInYear);
-  const end = limit;
+  return addIsoDays(adapter.addMonths(adapter.startOfYear(startDate), adapter.fromIsoDate(startDate).monthsInYear), -1);
+}
+
+function occurrencesUntilYearEnd(startDate: string, dayOfMonth: number, calendar: CalendarType): number | null {
+  const end = yearEnd(startDate, calendar);
   let cursor = startDate;
   let count = 0;
-  while (cursor < end && count < 24) {
+  while (cursor <= end && count < 24) {
     count += 1;
     cursor = advanceMonthlyRecurringDate(cursor, calendar, dayOfMonth);
   }
@@ -52,14 +58,17 @@ export function resolveRecurrence(recurrence: NonNullable<SplitItemInput["recurr
   }
 
   let totalOccurrences: number | null = null;
+  let endDate: string | null = null;
   if (recurrence.end_kind === "count" && recurrence.end_count !== null && recurrence.end_count > 0) {
     totalOccurrences = Math.min(recurrence.end_count, 120);
   } else if (recurrence.end_kind === "end_of_year" && startDate && recurrence.frequency === "monthly") {
     const dueDay = day ?? Number(startDate.slice(8, 10));
     totalOccurrences = occurrencesUntilYearEnd(startDate, dueDay, calendar);
+    endDate = yearEnd(startDate, calendar);
   } else if (recurrence.end_kind === "date" && recurrence.end && startDate && recurrence.frequency === "monthly") {
     const end = resolveDateStruct(recurrence.end, today);
     if (end && end >= startDate) {
+      endDate = end;
       const dueDay = day ?? Number(startDate.slice(8, 10));
       let cursor = startDate;
       let count = 0;
@@ -78,6 +87,7 @@ export function resolveRecurrence(recurrence: NonNullable<SplitItemInput["recurr
     dayOfMonth: day,
     weekday: recurrence.weekday,
     totalOccurrences,
+    endDate,
     alreadyCharged: recurrence.already_charged,
   };
 }

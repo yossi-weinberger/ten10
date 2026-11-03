@@ -5,7 +5,7 @@
 
 import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
-import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
+import { hebrewMonthName, isoToEpochDays } from "../calendar/hebrew-calendar.ts";
 import { MIN_TRANSACTION_DATE } from "../transaction-domain/normalize-core.ts";
 import { type QuestionSlots } from "./question-slots.ts";
 import { prefixesName } from "./split-anchor.ts";
@@ -27,37 +27,22 @@ export type QuestionCalendar = "gregorian" | "hebrew";
 
 type QuestionPeriod = Pick<YearTypeSum, "year" | "month" | "months" | "from" | "to">;
 
-function hebrewMonthsBetween(from: string, to: string): number {
-  const hebrew = getCalendarAdapter("hebrew");
-  const start = hebrew.fromIsoDate(from);
-  const end = hebrew.fromIsoDate(to);
-  let year = start.year;
-  let month = start.month;
-  let count = 0;
-  while (count < 16) {
-    count += 1;
-    if (year === end.year && month === end.month) break;
-    const yearLength = hebrew.fromIsoDate(
-      hebrew.toIsoDate({ year, month: 1, day: 1 }, "reject"),
-    ).monthsInYear;
-    month += 1;
-    if (month > yearLength) {
-      month = 1;
-      year += 1;
-    }
-  }
-  return count < 1 ? 1 : count;
+/** Average month length in days. A Hebrew month follows the moon. */
+const DAYS_IN_MONTH: Record<QuestionCalendar, number> = { gregorian: 365.2425 / 12, hebrew: 29.530594 };
+
+/**
+ * The months an average divides by, from the days in the range. The end is no later than today:
+ * the last 3 months is 3, and this year asked on 3 November is 10.
+ */
+export function questionMonths(from: string, to: string, today: string, calendar: QuestionCalendar): number {
+  const end = to < today ? to : today;
+  const days = isoToEpochDays(end) - isoToEpochDays(from) + 1;
+  return Math.max(1, Math.round(days / DAYS_IN_MONTH[calendar]));
 }
 
-function monthsBetween(from: string, to: string): number {
-  const span = (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12
-    + (Number(to.slice(5, 7)) - Number(from.slice(5, 7)))
-    + 1;
-  return span < 1 ? 1 : span;
-}
-
-function boundsAsQuestionPeriod(from: string, to: string, calendar: QuestionCalendar): QuestionPeriod {
+function boundsAsQuestionPeriod(from: string, to: string, today: string, calendar: QuestionCalendar): QuestionPeriod {
   const sameMonth = from.slice(0, 7) === to.slice(0, 7);
+  const months = questionMonths(from, to, today, calendar);
   if (calendar === "hebrew") {
     const hebrew = getCalendarAdapter("hebrew");
     const start = hebrew.fromIsoDate(from);
@@ -66,7 +51,7 @@ function boundsAsQuestionPeriod(from: string, to: string, calendar: QuestionCale
       to,
       year: start.year,
       month: sameMonth ? start.month : null,
-      months: hebrewMonthsBetween(from, to),
+      months,
     };
   }
   return {
@@ -74,7 +59,7 @@ function boundsAsQuestionPeriod(from: string, to: string, calendar: QuestionCale
     to,
     year: Number(from.slice(0, 4)),
     month: sameMonth ? Number(from.slice(5, 7)) : null,
-    months: monthsBetween(from, to),
+    months,
   };
 }
 
@@ -211,9 +196,9 @@ export function questionFromSlots(
 ): YearTypeSum | "ask_family" | "ask_period" | null {
   if (!slots) return null;
   const period = readerPeriod?.kind === "all"
-    ? boundsAsQuestionPeriod(MIN_TRANSACTION_DATE, today, calendar)
+    ? boundsAsQuestionPeriod(MIN_TRANSACTION_DATE, today, today, calendar)
     : readerPeriod?.kind === "span"
-      ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, calendar)
+      ? boundsAsQuestionPeriod(readerPeriod.from, readerPeriod.to, today, calendar)
       : "ask_period";
   if (period === "ask_period" || !period) return "ask_period";
   if (!slots.family) return "ask_family";

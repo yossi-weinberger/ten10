@@ -99,6 +99,10 @@ describe("composerBusyKey", () => {
     duplicateScan: null,
   };
 
+  it("is busy while a save is in flight", () => {
+    expect(composerBusyKey({ ...idle, saving: true })).toBe("aiIntake.thinking.saving");
+  });
+
   it("names the reading phase while checking", () => {
     expect(composerBusyKey({ ...idle, checking: true })).toBe("aiIntake.thinking.reading");
     expect(composerBusyKey({ ...idle, checking: true, pendingPhase: "receipt" })).toBe("aiIntake.thinking.receipt");

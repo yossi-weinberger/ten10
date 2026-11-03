@@ -25,6 +25,7 @@ export function cardFromRecurringDraft(draft: {
   dayOfMonth: number | null;
   anchorMonthCode: string | null;
   totalOccurrences: number | null;
+  endDate?: string | null;
   alreadyCharged: boolean;
 }): RecurringCard {
   return {
@@ -39,9 +40,11 @@ export function cardFromRecurringDraft(draft: {
     frequency: draft.frequency,
     calendarType: draft.calendarType,
     startDate: draft.startDate,
-    dayOfMonth: draft.dayOfMonth,
+    // The save writes this day. Left empty, it would write the Gregorian day of the start, also on the Hebrew calendar.
+    dayOfMonth: draft.dayOfMonth ?? startDay(draft.startDate, draft.calendarType),
     anchorMonthCode: draft.anchorMonthCode,
     totalOccurrences: draft.totalOccurrences,
+    endDate: draft.endDate ?? null,
     alreadyCharged: draft.alreadyCharged,
     includeThisMonth: null,
     monthDuplicate: false,
@@ -69,6 +72,8 @@ export interface RecurringCard {
   dayOfMonth: number | null;
   anchorMonthCode: string | null;
   totalOccurrences: number | null;
+  /** The last day an order "until" a date may charge. The count is taken again from the start the save writes. */
+  endDate?: string | null;
   alreadyCharged: boolean;
   includeThisMonth: "yes" | "no" | null;
   monthDuplicate: boolean;
@@ -176,10 +181,12 @@ export function recurringCancelOpen(createdAt: string, executionCount: number, n
   return now.getTime() >= created && now.getTime() - created < CANCEL_WINDOW_MS;
 }
 
+function startDay(startDate: string | null, calendarType: CalendarType): number | null {
+  return startDate ? getCalendarAdapter(calendarType).fromIsoDate(startDate).day : null;
+}
+
 function dayOf(card: RecurringCard): number | null {
-  if (card.dayOfMonth !== null) return card.dayOfMonth;
-  if (!card.startDate) return null;
-  return getCalendarAdapter(card.calendarType).fromIsoDate(card.startDate).day;
+  return card.dayOfMonth ?? startDay(card.startDate, card.calendarType);
 }
 
 export function recurrenceRule(card: RecurringCard): RecurrenceRule | null {
@@ -193,13 +200,27 @@ export function recurrenceRule(card: RecurringCard): RecurrenceRule | null {
   };
 }
 
+/**
+ * The number of charges a save writes. An order until a date counts from the start the save writes,
+ * so "גם החודש" adds this month's charge instead of dropping the last one.
+ */
+export function recurringTotalOccurrences(card: RecurringCard, today: string): number | null {
+  const start = saveStartDate(card, today);
+  const rule = recurrenceRule(card);
+  if (!card.endDate || !start || !rule) return card.totalOccurrences;
+  let count = 0;
+  for (let due = start; due <= card.endDate && count < 120; due = advanceRecurringDate(due, rule)) count += 1;
+  return count > 0 ? count : card.totalOccurrences;
+}
+
 /** The next charges from the date a save would write, at most three, and fewer when the order ends sooner. */
 export function upcomingRecurringDates(card: RecurringCard, today: string, limit = 3): string[] {
   const start = saveStartDate(card, today);
   if (!start) return [];
   const rule = recurrenceRule(card);
   if (!rule) return [];
-  const count = card.totalOccurrences === null ? limit : Math.min(limit, card.totalOccurrences);
+  const total = recurringTotalOccurrences(card, today);
+  const count = total === null ? limit : Math.min(limit, total);
   if (count <= 0) return [];
   const dates: string[] = [];
   let due = start;
