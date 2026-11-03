@@ -63,8 +63,8 @@ describe("Supabase production deployment ordering", () => {
       ).toBe(true);
     }
 
-    // Specifically verify the first AI migration sequence foundation starts immediately after main
-    expect(aiMigrations[0]).toBe("20261019195500_ai_schema_foundation.sql");
+    // The AI intake ships as one migration with its final state.
+    expect(aiMigrations).toEqual(["20261103100000_ai_intake.sql"]);
   });
 });
 

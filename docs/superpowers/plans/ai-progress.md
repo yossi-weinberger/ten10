@@ -182,14 +182,14 @@
 
 רק בתוך ה־PR ש־base שלו הוא `main`:
 
-- [ ] לשנות את חותמת הזמן של **כל** מיגרציות ה־AI (`supabase/migrations/*_ai_*.sql`) לתאריכים אחרי המיגרציה האחרונה ב־`main` באותו רגע, באותו סדר.
-- [ ] לפני פריסת שש פונקציות ה־AI שקוראות ל־`consume_ai_usage` / `consume_ai_call`: להריץ את `20261029090000_ai_usage_limits.sql`. בדיקת המכסה נכשלת סגור — בלי הטבלאות כל קריאת AI נחסמת.
+- [ ] ה־AI הוא מיגרציה אחת, `20261103100000_ai_intake.sql` (המצב הסופי של 46 הקבצים, נבדק מול סכמת פרודקשן). ברגע המיזוג החותמת שלה צריכה להיות אחרי המיגרציה האחרונה ב־`main`; אם נוספה אחרת, לשנות רק את שם הקובץ ואת שם ה־rollback.
+- [x] המיגרציה רצה לפני פריסת הפונקציות (`needs: migrate` ב־workflow), כולל טבלאות המכסה.
 - [ ] לפני המיזוג: אישור לניסוח הפרטיות והתנאים. הם עולים לפרודקשן גם כשה־AI כבוי.
-- [ ] לפני ההשקה: להחליף את גוף `ai.is_trial_user` ואת `trial-users.ts`.
+- [ ] לפני ההשקה: מתג הניסוי הוא רק `AI_TRIAL_ONLY` ב־Edge (`trial-users.ts`). ב־SQL אין רשימה ואין `app.ai_trial_only`. שבעת משתמשי הניסוי קיימים בפרודקשן.
 - [ ] לפני ההשקה: לפרט במדיניות הפרטיות את ספקי ה־AI.
-- [ ] `get_admin_dashboard_stats`: אם `main` שינה אותה אחרי `20260902120000_admin_dashboard_stats_one_scan.sql`, למזג את השינוי לתוך `*_ai_admin_usage.sql` (ואת הגרסה של `main` ל־rollback שלו), ולא לדרוס. ה־migration של ה־AI מקבל timestamp מאוחר יותר ורץ אחרי.
-- [ ] לעדכן את קבצי ה־rollback המקבילים: `20261019020000_ai_schema_foundation_down.sql`, `20261020140000_ai_question_recipient_down.sql`, `20261020150000_ai_duplicate_actions_down.sql`.
-- [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
+- [ ] `get_admin_dashboard_stats`: אם `main` ישנה אותה לפני המיזוג, למזג את השינוי לתוך `20261103100000_ai_intake.sql` ולתוך ה־rollback שלו, ולהריץ שוב את בדיקת ההשוואה.
+- [x] rollback מלא אחד: `rollback/20261103100000_ai_intake_down.sql`. נבדק: מיגרציה ואז rollback מחזירים בדיוק את סכמת פרודקשן (סכמה, הרשאות, policies, cron, bucket). מוחק את כל נתוני ה־AI; תנועות שנשמרו נשארות.
+- [ ] על testing בלבד: להסיר את `ai.is_trial_user` ולהחליף את שתי הפונקציות כמו בקובץ המאוחד, ואז `supabase migration repair --status reverted` לגרסאות ה־AI הישנות (וגם ליתומות כמו `followed_up`) ו־`--status applied 20261103100000`.
 - [ ] Supabase Preview על ה־PR ל־`main` עובר.
 - [ ] למזג בשעה רחוקה מה־crons: לא ב־00:00, 07:00, 18:00 או 19:00 UTC.
 - [ ] בהשקה: להגדיר `VITE_AI_SHARE_TARGET=true` ב־Production של Vercel. עד אז רק Preview.
@@ -652,3 +652,6 @@
   (3) הוטמע Kill Switch הרמטי Safe-by-default ב-`src/lib/ai/flags.ts` המנוטרל כש-`VITE_AI_INTAKE_ENABLED !== "true"` (חוסם UI וקריאות רשת);
   (4) כל 5 השערים הדטרמיניסטיים עברו ב-100% (`typecheck`, `lint:ratchet`, `check-supabase-imports`, `test:infra` 17/17, `npm test` 185/185 קבצים ו-1,350/1,350 טסטים). 0 קריאות מודל בתשלום ($0.00). לא ל-`main`.
 - **2026-11-02:** [#653](https://github.com/yossi-weinberger/ten10/pull/653) (גל 6) מוזג ל־`feat/ai-intake`. כל 7 הגלים הושלמו במלואם. הענף `feat/ai-intake` מוכן ועוצר כאן ללא מיזוג ל-`main` בהתאם להנחיית יוסי. לא ל-`main`.
+- **2026-11-03:** 46 מיגרציות ה־AI ו־22 קובצי ה־rollback הוחלפו במיגרציה אחת, `20261103100000_ai_intake.sql`, וב־rollback מלא אחד (Claude). פרודקשן לא הריץ אף אחת מהן, אז זה החלון היחיד.
+  איך נבדק: מהרשת הזו אין גישה ל־Postgres (5432/6543 חסומים), אז סכמת `public` של פרודקשן נבנתה מקטלוג דרך `db query --read-only` (9 טבלאות, 57 פונקציות; 551 בדיקות של הרשאות, policies, constraints, indexes ו־hash של כל פונקציה זהות לפרודקשן) ונטענה ל־`supabase/postgres:17.6.1.178` מקומי, כמשתמש `postgres` בלי superuser. A = פרודקשן. B = A + 46 הקבצים לפי הסדר (כולם עברו). C = A + הקובץ המאוחד, שנבנה מההבדל בין B ל־A מתוך `pg_dump`. B ו־C זהים לגמרי (סכמה, הרשאות, policies, cron, bucket), ו־C + rollback = A בלי שום הבדל. גם מחיקת משתמש עם תנועת AI עוברת (cascade).
+  שינוי מכוון אחד מול 46 הקבצים: אין רשימת ניסוי ב־SQL. `ai.is_trial_user` ו־`app.ai_trial_only` נמחקו; רישום קבלה ומדידת חריצים הם service_role בלבד, וה־Edge בודק `AI_TRIAL_ONLY` לפניהם. מתג אחד. על testing צריך את אותו שינוי ו־`migration repair` (ראו הצ'קליסט). לא ל־`main`.
