@@ -189,7 +189,7 @@
 - [ ] לפני ההשקה: לפרט במדיניות הפרטיות את ספקי ה־AI.
 - [ ] `get_admin_dashboard_stats`: אם `main` ישנה אותה לפני המיזוג, למזג את השינוי לתוך `20261103100000_ai_intake.sql` ולתוך ה־rollback שלו, ולהריץ שוב את בדיקת ההשוואה.
 - [x] rollback מלא אחד: `rollback/20261103100000_ai_intake_down.sql`. נבדק: מיגרציה ואז rollback מחזירים בדיוק את סכמת פרודקשן (סכמה, הרשאות, policies, cron, bucket). מוחק את כל נתוני ה־AI; תנועות שנשמרו נשארות.
-- [ ] על testing בלבד: להסיר את `ai.is_trial_user` ולהחליף את שתי הפונקציות כמו בקובץ המאוחד, ואז `supabase migration repair --status reverted` לגרסאות ה־AI הישנות (וגם ליתומות כמו `followed_up`) ו־`--status applied 20261103100000`.
+- [x] testing יושר ב־2026-11-03: שלוש הפונקציות מהקובץ המאוחד הוחלו ו־`ai.is_trial_user` נמחקה; 47 שורות ה־AI הישנות ב־`schema_migrations` (כולל `ai_question_outcome_followed_up` היתומה) הוסרו ונרשמה `20261103100000`. אחרי זה ההיסטוריה זהה לקבצים, ובסכמת `public`+`ai` נשארו רק הבדלי עיצוב בגופי פונקציות, ה־webhook של testing ושתי פונקציות תזכורת שאינן AI.
 - [ ] Supabase Preview על ה־PR ל־`main` עובר.
 - [ ] למזג בשעה רחוקה מה־crons: לא ב־00:00, 07:00, 18:00 או 19:00 UTC.
 - [ ] בהשקה: להגדיר `VITE_AI_SHARE_TARGET=true` ב־Production של Vercel. עד אז רק Preview.
