@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -27,9 +27,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
-import { AssistantDrawer, type AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
-import { showAiIntakeUi } from "@/lib/ai/flags";
-import { clearSharedIntake, takeSharedIntake } from "@/lib/ai/share-target";
+import type { AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
+import { useAiIntakeUi } from "@/lib/ai/flags";
+import { takeSharedIntake, type SharedIntake } from "@/lib/ai/share-target";
 import { BrandSidebarLogo } from "@/components/brand/BrandSidebarLogo";
 import { SIDEBAR_SIZE } from "./sidebarSize";
 
@@ -40,6 +40,16 @@ interface SidebarProps {
 }
 
 type SliderStyle = { opacity: number; top: number; height: number };
+
+// The AI drawer and its inspiration library load only for users who see it.
+const AssistantDrawer = lazy(() =>
+  import("@/components/ai-intake/AssistantDrawer").then((module) => ({ default: module.AssistantDrawer }))
+);
+
+function deliverShare(handle: AssistantDrawerHandle, shared: SharedIntake) {
+  if (shared.kind === "file") handle.receive(shared.file);
+  else handle.receiveText(shared.text);
+}
 
 export function Sidebar({
   expanded = false,
@@ -56,20 +66,27 @@ export function Sidebar({
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const assistantRef = useRef<AssistantDrawerHandle | null>(null);
-  const showAssistant = showAiIntakeUi(platform, Boolean(session?.user));
+  const pendingShare = useRef<SharedIntake | null>(null);
+  const showAssistant = useAiIntakeUi(platform, Boolean(session?.user));
+
+  // The drawer loads lazily, so a share can arrive before it mounts. It waits here.
+  const receiveRef = useCallback((handle: AssistantDrawerHandle | null) => {
+    assistantRef.current = handle;
+    const shared = pendingShare.current;
+    if (!handle || !shared) return;
+    pendingShare.current = null;
+    deliverShare(handle, shared);
+  }, []);
 
   useEffect(() => {
-    if (authLoading || platform === "loading") return;
-    if (!showAssistant) {
-      void clearSharedIntake().catch(() => undefined);
-      return;
-    }
+    // A share waits (it expires after a day) until the flag answers yes; no flag, no IndexedDB.
+    if (authLoading || platform === "loading" || !showAssistant) return;
     let cancelled = false;
     void takeSharedIntake().then((shared) => {
       if (cancelled || !shared) return;
       setAssistantOpen(true);
-      if (shared.kind === "file") assistantRef.current?.receive(shared.file);
-      else assistantRef.current?.receiveText(shared.text);
+      if (assistantRef.current) deliverShare(assistantRef.current, shared);
+      else pendingShare.current = shared;
     }).catch(() => undefined);
     return () => {
       cancelled = true;
@@ -518,11 +535,17 @@ export function Sidebar({
         <PlatformIndicator expanded={expanded} />
       </div>
       {showAssistant ? (
-        <AssistantDrawer
-          open={assistantOpen}
-          onOpenChange={setAssistantOpen}
-          receiveRef={assistantRef}
-        />
+        <Suspense fallback={null}>
+          <AssistantDrawer
+            open={assistantOpen}
+            onOpenChange={setAssistantOpen}
+            receiveRef={receiveRef}
+            onNavigate={() => {
+              setAssistantOpen(false);
+              onLinkClick?.();
+            }}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

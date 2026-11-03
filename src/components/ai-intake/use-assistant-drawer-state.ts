@@ -82,12 +82,18 @@ export function useAssistantDrawerState() {
   const splitDuplicateWarned = useRef<string | null>(null);
   const originalDraft = useRef<OriginalDraft | null>(null);
   const savedRecurring = useRef<RecurringTransaction | null>(null);
+  /** The row id a standing-order save sends, kept while the definition is unchanged. */
+  const recurringSaveId = useRef<{ signature: string; id: string } | null>(null);
+  /** A duplicate-pair delete or dismiss in flight. */
+  const pairActionBusy = useRef(false);
   const previewUrls = useRef<string[]>([]);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [duplicatesRanked, setDuplicatesRanked] = useState(false);
+  /** A duplicate check still running. Save waits, or the warning could be skipped. */
+  const [duplicatesPending, setDuplicatesPending] = useState(false);
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [specialType, setSpecialType] = useState<HeldDraft["typeQuestion"]>(null);
   const held = useRef<HeldDraft | null>(null);
@@ -195,19 +201,23 @@ export function useAssistantDrawerState() {
     const request = duplicateRequest.current + 1;
     duplicateRequest.current = request;
     const amount = parseDraftAmount(amountText);
+    // Candidates of the old amount must not ride along with a save of the new one.
+    setDuplicates([]);
+    setDuplicatesRanked(false);
     if (!next || amount === null) {
-      setDuplicates([]);
-      setDuplicatesRanked(false);
+      setDuplicatesPending(false);
       return;
     }
+    setDuplicatesPending(true);
     duplicateTimer.current = setTimeout(() => {
       void listDuplicateCandidates({
         type: next.type,
         date: next.date,
         amount,
         currency: next.currency,
-      }).then(async (rows) => {
+      }).catch(() => []).then(async (rows) => {
         if (duplicateRequest.current !== request) return;
+        setDuplicatesPending(false);
         setDuplicates(rows);
         setDuplicatesRanked(false);
         if (rows.length === 0) return;
@@ -416,6 +426,10 @@ export function useAssistantDrawerState() {
     setReceiptArtifactId(null);
     setReceiptLink(null);
     setSpecialType(null);
+    // A receipt turn never reaches applyTurn, so an old list or confidence would ride along.
+    setSplitDrafts(null);
+    setSplitDropped(0);
+    setIntentConfidence(null);
     held.current = null;
     idempotency.current = null;
     setSlotHold(null);
@@ -445,6 +459,8 @@ export function useAssistantDrawerState() {
     splitDuplicateWarned,
     originalDraft,
     savedRecurring,
+    recurringSaveId,
+    pairActionBusy,
     previewUrls,
     receiptArtifactId,
     setReceiptArtifactId,
@@ -456,6 +472,7 @@ export function useAssistantDrawerState() {
     setDuplicates,
     duplicatesRanked,
     setDuplicatesRanked,
+    duplicatesPending,
     clarification,
     setClarification,
     specialType,

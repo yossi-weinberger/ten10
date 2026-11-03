@@ -88,8 +88,7 @@ export function useAssistantDrawerComposer(
     if (active && active.state !== "inactive") active.stop();
   }
 
-  async function openReceiptFile() {
-    const artifactId = receiptArtifactId;
+  async function openReceiptFile(artifactId = receiptArtifactId) {
     if (!artifactId) return;
     setReceiptLink(null);
     const result = await openAiReceipt({ artifactId });
@@ -211,6 +210,9 @@ export function useAssistantDrawerComposer(
       if (discardRecording.current) return;
       void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
     };
+    // A close or "new chat" set this for the recording it stopped; this one is new.
+    // The drawer opens by prop, so onOpenChange(true) never clears it.
+    discardRecording.current = false;
     media.start();
     setRecording(true);
     setStatus(null);
@@ -281,6 +283,7 @@ export function useAssistantDrawerComposer(
     intent: currentIntent,
     dataReply,
     duplicateScan,
+    saving: state.saving || state.undoing,
     clarification,
     recording,
     level,

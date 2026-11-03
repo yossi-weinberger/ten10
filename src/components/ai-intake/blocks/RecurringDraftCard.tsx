@@ -23,6 +23,7 @@ import {
   recurringCancelOpen,
   recurringCardReady,
   recurringShortDate,
+  recurringTotalOccurrences,
   saveStartDate,
   recurringSummaryPieces,
   unsupportedRecurringFrequency,
@@ -637,15 +638,16 @@ function FieldControl({
             aria-label={t("aiIntake.recurring.count")}
             inputMode="numeric"
             disabled={disabled}
-            value={card.totalOccurrences ?? ""}
+            value={recurringTotalOccurrences(card, getCurrentLocalDate()) ?? ""}
             placeholder={t("aiIntake.recurring.openEnded")}
             onChange={(event) => {
+              // A typed count replaces "until <date>".
               if (event.target.value === "") {
-                onChange({ ...card, totalOccurrences: null });
+                onChange({ ...card, totalOccurrences: null, endDate: null });
                 return;
               }
               const count = Number(event.target.value);
-              if (Number.isInteger(count) && count > 0) onChange({ ...card, totalOccurrences: count });
+              if (Number.isInteger(count) && count > 0) onChange({ ...card, totalOccurrences: count, endDate: null });
             }}
           />
         </div>

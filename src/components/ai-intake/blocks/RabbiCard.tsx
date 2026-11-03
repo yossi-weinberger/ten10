@@ -9,11 +9,14 @@ import { contactService } from "@/lib/data-layer/contact.service";
 export function RabbiCard({
   text,
   ticket,
+  interactive,
   onSent,
   onDismiss,
 }: {
   text: string;
   ticket: string | null;
+  /** False in history: sending from there would file a real ticket the active turn never shows. */
+  interactive: boolean;
   onSent: (ticket: string) => void;
   onDismiss: () => void;
 }) {
@@ -51,7 +54,7 @@ export function RabbiCard({
       <p className="text-xs text-muted-foreground">
         {t("aiIntake.rabbiReply", { email: user?.email ?? t("aiIntake.rabbiYourEmail") })}
       </p>
-      {ticket ? <p className="text-sm">{t("aiIntake.rabbiSent", { ticket })}</p> : (
+      {ticket ? <p className="text-sm">{t("aiIntake.rabbiSent", { ticket })}</p> : !interactive ? null : (
         <>
           <Turnstile
             sitekey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY}

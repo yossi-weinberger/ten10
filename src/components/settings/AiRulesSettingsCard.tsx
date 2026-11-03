@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { showAiIntakeUi } from "@/lib/ai/flags";
+import { useAiIntakeUi } from "@/lib/ai/flags";
 import { disableUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
 import type { ActiveUserRule } from "@/lib/ai/classify-intake";
 
@@ -12,7 +12,7 @@ export function AiRulesSettingsCard() {
   const { t } = useTranslation(["settings", "navigation"]);
   const { platform } = usePlatform();
   const { session } = useAuth();
-  const enabled = showAiIntakeUi(platform, Boolean(session?.user));
+  const enabled = useAiIntakeUi(platform, Boolean(session?.user));
   const [rules, setRules] = useState<ActiveUserRule[]>([]);
   const [loading, setLoading] = useState(enabled);
   const [busyName, setBusyName] = useState<string | null>(null);

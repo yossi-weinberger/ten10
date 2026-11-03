@@ -8,5 +8,8 @@ export function refreshAfterIntakeSave(): void {
 
 export function refreshOnVisible(state: DocumentVisibilityState): void {
   if (state !== "visible") return;
-  refreshAfterIntakeSave();
+  useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+  // A reset reload drops the rows a user loaded with "more"; leave a deeper table where it is.
+  if (useTableTransactionsStore.getState().pagination.currentPage > 1) return;
+  void useTableTransactionsStore.getState().fetchTransactions(true, "web");
 }

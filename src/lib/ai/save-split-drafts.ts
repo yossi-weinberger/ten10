@@ -95,8 +95,10 @@ export async function saveSplitDrafts(
   const { data: committedRaw, error: commitError } = await supabase.rpc("commit_ai_intake_items", {
     p_items: created.map((row) => ({ id: row.item_id, expected_version: row.version })),
   });
-  const committed = committedRaw as { transaction_ids?: string[] } | null;
-  const ids = committed?.transaction_ids ?? [];
+  const committed = committedRaw as { transaction_ids?: string[]; already_committed?: string[] } | null;
+  // The commit is one transaction: a retry after a lost reply finds every row already committed, in order.
+  const fresh = committed?.transaction_ids ?? [];
+  const ids = fresh.length > 0 ? fresh : committed?.already_committed ?? [];
   if (commitError || ids.length !== created.length) return { ok: false, reason: "SAVE_FAILED" };
 
   return {

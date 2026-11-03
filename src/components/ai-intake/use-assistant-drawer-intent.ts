@@ -12,7 +12,7 @@ import { readQuestionSlots } from "@/lib/ai/read-question";
 import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
 import { loadStandingOrders, loadTitheBalance } from "@/lib/ai/assistant-extras";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
-import { releaseSplit, splitItems } from "@/lib/ai/split-items";
+import { splitItems } from "@/lib/ai/split-items";
 import {
   decideTurn,
   openCardEvidence,
@@ -27,12 +27,11 @@ import { getPlatform } from "@/lib/platformManager";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import type { IntakeIntent, QuestionSlots, TextTransactionDraft, YearTypeSum } from "@/lib/ai/classify-intake";
-import { namedHalachaPage, type ShownIntent } from "./assistant-shown-intent";
+import { namedHalachaPage } from "./assistant-shown-intent";
 import {
   namedQuestionAnswer,
   parsedRuleFromCard,
   publishedPageNamespace,
-  readsSplitIntent,
   readyDataReply,
   sumFailureStatus,
   unnamedQuestionAnswer,
@@ -95,6 +94,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     showDraft,
     beginTurn,
   } = state;
+  const { pairActionBusy } = state;
 
   function showHeld(next: HeldDraft) {
     held.current = next;
@@ -119,12 +119,6 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     showDraft(draft, next.ruleName);
     if (next.checkAmount) setStatus("checkAmount");
     else if (next.checkDate) setStatus("checkDate");
-  }
-
-  function releaseUnused(nextIntent: ShownIntent) {
-    const split = splitRef.current;
-    const reads = readsSplitIntent(nextIntent);
-    if (!reads && split && split.ok && split.usageId) void releaseSplit(split.usageId);
   }
 
   function pageNamespace(pageId: string | null): string | null {
@@ -176,28 +170,40 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
   }
 
   function askDelete(id: string) {
+    if (pairActionBusy.current) return;
     setConfirmDeleteId(id);
     setDuplicateActionFailed(false);
   }
 
-  async function dismissPair(pair: DuplicatePair) {
-    const saved = await dismissDuplicatePair(pair.left.id, pair.right.id);
-    if (!saved) {
-      setDuplicateActionFailed(true);
-      return;
+  /** One pair action at a time: deleting side A, then B before the list reloads, would remove both. */
+  async function pairAction(action: () => Promise<boolean>) {
+    if (pairActionBusy.current) return;
+    pairActionBusy.current = true;
+    try {
+      if (!await action()) {
+        setDuplicateActionFailed(true);
+        return;
+      }
+      await loadScan();
+    } finally {
+      pairActionBusy.current = false;
     }
-    await loadScan();
+  }
+
+  async function dismissPair(pair: DuplicatePair) {
+    await pairAction(() => dismissDuplicatePair(pair.left.id, pair.right.id));
   }
 
   async function confirmDelete(id: string) {
-    try {
-      await useTableTransactionsStore.getState().deleteTransaction(id, getPlatform());
-    } catch {
-      setDuplicateActionFailed(true);
-      return;
-    }
-    setConfirmDeleteId(null);
-    await loadScan();
+    await pairAction(async () => {
+      try {
+        await useTableTransactionsStore.getState().deleteTransaction(id, getPlatform());
+      } catch {
+        return false;
+      }
+      setConfirmDeleteId(null);
+      return true;
+    });
   }
 
   async function showFiltered(question: YearTypeSum, filter: QuestionFilter, request: number) {
@@ -512,13 +518,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       today,
       calendar: questionCalendar,
     });
-    releaseUnused(decision.releaseAs);
     applyTurn(source, decision);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
     const source = state.pendingText;
-    releaseUnused(nextIntent);
     showIntent(source, nextIntent);
   }
 
@@ -554,7 +558,6 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
 
   return {
     showHeld,
-    releaseUnused,
     showRabbi,
     presentInspiration,
     loadScan,

@@ -19,7 +19,8 @@ export type ComposerBusyKey =
   | "aiIntake.thinking.receipt"
   | "aiIntake.thinking.voice"
   | "aiIntake.thinking.duplicates"
-  | "aiIntake.thinking.data";
+  | "aiIntake.thinking.data"
+  | "aiIntake.thinking.saving";
 
 export interface DrawerThinkingInput {
   checking: boolean;
@@ -28,6 +29,8 @@ export interface DrawerThinkingInput {
   intent: IntakeIntent | null;
   dataReply: DataReply | null;
   duplicateScan: DuplicateScanState | null;
+  /** A save or undo in flight. A new message then would land its result on the next turn. */
+  saving?: boolean;
 }
 
 export interface DraftReplyInput {
@@ -75,6 +78,7 @@ export function assistantIsThinking(input: DrawerThinkingInput): boolean {
 
 export function composerBusyKey(input: DrawerThinkingInput): ComposerBusyKey | undefined {
   if (input.checking) return `aiIntake.thinking.${input.pendingPhase ?? "reading"}`;
+  if (input.saving) return "aiIntake.thinking.saving";
   if (input.duplicateScan?.status === "pending") return "aiIntake.thinking.duplicates";
   if (input.intent === "ask_data" && input.dataReply === null && !input.askIntent) {
     return "aiIntake.thinking.data";

@@ -36,7 +36,8 @@
       "receipt": "Reading the receipt…",
       "voice": "Transcribing…",
       "data": "Calculating from your transactions…",
-      "duplicates": "Looking for similar transactions…"
+      "duplicates": "Looking for similar transactions…",
+      "saving": "Saving…"
     },
     "suggestions": {
       "transaction": "I bought coffee for 12 ILS",

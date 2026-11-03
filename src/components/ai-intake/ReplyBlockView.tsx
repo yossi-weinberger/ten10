@@ -32,7 +32,7 @@ export interface ReplyHandlers {
   onAllInPeriod: () => void;
   onChooseRule: (type: RuleActionType) => void;
   onApproveRule: () => void;
-  onOpenReceipt: () => void;
+  onOpenReceipt: (artifactId: string) => void;
   onDateChange: (date: string) => void;
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
@@ -56,6 +56,8 @@ export interface ReplyHandlers {
   onAnotherInspiration: () => void;
   saving: boolean;
   undoing: boolean;
+  /** Duplicate check for the draft still running; its Save waits. */
+  checkingDuplicates?: boolean;
   questionCalendar: "hebrew" | "gregorian";
 }
 
@@ -155,7 +157,7 @@ export function ReplyBlockView({
         <InspirationCard
           key={block.item?.id ?? "empty"}
           item={block.item}
-          onAnother={handlers.onAnotherInspiration}
+          onAnother={interactive ? handlers.onAnotherInspiration : undefined}
         />
       );
     case "rule":
@@ -194,7 +196,7 @@ export function ReplyBlockView({
     case "askAmount":
       return <p className="text-sm font-medium">{t("aiIntake.askAmount")}</p>;
     case "receipt":
-      return <ReceiptAttachment link={block.link} onOpen={handlers.onOpenReceipt} />;
+      return <ReceiptAttachment link={block.link} onOpen={() => handlers.onOpenReceipt(block.artifactId)} />;
     case "recurring":
       return (
         <RecurringDraftCard
@@ -225,6 +227,7 @@ export function ReplyBlockView({
           view={block.view}
           interactive={interactive}
           saving={handlers.saving}
+          checkingDuplicates={handlers.checkingDuplicates === true}
           onDateChange={handlers.onDateChange}
           onDescriptionChange={handlers.onDescriptionChange}
           onAmountChange={handlers.onAmountChange}
@@ -250,6 +253,7 @@ export function ReplyBlockView({
         <RabbiCard
           text={block.text}
           ticket={block.ticket}
+          interactive={interactive}
           onSent={handlers.onRabbiSent}
           onDismiss={handlers.onRabbiDismiss}
         />
