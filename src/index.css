@@ -505,6 +505,26 @@ input[type="number"] {
   }
 }
 
+/* The assistant's side panel (AssistantShell) pushes the app aside instead of covering it.
+   The margins match the panel: 22rem on tablets, 28rem from lg. Phones get the drawer, not this. */
+.assistant-push {
+  transition: margin-inline-end 300ms ease-out;
+}
+html[data-assistant-panel] .assistant-push {
+  width: auto;
+  margin-inline-end: 22rem;
+}
+@media (min-width: 1024px) {
+  html[data-assistant-panel] .assistant-push {
+    margin-inline-end: 28rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-push {
+    transition: none;
+  }
+}
+
 /* Driver.js popover — match TEN10 shadcn cards and buttons */
 .ten10-driver-popover {
   max-width: min(24rem, calc(100vw - 1.5rem));

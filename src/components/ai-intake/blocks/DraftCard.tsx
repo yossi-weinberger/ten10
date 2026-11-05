@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -16,7 +17,6 @@ import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
-import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
@@ -37,13 +37,6 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
 function isBaseType(type: string): type is BaseTransactionType {
   return type === "income" || type === "expense" || type === "donation";
 }
-
-/** A start edge and a light wash in the type's color, so a donation stands out from an expense. */
-const TYPE_SURFACE: Record<BaseTransactionType, string> = {
-  income: "border-s-green-500 bg-green-50/60 dark:border-s-green-600 dark:bg-green-950/20",
-  expense: "border-s-red-400 dark:border-s-red-600",
-  donation: "border-s-yellow-500 bg-yellow-50/70 dark:border-s-yellow-500 dark:bg-yellow-950/25",
-};
 
 export function DraftCard({
   view,
@@ -96,11 +89,11 @@ export function DraftCard({
         ? t(`transactionForm.category.${typeKey}.${draft.category}`, { ns: "transactions", defaultValue: draft.category })
         : draft.category
       : null;
-  const surface = cn("rounded-xl border border-s-4", TYPE_SURFACE[typeKey]);
 
   if (readOnly) {
     return (
-      <div className={cn(surface, "relative flex items-center gap-3 p-3")}>
+      // The app's own Card, like the transaction form; the type shows in its tag, not in the card's chrome.
+      <Card className="relative flex items-center gap-3 p-3">
         {view.locked ? (
           <motion.span
             className="relative inline-flex"
@@ -127,132 +120,134 @@ export function DraftCard({
           disabled={saving}
           onChange={interactive && view.locked ? onTypeChange : undefined}
         />
-      </div>
+      </Card>
     );
   }
 
   return (
-    <form
-      className={cn(surface, "grid gap-3 p-3")}
-      onSubmit={(event) => {
-        // Enter in a field is "approve and save", like the button.
-        event.preventDefault();
-        if (canSave) onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined);
-      }}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <TypeTag type={draft.type} disabled={saving} onChange={onTypeChange} />
-        {detail ? <Badge variant="outline" className="max-w-full truncate font-normal">{detail}</Badge> : null}
-        {view.appliedRuleName ? (
-          <Badge variant="outline">{t("aiIntake.ruleApplied", { name: view.appliedRuleName })}</Badge>
-        ) : null}
-        {draft.requestedRate !== null ? (
-          <span className="text-xs text-muted-foreground">
-            {t("aiIntake.draftMeta", {
-              currency: getCurrencySymbol(draft.currency),
-              type: t(`aiIntake.types.${draft.type}`),
-              rate: draft.requestedRate,
-            })}
-          </span>
-        ) : null}
-      </div>
-      {/* Locked while saving: the confirmation shows these fields, so they must match what was stored. */}
-      <fieldset disabled={saving} className="grid min-w-0 grid-cols-2 gap-2">
-        <div className="flex min-w-0 flex-col gap-1">
-          <Label className="flex items-center gap-1 text-xs text-muted-foreground">
-            {t("aiIntake.editAmount")}
-            {view.inferred?.amount ? <Sparkles className="size-3 text-primary" aria-hidden /> : null}
-            {view.inferred?.amount ? <span className="sr-only">{t("aiIntake.inferred")}</span> : null}
-          </Label>
-          <InputGroup className="bg-background">
-            <InputGroupInput
-              value={view.amountInput}
-              inputMode="decimal"
-              enterKeyHint="done"
-              dir="ltr"
-              aria-label={t("aiIntake.editAmount")}
-              className="text-base font-semibold tabular-nums"
-              onChange={(event) => onAmountChange(event.target.value)}
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupText>{getCurrencySymbol(draft.currency)}</InputGroupText>
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
-        <div className="flex min-w-0 flex-col gap-1">
-          <Label className="text-xs text-muted-foreground">{t("aiIntake.editDate")}</Label>
-          <DatePicker
-            date={parseLocalDate(draft.date)}
-            minDate={minTransactionDateLocal()}
-            setDate={(date) => {
-              // In a form the picker re-commits its date when Save is pressed. The same date must not
-              // restart the duplicate check, or Save turns disabled under the click.
-              if (date && formatLocalDate(date) !== draft.date) onDateChange(formatLocalDate(date));
-            }}
-          />
-        </div>
-        {dateProblem === "invalid" ? <p className="col-span-2 text-sm text-destructive">{t("aiIntake.editDateInvalid")}</p> : null}
-        {dateProblem === "min" ? (
-          <p className="col-span-2 text-sm text-destructive">{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
-        ) : null}
-        <div className="col-span-2 flex flex-col gap-1">
-          <Label className="text-xs text-muted-foreground">{t("aiIntake.editDescription")}</Label>
-          <Input
-            value={draft.description}
-            enterKeyHint="done"
-            className="bg-background text-base sm:text-sm"
-            aria-label={t("aiIntake.editDescription")}
-            onChange={(event) => onDescriptionChange(event.target.value)}
-          />
-        </div>
-      </fieldset>
-      {view.duplicates.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <Alert variant="warning">
-            <AlertTriangle aria-hidden />
-            <AlertTitle>{t("aiIntake.duplicateWarning", { count: view.duplicates.length })}</AlertTitle>
-            {view.duplicatesRanked ? <AlertDescription>{t("aiIntake.duplicateRanked")}</AlertDescription> : null}
-          </Alert>
-          <ItemGroup>
-            {view.duplicates.slice(0, 3).map((row) => (
-              <Item key={row.id} size="sm">
-                <ItemContent>
-                  <ItemTitle>
-                    {formatDisplayDate(row.date, "numeric").primary}
-                    {" · "}
-                    {formatCurrency(row.amount, draft.currency as CurrencyCode, locale)}
-                  </ItemTitle>
-                  <ItemDescription>
-                    {row.description}
-                    {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
-                  </ItemDescription>
-                </ItemContent>
-                {row.kind === "draft" ? <Badge variant="secondary">{t("aiIntake.draftCandidate")}</Badge> : null}
-              </Item>
-            ))}
-          </ItemGroup>
-        </div>
-      ) : null}
-      <div className="flex flex-wrap items-center gap-2">
-        {income ? (
-          <ChomeshToggle
-            checked={draft.isChomesh === true}
-            disabled={saving}
-            onChange={onChomeshChange}
-          />
-        ) : null}
-        <div className="ms-auto flex flex-wrap justify-end gap-2">
-          {view.duplicates.length > 0 ? (
-            <Button type="button" size="sm" variant="outline" disabled={!canSave} onClick={() => onSave("same_event")}>
-              {t("aiIntake.sameEvent")}
-            </Button>
+    <Card>
+      <form
+        className="grid gap-3 p-3"
+        onSubmit={(event) => {
+          // Enter in a field is "approve and save", like the button.
+          event.preventDefault();
+          if (canSave) onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined);
+        }}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <TypeTag type={draft.type} disabled={saving} onChange={onTypeChange} />
+          {detail ? <Badge variant="outline" className="max-w-full truncate font-normal">{detail}</Badge> : null}
+          {view.appliedRuleName ? (
+            <Badge variant="outline">{t("aiIntake.ruleApplied", { name: view.appliedRuleName })}</Badge>
           ) : null}
-          <Button type="submit" size="sm" disabled={!canSave}>
-            {saving ? <Spinner data-icon="inline-start" /> : null}
-            {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
-          </Button>
+          {draft.requestedRate !== null ? (
+            <span className="text-xs text-muted-foreground">
+              {t("aiIntake.draftMeta", {
+                currency: getCurrencySymbol(draft.currency),
+                type: t(`aiIntake.types.${draft.type}`),
+                rate: draft.requestedRate,
+              })}
+            </span>
+          ) : null}
         </div>
-      </div>
-    </form>
+        {/* Locked while saving: the confirmation shows these fields, so they must match what was stored. */}
+        <fieldset disabled={saving} className="grid min-w-0 grid-cols-2 gap-2">
+          <div className="flex min-w-0 flex-col gap-1">
+            <Label className="flex items-center gap-1 text-xs text-muted-foreground">
+              {t("aiIntake.editAmount")}
+              {view.inferred?.amount ? <Sparkles className="size-3 text-primary" aria-hidden /> : null}
+              {view.inferred?.amount ? <span className="sr-only">{t("aiIntake.inferred")}</span> : null}
+            </Label>
+            <InputGroup className="bg-background">
+              <InputGroupInput
+                value={view.amountInput}
+                inputMode="decimal"
+                enterKeyHint="done"
+                dir="ltr"
+                aria-label={t("aiIntake.editAmount")}
+                className="text-base font-semibold tabular-nums"
+                onChange={(event) => onAmountChange(event.target.value)}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>{getCurrencySymbol(draft.currency)}</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">{t("aiIntake.editDate")}</Label>
+            <DatePicker
+              date={parseLocalDate(draft.date)}
+              minDate={minTransactionDateLocal()}
+              setDate={(date) => {
+                // In a form the picker re-commits its date when Save is pressed. The same date must not
+                // restart the duplicate check, or Save turns disabled under the click.
+                if (date && formatLocalDate(date) !== draft.date) onDateChange(formatLocalDate(date));
+              }}
+            />
+          </div>
+          {dateProblem === "invalid" ? <p className="col-span-2 text-sm text-destructive">{t("aiIntake.editDateInvalid")}</p> : null}
+          {dateProblem === "min" ? (
+            <p className="col-span-2 text-sm text-destructive">{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
+          ) : null}
+          <div className="col-span-2 flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">{t("aiIntake.editDescription")}</Label>
+            <Input
+              value={draft.description}
+              enterKeyHint="done"
+              className="bg-background text-base sm:text-sm"
+              aria-label={t("aiIntake.editDescription")}
+              onChange={(event) => onDescriptionChange(event.target.value)}
+            />
+          </div>
+        </fieldset>
+        {view.duplicates.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <Alert variant="warning">
+              <AlertTriangle aria-hidden />
+              <AlertTitle>{t("aiIntake.duplicateWarning", { count: view.duplicates.length })}</AlertTitle>
+              {view.duplicatesRanked ? <AlertDescription>{t("aiIntake.duplicateRanked")}</AlertDescription> : null}
+            </Alert>
+            <ItemGroup>
+              {view.duplicates.slice(0, 3).map((row) => (
+                <Item key={row.id} size="sm">
+                  <ItemContent>
+                    <ItemTitle>
+                      {formatDisplayDate(row.date, "numeric").primary}
+                      {" · "}
+                      {formatCurrency(row.amount, draft.currency as CurrencyCode, locale)}
+                    </ItemTitle>
+                    <ItemDescription>
+                      {row.description}
+                      {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
+                    </ItemDescription>
+                  </ItemContent>
+                  {row.kind === "draft" ? <Badge variant="secondary">{t("aiIntake.draftCandidate")}</Badge> : null}
+                </Item>
+              ))}
+            </ItemGroup>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {income ? (
+            <ChomeshToggle
+              checked={draft.isChomesh === true}
+              disabled={saving}
+              onChange={onChomeshChange}
+            />
+          ) : null}
+          <div className="ms-auto flex flex-wrap justify-end gap-2">
+            {view.duplicates.length > 0 ? (
+              <Button type="button" size="sm" variant="outline" disabled={!canSave} onClick={() => onSave("same_event")}>
+                {t("aiIntake.sameEvent")}
+              </Button>
+            ) : null}
+            <Button type="submit" size="sm" disabled={!canSave}>
+              {saving ? <Spinner data-icon="inline-start" /> : null}
+              {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Card>
   );
 }

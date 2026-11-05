@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -174,7 +175,7 @@ export function RecurringDraftCard({
 
   if (card.saved) {
     return (
-      <div className="grid gap-3 rounded-lg border p-3">
+      <Card className="grid gap-3 p-3">
         {summary}
         {dateList}
         <div className="flex flex-wrap gap-2">
@@ -187,13 +188,13 @@ export function RecurringDraftCard({
             </Button>
           ) : null}
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (blocked) {
     return (
-      <div className="grid gap-3 rounded-lg border p-3">
+      <Card className="grid gap-3 p-3">
         <p className="text-sm">{t("aiIntake.recurring.monthlyOnly")}</p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -208,12 +209,12 @@ export function RecurringDraftCard({
             {t("aiIntake.recurring.decline")}
           </Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="grid gap-3 rounded-lg border p-3">
+    <Card className="grid gap-3 p-3">
       {showSummary ? summary : null}
       {showSummary && card.paymentMethod ? (
         <p className="text-sm text-muted-foreground">
@@ -285,7 +286,7 @@ export function RecurringDraftCard({
           </Button>
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }
 

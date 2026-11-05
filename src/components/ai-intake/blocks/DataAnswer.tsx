@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
 import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatDataAnswer } from "@/lib/ai/format-data-answer";
 import { periodLabel } from "@/lib/ai/classify-intake";
@@ -47,7 +48,7 @@ export function DataAnswer({
   const Icon = BASE_TYPE_ICON[reply.type];
 
   return (
-    <div className="flex flex-col gap-1 rounded-xl border bg-card p-3">
+    <Card className="flex flex-col gap-1 p-3">
       <p className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT[reply.type]}`}>
           <Icon className="size-3.5" aria-hidden />
@@ -89,7 +90,7 @@ export function DataAnswer({
           language: i18n.language,
         })}
       </p>
-    </div>
+    </Card>
   );
 }
 
@@ -148,7 +149,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const money = (value: number) => formatCurrency(value, defaultCurrency as CurrencyCode, i18n.language);
   return (
-    <div className="grid gap-1 rounded-xl border border-s-4 border-s-yellow-500 bg-yellow-50/70 p-3 dark:bg-yellow-950/25">
+    <Card className="grid gap-1 p-3">
       <p className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT.donation}`}>
           <HandCoins className="size-3.5" aria-hidden />
@@ -165,7 +166,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
           {t("aiIntake.balance.maaser")}: {money(balance.maaser)} · {t("aiIntake.balance.chomesh")}: {money(balance.chomesh)}
         </p>
       ) : null}
-    </div>
+    </Card>
   );
 }
 
@@ -173,7 +174,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
 export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
   const { t, i18n } = useTranslation("navigation");
   return (
-    <div className="grid gap-2 rounded-xl border bg-card p-3">
+    <Card className="grid gap-2 p-3">
       <p className="text-sm">
         {rows.length === 0 ? t("aiIntake.standingOrders.none") : t("aiIntake.standingOrders.count", { count: rows.length })}
       </p>
@@ -190,6 +191,6 @@ export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
       <Button asChild variant="outline" size="sm" className="w-fit">
         <Link to="/transactions-table/recurring-transactions">{t("aiIntake.standingOrders.open")}</Link>
       </Button>
-    </div>
+    </Card>
   );
 }

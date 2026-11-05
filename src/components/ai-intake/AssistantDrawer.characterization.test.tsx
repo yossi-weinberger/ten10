@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { installDomPolyfills } from "./assistant-test-setup";
+import he from "../../../public/locales/he/navigation.json";
 
 const ai = vi.hoisted(() => ({
   platform: { value: "web" as string },
@@ -237,6 +238,27 @@ describe("AssistantDrawer characterization", () => {
     setup();
     expect(screen.getByText("aiIntake.emptyDescription", { selector: "[data-slot=empty-description]" })).toBeInTheDocument();
     expect(await screen.findByText("aiIntake.openingBalance")).toBeInTheDocument();
+  });
+
+  it("pushes the app aside while the desktop side panel is open", async () => {
+    const user = setup();
+    expect(document.documentElement.dataset.assistantPanel).toBe("open");
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    await waitFor(() => expect(document.documentElement.dataset.assistantPanel).toBeUndefined());
+  });
+
+  it("keeps the full-screen drawer on a phone, without pushing the app", () => {
+    installDomPolyfills("mobile");
+    setup();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(document.documentElement.dataset.assistantPanel).toBeUndefined();
+  });
+
+  it("opens warmly, without the 'nothing is saved' line", () => {
+    for (const copy of [he.aiIntake.emptyDescription, he.aiIntake.openingBalance, he.aiIntake.openingCovered]) {
+      expect(copy).toContain("אני נתן");
+      expect(copy).not.toContain("שום דבר לא נשמר");
+    }
   });
 
   it("sends on Enter on a touch screen too, and Shift+Enter is a new line", async () => {

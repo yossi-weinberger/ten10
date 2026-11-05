@@ -362,7 +362,7 @@ function App() {
   return (
     <OnboardingHost>
     <TooltipProvider>
-      <div className="h-full w-full overflow-hidden bg-background flex">
+      <div className="assistant-push h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
           <div
             className={cn(
