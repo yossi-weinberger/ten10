@@ -70,7 +70,7 @@ export function useAssistantDrawerThread(
     history,
     activeUser,
   } = state;
-  const { recurringSaveId } = state;
+  const { recurringSaveId, savedTransaction, replacing } = state;
 
   /** True when a checked row has a saved transaction of the same type, within three days and 2%. */
   async function splitHasDuplicates(cards: readonly SplitDraft[]): Promise<boolean> {
@@ -296,6 +296,19 @@ export function useAssistantDrawerThread(
     setSaving(true);
     const request = requestRef.current;
     setStatus(null);
+    // A correction of the last save: undo that one first. If it cannot be undone, nothing is saved.
+    const replaced = replacing.current;
+    if (replaced) {
+      const undone = await undoTextIntake(replaced.itemId);
+      if (!undone.ok) {
+        setSaving(false);
+        if (requestRef.current === request) setStatus(undoFailureStatus(undone.reason));
+        return;
+      }
+      replacing.current = null;
+      savedTransaction.current = null;
+      refreshAfterIntakeSave();
+    }
     const savingDraft = { ...draft, amount };
     idempotency.current = nextDraftIdempotency(idempotency.current, {
       description: savingDraft.description,
@@ -330,7 +343,14 @@ export function useAssistantDrawerThread(
       return;
     }
     if (result.ok) {
-      memoryRef.current = rememberSaved(memoryRef.current, result.itemId);
+      savedTransaction.current = { itemId: result.itemId, transactionId: result.transactionId };
+      memoryRef.current = rememberSaved(memoryRef.current, result.itemId, {
+        amount: savingDraft.amount,
+        currency: savingDraft.currency,
+        type: savingDraft.type,
+        description: savingDraft.description,
+        date: savingDraft.date,
+      });
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
@@ -345,7 +365,7 @@ export function useAssistantDrawerThread(
         date: savingDraft.date,
       }, { saveFailed: true });
     }
-    setStatus(saveFailureStatus(result.reason));
+    setStatus(replaced ? "replacedNotSaved" : saveFailureStatus(result.reason));
   }
 
   async function handleUndo() {

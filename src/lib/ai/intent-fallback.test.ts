@@ -21,7 +21,13 @@ describe("classifyIntentFallback", () => {
       confidence: 0.9,
       halachaPage: "tithes",
       halachaPageConfidence: 0.8,
+      chomesh: false,
     });
+  });
+
+  it("reads Jev's chomesh answer", async () => {
+    invoke.mockResolvedValue({ data: { intent: "add_transaction", confidence: 0.9, chomesh: true }, error: null });
+    await expect(classifyIntentFallback("x")).resolves.toMatchObject({ ok: true, chomesh: true });
   });
 
   it("drops an intent outside the closed set", async () => {
@@ -48,6 +54,7 @@ describe("classifyIntentFallback", () => {
       confidence: null,
       halachaPage: null,
       halachaPageConfidence: null,
+      chomesh: false,
     });
   });
 });

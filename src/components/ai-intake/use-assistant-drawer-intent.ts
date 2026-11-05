@@ -20,6 +20,7 @@ import {
   type TurnDecision,
 } from "@/lib/ai/assistant-turn";
 import { draftFromHeld, heldFromItem, recurringCardFromItem, type HeldDraft } from "@/lib/ai/split-draft";
+import { withChomesh } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 import { cardsFromSplit } from "@/lib/ai/split-cards";
 import { receiptAsDraft } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
@@ -93,6 +94,8 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     armAnswered,
     showDraft,
     beginTurn,
+    savedTransaction,
+    replacing,
   } = state;
   const { pairActionBusy } = state;
 
@@ -392,6 +395,10 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setHalachaNamespace(decision.publishedPage ? pageNamespace(decision.publishedPage) : null);
     setRabbiText(null);
     setRabbiTicket(null);
+    // Set before the card is drawn, so its duplicate check leaves out the transaction it replaces.
+    replacing.current = decision.replaces && savedTransaction.current?.itemId === decision.replaces
+      ? savedTransaction.current
+      : null;
     showDraft(null);
     savedRecurring.current = null;
     setRecurring(null);
@@ -418,10 +425,16 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         setSplitDrafts(several ? cardsFromSplit(several.items, { defaultCurrency, autoCalcChomesh }) : null);
         break;
       case "clarify":
-      case "draft":
-        if (several?.items[0]) showHeld(heldFromItem(several.items[0], defaultCurrency));
-        else setStatus("couldNotRead");
+      case "draft": {
+        const first = several?.items[0];
+        if (!first) {
+          setStatus("couldNotRead");
+          break;
+        }
+        showHeld(heldFromItem(first, defaultCurrency));
+        if (replacing.current && !first.checkAmount && !first.checkDate) setStatus("replacesSaved");
         break;
+      }
       case "recurring":
         setRecurring(several?.items[0] ? recurringCardFromItem(several.items[0], defaultCurrency) : null);
         if (several?.items[0]?.checkAmount) setStatus("checkAmount");
@@ -492,8 +505,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       cardEvidence: openCardEvidence(turnStart.current),
     });
     const decided = await classifyIntentFallback(source, contextRef.current);
-    const split = await splitPromise;
+    const read = await splitPromise;
     if (requestRef.current !== request) return;
+    const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
+      ? { ...read, items: withChomesh(read.items, true) }
+      : read;
     splitRef.current = split;
     const namedPage = decided.ok ? namedHalachaPage(decided.halachaPage, decided.halachaPageConfidence) : null;
     halachaRef.current = namedPage === "personal" ? null : namedPage;

@@ -20,6 +20,8 @@ export const STATUS_MESSAGES = {
   undone: { key: "aiIntake.undone", tone: "success" },
   discarded: { key: "aiIntake.discarded", tone: "success" },
   alreadySaved: { key: "aiIntake.alreadySaved", tone: "info" },
+  replacesSaved: { key: "aiIntake.replacesSaved", tone: "info" },
+  replacedNotSaved: { key: "aiIntake.replacedNotSaved", tone: "error" },
   ruleSaved: { key: "aiIntake.ruleSaved", tone: "success" },
   duplicateKept: { key: "aiIntake.duplicateKept", tone: "success" },
   recurringSaved: { key: "aiIntake.recurring.saved", tone: "success" },

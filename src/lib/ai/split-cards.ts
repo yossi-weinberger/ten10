@@ -39,6 +39,7 @@ export function cardsFromSplit(
     specialStated?: boolean;
     category?: string | null;
     paymentMethod?: string | null;
+    chomesh?: boolean | null;
   }[],
   options: { defaultCurrency?: TextTransactionDraft["currency"]; autoCalcChomesh?: boolean } = {},
 ): SplitDraft[] {
@@ -57,7 +58,7 @@ export function cardsFromSplit(
       type,
       category: categoryOf(item.category),
       paymentMethod: paymentOf(item.paymentMethod),
-      isChomesh: type === "income" && options.autoCalcChomesh === true,
+      isChomesh: type === "income" && (item.chomesh ?? options.autoCalcChomesh === true),
       checked: ready,
       transactionId: null,
       itemId: null,

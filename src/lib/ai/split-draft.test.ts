@@ -3,7 +3,7 @@ import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/s
 import { resolveRecurrence } from "../../../supabase/functions/_shared/ai/split-recurrence.ts";
 import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
 import { nextRecurringQuestion, recurringTotalOccurrences, saveStartDate, upcomingRecurringDates } from "./recurring-card";
-import { digitsOnlyAmount, heldFromItem, recurringCardFromItem } from "./split-draft";
+import { digitsOnlyAmount, draftFromHeld, heldFromItem, recurringCardFromItem } from "./split-draft";
 
 const MONTHLY: AnchoredSplitItem["recurrence"] = {
   frequency: "monthly",
@@ -113,5 +113,17 @@ describe("digitsOnlyAmount", () => {
     expect(digitsOnlyAmount("12,50")).toBe(12.5);
     expect(digitsOnlyAmount("1,250")).toBe(1250);
     expect(digitsOnlyAmount("50$")).toBeNull();
+  });
+});
+
+// QA 2026-11-03: "תוציא גם חומש" was not marked as chomesh.
+describe("chomesh the message asked for", () => {
+  it("puts a stated chomesh on the draft and leaves an unstated one to the setting", () => {
+    const asked = heldFromItem(item({ typeQuestion: null, description: "משכורת", chomesh: true }), "ILS");
+    expect(asked.isChomesh).toBe(true);
+    expect(draftFromHeld(asked)?.isChomesh).toBe(true);
+    const unsaid = heldFromItem(item({ typeQuestion: null, description: "משכורת" }), "ILS");
+    expect(unsaid.isChomesh).toBeNull();
+    expect(draftFromHeld(unsaid)).not.toHaveProperty("isChomesh");
   });
 });
