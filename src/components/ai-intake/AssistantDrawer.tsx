@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
-import { SquarePen } from "lucide-react";
+import { Paperclip, SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { loadTitheBalance } from "@/lib/ai/assistant-extras";
 import type { CurrencyCode } from "@/lib/currencies";
@@ -15,6 +15,10 @@ import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
 import { useAssistantDrawerComposer } from "./use-assistant-drawer-composer";
 import { useAssistantDrawerThread } from "./use-assistant-drawer-thread";
 
+/**
+ * A share from the OS (or a forged cross-site post that got through) arrives here. Nothing in it reaches
+ * the AI until the user acts: text waits in the composer, a file waits for "read".
+ */
 export interface AssistantDrawerHandle {
   receive(file: File): void;
   receiveText(text: string): void;
@@ -68,13 +72,10 @@ export function AssistantDrawer({
     onOpenChange(next);
   }
 
-  const handleReceiptRef = useRef(composer.handleReceipt);
-  const handleSubmitRef = useRef(intent.handleSubmit);
+  const [sharedFile, setSharedFile] = useState<File | null>(null);
   const setTextRef = useRef(state.setText);
   const disposeRef = useRef(state.disposeAssistant);
   useEffect(() => {
-    handleReceiptRef.current = composer.handleReceipt;
-    handleSubmitRef.current = intent.handleSubmit;
     setTextRef.current = state.setText;
     disposeRef.current = state.disposeAssistant;
   });
@@ -85,11 +86,10 @@ export function AssistantDrawer({
   }, []);
   useImperativeHandle(receiveRef, () => ({
     receive(file: File) {
-      void handleReceiptRef.current(file);
+      setSharedFile(file);
     },
     receiveText(text: string) {
       setTextRef.current(text);
-      void handleSubmitRef.current(text);
     },
   }), []);
 
@@ -131,6 +131,26 @@ export function AssistantDrawer({
         void composer.handleReceipt(file);
       }}
       footer={(
+        <>
+        {sharedFile ? (
+          <div role="status" className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-sm">
+            <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{state.t("aiIntake.sharedFile", { name: sharedFile.name })}</span>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                setSharedFile(null);
+                void composer.handleReceipt(sharedFile);
+              }}
+            >
+              {state.t("aiIntake.sharedRead")}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setSharedFile(null)}>
+              {state.t("aiIntake.sharedDismiss")}
+            </Button>
+          </div>
+        ) : null}
         <AssistantComposer
           value={composer.wiring.value}
           onChange={state.setText}
@@ -151,6 +171,7 @@ export function AssistantDrawer({
             else void intent.handleSubmit();
           }}
         />
+        </>
       )}
     >
       {/* Closing here keeps the conversation; only the X or "new chat" clears it. */}
