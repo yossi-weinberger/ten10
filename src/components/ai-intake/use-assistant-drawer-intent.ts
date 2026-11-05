@@ -483,6 +483,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const turn = crypto.randomUUID();
     const splitPromise = splitItems(source, today, {
       timeZone: zone,
       receivedAt: new Date().toISOString(),
@@ -490,8 +491,9 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       calendar: questionCalendar,
       context: contextRef.current,
       cardEvidence: openCardEvidence(turnStart.current),
+      turn,
     });
-    const decided = await classifyIntentFallback(source, contextRef.current);
+    const decided = await classifyIntentFallback(source, contextRef.current, turn);
     const split = await splitPromise;
     if (requestRef.current !== request) return;
     splitRef.current = split;

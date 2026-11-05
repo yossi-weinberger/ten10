@@ -20,7 +20,7 @@ DROP FUNCTION IF EXISTS public.approve_ai_user_rule(text, text, date);
 DROP FUNCTION IF EXISTS public.attach_ai_receipt_artifact(uuid, uuid);
 DROP FUNCTION IF EXISTS public.commit_ai_intake_items(jsonb);
 DROP FUNCTION IF EXISTS public.consume_ai_call(uuid);
-DROP FUNCTION IF EXISTS public.consume_ai_usage(uuid, text);
+DROP FUNCTION IF EXISTS public.consume_ai_usage(uuid, text, uuid, text);
 DROP FUNCTION IF EXISTS public.create_ai_text_intake(jsonb);
 DROP FUNCTION IF EXISTS public.create_ai_text_intake_items(jsonb);
 DROP FUNCTION IF EXISTS public.disable_ai_user_rule(text, text);

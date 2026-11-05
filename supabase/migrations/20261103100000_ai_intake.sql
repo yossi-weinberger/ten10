@@ -505,7 +505,7 @@ BEGIN
   RETURN jsonb_build_object('allowed', v_reason IS NULL, 'reason', v_reason);
 END;
 $$;
-CREATE FUNCTION ai.consume_usage(p_user_id uuid, p_kind text) RETURNS jsonb
+CREATE FUNCTION ai.consume_usage(p_user_id uuid, p_kind text, p_turn uuid DEFAULT NULL, p_op text DEFAULT NULL) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'pg_catalog', 'public', 'ai'
     AS $$
@@ -517,6 +517,7 @@ DECLARE
   v_reason text;
   v_used integer;
   v_usage_id uuid;
+  v_joined boolean;
 BEGIN
   IF v_weight IS NULL THEN
     RAISE EXCEPTION 'USAGE_KIND_INVALID';
@@ -525,6 +526,26 @@ BEGIN
   v_reason := ai.take_call(p_user_id);
   IF v_reason IS NOT NULL THEN
     RETURN jsonb_build_object('allowed', false, 'reason', v_reason, 'resets_at', v_resets);
+  END IF;
+
+  -- One message, one charge: its classify and split calls bring the same turn, and the second one joins
+  -- the first one's charge. Each operation joins once, only while the charge is fresh and not given back.
+  -- The first call of a turn holds the row, so two calls that arrive together still charge once.
+  IF p_turn IS NOT NULL THEN
+    INSERT INTO ai.usage_events AS charge (user_id, kind, units, period_start, turn_id, ops)
+    VALUES (p_user_id, p_kind, v_weight, v_period, p_turn, ARRAY[p_op])
+    ON CONFLICT (user_id, turn_id) WHERE turn_id IS NOT NULL
+    DO UPDATE SET ops = charge.ops || p_op
+    WHERE charge.released_at IS NULL
+      AND charge.created_at > now() - interval '2 minutes'
+      AND NOT p_op = ANY (charge.ops)
+    RETURNING id, cardinality(ops) > 1 INTO v_usage_id, v_joined;
+    IF v_usage_id IS NULL THEN
+      RETURN jsonb_build_object('allowed', false, 'reason', 'unavailable', 'resets_at', v_resets);
+    END IF;
+    IF v_joined THEN
+      RETURN jsonb_build_object('allowed', true, 'reason', NULL, 'usage_id', v_usage_id, 'resets_at', v_resets);
+    END IF;
   END IF;
 
   INSERT INTO ai.usage_counters AS counter (user_id, period_start, units_used)
@@ -536,6 +557,8 @@ BEGIN
   RETURNING units_used INTO v_used;
 
   IF v_used IS NULL THEN
+    -- A turn row that was never charged must not be joined.
+    DELETE FROM ai.usage_events WHERE id = v_usage_id;
     UPDATE ai.usage_rate SET calls = greatest(calls - 1, 0)
     WHERE user_id = p_user_id
       AND ((bucket = 'day' AND bucket_start = date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC')
@@ -543,9 +566,11 @@ BEGIN
     RETURN jsonb_build_object('allowed', false, 'reason', 'quota_exhausted', 'resets_at', v_resets);
   END IF;
 
-  INSERT INTO ai.usage_events (user_id, kind, units, period_start)
-  VALUES (p_user_id, p_kind, v_weight, v_period)
-  RETURNING id INTO v_usage_id;
+  IF v_usage_id IS NULL THEN
+    INSERT INTO ai.usage_events (user_id, kind, units, period_start)
+    VALUES (p_user_id, p_kind, v_weight, v_period)
+    RETURNING id INTO v_usage_id;
+  END IF;
 
   RETURN jsonb_build_object(
     'allowed', true,
@@ -1527,8 +1552,10 @@ CREATE FUNCTION ai.release_usage(p_usage_id uuid) RETURNS boolean
 DECLARE
   v_event ai.usage_events%ROWTYPE;
 BEGIN
+  -- ponytail: a charge both calls of a turn used is kept, so one failed call cannot hand the other a free answer.
+  -- When both fail the message still costs its unit; count the failures per turn if that ever matters.
   UPDATE ai.usage_events SET released_at = now()
-  WHERE id = p_usage_id AND released_at IS NULL
+  WHERE id = p_usage_id AND released_at IS NULL AND coalesce(cardinality(ops), 0) < 2
   RETURNING * INTO v_event;
   IF NOT FOUND THEN
     RETURN false;
@@ -1787,7 +1814,7 @@ BEGIN
   RETURN ai.consume_call(p_user_id);
 END;
 $$;
-CREATE FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text) RETURNS jsonb
+CREATE FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text, p_turn uuid DEFAULT NULL, p_op text DEFAULT NULL) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'pg_catalog', 'public', 'ai'
     AS $$
@@ -1795,7 +1822,7 @@ BEGIN
   IF coalesce(auth.role(), '') IS DISTINCT FROM 'service_role' OR p_user_id IS NULL THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
   END IF;
-  RETURN ai.consume_usage(p_user_id, p_kind);
+  RETURN ai.consume_usage(p_user_id, p_kind, p_turn, p_op);
 END;
 $$;
 CREATE FUNCTION public.create_ai_text_intake(p_payload jsonb) RETURNS jsonb
@@ -2862,6 +2889,8 @@ CREATE TABLE ai.usage_events (
     period_start date NOT NULL,
     released_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    turn_id uuid,
+    ops text[],
     CONSTRAINT usage_events_kind_check CHECK ((kind = ANY (ARRAY['text'::text, 'receipt'::text, 'speech'::text]))),
     CONSTRAINT usage_events_units_check CHECK ((units > 0))
 );
@@ -2949,6 +2978,7 @@ CREATE INDEX transaction_source_links_item_idx ON ai.transaction_source_links US
 CREATE INDEX transaction_source_links_transaction_idx ON ai.transaction_source_links USING btree (transaction_id);
 CREATE INDEX usage_events_created_at_idx ON ai.usage_events USING btree (created_at);
 CREATE INDEX usage_events_user_id_idx ON ai.usage_events USING btree (user_id);
+CREATE UNIQUE INDEX usage_events_turn_idx ON ai.usage_events USING btree (user_id, turn_id) WHERE (turn_id IS NOT NULL);
 CREATE INDEX user_rules_user_status_idx ON ai.user_rules USING btree (user_id, status);
 CREATE INDEX transactions_ai_origin_idx ON public.transactions USING btree (user_id, date DESC) WHERE (origin IS NOT NULL);
 
@@ -3040,7 +3070,7 @@ GRANT ALL ON FUNCTION ai.attach_receipt_artifact(p_item_id uuid, p_artifact_id u
 REVOKE ALL ON FUNCTION ai.commit_intake_items(p_items jsonb) FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON FUNCTION ai.commit_intake_items(p_items jsonb) TO authenticated;
 REVOKE ALL ON FUNCTION ai.consume_call(p_user_id uuid) FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION ai.consume_usage(p_user_id uuid, p_kind text) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION ai.consume_usage(p_user_id uuid, p_kind text, p_turn uuid, p_op text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION ai.create_text_intake(p_payload jsonb) FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON FUNCTION ai.create_text_intake(p_payload jsonb) TO authenticated;
 REVOKE ALL ON FUNCTION ai.create_text_intake_items(p_payload jsonb) FROM PUBLIC, anon, authenticated, service_role;
@@ -3085,8 +3115,8 @@ GRANT ALL ON FUNCTION public.commit_ai_intake_items(p_items jsonb) TO authentica
 GRANT ALL ON FUNCTION public.commit_ai_intake_items(p_items jsonb) TO service_role;
 REVOKE ALL ON FUNCTION public.consume_ai_call(p_user_id uuid) FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON FUNCTION public.consume_ai_call(p_user_id uuid) TO service_role;
-REVOKE ALL ON FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text) FROM PUBLIC, anon, authenticated, service_role;
-GRANT ALL ON FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text) TO service_role;
+REVOKE ALL ON FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text, p_turn uuid, p_op text) FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.consume_ai_usage(p_user_id uuid, p_kind text, p_turn uuid, p_op text) TO service_role;
 REVOKE ALL ON FUNCTION public.create_ai_text_intake(p_payload jsonb) FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON FUNCTION public.create_ai_text_intake(p_payload jsonb) TO authenticated;
 GRANT ALL ON FUNCTION public.create_ai_text_intake(p_payload jsonb) TO service_role;
