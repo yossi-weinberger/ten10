@@ -7,6 +7,8 @@ import { listDuplicateCandidates } from "@/lib/ai/duplicate-candidates";
 import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { donationRecipient } from "@/lib/ai/build-commit-payload";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { recurringCancelOpen, recurringTotalOccurrences, saveStartDate } from "@/lib/ai/recurring-card";
 import { rememberClosed, rememberSaved, rememberUndone } from "@/lib/ai/assistant-turn";
@@ -197,7 +199,7 @@ export function useAssistantDrawerThread(
         description: recurring.description || null,
         type: recurring.type,
         category: recurring.category,
-        is_chomesh: recurring.type === "income" ? autoCalcChomesh : undefined,
+        is_chomesh: recurring.type === "income" ? recurring.isChomesh ?? autoCalcChomesh : undefined,
         recipient: recurring.recipient || donationRecipient({
           type: recurring.type,
           recipient: null,
@@ -281,9 +283,11 @@ export function useAssistantDrawerThread(
     setStatus("ruleSaved");
   }
 
-  async function handleSave(choice?: "saved_anyway" | "same_event") {
-    if (!draft || saving || savedItemId) return;
-    const blocked = draftSaveBlocker(draft, amountInput);
+  /** `retyped` saves that draft again right after an undo, before state shows it. */
+  async function handleSave(choice?: "saved_anyway" | "same_event", retyped?: TextTransactionDraft) {
+    const current = retyped ?? draft;
+    if (!current || saving || (savedItemId && !retyped)) return;
+    const blocked = draftSaveBlocker(current, amountInput);
     if (blocked) {
       setStatus(blocked);
       return;
@@ -296,7 +300,7 @@ export function useAssistantDrawerThread(
     setSaving(true);
     const request = requestRef.current;
     setStatus(null);
-    const savingDraft = { ...draft, amount };
+    const savingDraft = { ...current, amount };
     idempotency.current = nextDraftIdempotency(idempotency.current, {
       description: savingDraft.description,
       amount: amountInput,
@@ -306,7 +310,7 @@ export function useAssistantDrawerThread(
     const result = await saveTextDraft(
       savingDraft,
       idempotency.current.key,
-      originalDraft.current ?? { description: draft.description, amount },
+      originalDraft.current ?? { description: current.description, amount },
       duplicates.length > 0 && choice
         ? { choice, candidateIds: duplicates.map((row) => row.id) }
         : undefined,
@@ -348,15 +352,15 @@ export function useAssistantDrawerThread(
     setStatus(saveFailureStatus(result.reason));
   }
 
-  async function handleUndo() {
-    if (!savedItemId || undoing) return;
+  async function handleUndo(): Promise<boolean> {
+    if (!savedItemId || undoing) return false;
     setUndoing(true);
     const request = requestRef.current;
     const result = await undoTextIntake(savedItemId);
     setUndoing(false);
     if (requestRef.current !== request) {
       if (result.ok) refreshAfterIntakeSave();
-      return;
+      return false;
     }
     if (result.ok) {
       memoryRef.current = rememberUndone(memoryRef.current);
@@ -365,9 +369,36 @@ export function useAssistantDrawerThread(
       setSavedItemId(null);
       refreshAfterIntakeSave();
       setStatus("undone");
-      return;
+      return true;
     }
     setStatus(undoFailureStatus(result.reason));
+    return false;
+  }
+
+  /** The type tag. A saved card changes type by undo and save again: the regular audited paths, no new SQL. */
+  async function handleTypeChange(type: TextTransactionDraft["type"]) {
+    if (!draft || draft.type === type || saving || undoing) return;
+    const sameFamily = normalizeToBaseType(draft.type) === normalizeToBaseType(type);
+    const next: TextTransactionDraft = {
+      ...draft,
+      type,
+      category: sameFamily ? draft.category : null,
+      isChomesh: type === "income" ? draft.isChomesh ?? autoCalcChomesh : false,
+    };
+    if (savedItemId) {
+      if (!(await handleUndo())) return;
+      setDraft(next);
+      await handleSave(undefined, next);
+      return;
+    }
+    setDraft(next);
+    idempotency.current = nextDraftIdempotency(idempotency.current, {
+      description: next.description,
+      amount: amountInput,
+      type,
+      date: next.date,
+    });
+    refreshDuplicates(next, amountInput);
   }
 
   const handlers: ReplyHandlers = {
@@ -428,6 +459,9 @@ export function useAssistantDrawerThread(
     },
     onSave: (choice) => {
       void handleSave(choice);
+    },
+    onTypeChange: (type) => {
+      void handleTypeChange(type);
     },
     onChomeshChange: (isChomesh) => {
       if (!draft || draft.type !== "income") return;

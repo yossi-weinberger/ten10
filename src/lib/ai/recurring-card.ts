@@ -66,6 +66,8 @@ export interface RecurringCard {
   category: TextTransactionDraft["category"];
   paymentMethod: TextTransactionDraft["paymentMethod"];
   recipient: string;
+  /** Chomesh on an income order. Unset follows settings.autoCalcChomesh, like the form. */
+  isChomesh?: boolean;
   frequency: RecurrenceFrequency | null;
   calendarType: CalendarType;
   startDate: string | null;

@@ -369,6 +369,34 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.undone")).toBeInTheDocument();
   });
 
+  it("saves the draft on Enter in a field", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    const save = await screen.findByRole("button", { name: "aiIntake.save" });
+    await waitFor(() => expect(save).toBeEnabled());
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.editDescription" }), "{Enter}");
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+  });
+
+  it("changes a saved draft's type by undoing it and saving it again", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await user.click(await screen.findByRole("button", { name: "aiIntake.changeType" }));
+    await user.click(await screen.findByRole("menuitemradio", { name: "aiIntake.types.donation" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ type: "donation", amount: 15, category: null });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+  });
+
   it("asks for the type when the sentence has no verb", async () => {
     confident("add_transaction");
     const user = setup();

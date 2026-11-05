@@ -171,6 +171,7 @@
     "saveFailed": "השמירה נכשלה. לא נשמר.",
     "splitDuplicates": "יש תנועה דומה שכבר שמורה (אותו סוג, עד שלושה ימים וסכום קרוב). לא נשמר. לחיצה נוספת תשמור בכל זאת.",
     "chomesh": "חומש",
+    "changeType": "שינוי סוג: {{type}}",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · שער {{rate}}",
     "draftSummary": "{{currency}} · {{type}}",

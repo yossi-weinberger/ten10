@@ -1,10 +1,10 @@
+import { useState } from "react";
 import { AlertTriangle, CircleCheck, Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -16,11 +16,17 @@ import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
-import { BASE_TYPE_ICON, BASE_TYPE_TINT, type BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import type { BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { isPredefinedCategory } from "../../../../supabase/functions/_shared/transaction-domain/category-keys.ts";
 import type { DraftView } from "../assistant-reply-view";
+import { ChomeshToggle } from "./ChomeshToggle";
+import { Confetti } from "./Confetti";
+import { TypeTag } from "./TypeTag";
 
 function draftDateProblem(date: string): "invalid" | "min" | null {
   if (!isIsoDate(date)) return "invalid";
@@ -32,6 +38,13 @@ function isBaseType(type: string): type is BaseTransactionType {
   return type === "income" || type === "expense" || type === "donation";
 }
 
+/** A start edge and a light wash in the type's color, so a donation stands out from an expense. */
+const TYPE_SURFACE: Record<BaseTransactionType, string> = {
+  income: "border-s-green-500 bg-green-50/60 dark:border-s-green-600 dark:bg-green-950/20",
+  expense: "border-s-red-400 dark:border-s-red-600",
+  donation: "border-s-yellow-500 bg-yellow-50/70 dark:border-s-yellow-500 dark:bg-yellow-950/25",
+};
+
 export function DraftCard({
   view,
   interactive,
@@ -41,6 +54,7 @@ export function DraftCard({
   onDescriptionChange,
   onAmountChange,
   onChomeshChange,
+  onTypeChange,
   onSave,
 }: {
   view: DraftView;
@@ -51,166 +65,194 @@ export function DraftCard({
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
   onChomeshChange?: (isChomesh: boolean) => void;
+  /** Before saving it edits the draft; after saving it undoes and saves again. */
+  onTypeChange?: (type: TextTransactionDraft["type"]) => void;
   onSave: (choice?: "saved_anyway" | "same_event") => void;
 }) {
   const { t, i18n } = useTranslation(["navigation", "transactions"]);
   const formatDisplayDate = useDisplayDate();
+  const reduce = useReducedMotion();
   const { draft } = view;
   const base = normalizeToBaseType(draft.type);
   const typeKey = isBaseType(base) ? base : "expense";
-  const TypeIcon = BASE_TYPE_ICON[typeKey];
   const locale = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
   const dateProblem = draftDateProblem(draft.date);
   const readOnly = !interactive || view.locked;
-  const inferred = view.inferred;
   // The amount Save will store. A field Save would refuse shows the read amount.
   const typedAmount = parseDraftAmount(view.amountInput);
   const income = draft.type === "income";
+  const canSave = !saving && !checkingDuplicates && dateProblem === null;
+  // Only a save seen by this card celebrates. A card that mounts saved (history, remount) stays still.
+  const [wasLocked, setWasLocked] = useState(view.locked);
+  const [savedBurst, setSavedBurst] = useState(0);
+  if (view.locked !== wasLocked) {
+    setWasLocked(view.locked);
+    if (view.locked) setSavedBurst((value) => value + 1);
+  }
+  const detail = typeKey === "donation"
+    ? draft.recipient?.trim() || null
+    : draft.category
+      ? isPredefinedCategory(draft.category)
+        ? t(`transactionForm.category.${typeKey}.${draft.category}`, { ns: "transactions", defaultValue: draft.category })
+        : draft.category
+      : null;
+  const surface = cn("rounded-xl border border-s-4", TYPE_SURFACE[typeKey]);
 
   if (readOnly) {
     return (
-      <div className="relative">
-        <Item>
-          {view.locked ? <CircleCheck className="size-4 text-success" aria-hidden /> : (
-            <TypeIcon className={`size-4 ${BASE_TYPE_TINT[typeKey]} rounded-full p-0.5`} aria-hidden />
-          )}
-          <ItemContent>
-            <ItemTitle>{draft.description || t(`aiIntake.types.${draft.type}`)}</ItemTitle>
-            <ItemDescription>
-              {formatCurrency(typedAmount ?? draft.amount, draft.currency, locale)}
-              {" · "}
-              {formatDisplayDate(draft.date, "numeric").primary}
-              {income && draft.isChomesh ? ` · ${t("aiIntake.chomesh")}` : null}
-            </ItemDescription>
-          </ItemContent>
-        </Item>
+      <div className={cn(surface, "relative flex items-center gap-3 p-3")}>
+        {view.locked ? (
+          <motion.span
+            className="relative inline-flex"
+            initial={savedBurst > 0 && !reduce ? { scale: 0.4, opacity: 0 } : false}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 18 }}
+          >
+            <CircleCheck className="size-5 text-success" aria-hidden />
+            {typeKey === "donation" ? <Confetti burst={savedBurst} /> : null}
+          </motion.span>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{draft.description || t(`aiIntake.types.${draft.type}`)}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatCurrency(typedAmount ?? draft.amount, draft.currency, locale)}
+            {" · "}
+            {formatDisplayDate(draft.date, "numeric").primary}
+            {detail ? ` · ${detail}` : null}
+            {income && draft.isChomesh ? ` · ${t("aiIntake.chomesh")}` : null}
+          </p>
+        </div>
+        <TypeTag
+          type={draft.type}
+          disabled={saving}
+          onChange={interactive && view.locked ? onTypeChange : undefined}
+        />
       </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${BASE_TYPE_TINT[typeKey]}`}>
-            <TypeIcon className="size-3.5" aria-hidden />
-            {t(`aiIntake.types.${draft.type}`)}
+    <form
+      className={cn(surface, "grid gap-3 p-3")}
+      onSubmit={(event) => {
+        // Enter in a field is "approve and save", like the button.
+        event.preventDefault();
+        if (canSave) onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined);
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <TypeTag type={draft.type} disabled={saving} onChange={onTypeChange} />
+        {detail ? <Badge variant="outline" className="max-w-full truncate font-normal">{detail}</Badge> : null}
+        {view.appliedRuleName ? (
+          <Badge variant="outline">{t("aiIntake.ruleApplied", { name: view.appliedRuleName })}</Badge>
+        ) : null}
+        {draft.requestedRate !== null ? (
+          <span className="text-xs text-muted-foreground">
+            {t("aiIntake.draftMeta", {
+              currency: getCurrencySymbol(draft.currency),
+              type: t(`aiIntake.types.${draft.type}`),
+              rate: draft.requestedRate,
+            })}
           </span>
-          {view.appliedRuleName ? (
-            <Badge variant="outline">{t("aiIntake.ruleApplied", { name: view.appliedRuleName })}</Badge>
-          ) : null}
-        </div>
-        <CardDescription>
-            {draft.requestedRate === null
-              ? t("aiIntake.draftSummary", {
-                currency: getCurrencySymbol(draft.currency),
-                type: t(`aiIntake.types.${draft.type}`),
-              })
-              : t("aiIntake.draftMeta", {
-                currency: getCurrencySymbol(draft.currency),
-                type: t(`aiIntake.types.${draft.type}`),
-                rate: draft.requestedRate,
-              })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-2">
-        {/* Locked while saving: the confirmation shows these fields, so they must match what was stored. */}
-        <fieldset disabled={saving} className="contents">
-        <div className="flex flex-col gap-1.5">
-          <Label className="flex items-center gap-1">
+        ) : null}
+      </div>
+      {/* Locked while saving: the confirmation shows these fields, so they must match what was stored. */}
+      <fieldset disabled={saving} className="grid min-w-0 grid-cols-2 gap-2">
+        <div className="flex min-w-0 flex-col gap-1">
+          <Label className="flex items-center gap-1 text-xs text-muted-foreground">
             {t("aiIntake.editAmount")}
-            {inferred?.amount ? <Sparkles className="size-3 text-primary" aria-hidden /> : null}
-            {inferred?.amount ? <span className="sr-only">{t("aiIntake.inferred")}</span> : null}
+            {view.inferred?.amount ? <Sparkles className="size-3 text-primary" aria-hidden /> : null}
+            {view.inferred?.amount ? <span className="sr-only">{t("aiIntake.inferred")}</span> : null}
           </Label>
-          <div className="relative">
-            <InputGroup>
+          <InputGroup className="bg-background">
             <InputGroupInput
               value={view.amountInput}
               inputMode="decimal"
+              enterKeyHint="done"
               dir="ltr"
               aria-label={t("aiIntake.editAmount")}
-              className="text-lg font-semibold tabular-nums"
+              className="text-base font-semibold tabular-nums"
               onChange={(event) => onAmountChange(event.target.value)}
             />
             <InputGroupAddon align="inline-end">
               <InputGroupText>{getCurrencySymbol(draft.currency)}</InputGroupText>
             </InputGroupAddon>
           </InputGroup>
-          </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t("aiIntake.editDate")}</Label>
+        <div className="flex min-w-0 flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">{t("aiIntake.editDate")}</Label>
           <DatePicker
             date={parseLocalDate(draft.date)}
             minDate={minTransactionDateLocal()}
             setDate={(date) => {
-              if (date) onDateChange(formatLocalDate(date));
+              // In a form the picker re-commits its date when Save is pressed. The same date must not
+              // restart the duplicate check, or Save turns disabled under the click.
+              if (date && formatLocalDate(date) !== draft.date) onDateChange(formatLocalDate(date));
             }}
           />
-          {dateProblem === "invalid" ? <p className="text-sm text-destructive">{t("aiIntake.editDateInvalid")}</p> : null}
-          {dateProblem === "min" ? (
-            <p className="text-sm text-destructive">{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
-          ) : null}
         </div>
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label>{t("aiIntake.editDescription")}</Label>
+        {dateProblem === "invalid" ? <p className="col-span-2 text-sm text-destructive">{t("aiIntake.editDateInvalid")}</p> : null}
+        {dateProblem === "min" ? (
+          <p className="col-span-2 text-sm text-destructive">{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
+        ) : null}
+        <div className="col-span-2 flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">{t("aiIntake.editDescription")}</Label>
           <Input
             value={draft.description}
+            enterKeyHint="done"
+            className="bg-background text-base sm:text-sm"
             aria-label={t("aiIntake.editDescription")}
             onChange={(event) => onDescriptionChange(event.target.value)}
           />
         </div>
+      </fieldset>
+      {view.duplicates.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <Alert variant="warning">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>{t("aiIntake.duplicateWarning", { count: view.duplicates.length })}</AlertTitle>
+            {view.duplicatesRanked ? <AlertDescription>{t("aiIntake.duplicateRanked")}</AlertDescription> : null}
+          </Alert>
+          <ItemGroup>
+            {view.duplicates.slice(0, 3).map((row) => (
+              <Item key={row.id} size="sm">
+                <ItemContent>
+                  <ItemTitle>
+                    {formatDisplayDate(row.date, "numeric").primary}
+                    {" · "}
+                    {formatCurrency(row.amount, draft.currency as CurrencyCode, locale)}
+                  </ItemTitle>
+                  <ItemDescription>
+                    {row.description}
+                    {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
+                  </ItemDescription>
+                </ItemContent>
+                {row.kind === "draft" ? <Badge variant="secondary">{t("aiIntake.draftCandidate")}</Badge> : null}
+              </Item>
+            ))}
+          </ItemGroup>
+        </div>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-2">
         {income ? (
-          <div className="flex items-center gap-2 sm:col-span-2">
-            <Checkbox
-              id="ai-draft-chomesh"
-              checked={draft.isChomesh === true}
-              disabled={!onChomeshChange}
-              onCheckedChange={(checked) => onChomeshChange?.(checked === true)}
-            />
-            <Label htmlFor="ai-draft-chomesh">{t("aiIntake.chomesh")}</Label>
-          </div>
+          <ChomeshToggle
+            checked={draft.isChomesh === true}
+            disabled={saving}
+            onChange={onChomeshChange}
+          />
         ) : null}
-        </fieldset>
-        {view.duplicates.length > 0 ? (
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Alert variant="warning">
-              <AlertTriangle aria-hidden />
-              <AlertTitle>{t("aiIntake.duplicateWarning", { count: view.duplicates.length })}</AlertTitle>
-              {view.duplicatesRanked ? <AlertDescription>{t("aiIntake.duplicateRanked")}</AlertDescription> : null}
-            </Alert>
-            <ItemGroup>
-              {view.duplicates.slice(0, 3).map((row) => (
-                <Item key={row.id} size="sm">
-                  <ItemContent>
-                    <ItemTitle>
-                      {formatDisplayDate(row.date, "numeric").primary}
-                      {" · "}
-                      {formatCurrency(row.amount, draft.currency as CurrencyCode, locale)}
-                    </ItemTitle>
-                    <ItemDescription>
-                      {row.description}
-                      {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
-                    </ItemDescription>
-                  </ItemContent>
-                  {row.kind === "draft" ? <Badge variant="secondary">{t("aiIntake.draftCandidate")}</Badge> : null}
-                </Item>
-              ))}
-            </ItemGroup>
-          </div>
-        ) : null}
-      </CardContent>
-      <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        {view.duplicates.length > 0 ? (
-          <Button type="button" variant="outline" disabled={saving || checkingDuplicates || dateProblem !== null} onClick={() => onSave("same_event")}>
-            {t("aiIntake.sameEvent")}
+        <div className="ms-auto flex flex-wrap justify-end gap-2">
+          {view.duplicates.length > 0 ? (
+            <Button type="button" size="sm" variant="outline" disabled={!canSave} onClick={() => onSave("same_event")}>
+              {t("aiIntake.sameEvent")}
+            </Button>
+          ) : null}
+          <Button type="submit" size="sm" disabled={!canSave}>
+            {saving ? <Spinner data-icon="inline-start" /> : null}
+            {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
           </Button>
-        ) : null}
-        <Button type="button" disabled={saving || checkingDuplicates || dateProblem !== null} onClick={() => onSave(view.duplicates.length > 0 ? "saved_anyway" : undefined)}>
-          {saving ? <Spinner data-icon="inline-start" /> : null}
-          {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
-        </Button>
-      </CardFooter>
-    </Card>
+        </div>
+      </div>
+    </form>
   );
 }

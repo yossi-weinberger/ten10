@@ -50,6 +50,36 @@ export const ASSISTANT_GALLERY: GalleryScenario[] = [
     activeBlocks: blocks({ intent: "add_transaction", draft: { ...draftView, duplicates: [] } }),
   },
   {
+    id: "donation",
+    title: "טיוטת תרומה",
+    history: [],
+    active: { kind: "text", text: "תרמתי 180 לעזר מציון" },
+    activeBlocks: blocks({
+      intent: "add_transaction",
+      draft: {
+        ...draftView,
+        duplicates: [],
+        amountInput: "180",
+        draft: { ...draft, type: "donation", amount: 180, description: "עזר מציון", category: null, recipient: "עזר מציון" },
+      },
+    }),
+  },
+  {
+    id: "income",
+    title: "טיוטת הכנסה עם חומש",
+    history: [],
+    active: { kind: "text", text: "קיבלתי משכורת 9000" },
+    activeBlocks: blocks({
+      intent: "add_transaction",
+      draft: {
+        ...draftView,
+        duplicates: [],
+        amountInput: "9000",
+        draft: { ...draft, type: "income", amount: 9000, description: "משכורת", category: "salary", isChomesh: true },
+      },
+    }),
+  },
+  {
     id: "duplicate",
     title: "טיוטה עם כפילות",
     history: [],
