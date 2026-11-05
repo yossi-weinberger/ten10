@@ -121,7 +121,7 @@ export function NameMissing({
       {interactive ? (
         <div className="flex flex-col items-start gap-2">
           {suggestions.map((name) => (
-            <Button key={name} type="button" variant="outline" size="sm" className="w-fit" onClick={() => onChooseName(name)}>
+            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words py-1.5 text-start" onClick={() => onChooseName(name)}>
               {name}
             </Button>
           ))}

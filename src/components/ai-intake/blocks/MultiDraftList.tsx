@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import type { CurrencyCode } from "@/lib/currencies";
@@ -37,26 +39,28 @@ export function MultiDraftList({
       ) : null}
       <ul className="grid gap-2">
         {cards.map((card) => (
-          <li key={card.key} className="grid gap-2 rounded-lg border p-3">
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
+          <li key={card.key} className={cn("grid gap-2 rounded-lg border p-3", card.checked && "border-primary/40 bg-primary/5")}>
+            {/* The app's checkbox, the whole row as its label; amount and date isolated so RTL keeps their order. */}
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id={`ai-split-${card.key}`}
+                className="mt-0.5 size-5"
                 checked={card.checked}
                 disabled={!interactive || saving || card.transactionId !== null || card.date === null || card.type === null}
-                onChange={(event) => {
-                  onChange(cards.map((item) => item.key === card.key ? { ...item, checked: event.target.checked } : item));
+                onCheckedChange={(value) => {
+                  onChange(cards.map((item) => item.key === card.key ? { ...item, checked: value === true } : item));
                 }}
               />
-              <span>
-                {card.description || t("aiIntake.splitUntitled")}
-                {" · "}
-                {formatCurrency(card.amount, card.currency as CurrencyCode, locale)}
-                {" · "}
-                {card.date ? formatDisplayDate(card.date, "numeric").primary : t("aiIntake.splitCheckDate")}
-                {card.type ? ` · ${t(`aiIntake.types.${card.type}`)}` : ""}
-              </span>
-            </label>
+              <label htmlFor={`ai-split-${card.key}`} className="grid min-w-0 flex-1 gap-0.5 text-sm">
+                <span className="break-words font-medium">{card.description || t("aiIntake.splitUntitled")}</span>
+                <span className="text-xs text-muted-foreground">
+                  <bdi>{formatCurrency(card.amount, card.currency as CurrencyCode, locale)}</bdi>
+                  {" · "}
+                  <bdi>{card.date ? formatDisplayDate(card.date, "numeric").primary : t("aiIntake.splitCheckDate")}</bdi>
+                  {card.type ? ` · ${t(`aiIntake.types.${card.type}`)}` : ""}
+                </span>
+              </label>
+            </div>
             {card.type === null && card.transactionId === null ? (
               <TypeChoice
                 receipt={null}

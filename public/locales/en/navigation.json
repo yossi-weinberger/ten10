@@ -168,7 +168,6 @@
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · rate {{rate}}",
     "draftSummary": "{{currency}} · {{type}}",
-    "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "Show the receipt",
     "receiptKept": "The receipt is kept for 30 days",
     "receiptMissing": "This receipt has no file.",

@@ -180,7 +180,6 @@
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · שער {{rate}}",
     "draftSummary": "{{currency}} · {{type}}",
-    "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "הצג את הקבלה",
     "receiptKept": "הקבלה נשמרת 30 יום",
     "receiptMissing": "אין קובץ לקבלה הזו.",
