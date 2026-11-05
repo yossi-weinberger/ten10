@@ -5,12 +5,6 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { AssistantMark } from "./AssistantMark";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Drawer,
   DrawerContent,
   DrawerDescription,
@@ -26,8 +20,6 @@ import {
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useEffect, useState } from "react";
 
-export const ASSISTANT_DESKTOP_SHELL: "dialog" | "sheet" = "dialog";
-
 interface AssistantShellProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,15 +32,9 @@ interface AssistantShellProps {
   initialFocusRef: RefObject<HTMLTextAreaElement | null>;
 }
 
-function desktopShell(): "dialog" | "sheet" {
-  if (typeof window === "undefined") return ASSISTANT_DESKTOP_SHELL;
-  return new URLSearchParams(window.location.search).get("assistantShell") === "sheet"
-    ? "sheet"
-    : ASSISTANT_DESKTOP_SHELL;
-}
-
 function Frame({
   title,
+  subtitle,
   description,
   headerActions,
   reserveClose,
@@ -59,6 +45,7 @@ function Frame({
   footer,
 }: {
   title: string;
+  subtitle: string;
   description: string;
   headerActions?: ReactNode;
   reserveClose: boolean;
@@ -78,7 +65,10 @@ function Frame({
       ) : null}
       <div className={cn("flex items-center gap-2 py-3 ps-4", reserveClose ? "pe-12" : "pe-4")}>
         <AssistantMark size="md" />
-        <p className="min-w-0 flex-1 truncate text-base font-semibold">{title}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-base font-semibold leading-tight">{title}</p>
+          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+        </div>
         <p className="sr-only">{description}</p>
         <div className="flex shrink-0 items-center gap-1">{headerActions}</div>
       </div>
@@ -120,7 +110,6 @@ export function AssistantShell({
   // A phone in landscape is wide but short: it gets the full-height drawer too.
   const isSmallNow = useMediaQuery("(max-width: 767px), (max-height: 500px)");
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
-  const shell = desktopShell();
 
   useEffect(() => {
     if (open) return;
@@ -131,6 +120,7 @@ export function AssistantShell({
   const frame = (reserveClose: boolean) => (
     <Frame
       title={title}
+      subtitle={t("aiIntake.subtitle", { ns: "navigation" })}
       description={description}
       headerActions={headerActions}
       reserveClose={reserveClose}
@@ -155,36 +145,24 @@ export function AssistantShell({
     );
   }
 
-  if (shell === "sheet") {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          dir={i18n.dir()}
-          side={i18n.dir() === "rtl" ? "left" : "right"}
-          className="flex w-full flex-col gap-0 p-0 sm:max-w-md"
-        >
-          <SheetTitle className="sr-only">{title}</SheetTitle>
-          <SheetDescription className="sr-only">{description}</SheetDescription>
-          {frame(true)}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
+  // Desktop: a side panel opposite the menu (left in Hebrew). Not modal, so the site stays usable;
+  // a click on the page keeps it open, and only X, Escape or a followed link closes it.
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <SheetContent
         dir={i18n.dir()}
-        className="flex h-[min(85dvh,48rem)] max-w-2xl flex-col gap-0 p-0"
+        side={i18n.dir() === "rtl" ? "left" : "right"}
+        className="flex w-full flex-col gap-0 p-0 shadow-2xl sm:max-w-md"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           initialFocusRef.current?.focus();
         }}
+        onInteractOutside={(event) => event.preventDefault()}
       >
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        <DialogDescription className="sr-only">{description}</DialogDescription>
+        <SheetTitle className="sr-only">{title}</SheetTitle>
+        <SheetDescription className="sr-only">{description}</SheetDescription>
         {frame(true)}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

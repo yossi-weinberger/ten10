@@ -69,6 +69,7 @@ export function AssistantThread({
   interactiveActive,
   onSuggestion,
   onReceipt,
+  opening,
   handlers,
 }: {
   history: AssistantTurn[];
@@ -77,20 +78,23 @@ export function AssistantThread({
   interactiveActive: boolean;
   onSuggestion: (text: string) => void;
   onReceipt?: (file: File) => void;
+  /** The greeting's first name and a line from the user's data. Missing parts fall back to the generic text. */
+  opening?: { name: string | null; line?: string };
   handlers: ReplyHandlers;
 }) {
   const { t } = useTranslation("navigation");
   const reduce = useReducedMotion();
   const fileRef = useRef<HTMLInputElement | null>(null);
   if (history.length === 0 && !active) {
-    const greeting = t(`aiIntake.greeting.${greetingKey(new Date().getHours())}`);
+    const hello = t(`aiIntake.greeting.${greetingKey(new Date().getHours())}`);
+    const greeting = opening?.name ? t("aiIntake.greetingNamed", { greeting: hello, name: opening.name }) : hello;
     return (
       // Scrolls; auto margins center it but keep the top reachable when the screen is short or the keyboard is open.
       <Empty className="h-full justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
         <EmptyHeader className="mt-auto">
           <AssistantMark size="md" />
           <EmptyTitle>{greeting}</EmptyTitle>
-          <EmptyDescription>{t("aiIntake.emptyDescription")}</EmptyDescription>
+          <EmptyDescription>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
         </EmptyHeader>
         <input
           ref={fileRef}

@@ -147,6 +147,7 @@ beforeEach(() => {
     if (typeof value === "function" && "mockReset" in value) value.mockReset();
   }
   ai.listActiveUserRules.mockResolvedValue([]);
+  ai.loadTitheBalance.mockResolvedValue(null);
   ai.listDuplicateCandidates.mockResolvedValue([]);
   ai.rankDuplicateCandidates.mockResolvedValue(null);
   ai.splitItems.mockImplementation(async (sentence: string) => {
@@ -231,6 +232,31 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("AssistantDrawer characterization", () => {
+  it("opens with the user's tithe balance, or the general text without one", async () => {
+    ai.loadTitheBalance.mockResolvedValue({ total: 340, maaser: 340, chomesh: 0 });
+    setup();
+    expect(screen.getByText("aiIntake.emptyDescription", { selector: "[data-slot=empty-description]" })).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.openingBalance")).toBeInTheDocument();
+  });
+
+  it("sends on Enter on a touch screen too, and Shift+Enter is a new line", async () => {
+    confident("add_transaction");
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes("coarse"),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    })) as unknown as typeof window.matchMedia;
+    const user = setup();
+    const box = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
+    expect(box).toHaveAttribute("enterkeyhint", "send");
+    await user.type(box, "קניתי מאפים{Shift>}{Enter}{/Shift}באליס ב-15 שח{Enter}");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1));
+    expect(ai.classifyIntentFallback.mock.calls[0][0]).toBe("קניתי מאפים\nבאליס ב-15 שח");
+  });
+
   it("keeps new chat beside a single close button", () => {
     setup();
     expect(screen.getByRole("button", { name: "aiIntake.newChat" })).toBeInTheDocument();

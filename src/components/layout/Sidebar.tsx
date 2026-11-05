@@ -11,7 +11,10 @@ import {
   Table,
   PieChart,
   MessageSquare,
+  MessageSquarePlus,
 } from "lucide-react";
+import { ContactModal } from "@/components/features/contact";
+import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
 import {
   Tooltip,
   TooltipContent,
@@ -65,9 +68,16 @@ export function Sidebar({
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const assistantRef = useRef<AssistantDrawerHandle | null>(null);
   const pendingShare = useRef<SharedIntake | null>(null);
   const showAssistant = useAiIntakeUi(platform, Boolean(session?.user));
+
+  // The floating button opens the drawer of the persistent sidebar, which is mounted on every screen size.
+  useEffect(() => {
+    if (inSheet || !showAssistant) return;
+    return onAssistantOpenRequest(() => setAssistantOpen(true));
+  }, [inSheet, showAssistant]);
 
   // The drawer loads lazily, so a share can arrive before it mounts. It waits here.
   const receiveRef = useCallback((handle: AssistantDrawerHandle | null) => {
@@ -406,6 +416,20 @@ export function Sidebar({
                 </span>
               </Button>
             ) : null}
+            {/* The floating button belongs to the assistant here, so "Contact" lives in the menu. */}
+            {showAssistant ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full h-12 justify-start px-4"
+                onClick={() => setContactOpen(true)}
+              >
+                <MessageSquarePlus className="h-6 w-6" />
+                <span className={expanded ? "ms-4" : "sr-only"}>
+                  {t("menu.contact")}
+                </span>
+              </Button>
+            ) : null}
 
             {/* Support Us Button - Standard Style */}
             <NavLink
@@ -540,6 +564,7 @@ export function Sidebar({
             open={assistantOpen}
             onOpenChange={setAssistantOpen}
             receiveRef={receiveRef}
+            userName={profileFullName}
             onNavigate={() => {
               setAssistantOpen(false);
               onLinkClick?.();
@@ -547,6 +572,7 @@ export function Sidebar({
           />
         </Suspense>
       ) : null}
+      {showAssistant ? <ContactModal isOpen={contactOpen} onOpenChange={setContactOpen} /> : null}
     </div>
   );
 }

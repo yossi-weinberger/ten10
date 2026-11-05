@@ -1,6 +1,10 @@
-import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { loadTitheBalance } from "@/lib/ai/assistant-extras";
+import type { CurrencyCode } from "@/lib/currencies";
+import { useDonationStore } from "@/lib/store";
+import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
@@ -22,6 +26,8 @@ interface AssistantDrawerProps {
   receiveRef: Ref<AssistantDrawerHandle>;
   /** A link in a reply was followed. The page changes behind the drawer, so the host closes it. */
   onNavigate?: () => void;
+  /** The profile's full name. The opening greets by the first name. */
+  userName?: string | null;
 }
 
 export function AssistantDrawer({
@@ -29,8 +35,25 @@ export function AssistantDrawer({
   onOpenChange,
   receiveRef,
   onNavigate,
+  userName,
 }: AssistantDrawerProps) {
   const state = useAssistantDrawerState();
+  const defaultCurrency = useDonationStore((store) => store.settings.defaultCurrency);
+  const [openingBalance, setOpeningBalance] = useState<number | null>(null);
+  const userId = state.user?.id ?? null;
+  // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void loadTitheBalance(userId)
+      .then((balance) => {
+        if (!cancelled) setOpeningBalance(balance?.total ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [open, userId]);
   const intent = useAssistantDrawerIntent(state);
   const composer = useAssistantDrawerComposer(state, intent);
   const thread = useAssistantDrawerThread(state, intent, composer);
@@ -73,6 +96,14 @@ export function AssistantDrawer({
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
+  const firstName = userName?.trim().split(/\s+/)[0] || null;
+  const openingLine = openingBalance === null
+    ? undefined
+    : openingBalance > 0
+      ? state.t("aiIntake.openingBalance", {
+        amount: formatCurrency(openingBalance, defaultCurrency as CurrencyCode, state.i18n.language.toLowerCase().startsWith("en") ? "en" : "he"),
+      })
+      : state.t("aiIntake.openingCovered");
 
   return (
     <AssistantShell
@@ -134,6 +165,7 @@ export function AssistantDrawer({
           active={thread.active}
           activeBlocks={thread.blocks}
           interactiveActive
+          opening={{ name: firstName, line: openingLine }}
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);
           }}
