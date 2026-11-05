@@ -139,17 +139,18 @@ export function RecurringDraftCard({
   }
 
   const summary = (
-    <p className="text-sm">
+    <p className="text-sm leading-8">
       {recurringSummaryPieces(card, labels).map((piece, index) => {
         if (piece.field === null || card.saved || locked) {
-          return <span key={index}>{piece.text}</span>;
+          // A word joiner after "מ-" keeps "מ-1/12" on one line.
+          return <span key={index}>{piece.text.replace(/[-־]$/u, "$&⁠")}</span>;
         }
         const field = piece.field;
         return (
           <button
             key={index}
             type="button"
-            className="underline decoration-dotted underline-offset-4"
+            className="-my-2 inline-block whitespace-nowrap rounded py-2 underline decoration-dotted underline-offset-4"
             onClick={() => openOne(field)}
           >
             {piece.text}

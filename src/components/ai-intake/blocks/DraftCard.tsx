@@ -1,7 +1,5 @@
 import { AlertTriangle, CircleCheck, Sparkles } from "lucide-react";
-import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { GoldenBubbles } from "@/components/ui/golden-bubbles";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,9 +62,7 @@ export function DraftCard({
   const locale = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
   const dateProblem = draftDateProblem(draft.date);
   const readOnly = !interactive || view.locked;
-  const reduce = useReducedMotion();
   const inferred = view.inferred;
-  const donation = draft.type === "donation" || draft.type === "non_tithe_donation";
   // The amount Save will store. A field Save would refuse shows the read amount.
   const typedAmount = parseDraftAmount(view.amountInput);
   const income = draft.type === "income";
@@ -74,7 +70,6 @@ export function DraftCard({
   if (readOnly) {
     return (
       <div className="relative">
-        {view.locked && donation && !reduce ? <GoldenBubbles active /> : null}
         <Item>
           {view.locked ? <CircleCheck className="size-4 text-success" aria-hidden /> : (
             <TypeIcon className={`size-4 ${BASE_TYPE_TINT[typeKey]} rounded-full p-0.5`} aria-hidden />

@@ -1,10 +1,25 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { INSPIRATION_FOLD_AT, type InspirationView } from "@/lib/ai/inspiration-pick";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import type { InspirationView } from "@/lib/ai/inspiration-pick";
 import { ReplyBlockView, type ReplyHandlers } from "../ReplyBlockView";
 import { InspirationCard } from "./InspirationCard";
+
+/** jsdom has no layout: a body this long "overflows" its six folded lines. */
+const FOLD_AT = 320;
+const scrollHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollHeight");
+beforeAll(() => {
+  Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+    configurable: true,
+    get(this: HTMLElement) {
+      return (this.textContent ?? "").length > FOLD_AT ? 200 : 0;
+    },
+  });
+});
+afterAll(() => {
+  if (scrollHeight) Object.defineProperty(HTMLElement.prototype, "scrollHeight", scrollHeight);
+});
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 vi.mock("react-i18next", () => ({
@@ -49,7 +64,7 @@ describe("InspirationCard", () => {
 
     rerender(
       <InspirationCard
-        item={{ id: "b", title: "Long", body: "x".repeat(INSPIRATION_FOLD_AT + 1), source: "  " }}
+        item={{ id: "b", title: "Long", body: "x".repeat(FOLD_AT + 1), source: "  " }}
         onAnother={() => {}}
       />,
     );
@@ -70,7 +85,7 @@ describe("InspirationCard", () => {
   });
 
   it("collapses the next long item after read more", () => {
-    const long = "x".repeat(INSPIRATION_FOLD_AT + 1);
+    const long = "x".repeat(FOLD_AT + 1);
     const { rerender } = render(inspiration({ id: "a", title: "First", body: long, source: "" }));
     fireEvent.click(screen.getByRole("button", { name: "aiIntake.inspiration.more" }));
     expect(screen.getByRole("button", { name: "aiIntake.inspiration.less" })).toBeInTheDocument();

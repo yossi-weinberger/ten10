@@ -2,13 +2,19 @@ import type { InspirationRecord } from "./inspiration-library";
 
 export const INSPIRATION_RECENT_KEY = "ten10.ai.inspiration.recent";
 export const INSPIRATION_RECENT_LIMIT = 10;
-export const INSPIRATION_FOLD_AT = 320;
 
 export interface InspirationView {
   id: string;
   title: string;
   body: string;
   source: string;
+}
+
+/** The imported library marks a missing source with a placeholder. The reader sees no source instead. */
+const NO_SOURCE = /(^|[;.]\s*)[^;.]*(לא צוין במקור המיובא|Not named in the imported source)[^;.]*\.?\s*$/;
+
+export function visibleSource(source: string): string {
+  return source.replace(NO_SOURCE, (_match, separator: string) => (separator.startsWith(".") ? "." : "")).trim();
 }
 
 export interface IdStorage {
@@ -24,7 +30,7 @@ export function itemsForLanguage(items: readonly InspirationRecord[], language: 
         id: item.id,
         title: item.title_en || item.title,
         body: item.body_en,
-        source: item.source_en ?? "",
+        source: visibleSource(item.source_en ?? ""),
       }];
     });
   }
@@ -32,7 +38,7 @@ export function itemsForLanguage(items: readonly InspirationRecord[], language: 
     id: item.id,
     title: item.title,
     body: item.body,
-    source: item.source,
+    source: visibleSource(item.source),
   }));
 }
 

@@ -1,12 +1,11 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
-import { RotateCcw } from "lucide-react";
+import { SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
-import { assistantIsThinking, conversationStarted } from "./assistant-drawer-state";
+import { conversationStarted } from "./assistant-drawer-state";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
 import { useAssistantDrawerComposer } from "./use-assistant-drawer-composer";
@@ -73,14 +72,6 @@ export function AssistantDrawer({
 
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
-  const thinking = assistantIsThinking({
-    checking: state.checking,
-    pendingPhase: state.pendingPhase,
-    askIntent: state.askIntent,
-    intent: state.intent,
-    dataReply: state.dataReply,
-    duplicateScan: state.duplicateScan,
-  });
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
 
   return (
@@ -91,26 +82,20 @@ export function AssistantDrawer({
       description={state.t("aiIntake.emptyDescription")}
       initialFocusRef={state.textareaRef}
       headerActions={(
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={state.t("aiIntake.newChat")}
-              disabled={!hasConversation || state.saving || state.undoing}
-              onClick={() => {
-                composer.stopRecording();
-                state.clearConversation();
-              }}
-            >
-              <RotateCcw aria-hidden />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{state.t("aiIntake.newChat")}</TooltipContent>
-        </Tooltip>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={!hasConversation || state.saving || state.undoing}
+          onClick={() => {
+            composer.stopRecording();
+            state.clearConversation();
+          }}
+        >
+          <SquarePen aria-hidden />
+          {state.t("aiIntake.newChat")}
+        </Button>
       )}
-      thinking={thinking}
       onReceipt={(file) => {
         void composer.handleReceipt(file);
       }}
@@ -119,7 +104,7 @@ export function AssistantDrawer({
           value={composer.wiring.value}
           onChange={state.setText}
           textareaRef={state.textareaRef}
-          busyLabel={composer.wiring.busyKey ? state.t(composer.wiring.busyKey) : undefined}
+          busy={composer.wiring.busyKey !== undefined}
           recording={composer.wiring.recording}
           level={composer.wiring.level}
           elapsed={composer.wiring.elapsed}
@@ -151,6 +136,9 @@ export function AssistantDrawer({
           interactiveActive
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);
+          }}
+          onReceipt={(file) => {
+            void composer.handleReceipt(file);
           }}
           handlers={thread.handlers}
         />

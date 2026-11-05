@@ -41,10 +41,12 @@
     },
     "suggestions": {
       "transaction": "I bought coffee for 12 ILS",
+      "recurring": "A monthly donation of 100 ILS",
+      "receipt": "Scan a receipt",
       "question": "How much did I donate this year?",
-      "duplicates": "Any duplicates?",
-      "rule": "From now on, daycare is a recognized expense",
-      "inspiration": "Give me some encouragement"
+      "balance": "How much maaser do I have left?",
+      "inspiration": "Give me some encouragement",
+      "halacha": "What do I give maaser from?"
     },
     "send": "Send",
     "receipt": "Receipt",

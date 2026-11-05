@@ -69,13 +69,6 @@ export function buildDrawerReplyState(
   };
 }
 
-/** Shell spinner: reading, a data answer still loading, or a duplicate scan still loading. */
-export function assistantIsThinking(input: DrawerThinkingInput): boolean {
-  return input.checking
-    || (input.intent === "ask_data" && input.dataReply === null && !input.askIntent)
-    || input.duplicateScan?.status === "pending";
-}
-
 export function composerBusyKey(input: DrawerThinkingInput): ComposerBusyKey | undefined {
   if (input.checking) return `aiIntake.thinking.${input.pendingPhase ?? "reading"}`;
   if (input.saving) return "aiIntake.thinking.saving";

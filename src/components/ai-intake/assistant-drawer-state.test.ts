@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import {
-  assistantIsThinking,
   buildDrawerReplyState,
   composerBusyKey,
   composerMode,
@@ -59,33 +58,6 @@ describe("draftReplyView", () => {
 describe("buildDrawerReplyState", () => {
   it("keeps an empty reply empty", () => {
     expect(buildDrawerReplyState({ ...emptyReplyState() })).toEqual(emptyReplyState());
-  });
-});
-
-describe("assistantIsThinking", () => {
-  const idle = {
-    checking: false,
-    pendingPhase: null,
-    askIntent: false,
-    intent: null,
-    dataReply: null,
-    duplicateScan: null,
-  } as const;
-
-  it("is true while a message is being read", () => {
-    expect(assistantIsThinking({ ...idle, checking: true })).toBe(true);
-  });
-
-  it("is true while a data answer is still loading", () => {
-    expect(assistantIsThinking({ ...idle, intent: "ask_data" })).toBe(true);
-  });
-
-  it("is false when the user is choosing an intent", () => {
-    expect(assistantIsThinking({ ...idle, intent: "ask_data", askIntent: true })).toBe(false);
-  });
-
-  it("is true while a duplicate scan is pending", () => {
-    expect(assistantIsThinking({ ...idle, duplicateScan: { status: "pending" } })).toBe(true);
   });
 });
 
