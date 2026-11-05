@@ -2,6 +2,16 @@
 
 export type UsageKind = "text" | "receipt" | "speech";
 
+/** The classify and split calls of one text message bring the same turn and share its one charge. */
+export type UsageTurn = { id: string | null; op: "intent" | "split" };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The client's turn id, or null. A call with no turn is charged on its own. */
+export function readTurnId(value: unknown): string | null {
+  return typeof value === "string" && UUID.test(value) ? value : null;
+}
+
 export type UsageBlockReason = "quota_exhausted" | "rate_limited" | "daily_limit" | "unavailable";
 
 export type UsageDecision =

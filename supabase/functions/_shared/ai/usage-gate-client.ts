@@ -1,10 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { logger } from "../logger.ts";
-import { readUsageDecision, type UsageDecision, type UsageKind } from "./usage-gate.ts";
+import { readUsageDecision, type UsageDecision, type UsageKind, type UsageTurn } from "./usage-gate.ts";
 
 export interface UsageGate {
   /** Weighted use: one text message, receipt, or voice message. */
-  consume(userId: string, kind: UsageKind): Promise<UsageDecision>;
+  consume(userId: string, kind: UsageKind, turn?: UsageTurn): Promise<UsageDecision>;
   /** A follow-up model call with no weight, counted only against the minute and day caps. */
   consumeCall(userId: string): Promise<UsageDecision>;
   /** Gives the units back after the provider failed. */
@@ -24,8 +24,12 @@ export function serviceUsageGate(): UsageGate {
   }
   const admin = createClient(supabaseUrl, serviceKey);
   return {
-    async consume(userId, kind) {
-      const { data, error } = await admin.rpc("consume_ai_usage", { p_user_id: userId, p_kind: kind });
+    async consume(userId, kind, turn) {
+      const { data, error } = await admin.rpc("consume_ai_usage", {
+        p_user_id: userId,
+        p_kind: kind,
+        ...(turn?.id ? { p_turn: turn.id, p_op: turn.op } : {}),
+      });
       if (error) logger.error("usage check failed");
       return readUsageDecision(data, error);
     },

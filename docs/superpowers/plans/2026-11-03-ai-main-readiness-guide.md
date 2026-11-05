@@ -39,6 +39,7 @@
    ```
    - `ai-read-question`, `ai-read-receipt` ו־`ai-split-items` צריכים את ה־import map. הוא כבר מוגדר ב־`supabase/config.toml`; אם `zod` לא נארז, להוסיף `--import-map supabase/functions/deno.json`.
    - `cors.ts` השתנה, ולכן כדאי לפרוס ל־testing גם את הפונקציות שאינן AI.
+   - תיקון מכסת הטקסט (סיווג ופיצול של הודעה אחת נספרים פעם אחת) שינה את `ai.consume_usage`, את `ai.release_usage` ואת `ai.usage_events` בתוך המיגרציה המאוחדת. ב־testing, שבו המיגרציה הישנה כבר רצה, להריץ **קודם** את ה־SQL שבתיאור ה־PR של התיקון, ורק אחר כך לפרוס את `ai-classify-intent` ו־`ai-split-items`. בסדר ההפוך כל הודעת טקסט תחזור "לא זמין".
 2. **Vercel Preview:** לוודא ש־`VITE_AI_INTAKE_ENABLED=true` מוגדר ב־**Preview**. זה ה־kill switch של גל 6, וברירת המחדל שלו כבוי. בלעדיו המגירה לא תופיע. לא להגדיר אותו ב־Production.
 3. לפתוח את ה־Preview של `feat/ai-intake` ולהתחבר כמשתמש ניסוי.
 
