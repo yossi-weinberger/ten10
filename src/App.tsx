@@ -23,6 +23,8 @@ import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
 import ContactFAB from "./components/layout/ContactFAB";
+import { AssistantFab } from "./components/ai-intake/AssistantFab";
+import { useAiIntakeUi } from "./lib/ai/flags";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
 import { OptInPromptDialog } from "./components/OptInPromptDialog";
@@ -111,6 +113,8 @@ function App() {
   const shouldShowContactFab =
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
+  // Where the assistant is on, it takes the floating button; "Contact" moves into the menu.
+  const showAssistant = useAiIntakeUi(platform, Boolean(user));
 
   // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)
   useSettingsSync();
@@ -450,7 +454,7 @@ function App() {
           }}
         />
       </div>
-      {shouldShowContactFab && <ContactFAB />}
+      {shouldShowContactFab && (showAssistant ? <AssistantFab /> : <ContactFAB />)}
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />

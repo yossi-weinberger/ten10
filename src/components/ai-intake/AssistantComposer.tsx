@@ -47,9 +47,9 @@ export function AssistantComposer({
     onSubmit();
   }
 
+  // Enter sends on every device, phones included (Yossi's call); Shift+Enter is a new line.
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
     event.preventDefault();
     submit();
   }
@@ -86,6 +86,7 @@ export function AssistantComposer({
           value={value}
           rows={1}
           inputMode={mode === "amount" ? "decimal" : undefined}
+          enterKeyHint="send"
           placeholder={label}
           aria-label={label}
           className={recording ? "sr-only" : "max-h-40 min-h-12 text-base [field-sizing:content]"}

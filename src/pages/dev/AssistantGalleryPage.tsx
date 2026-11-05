@@ -109,7 +109,7 @@ export function AssistantGalleryPage() {
         onOpenChange={(next) => {
           if (!next) setOpen(null);
         }}
-        title="עוזר Ten10"
+        title="נתן"
         description="גלריה"
         initialFocusRef={{ current: null }}
         footer={null}

@@ -13,14 +13,19 @@
     "supportUs": "תרומה למכון",
     "donateTooltip": "התרומה למכון ול-Ten10 יכולה להיות מכספי מעשר",
     "feedback": "משוב",
-    "assistant": "עוזר"
+    "assistant": "שאל את נתן",
+    "contact": "צור קשר"
   },
   "aiIntake": {
-    "title": "עוזר Ten10",
+    "title": "נתן",
+    "subtitle": "העוזר של Ten10",
+    "greetingNamed": "{{greeting}}, {{name}}",
+    "openingBalance": "אני נתן. יתרת המעשר שלך לתרומה היא {{amount}}. שום דבר לא נשמר בלי אישור שלך.",
+    "openingCovered": "אני נתן. המעשר שלך מכוסה, כל הכבוד. שום דבר לא נשמר בלי אישור שלך.",
     "placeholder": "מה תרצה לרשום?",
     "newChat": "שיחה חדשה",
     "emptyTitle": "במה לעזור?",
-    "emptyDescription": "אפשר לכתוב, לצלם קבלה או לדבר. שום דבר לא נשמר בלי אישור שלך.",
+    "emptyDescription": "אני נתן. אפשר לכתוב, לצלם קבלה או לדבר. שום דבר לא נשמר בלי אישור שלך.",
     "scrollToLatest": "חזרה להודעה האחרונה",
     "dropReceipt": "שחרר כאן קבלה",
     "recording": "מקליט",
