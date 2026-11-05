@@ -32,3 +32,19 @@ Deno.test("chomesh is Jev's question, and only a confident ask marks the income 
   assert(marked[0]?.chomesh === true && marked[1]?.chomesh === undefined, "only the income item");
   assert(withChomesh([{ typeHint: "income" }], false)[0]?.chomesh === undefined, "not asked, not marked");
 });
+
+// Eval 2026-11-05: "inheritance" and "gift" as a type_question failed the whole read as unreadable.
+Deno.test("an off-list type_question is no question, and the read still parses", async () => {
+  const { parseSplitPayload } = await import("./split-response.ts");
+  const item = {
+    amount: 1200, amount_text: "1,200", currency: "ILS", requested_rate: null, date: null, date_text: null,
+    type: "income", type_question: "inheritance", recurrence: null, description: "ירושה", is_total: false,
+    unsupported_frequency: false, payment_method: null, category: null, rule_id: null,
+  };
+  const parsed = parseSplitPayload({ items: [item], more_than_five: false, rule: null, question: null, continues: false, discards: false });
+  assert(parsed !== null, "parses");
+  assert(parsed.items[0]?.type_question === null, "no special question");
+  assert(parsed.items[0]?.amount === 1200, "amount kept");
+  const valid = parseSplitPayload({ items: [{ ...item, type_question: "exempt-income" }] });
+  assert(valid?.items[0]?.type_question === "exempt-income", "a listed value is kept");
+});

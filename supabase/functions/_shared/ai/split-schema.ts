@@ -56,7 +56,8 @@ export const splitItemSchema = z.object({
   date: dateStruct.nullable(),
   date_text: z.string().nullable(),
   type: z.enum(TYPES).nullable(),
-  type_question: z.enum(SPECIAL_TYPES).nullable(),
+  // An off-list value such as "gift" or "inheritance" means no special question, not an unreadable reply.
+  type_question: z.enum(SPECIAL_TYPES).nullable().catch(null),
   recurrence: recurrenceStruct.nullable(),
   description: z.string(),
   is_total: z.boolean(),
