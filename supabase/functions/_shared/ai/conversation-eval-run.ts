@@ -1,13 +1,13 @@
-import { buildIntentBody, readHalachaChoice, readIntentChoice } from "./jev-intent.ts";
+import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "./jev-intent.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { readModelUsage } from "./model-call.ts";
 import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
-import { splitReadContext } from "./split-anchor.ts";
+import { splitReadContext, withChomesh } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "./question-period.ts";
-import { contextFor, decideTurn, emptyConversation, openCardEvidence, rememberData, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
+import { contextFor, decideTurn, emptyConversation, openCardEvidence, rememberData, rememberSaved, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
 
 interface ExpectTurn {
   kind: string;
@@ -20,10 +20,15 @@ interface ExpectTurn {
   day?: number;
   family?: string;
   pending?: string | null;
+  category?: string;
+  description?: string;
+  chomesh?: boolean;
 }
 
 interface FixtureTurn {
   user: string;
+  /** The user pressed save on this turn's card. */
+  saved?: boolean;
   expect: ExpectTurn;
 }
 
@@ -57,6 +62,7 @@ const TOPIC_COUNTS: Record<string, number> = {
   receipt_then_fix: 2,
   inspiration_more: 1,
   multi_request: 2,
+  qa_2026_11: 12,
 };
 
 function readGatewayKey(): string {
@@ -158,6 +164,9 @@ function fieldsMatch(expect: ExpectTurn, summary: TurnSummary): boolean {
   if (expect.frequency !== undefined && summary.frequency !== expect.frequency) return false;
   if (expect.day !== undefined && summary.day !== expect.day) return false;
   if (expect.family !== undefined && summary.family !== expect.family) return false;
+  if (expect.category !== undefined && summary.category !== expect.category) return false;
+  if (expect.description !== undefined && summary.description !== expect.description) return false;
+  if (expect.chomesh !== undefined && summary.chomesh !== expect.chomesh) return false;
   // A kind accepted through alsoOk has no pending question to compare.
   if (expect.pending !== undefined && summary.kind === expect.kind && summary.pending !== expect.pending) return false;
   return true;
@@ -186,7 +195,8 @@ async function runConversation(
       categories,
       recipients: fixture.recipients,
     }), openCardEvidence(turnStart));
-    const reader = { ok: true as const, ...split };
+    // Like handleSubmit: Jev's chomesh answer marks the reader's income items.
+    const reader = { ok: true as const, ...split, ...(split.route === "several" ? { items: withChomesh(split.items, readChomeshChoice(jevRaw)) } : {}) };
     const first = decideTurn({
       message: turn.user,
       jev: intent
@@ -256,6 +266,16 @@ async function runConversation(
       costUsd: usage.reduce((sum, row) => sum + (row.costUsd ?? 0), 0) + (asked?.costUsd ?? 0),
     });
     console.log(`${conversation.id}-${index + 1} ${summary.kind} ${reason}`);
+    // Like handleSave: the card's fields as shown, with no edits.
+    if (turn.saved) {
+      memory = rememberSaved(memory, `${conversation.id}-${index + 1}`, {
+        amount: summary.amount,
+        currency: "ILS",
+        type: summary.type,
+        description: summary.description ?? "",
+        date: summary.date,
+      });
+    }
   }
   return rows;
 }

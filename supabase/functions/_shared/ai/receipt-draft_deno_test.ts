@@ -13,6 +13,7 @@ import {
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_MAX_BYTES,
   RECEIPT_MAX_PDF_BASE64_CHARS,
+  receiptCopyTimeoutMs,
   receiptTooLarge,
 } from "./receipt-draft.ts";
 
@@ -155,4 +156,9 @@ Deno.test("a copied receipt becomes one draft, and a list becomes a statement", 
   ]);
   assert(many?.kind === "several_receipts", "several");
   assert(receiptDraftFromItems("list", [])?.kind === "statement", "statement");
+});
+
+Deno.test("a pdf gets longer than the 20 s that timed out on testing", () => {
+  assert(receiptCopyTimeoutMs("application/pdf") > 20_000, "pdf");
+  assert(receiptCopyTimeoutMs("image/jpeg") === 20_000, "photo unchanged");
 });

@@ -158,6 +158,8 @@
     },
     "discarded": "OK, I dropped that card.",
     "alreadySaved": "That one is already saved, so I did not change it.",
+    "replacesSaved": "Saving replaces the transaction you saved before.",
+    "replacedNotSaved": "The earlier transaction was removed, and this one is not saved yet. Press save again.",
     "undoNotAllowed": "This cannot be undone. You can delete the transaction in the table.",
     "undoFailed": "Undo failed. The transaction is still saved.",
     "noRateAvailable": "No exchange rate. Nothing was saved.",
@@ -180,7 +182,7 @@
     "duplicateWarning": "Found {{count}} similar transactions. You can still save.",
     "saveAnyway": "Save anyway",
     "sameEvent": "This is the same transaction",
-    "duplicateKept": "No new transaction was saved.",
+    "duplicateKept": "Not saved again: it is the same transaction that is already recorded.",
     "draftCandidate": "Unsaved draft",
     "duplicateRanked": "Ordered by how similar they look.",
     "types": {
@@ -261,7 +263,7 @@
     },
     "intents": {
       "add_transaction": "This looks like a transaction.",
-      "create_rule": "This looks like a rule.",
+      "create_rule": "Which name is the rule for, and which type? For example: \"Kindergarten is a recognized expense\".",
       "create_recurring": "This is a standing order.",
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",

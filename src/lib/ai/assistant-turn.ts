@@ -6,11 +6,12 @@ import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/sp
 import { namedHalachaPage, shownIntent, type ShownIntent } from "../../components/ai-intake/assistant-shown-intent.ts";
 import { yearSumFromReader } from "./reader-question.ts";
 import { conversationContext } from "../../../supabase/functions/_shared/ai/conversation-context.ts";
+import { intentIsConfident } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
 
-export type PendingKind = "amount" | "period" | "family" | "name";
+export type PendingKind = "amount" | "period" | "family" | "name" | "rule";
 
 export interface ConversationOnScreen {
-  kind: "draft" | "recurring" | "data_answer" | "halacha" | "inspiration" | "saved";
+  kind: "draft" | "recurring" | "data_answer" | "halacha" | "inspiration" | "saved" | "rule";
   sourceText: string;
   /** What the code tells the models about this card. Never the assistant's own wording. */
   line: string;
@@ -19,6 +20,10 @@ export interface ConversationOnScreen {
   /** The single card's date as shown, to notice when the user changes it. */
   date?: string | null;
   savedItemId?: string;
+  /** The period a data answer covered, for a follow-up that names none. */
+  period?: { from: string; to: string };
+  /** The published page shown, for a follow-up such as "give an example". */
+  page?: string;
 }
 
 export interface ConversationState {
@@ -52,18 +57,28 @@ export function contextFor(state: ConversationState): string {
  */
 export function openCardEvidence(state: ConversationState): string {
   const open = state.onScreen;
-  if (!open || (open.kind !== "draft" && open.kind !== "recurring")) return "";
+  // A single saved transaction can still be corrected, so its words back a correction too.
+  const correctable = open?.kind === "saved" && Boolean(open.savedItemId);
+  if (!open || (open.kind !== "draft" && open.kind !== "recurring" && !correctable)) return "";
   return [open.sourceText, (open.amounts ?? []).join(" ")].filter(Boolean).join("\n");
 }
 
-/** After a save: the card is closed and nothing is pending. */
-export function rememberSaved(state: ConversationState, savedItemId: string | null): ConversationState {
+/**
+ * After a save: nothing is pending. A single saved transaction keeps its fields, so a correction
+ * such as "it was a donation" can be read against it. Its words back an amount only while the
+ * saved amount and date are the ones they opened.
+ */
+export function rememberSaved(state: ConversationState, savedItemId: string | null, saved: ScreenFields | null = null): ConversationState {
+  const open = state.onScreen;
+  const amounts = saved ? amountsOf([saved]) : [];
+  const same = saved !== null && amounts.join(" ") === (open?.amounts ?? []).join(" ") && saved.date === (open?.date ?? null);
   return {
     ...state,
     onScreen: {
       kind: "saved",
-      sourceText: state.onScreen?.sourceText ?? "",
-      line: "the last card was saved.",
+      sourceText: saved && !same ? "" : open?.sourceText ?? "",
+      line: saved ? `one transaction, saved and still open to a correction: ${fieldsLine(saved)}, one time.` : "the last card was saved.",
+      ...(saved ? { amounts, date: saved.date } : {}),
       ...(savedItemId ? { savedItemId } : {}),
     },
     pending: null,
@@ -126,7 +141,7 @@ function redrawn(open: ConversationOnScreen, line: string, fields: ScreenFields)
 export function withLiveCard(state: ConversationState, live: LiveCards): ConversationState {
   const open = state.onScreen;
   if (!open || (open.kind !== "draft" && open.kind !== "recurring")) return state;
-  if (live.saved) return rememberSaved(state, live.saved.itemId);
+  if (live.saved) return rememberSaved(state, live.saved.itemId, live.saved.itemId ? live.draft : null);
   if (open.kind === "recurring" && live.recurring) {
     const line = `a standing order, not saved: ${fieldsLine(live.recurring)}, ${whenLine(live.recurring.frequency, live.recurring.dayOfMonth)}.`;
     return { ...state, onScreen: redrawn(open, line, live.recurring) };
@@ -264,6 +279,8 @@ export interface TurnDecision {
   preferRabbi: boolean;
   /** The frequency notice, which can sit beside a rule card or a data answer. */
   frequencyBlocked: boolean;
+  /** The saved intake item this card corrects. Saving it undoes that one first. */
+  replaces: string | null;
   nextState: ConversationState;
 }
 
@@ -299,6 +316,9 @@ export interface TurnSummary {
   pending: PendingKind | null;
   /** A special type the card still asks about before saving. */
   typeAsked: string | null;
+  category: string | null;
+  description: string | null;
+  chomesh: boolean | null;
 }
 
 function severalOf(reader: TurnReader | null): Extract<TurnReader, { route: "several" }> | null {
@@ -316,9 +336,25 @@ function readerQuestion(reader: TurnReader | null): ResolvedQuestion | null {
   return severalOf(reader)?.question ?? null;
 }
 
-function namedPage(jev: TurnJev): string | null {
+/** The saved single transaction a continuing message corrects, with the full corrected item read. */
+function correctedSaved(input: TurnInput): string | null {
+  const open = input.state.onScreen;
+  if (input.forcedIntent || open?.kind !== "saved" || !open.savedItemId || !readerSays(input.reader, "continues")) return null;
+  const items = severalOf(input.reader)?.items ?? [];
+  return items.length === 1 && items[0]?.amount !== null && !items[0]?.recurrence ? open.savedItemId : null;
+}
+
+function namedPage(jev: TurnJev, state: ConversationState): string | null {
   if (!jev.ok) return null;
-  return namedHalachaPage(jev.halachaPage ?? null, jev.halachaPageConfidence ?? null);
+  const named = namedHalachaPage(jev.halachaPage ?? null, jev.halachaPageConfidence ?? null);
+  if (named) return named;
+  const sure = jev.intent === "domain_adjacent" && intentIsConfident(jev.confidence);
+  if (!sure) return null;
+  // Jev is sure a published page answers this, only not which one: its best page, or the page
+  // already on screen for a follow-up such as "give an example", beats "I can't".
+  const best = jev.halachaPage ?? null;
+  if (best && best !== "none" && best !== "personal") return best;
+  return state.onScreen?.kind === "halacha" ? state.onScreen.page ?? null : null;
 }
 
 interface Routed {
@@ -345,7 +381,7 @@ function route(input: TurnInput): Routed {
       publishedPage: published,
     };
   }
-  const page = namedPage(input.jev);
+  const page = namedPage(input.jev, input.state);
   const movement = readerHasMovement(input.reader);
   const shown = input.jev.ok
     ? shownIntent({
@@ -362,8 +398,9 @@ function route(input: TurnInput): Routed {
   if (movement && leansRecurring) {
     return { releaseAs: shown, mode: "ask", intent: null, withData: false, preferRabbi: false, publishedPage: null };
   }
-  const isContinuingCard = readerSays(input.reader, "continues")
-    && (input.state.onScreen?.kind === "draft" || input.state.onScreen?.kind === "recurring");
+  const isContinuingCard = (readerSays(input.reader, "continues")
+    && (input.state.onScreen?.kind === "draft" || input.state.onScreen?.kind === "recurring"))
+    || correctedSaved(input) !== null;
   if (movement && isContinuingCard) {
     const continuingIntent: IntakeIntent = input.state.onScreen?.kind === "recurring" ? "create_recurring" : "add_transaction";
     return {
@@ -387,6 +424,10 @@ function route(input: TurnInput): Routed {
       preferRabbi: false,
       publishedPage: null,
     };
+  }
+  // A rule the reader read answers an open rule request, or an unsure Jev.
+  if (!movement && severalOf(input.reader)?.rule && (shown === "ask" || input.state.onScreen?.kind === "rule")) {
+    return { releaseAs: "create_rule", mode: "show", intent: "create_rule", withData: false, preferRabbi: false, publishedPage: null };
   }
   if (shown === "ask_rabbi" && dataCandidate) {
     return {
@@ -478,9 +519,15 @@ function dataFor(input: TurnInput, wantsData: boolean, preferRabbi: boolean): { 
     return { data: { status: slots.subject }, needsQuestion: false, needsNameCheck: false };
   }
   const asked = slots && movement ? { ...slots, category: null, recipient: null } : slots;
-  const period = input.question?.period ?? input.periodHold ?? null;
+  const answered = input.state.onScreen?.kind === "data_answer" ? input.state.onScreen.period ?? null : null;
+  // "To which places?" after an answer about this month asks about the same month.
+  const period = input.question?.period ?? input.periodHold ?? (answered ? { kind: "span" as const, ...answered } : null);
   const nameText = input.question?.nameText ?? input.nameHold ?? null;
   const composed = questionFromSlots(input.message, input.today, input.calendar, asked, period, nameText);
+  // A personal halacha question that also reads as a data question gets the rabbi card, not "for which period?".
+  if (preferRabbi && composed === "ask_period") {
+    return { data: { status: "rabbi" }, needsQuestion: false, needsNameCheck: false };
+  }
   if (composed === "ask_period") return { data: { status: "period_missing" }, needsQuestion: false, needsNameCheck: false };
   if (composed === "ask_family") {
     return { data: { status: "family_missing", hold: asked }, needsQuestion: false, needsNameCheck: false };
@@ -520,8 +567,9 @@ function readyOrName(input: TurnInput, question: YearTypeSum): { data: TurnData;
   return { data: { status: "ready", question }, needsQuestion: false, needsNameCheck: false };
 }
 
-function pendingFor(message: string, card: TurnCard, data: TurnData): TurnDecision["pending"] {
+function pendingFor(message: string, intent: IntakeIntent | null, card: TurnCard, data: TurnData): TurnDecision["pending"] {
   if (card.type === "clarify" && card.field === "amount") return { kind: "amount", sourceText: message };
+  if (intent === "create_rule" && card.type === "none") return { kind: "rule", sourceText: message };
   if (data.status === "period_missing") return { kind: "period", sourceText: message };
   if (data.status === "family_missing") return { kind: "family", sourceText: message };
   if (data.status === "name_missing") return { kind: "name", sourceText: message };
@@ -552,13 +600,26 @@ function screenOf(message: string, decision: Omit<TurnDecision, "nextState">, re
   if (card.type === "drafts" && first) {
     return { kind: "draft", sourceText: message, line: `${items.length} transactions, not saved, first: ${itemLine(first)}.`, amounts: amountsOf(items) };
   }
+  if (card.type === "rule") {
+    return { kind: "rule", sourceText: message, line: `a rule, not saved: "${card.name}" as ${card.action === "ambiguous" ? "type not set" : card.action}.` };
+  }
+  if (decision.intent === "create_rule") {
+    return { kind: "rule", sourceText: message, line: "a rule request, not saved: no name or type yet." };
+  }
   if (decision.data.status === "ready") {
     const question = decision.data.question;
-    return { kind: "data_answer", sourceText: message, line: `an answer about ${question.type} from ${question.from} to ${question.to}.` };
+    return {
+      kind: "data_answer",
+      sourceText: message,
+      line: `an answer about ${question.type} from ${question.from} to ${question.to}.`,
+      period: { from: question.from, to: question.to },
+    };
   }
   if (decision.data.status === "balance") return { kind: "data_answer", sourceText: message, line: "the user's tithe balance." };
   if (decision.data.status === "standing_orders") return { kind: "data_answer", sourceText: message, line: "the list of the user's standing orders." };
-  if (decision.publishedPage) return { kind: "halacha", sourceText: message, line: "a published halacha page." };
+  if (decision.publishedPage) {
+    return { kind: "halacha", sourceText: message, line: `a published halacha page about ${decision.publishedPage}.`, page: decision.publishedPage };
+  }
   if (decision.side === "inspiration") return { kind: "inspiration", sourceText: message, line: "an inspiration item from the library." };
   return null;
 }
@@ -594,7 +655,7 @@ function cardTurn(input: TurnInput): TurnDecision | null {
   const onlyDrops = !readerHasMovement(input.reader) && !severalOf(input.reader)?.items.length;
   const card: TurnCard | null = readerSays(input.reader, "discards") && onlyDrops && (open?.kind === "draft" || open?.kind === "recurring")
     ? { type: "discarded" }
-    : readerSays(input.reader, "continues") && open?.kind === "saved"
+    : readerSays(input.reader, "continues") && open?.kind === "saved" && !correctedSaved(input)
       ? { type: "already_saved" }
       : null;
   if (!card) return null;
@@ -611,6 +672,7 @@ function cardTurn(input: TurnInput): TurnDecision | null {
     pending: null,
     preferRabbi: false,
     frequencyBlocked: false,
+    replaces: null,
   };
   const next = rememberTurn(input.state, input.userText ?? input.message, decision, input.reader);
   return { ...decision, nextState: card.type === "already_saved" ? { ...next, onScreen: open } : next };
@@ -637,9 +699,10 @@ export function decideTurn(input: TurnInput): TurnDecision {
     side: routed.mode === "show" ? sideFor(intent) : "none",
     needsQuestion: data.needsQuestion,
     needsNameCheck: data.needsNameCheck,
-    pending: pendingFor(input.message, card, data.data),
+    pending: pendingFor(input.message, intent, card, data.data),
     preferRabbi: routed.preferRabbi,
     frequencyBlocked: routed.mode === "show" && frequencyBlocked(input.reader),
+    replaces: card.type === "draft" || card.type === "clarify" ? correctedSaved(input) : null,
   };
   return { ...decision, nextState: rememberTurn(input.state, input.userText ?? input.message, decision, input.reader) };
 }
@@ -665,6 +728,9 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
     family: question?.type ?? null,
     pending: decision.pending?.kind ?? null,
     typeAsked: item && item.typeQuestion && !statedSpecialType(item) ? item.typeQuestion : null,
+    category: item?.category ?? null,
+    description: item?.description ?? null,
+    chomesh: item?.chomesh ?? null,
   };
 }
 
@@ -678,6 +744,7 @@ function summaryKind(decision: TurnDecision): TurnAnswerKind {
   if (decision.card.type === "draft") return "draft";
   if (decision.card.type === "recurring") return "recurring";
   if (decision.card.type === "rule") return "rule";
+  if (decision.intent === "create_rule") return "question";
   if (decision.card.type === "discarded") return "discarded";
   if (decision.card.type === "already_saved") return "already_saved";
   if (decision.data.status === "period_missing" || decision.data.status === "family_missing" || decision.data.status === "name_missing") {

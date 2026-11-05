@@ -50,6 +50,8 @@ export interface AnchoredSplitItem {
   ruleName: string | null;
   recurrence: ResolvedRecurrence | null;
   unsupportedFrequency: boolean;
+  /** Jev heard the user ask for chomesh on this income. Unset leaves the setting. Not read by the reader. */
+  chomesh?: boolean | null;
 }
 
 /** The special type the message stated. A guessed one stays a question. */
@@ -365,4 +367,9 @@ export function anchorSplitItems(
     items: kept.filter((_, index) => !totals.has(index)).map((entry) => entry.item),
     dropped: dropped + totals.size,
   };
+}
+
+/** Chomesh the user asked for goes on the income items the reader found. */
+export function withChomesh<T extends { typeHint: string }>(items: readonly T[], asked: boolean): (T & { chomesh?: boolean | null })[] {
+  return asked ? items.map((item) => (item.typeHint === "income" ? { ...item, chomesh: true } : item)) : items.slice();
 }

@@ -10,7 +10,7 @@ import { formatDataAnswer } from "@/lib/ai/format-data-answer";
 import { periodLabel } from "@/lib/ai/classify-intake";
 import { useDonationStore } from "@/lib/store";
 import type { CurrencyCode } from "@/lib/currencies";
-import { formatCurrency } from "@/lib/utils/currency";
+import { currencyFractionDigits, formatCurrency } from "@/lib/utils/currency";
 import type { ReadyDataReply, StatusKey } from "../assistant-reply-view";
 import type { BalanceAnswer, StandingOrderRow } from "@/lib/ai/assistant-extras";
 import { Link } from "@tanstack/react-router";
@@ -45,6 +45,8 @@ export function DataAnswer({
   const reduce = useReducedMotion();
   const amountLabel = formatCurrency(reply.total, (reply.currency ?? defaultCurrency) as CurrencyCode, language);
   const symbol = amountLabel.replace(/[0-9.,\s]/g, "");
+  // The same decimals as the sentence below, which formatCurrency writes (6,289.1, not 6,289.10).
+  const digits = currencyFractionDigits(reply.total);
   const Icon = BASE_TYPE_ICON[reply.type];
 
   return (
@@ -63,13 +65,14 @@ export function DataAnswer({
         ) : (
           <>
             {reduce ? new Intl.NumberFormat("en", {
-              maximumFractionDigits: Number.isInteger(reply.total) ? 0 : 2,
+              minimumFractionDigits: digits,
+              maximumFractionDigits: digits,
             }).format(reply.total) : (
               <CountUp
                 end={reply.total}
                 duration={0.6}
                 preserveValue
-                decimals={Number.isInteger(reply.total) ? 0 : 2}
+                decimals={digits}
               />
             )}
             {symbol ? ` ${symbol}` : ""}

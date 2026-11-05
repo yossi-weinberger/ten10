@@ -24,6 +24,7 @@ import {
   receiptMagicMatches,
   receiptSha256,
   receiptStoragePath,
+  receiptCopyTimeoutMs,
   receiptTooLarge,
   RECEIPT_VISION_MODEL,
 } from "../_shared/ai/receipt-draft.ts";
@@ -181,7 +182,7 @@ Deno.serve(async (req: Request) => {
           },
         }),
       },
-      timeoutMs: 20000,
+      timeoutMs: receiptCopyTimeoutMs(mediaType),
       record: serviceModelCallRecorder(),
     });
     if (!result.ok) {

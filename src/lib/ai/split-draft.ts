@@ -17,6 +17,8 @@ export interface HeldDraft {
   checkDate: boolean;
   checkAmount: boolean;
   typeQuestion: SpecialType | null;
+  /** Null leaves chomesh to the setting. */
+  isChomesh: boolean | null;
 }
 
 const PAYMENTS = new Set<TextTransactionDraft["paymentMethod"]>([
@@ -56,6 +58,7 @@ export function heldFromItem(
     checkDate: item.checkDate,
     checkAmount: item.checkAmount === true,
     typeQuestion: stated ? null : item.typeQuestion,
+    isChomesh: item.chomesh ?? null,
   };
 }
 
@@ -70,6 +73,7 @@ export function draftFromHeld(held: HeldDraft): TextTransactionDraft | null {
     description: held.description,
     category: held.category,
     paymentMethod: held.paymentMethod,
+    ...(held.isChomesh === null ? {} : { isChomesh: held.isChomesh }),
   };
 }
 

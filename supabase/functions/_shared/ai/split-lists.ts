@@ -2,6 +2,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
 import { logger } from "../logger.ts";
 import type { SplitRuleRef } from "./split-anchor.ts";
 import type { SplitPromptContext } from "./split-prompt.ts";
+import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "../transaction-domain/category-keys.ts";
 
 const SPECIAL = new Set(["exempt-income", "recognized-expense", "non_tithe_donation"]);
 
@@ -16,6 +17,11 @@ function categoryNames(data: unknown): string[] {
     }
   }
   return names;
+}
+
+/** The built-in categories first, so the cut at 80 never drops them, then the user's own. */
+export function readerCategories(income: unknown, expense: unknown): string[] {
+  return [...new Set([...INCOME_CATEGORY_KEYS, ...EXPENSE_CATEGORY_KEYS, ...categoryNames(income), ...categoryNames(expense)])].slice(0, 80);
 }
 
 function ruleRefs(data: unknown): SplitRuleRef[] {
@@ -62,7 +68,8 @@ export async function loadSplitLists(
     userClient.rpc("list_ai_recipients"),
     readerRules(admin, userId),
   ]);
-  const categories = [...new Set([...categoryNames(income.data), ...categoryNames(expense.data)])].slice(0, 80);
+  // get_user_categories lists only categories already used, so a first "תחבורה" had nothing to match.
+  const categories = readerCategories(income.data, expense.data);
   const recipientNames = Array.isArray(recipients.data)
     ? recipients.data.filter((name): name is string => typeof name === "string" && name.trim().length > 0).slice(0, 40)
     : [];
