@@ -24,6 +24,8 @@ const HANDLERS: ReplyHandlers = {
   onDescriptionChange: noop,
   onAmountChange: noop,
   onSave: noop,
+  onTypeChange: noop,
+  onChomeshChange: noop,
   onRecurringChange: noop,
   onSaveRecurring: noop,
   onDismissRecurring: noop,

@@ -174,11 +174,22 @@ export function AssistantThread({
                             initial={reduce || !turn.fresh ? false : "initial"}
                             animate="animate"
                           >
-                            {turn.blocks.map((block, index) => (
-                              <motion.div key={`${block.kind}-${index}`} variants={reduce ? undefined : fieldVariants}>
-                                <ReplyBlockView block={block} interactive={turn.interactive} handlers={handlers} />
-                              </motion.div>
-                            ))}
+                            {turn.blocks.map((block, index) => {
+                              // "Saved" and its undo share one row.
+                              if (block.kind === "undo" && turn.blocks[index - 1]?.kind === "status") return null;
+                              const next = turn.blocks[index + 1];
+                              const undo = block.kind === "status" && next?.kind === "undo" && turn.interactive ? next : null;
+                              return (
+                                <motion.div
+                                  key={`${block.kind}-${index}`}
+                                  variants={reduce ? undefined : fieldVariants}
+                                  className={undo ? "flex flex-wrap items-center justify-between gap-2" : undefined}
+                                >
+                                  <ReplyBlockView block={block} interactive={turn.interactive} handlers={handlers} />
+                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} /> : null}
+                                </motion.div>
+                              );
+                            })}
                           </motion.div>
                         </MessageContent>
                       </Message>

@@ -35,7 +35,9 @@ import {
   type RecurringEditField,
   type RecurringQuestion,
 } from "@/lib/ai/recurring-card";
+import { useDonationStore } from "@/lib/store";
 import { ChoiceRow } from "./ChoiceRow";
+import { ChomeshToggle } from "./ChomeshToggle";
 import { TypeChoice } from "./TypeChoice";
 
 const CURRENCIES = SUPPORTED_CURRENCY_CODES;
@@ -108,6 +110,8 @@ export function RecurringDraftCard({
   const formatDisplayDate = useDisplayDate();
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
+  const autoCalcChomesh = useDonationStore((state) => state.settings.autoCalcChomesh);
+  const chomesh = card.isChomesh ?? autoCalcChomesh;
   const today = getCurrentLocalDate();
   const locked = !interactive || card.saved || saving;
   const start = saveStartDate(card, today);
@@ -266,6 +270,13 @@ export function RecurringDraftCard({
       ) : null}
       {showSummary && !openField && !picking ? (
         <div className="flex flex-wrap gap-2">
+          {card.type === "income" ? (
+            <ChomeshToggle
+              checked={chomesh}
+              disabled={locked}
+              onChange={(isChomesh) => onChange({ ...card, isChomesh })}
+            />
+          ) : null}
           <Button type="button" size="sm" disabled={locked || !ready} onClick={onSave}>
             {t("aiIntake.recurring.save")}
           </Button>

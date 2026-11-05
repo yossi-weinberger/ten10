@@ -159,6 +159,7 @@
     "saveFailed": "Save failed. Nothing was saved.",
     "splitDuplicates": "A similar transaction is already saved (same type, within three days, close amount). Nothing was saved. Press save again to save anyway.",
     "chomesh": "Chomesh",
+    "changeType": "Change type: {{type}}",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · rate {{rate}}",
     "draftSummary": "{{currency}} · {{type}}",
