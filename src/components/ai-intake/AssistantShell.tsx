@@ -117,6 +117,17 @@ export function AssistantShell({
     return () => window.clearTimeout(timeoutId);
   }, [isSmallNow, open]);
 
+  // The side panel pushes the app aside instead of covering it: `.assistant-push` in index.css reads this.
+  const pushing = open && !useDrawer;
+  useEffect(() => {
+    if (!pushing) return;
+    const root = document.documentElement;
+    root.dataset.assistantPanel = "open";
+    return () => {
+      delete root.dataset.assistantPanel;
+    };
+  }, [pushing]);
+
   const frame = (reserveClose: boolean) => (
     <Frame
       title={title}
@@ -145,14 +156,15 @@ export function AssistantShell({
     );
   }
 
-  // Desktop: a side panel opposite the menu (left in Hebrew). Not modal, so the site stays usable;
-  // a click on the page keeps it open, and only X, Escape or a followed link closes it.
+  // Desktop and tablet: a side panel opposite the menu (left in Hebrew) that pushes the app aside.
+  // Not modal, so the site stays usable; a click on the page keeps it open, and only X, Escape or a
+  // followed link closes it. Its widths match `.assistant-push` in index.css.
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent
         dir={i18n.dir()}
         side={i18n.dir() === "rtl" ? "left" : "right"}
-        className="flex w-full flex-col gap-0 p-0 shadow-2xl sm:max-w-md"
+        className="flex w-[22rem] max-w-none flex-col gap-0 p-0 sm:max-w-none lg:w-[28rem]"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           initialFocusRef.current?.focus();
