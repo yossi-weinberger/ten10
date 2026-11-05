@@ -31,6 +31,7 @@ export function ChoiceRow<T extends string>({
               type="button"
               variant="outline"
               size="sm"
+              className="h-auto min-h-8 max-w-full whitespace-normal break-words py-1.5 text-start"
               onClick={() => onChoose(option.value)}
             >
               {Icon ? <Icon data-icon="inline-start" aria-hidden /> : null}

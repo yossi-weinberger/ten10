@@ -24,6 +24,8 @@ const HANDLERS: ReplyHandlers = {
   onDescriptionChange: noop,
   onAmountChange: noop,
   onSave: noop,
+  onTypeChange: noop,
+  onChomeshChange: noop,
   onRecurringChange: noop,
   onSaveRecurring: noop,
   onDismissRecurring: noop,
@@ -107,7 +109,7 @@ export function AssistantGalleryPage() {
         onOpenChange={(next) => {
           if (!next) setOpen(null);
         }}
-        title="עוזר Ten10"
+        title="נתן"
         description="גלריה"
         initialFocusRef={{ current: null }}
         footer={null}

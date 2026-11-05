@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -35,7 +36,9 @@ import {
   type RecurringEditField,
   type RecurringQuestion,
 } from "@/lib/ai/recurring-card";
+import { useDonationStore } from "@/lib/store";
 import { ChoiceRow } from "./ChoiceRow";
+import { ChomeshToggle } from "./ChomeshToggle";
 import { TypeChoice } from "./TypeChoice";
 
 const CURRENCIES = SUPPORTED_CURRENCY_CODES;
@@ -108,6 +111,8 @@ export function RecurringDraftCard({
   const formatDisplayDate = useDisplayDate();
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
+  const autoCalcChomesh = useDonationStore((state) => state.settings.autoCalcChomesh);
+  const chomesh = card.isChomesh ?? autoCalcChomesh;
   const today = getCurrentLocalDate();
   const locked = !interactive || card.saved || saving;
   const start = saveStartDate(card, today);
@@ -139,17 +144,18 @@ export function RecurringDraftCard({
   }
 
   const summary = (
-    <p className="text-sm">
+    <p className="text-sm leading-8">
       {recurringSummaryPieces(card, labels).map((piece, index) => {
         if (piece.field === null || card.saved || locked) {
-          return <span key={index}>{piece.text}</span>;
+          // A word joiner after "מ-" keeps "מ-1/12" on one line.
+          return <span key={index}>{piece.text.replace(/[-־]$/u, "$&⁠")}</span>;
         }
         const field = piece.field;
         return (
           <button
             key={index}
             type="button"
-            className="underline decoration-dotted underline-offset-4"
+            className={`-my-2 inline-block rounded py-2 underline decoration-dotted underline-offset-4 ${field === "description" ? "break-words text-start" : "whitespace-nowrap"}`}
             onClick={() => openOne(field)}
           >
             {piece.text}
@@ -169,7 +175,7 @@ export function RecurringDraftCard({
 
   if (card.saved) {
     return (
-      <div className="grid gap-3 rounded-lg border p-3">
+      <Card className="grid gap-3 p-3">
         {summary}
         {dateList}
         <div className="flex flex-wrap gap-2">
@@ -182,13 +188,13 @@ export function RecurringDraftCard({
             </Button>
           ) : null}
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (blocked) {
     return (
-      <div className="grid gap-3 rounded-lg border p-3">
+      <Card className="grid gap-3 p-3">
         <p className="text-sm">{t("aiIntake.recurring.monthlyOnly")}</p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -203,12 +209,12 @@ export function RecurringDraftCard({
             {t("aiIntake.recurring.decline")}
           </Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="grid gap-3 rounded-lg border p-3">
+    <Card className="grid gap-3 p-3">
       {showSummary ? summary : null}
       {showSummary && card.paymentMethod ? (
         <p className="text-sm text-muted-foreground">
@@ -265,6 +271,13 @@ export function RecurringDraftCard({
       ) : null}
       {showSummary && !openField && !picking ? (
         <div className="flex flex-wrap gap-2">
+          {card.type === "income" ? (
+            <ChomeshToggle
+              checked={chomesh}
+              disabled={locked}
+              onChange={(isChomesh) => onChange({ ...card, isChomesh })}
+            />
+          ) : null}
           <Button type="button" size="sm" disabled={locked || !ready} onClick={onSave}>
             {t("aiIntake.recurring.save")}
           </Button>
@@ -273,7 +286,7 @@ export function RecurringDraftCard({
           </Button>
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }
 

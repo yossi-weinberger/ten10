@@ -39,6 +39,8 @@ export interface ReplyHandlers {
   onSave: (choice?: "saved_anyway" | "same_event") => void;
   /** Chomesh on an income draft. Optional: the gallery shows the card without it. */
   onChomeshChange?: (isChomesh: boolean) => void;
+  /** The draft's type tag. Optional: the gallery shows the card without it. */
+  onTypeChange?: (type: TextTransactionDraft["type"]) => void;
   onRecurringChange: (card: RecurringCard) => void;
   onSaveRecurring: () => void;
   onDismissRecurring: () => void;
@@ -232,6 +234,7 @@ export function ReplyBlockView({
           onDescriptionChange={handlers.onDescriptionChange}
           onAmountChange={handlers.onAmountChange}
           onChomeshChange={handlers.onChomeshChange}
+          onTypeChange={handlers.onTypeChange}
           onSave={handlers.onSave}
         />
       );
@@ -264,6 +267,7 @@ export function ReplyBlockView({
         <Button
           type="button"
           variant="outline"
+          size="sm"
           className="w-fit self-start"
           disabled={handlers.undoing}
           onClick={handlers.onUndo}

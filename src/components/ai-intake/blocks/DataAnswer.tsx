@@ -1,8 +1,10 @@
-import { Search } from "lucide-react";
+import { HandCoins, Search } from "lucide-react";
+import { BASE_TYPE_ICON, BASE_TYPE_TINT } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
 import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatDataAnswer } from "@/lib/ai/format-data-answer";
 import { periodLabel } from "@/lib/ai/classify-intake";
@@ -45,10 +47,19 @@ export function DataAnswer({
   const symbol = amountLabel.replace(/[0-9.,\s]/g, "");
   // The same decimals as the sentence below, which formatCurrency writes (6,289.1, not 6,289.10).
   const digits = currencyFractionDigits(reply.total);
+  const Icon = BASE_TYPE_ICON[reply.type];
 
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-2xl font-semibold tabular-nums" dir="ltr">
+    <Card className="flex flex-col gap-1 p-3">
+      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT[reply.type]}`}>
+          <Icon className="size-3.5" aria-hidden />
+        </span>
+        <span dir="auto">{from} – {to}</span>
+      </p>
+      {/* The number reads left to right but sits at the start of the card in either language. */}
+      <p className="text-3xl font-semibold tabular-nums">
+        <span dir="ltr">
         {reply.measure === "count" ? (
           reduce ? reply.count : <CountUp end={reply.count} duration={0.6} preserveValue />
         ) : (
@@ -67,8 +78,9 @@ export function DataAnswer({
             {symbol ? ` ${symbol}` : ""}
           </>
         )}
+        </span>
       </p>
-      <p className="text-sm leading-relaxed">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         {formatDataAnswer({
           measure: reply.measure,
           count: reply.count,
@@ -81,8 +93,7 @@ export function DataAnswer({
           language: i18n.language,
         })}
       </p>
-      <p className="text-xs text-muted-foreground">{from} – {to}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -114,7 +125,7 @@ export function NameMissing({
       {interactive ? (
         <div className="flex flex-col items-start gap-2">
           {suggestions.map((name) => (
-            <Button key={name} type="button" variant="outline" size="sm" className="w-fit" onClick={() => onChooseName(name)}>
+            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words py-1.5 text-start" onClick={() => onChooseName(name)}>
               {name}
             </Button>
           ))}
@@ -141,10 +152,15 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const money = (value: number) => formatCurrency(value, defaultCurrency as CurrencyCode, i18n.language);
   return (
-    <div className="grid gap-1">
-      <p className="text-sm font-medium">{t("aiIntake.balance.title")}</p>
+    <Card className="grid gap-1 p-3">
+      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT.donation}`}>
+          <HandCoins className="size-3.5" aria-hidden />
+        </span>
+        {t("aiIntake.balance.title")}
+      </p>
       {balance.total > 0 ? (
-        <p className="text-lg font-semibold tabular-nums">{money(balance.total)}</p>
+        <p className="text-3xl font-semibold tabular-nums">{money(balance.total)}</p>
       ) : (
         <p className="text-sm">{t("aiIntake.balance.done")}</p>
       )}
@@ -153,7 +169,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
           {t("aiIntake.balance.maaser")}: {money(balance.maaser)} · {t("aiIntake.balance.chomesh")}: {money(balance.chomesh)}
         </p>
       ) : null}
-    </div>
+    </Card>
   );
 }
 
@@ -161,14 +177,14 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
 export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
   const { t, i18n } = useTranslation("navigation");
   return (
-    <div className="grid gap-2">
+    <Card className="grid gap-2 p-3">
       <p className="text-sm">
         {rows.length === 0 ? t("aiIntake.standingOrders.none") : t("aiIntake.standingOrders.count", { count: rows.length })}
       </p>
       {rows.length > 0 ? (
-        <ul className="grid gap-1 text-sm">
+        <ul className="grid divide-y text-sm">
           {rows.slice(0, 5).map((row) => (
-            <li key={row.id} className="flex justify-between gap-2">
+            <li key={row.id} className="flex justify-between gap-2 py-1.5">
               <span className="truncate">{row.description}</span>
               <span className="tabular-nums">{formatCurrency(row.amount, row.currency as CurrencyCode, i18n.language)}</span>
             </li>
@@ -178,6 +194,6 @@ export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
       <Button asChild variant="outline" size="sm" className="w-fit">
         <Link to="/transactions-table/recurring-transactions">{t("aiIntake.standingOrders.open")}</Link>
       </Button>
-    </div>
+    </Card>
   );
 }

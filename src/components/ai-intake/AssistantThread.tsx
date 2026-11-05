@@ -1,4 +1,5 @@
-import { ArrowDown, ChartColumn, CopyCheck, CreditCard, FileText, ListChecks, Mic, Sparkles } from "lucide-react";
+import { useRef } from "react";
+import { ArrowDown, BookOpen, ChartColumn, CreditCard, FileText, Mic, Receipt, Repeat, Scale, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,12 +25,15 @@ import { blockListVariants, fieldVariants, greetingKey, turnVariants } from "./a
 import type { AssistantTurn, ReplyBlock, UserTurn } from "./assistant-reply-view";
 import { ReplyBlockView, type ReplyHandlers } from "./ReplyBlockView";
 
+/** One chip per capability. "receipt" opens the file picker; the others send their text. */
 const SUGGESTIONS = [
   { key: "transaction", icon: CreditCard },
+  { key: "recurring", icon: Repeat },
+  { key: "receipt", icon: Receipt },
   { key: "question", icon: ChartColumn },
-  { key: "duplicates", icon: CopyCheck },
-  { key: "rule", icon: ListChecks },
+  { key: "balance", icon: Scale },
   { key: "inspiration", icon: Sparkles },
+  { key: "halacha", icon: BookOpen },
 ] as const;
 
 function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
@@ -64,6 +68,8 @@ export function AssistantThread({
   activeBlocks,
   interactiveActive,
   onSuggestion,
+  onReceipt,
+  opening,
   handlers,
 }: {
   history: AssistantTurn[];
@@ -71,21 +77,40 @@ export function AssistantThread({
   activeBlocks: ReplyBlock[];
   interactiveActive: boolean;
   onSuggestion: (text: string) => void;
+  onReceipt?: (file: File) => void;
+  /** The greeting's first name and a line from the user's data. Missing parts fall back to the generic text. */
+  opening?: { name: string | null; line?: string };
   handlers: ReplyHandlers;
 }) {
   const { t } = useTranslation("navigation");
   const reduce = useReducedMotion();
+  const fileRef = useRef<HTMLInputElement | null>(null);
   if (history.length === 0 && !active) {
-    const greeting = t(`aiIntake.greeting.${greetingKey(new Date().getHours())}`);
+    const hello = t(`aiIntake.greeting.${greetingKey(new Date().getHours())}`);
+    const greeting = opening?.name ? t("aiIntake.greetingNamed", { greeting: hello, name: opening.name }) : hello;
     return (
-      <Empty className="h-full border-0">
-        <EmptyHeader>
+      // Scrolls; auto margins center it but keep the top reachable when the screen is short or the keyboard is open.
+      <Empty className="h-full justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
+        <EmptyHeader className="mt-auto">
           <AssistantMark size="md" />
           <EmptyTitle>{greeting}</EmptyTitle>
-          <EmptyDescription>{t("aiIntake.emptyDescription")}</EmptyDescription>
+          <EmptyDescription>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
         </EmptyHeader>
-        <div className="flex flex-wrap justify-center gap-2">
-          {SUGGESTIONS.map(({ key, icon: Icon }, index) => (
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) onReceipt?.(file);
+            event.target.value = "";
+          }}
+        />
+        <div className="mb-auto flex flex-wrap justify-center gap-2">
+          {SUGGESTIONS.filter(({ key }) => key !== "receipt" || onReceipt).map(({ key, icon: Icon }, index) => (
             <motion.div
               key={key}
               initial={reduce ? false : { opacity: 0, y: 4 }}
@@ -97,7 +122,10 @@ export function AssistantThread({
                 variant="outline"
                 size="sm"
                 className="rounded-full"
-                onClick={() => onSuggestion(t(`aiIntake.suggestions.${key}`))}
+                onClick={() => {
+                  if (key === "receipt") fileRef.current?.click();
+                  else onSuggestion(t(`aiIntake.suggestions.${key}`));
+                }}
               >
                 <Icon aria-hidden />
                 {t(`aiIntake.suggestions.${key}`)}
@@ -121,7 +149,6 @@ export function AssistantThread({
           <MessageScrollerContent className="gap-6 px-4 py-4" role="log" aria-live="polite">
             {turns.map((turn) => {
               const scanning = turn.fresh && turn.blocks.some((block) => block.kind === "thinking" && block.phase === "receipt");
-              const thinking = turn.blocks.some((block) => block.kind === "thinking");
               return (
                 <motion.div
                   key={turn.id}
@@ -140,8 +167,9 @@ export function AssistantThread({
                   {turn.blocks.length > 0 ? (
                     <MessageScrollerItem messageId={`${turn.id}-reply`}>
                       <Message>
-                        <MessageAvatar className="bg-transparent">
-                          <AssistantMark thinking={thinking} />
+                        {/* No avatar column on narrow phones: the cards get the width. */}
+                        <MessageAvatar className="bg-transparent max-sm:hidden">
+                          <AssistantMark />
                         </MessageAvatar>
                         <MessageContent>
                           <motion.div
@@ -150,11 +178,22 @@ export function AssistantThread({
                             initial={reduce || !turn.fresh ? false : "initial"}
                             animate="animate"
                           >
-                            {turn.blocks.map((block, index) => (
-                              <motion.div key={`${block.kind}-${index}`} variants={reduce ? undefined : fieldVariants}>
-                                <ReplyBlockView block={block} interactive={turn.interactive} handlers={handlers} />
-                              </motion.div>
-                            ))}
+                            {turn.blocks.map((block, index) => {
+                              // "Saved" and its undo share one row.
+                              if (block.kind === "undo" && turn.blocks[index - 1]?.kind === "status") return null;
+                              const next = turn.blocks[index + 1];
+                              const undo = block.kind === "status" && next?.kind === "undo" && turn.interactive ? next : null;
+                              return (
+                                <motion.div
+                                  key={`${block.kind}-${index}`}
+                                  variants={reduce ? undefined : fieldVariants}
+                                  className={undo ? "flex flex-wrap items-center justify-between gap-2" : undefined}
+                                >
+                                  <ReplyBlockView block={block} interactive={turn.interactive} handlers={handlers} />
+                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} /> : null}
+                                </motion.div>
+                              );
+                            })}
                           </motion.div>
                         </MessageContent>
                       </Message>

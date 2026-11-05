@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { installDomPolyfills } from "./assistant-test-setup";
+import he from "../../../public/locales/he/navigation.json";
 
 const ai = vi.hoisted(() => ({
   platform: { value: "web" as string },
@@ -147,6 +148,7 @@ beforeEach(() => {
     if (typeof value === "function" && "mockReset" in value) value.mockReset();
   }
   ai.listActiveUserRules.mockResolvedValue([]);
+  ai.loadTitheBalance.mockResolvedValue(null);
   ai.listDuplicateCandidates.mockResolvedValue([]);
   ai.rankDuplicateCandidates.mockResolvedValue(null);
   ai.splitItems.mockImplementation(async (sentence: string) => {
@@ -231,6 +233,52 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("AssistantDrawer characterization", () => {
+  it("opens with the user's tithe balance, or the general text without one", async () => {
+    ai.loadTitheBalance.mockResolvedValue({ total: 340, maaser: 340, chomesh: 0 });
+    setup();
+    expect(screen.getByText("aiIntake.emptyDescription", { selector: "[data-slot=empty-description]" })).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.openingBalance")).toBeInTheDocument();
+  });
+
+  it("pushes the app aside while the desktop side panel is open", async () => {
+    const user = setup();
+    expect(document.documentElement.dataset.assistantPanel).toBe("open");
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    await waitFor(() => expect(document.documentElement.dataset.assistantPanel).toBeUndefined());
+  });
+
+  it("keeps the full-screen drawer on a phone, without pushing the app", () => {
+    installDomPolyfills("mobile");
+    setup();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(document.documentElement.dataset.assistantPanel).toBeUndefined();
+  });
+
+  it("opens warmly, without the 'nothing is saved' line", () => {
+    for (const copy of [he.aiIntake.emptyDescription, he.aiIntake.openingBalance, he.aiIntake.openingCovered]) {
+      expect(copy).toContain("אני נתן");
+      expect(copy).not.toContain("שום דבר לא נשמר");
+    }
+  });
+
+  it("sends on Enter on a touch screen too, and Shift+Enter is a new line", async () => {
+    confident("add_transaction");
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes("coarse"),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    })) as unknown as typeof window.matchMedia;
+    const user = setup();
+    const box = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
+    expect(box).toHaveAttribute("enterkeyhint", "send");
+    await user.type(box, "קניתי מאפים{Shift>}{Enter}{/Shift}באליס ב-15 שח{Enter}");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1));
+    expect(ai.classifyIntentFallback.mock.calls[0][0]).toBe("קניתי מאפים\nבאליס ב-15 שח");
+  });
+
   it("keeps new chat beside a single close button", () => {
     setup();
     expect(screen.getByRole("button", { name: "aiIntake.newChat" })).toBeInTheDocument();
@@ -492,6 +540,34 @@ describe("AssistantDrawer characterization", () => {
     await user.click(await screen.findByRole("button", { name: "aiIntake.undo" }));
     expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
     expect(await screen.findByText("aiIntake.undone")).toBeInTheDocument();
+  });
+
+  it("saves the draft on Enter in a field", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    const save = await screen.findByRole("button", { name: "aiIntake.save" });
+    await waitFor(() => expect(save).toBeEnabled());
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.editDescription" }), "{Enter}");
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+  });
+
+  it("changes a saved draft's type by undoing it and saving it again", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await user.click(await screen.findByRole("button", { name: "aiIntake.changeType" }));
+    await user.click(await screen.findByRole("menuitemradio", { name: "aiIntake.types.donation" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ type: "donation", amount: 15, category: null });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
   });
 
   it("asks for the type when the sentence has no verb", async () => {

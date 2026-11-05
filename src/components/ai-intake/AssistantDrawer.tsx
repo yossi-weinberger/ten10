@@ -1,12 +1,15 @@
-import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
-import { RotateCcw } from "lucide-react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
+import { SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { loadTitheBalance } from "@/lib/ai/assistant-extras";
+import type { CurrencyCode } from "@/lib/currencies";
+import { useDonationStore } from "@/lib/store";
+import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
-import { assistantIsThinking, conversationStarted } from "./assistant-drawer-state";
+import { conversationStarted } from "./assistant-drawer-state";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
 import { useAssistantDrawerComposer } from "./use-assistant-drawer-composer";
@@ -23,6 +26,8 @@ interface AssistantDrawerProps {
   receiveRef: Ref<AssistantDrawerHandle>;
   /** A link in a reply was followed. The page changes behind the drawer, so the host closes it. */
   onNavigate?: () => void;
+  /** The profile's full name. The opening greets by the first name. */
+  userName?: string | null;
 }
 
 export function AssistantDrawer({
@@ -30,8 +35,25 @@ export function AssistantDrawer({
   onOpenChange,
   receiveRef,
   onNavigate,
+  userName,
 }: AssistantDrawerProps) {
   const state = useAssistantDrawerState();
+  const defaultCurrency = useDonationStore((store) => store.settings.defaultCurrency);
+  const [openingBalance, setOpeningBalance] = useState<number | null>(null);
+  const userId = state.user?.id ?? null;
+  // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void loadTitheBalance(userId)
+      .then((balance) => {
+        if (!cancelled) setOpeningBalance(balance?.total ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [open, userId]);
   const intent = useAssistantDrawerIntent(state);
   const composer = useAssistantDrawerComposer(state, intent);
   const thread = useAssistantDrawerThread(state, intent, composer);
@@ -73,15 +95,15 @@ export function AssistantDrawer({
 
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
-  const thinking = assistantIsThinking({
-    checking: state.checking,
-    pendingPhase: state.pendingPhase,
-    askIntent: state.askIntent,
-    intent: state.intent,
-    dataReply: state.dataReply,
-    duplicateScan: state.duplicateScan,
-  });
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
+  const firstName = userName?.trim().split(/\s+/)[0] || null;
+  const openingLine = openingBalance === null
+    ? undefined
+    : openingBalance > 0
+      ? state.t("aiIntake.openingBalance", {
+        amount: formatCurrency(openingBalance, defaultCurrency as CurrencyCode, state.i18n.language.toLowerCase().startsWith("en") ? "en" : "he"),
+      })
+      : state.t("aiIntake.openingCovered");
 
   return (
     <AssistantShell
@@ -91,26 +113,20 @@ export function AssistantDrawer({
       description={state.t("aiIntake.emptyDescription")}
       initialFocusRef={state.textareaRef}
       headerActions={(
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={state.t("aiIntake.newChat")}
-              disabled={!hasConversation || state.saving || state.undoing}
-              onClick={() => {
-                composer.stopRecording();
-                state.clearConversation();
-              }}
-            >
-              <RotateCcw aria-hidden />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{state.t("aiIntake.newChat")}</TooltipContent>
-        </Tooltip>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={!hasConversation || state.saving || state.undoing}
+          onClick={() => {
+            composer.stopRecording();
+            state.clearConversation();
+          }}
+        >
+          <SquarePen aria-hidden />
+          {state.t("aiIntake.newChat")}
+        </Button>
       )}
-      thinking={thinking}
       onReceipt={(file) => {
         void composer.handleReceipt(file);
       }}
@@ -119,7 +135,7 @@ export function AssistantDrawer({
           value={composer.wiring.value}
           onChange={state.setText}
           textareaRef={state.textareaRef}
-          busyLabel={composer.wiring.busyKey ? state.t(composer.wiring.busyKey) : undefined}
+          busy={composer.wiring.busyKey !== undefined}
           recording={composer.wiring.recording}
           level={composer.wiring.level}
           elapsed={composer.wiring.elapsed}
@@ -149,8 +165,12 @@ export function AssistantDrawer({
           active={thread.active}
           activeBlocks={thread.blocks}
           interactiveActive
+          opening={{ name: firstName, line: openingLine }}
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);
+          }}
+          onReceipt={(file) => {
+            void composer.handleReceipt(file);
           }}
           handlers={thread.handlers}
         />

@@ -7,6 +7,7 @@ import {
   rememberInspiration,
   type IdStorage,
   type InspirationView,
+  visibleSource,
 } from "./inspiration-pick";
 
 function memoryStorage(): IdStorage & { data: Record<string, string> } {
@@ -61,5 +62,16 @@ describe("inspiration pick", () => {
     expect(english).toHaveLength(75);
     expect(english.every((item) => item.body.length > 0 && item.title.length > 0)).toBe(true);
     expect(english.find((item) => item.id === "TN10-0002")?.title).toBe("Test Me now in this");
+  });
+  it("hides the library's missing-source placeholder", () => {
+    expect(visibleSource("לא צוין במקור המיובא")).toBe("");
+    expect(visibleSource("סיפור שפורסם בעלון; שם העלון לא צוין במקור המיובא")).toBe("סיפור שפורסם בעלון");
+    expect(visibleSource("Draft for review. Not a published translation. Not named in the imported source."))
+      .toBe("Draft for review. Not a published translation.");
+    expect(visibleSource("Malachi 3:10")).toBe("Malachi 3:10");
+  });
+
+  it("shows no placeholder source from the library", () => {
+    expect(itemsForLanguage(INSPIRATION_LIBRARY, "he").some((item) => item.source.includes("במקור המיובא"))).toBe(false);
   });
 });
