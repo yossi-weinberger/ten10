@@ -36,7 +36,6 @@ interface AssistantShellProps {
   headerActions?: ReactNode;
   children: ReactNode;
   footer: ReactNode;
-  thinking?: boolean;
   onReceipt?: (file: File) => void;
   initialFocusRef: RefObject<HTMLTextAreaElement | null>;
 }
@@ -53,7 +52,6 @@ function Frame({
   description,
   headerActions,
   reserveClose,
-  thinking,
   dropProps,
   dragging,
   dropLabel,
@@ -64,7 +62,6 @@ function Frame({
   description: string;
   headerActions?: ReactNode;
   reserveClose: boolean;
-  thinking: boolean;
   dropProps: HTMLAttributes<HTMLDivElement>;
   dragging: boolean;
   dropLabel: string;
@@ -80,7 +77,7 @@ function Frame({
         </div>
       ) : null}
       <div className={cn("flex items-center gap-2 py-3 ps-4", reserveClose ? "pe-12" : "pe-4")}>
-        <AssistantMark size="md" thinking={thinking} />
+        <AssistantMark size="md" />
         <p className="min-w-0 flex-1 truncate text-base font-semibold">{title}</p>
         <p className="sr-only">{description}</p>
         <div className="flex shrink-0 items-center gap-1">{headerActions}</div>
@@ -100,7 +97,6 @@ export function AssistantShell({
   headerActions,
   children,
   footer,
-  thinking = false,
   onReceipt,
   initialFocusRef,
 }: AssistantShellProps) {
@@ -121,7 +117,8 @@ export function AssistantShell({
       if (file) onReceipt?.(file);
     },
   });
-  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  // A phone in landscape is wide but short: it gets the full-height drawer too.
+  const isSmallNow = useMediaQuery("(max-width: 767px), (max-height: 500px)");
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
   const shell = desktopShell();
 
@@ -137,7 +134,6 @@ export function AssistantShell({
       description={description}
       headerActions={headerActions}
       reserveClose={reserveClose}
-      thinking={thinking}
       dropProps={getRootProps({ className: "relative flex h-full min-h-0 flex-1 flex-col" })}
       dragging={isDragActive}
       dropLabel={t("aiIntake.dropReceipt", { ns: "navigation" })}

@@ -1,7 +1,6 @@
 import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Spinner } from "@/components/ui/spinner";
 import {
   InputGroup,
   InputGroupAddon,
@@ -15,7 +14,8 @@ interface AssistantComposerProps {
   onSubmit: () => void;
   onReceipt: (file: File | undefined) => void;
   onToggleVoice: () => void;
-  busyLabel?: string;
+  /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
+  busy?: boolean;
   recording: boolean;
   level?: number;
   elapsed?: number;
@@ -29,7 +29,7 @@ export function AssistantComposer({
   onSubmit,
   onReceipt,
   onToggleVoice,
-  busyLabel,
+  busy = false,
   recording,
   level = 0,
   elapsed = 0,
@@ -39,7 +39,6 @@ export function AssistantComposer({
   const { t } = useTranslation("navigation");
   const fileRef = useRef<HTMLInputElement | null>(null);
   const label = t(mode === "amount" ? "aiIntake.askAmount" : "aiIntake.placeholder");
-  const busy = Boolean(busyLabel);
   const canSend = value.trim().length > 0 && !busy && !recording;
 
   function submit(event?: FormEvent) {
@@ -70,12 +69,6 @@ export function AssistantComposer({
 
   return (
     <form onSubmit={submit}>
-      {busyLabel ? (
-        <p role="status" className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner />
-          {busyLabel}
-        </p>
-      ) : null}
       <input
         ref={fileRef}
         type="file"
@@ -95,7 +88,7 @@ export function AssistantComposer({
           inputMode={mode === "amount" ? "decimal" : undefined}
           placeholder={label}
           aria-label={label}
-          className={recording ? "sr-only" : "max-h-40 min-h-12 [field-sizing:content]"}
+          className={recording ? "sr-only" : "max-h-40 min-h-12 text-base [field-sizing:content]"}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
@@ -106,7 +99,7 @@ export function AssistantComposer({
             {weights.map((weight, index) => (
               <span
                 key={index}
-                className="h-6 w-1 origin-bottom rounded-full bg-primary"
+                className="h-6 w-1 origin-bottom rounded-full bg-primary motion-reduce:!transform-none"
                 style={{ transform: `scaleY(${0.25 + level * weight})` }}
               />
             ))}
@@ -117,7 +110,7 @@ export function AssistantComposer({
           <InputGroupButton
             size="icon-sm"
             variant="outline"
-            className="rounded-full"
+            className="size-10 rounded-full sm:size-8"
             aria-label={t("aiIntake.receipt")}
             disabled={busy || recording}
             onClick={() => fileRef.current?.click()}
@@ -127,7 +120,7 @@ export function AssistantComposer({
           <InputGroupButton
             size="icon-sm"
             variant={recording ? "destructive" : "outline"}
-            className={recording ? "animate-pulse rounded-full" : "rounded-full"}
+            className={recording ? "size-10 animate-pulse rounded-full motion-reduce:animate-none sm:size-8" : "size-10 rounded-full sm:size-8"}
             aria-label={t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
             aria-pressed={recording}
             disabled={busy}
@@ -139,11 +132,11 @@ export function AssistantComposer({
             type="submit"
             size="icon-sm"
             variant="default"
-            className="ms-auto rounded-full"
+            className="ms-auto size-10 rounded-full sm:size-8"
             aria-label={t("aiIntake.send")}
             disabled={!canSend}
           >
-            {busy ? <Spinner /> : <ArrowUp aria-hidden />}
+            <ArrowUp aria-hidden />
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>
