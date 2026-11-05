@@ -4,6 +4,8 @@ import { BASE_TYPE_ICON, BASE_TYPE_TINT } from "@/components/forms/transaction-f
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatCurrency } from "@/lib/utils/currency";
 import { EASE_OUT_QUART } from "../assistant-motion";
 
 const TYPES = ["expense", "income", "donation"] as const;
@@ -17,8 +19,10 @@ export function TypeChoice({
   disabled: boolean;
   onChoose: (type: TextTransactionDraft["type"]) => void;
 }) {
-  const { t } = useTranslation("navigation");
+  const { t, i18n } = useTranslation("navigation");
   const reduce = useReducedMotion();
+  const formatDisplayDate = useDisplayDate();
+  const locale = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">{t("aiIntake.askType")}</p>
@@ -27,17 +31,14 @@ export function TypeChoice({
           <ItemContent>
             <ItemTitle>{receipt.description}</ItemTitle>
             <ItemDescription>
-              {t("aiIntake.receiptPreview", {
-                description: receipt.description,
-                date: receipt.date,
-                amount: receipt.amount,
-                currency: receipt.currency,
-              })}
+              <bdi>{formatCurrency(receipt.amount, receipt.currency, locale)}</bdi>
+              {receipt.date ? <>{" · "}<bdi>{formatDisplayDate(receipt.date, "numeric").primary}</bdi></> : null}
             </ItemDescription>
           </ItemContent>
         </Item>
       ) : null}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Chips, not tiles: one short row that fits a 320px phone. */}
+      <div className="flex flex-wrap gap-2">
         {TYPES.map((type) => {
           const Icon = BASE_TYPE_ICON[type];
           return (
@@ -45,14 +46,13 @@ export function TypeChoice({
               key={type}
               type="button"
               disabled={disabled}
-              whileHover={reduce ? undefined : { y: -2 }}
-              whileTap={reduce ? undefined : { scale: 0.98 }}
+              whileTap={reduce ? undefined : { scale: 0.97 }}
               transition={{ duration: 0.15, ease: EASE_OUT_QUART }}
-              className="flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               onClick={() => onChoose(type)}
             >
-              <span className={`inline-flex size-9 items-center justify-center rounded-full ${BASE_TYPE_TINT[type]}`}>
-                <Icon className="size-4" aria-hidden />
+              <span className={`inline-flex size-6 items-center justify-center rounded-full ${BASE_TYPE_TINT[type]}`}>
+                <Icon className="size-3.5" aria-hidden />
               </span>
               {t(`aiIntake.types.${type}`)}
             </motion.button>

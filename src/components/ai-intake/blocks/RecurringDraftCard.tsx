@@ -154,7 +154,7 @@ export function RecurringDraftCard({
           <button
             key={index}
             type="button"
-            className="-my-2 inline-block whitespace-nowrap rounded py-2 underline decoration-dotted underline-offset-4"
+            className={`-my-2 inline-block rounded py-2 underline decoration-dotted underline-offset-4 ${field === "description" ? "break-words text-start" : "whitespace-nowrap"}`}
             onClick={() => openOne(field)}
           >
             {piece.text}

@@ -62,6 +62,7 @@ export function RabbiCard({
             onExpire={() => setCaptchaToken("")}
             refreshExpired="auto"
             appearance="always"
+            size={window.matchMedia?.("(max-width: 399px)").matches ? "compact" : "normal"}
           />
           {failed ? <p className="text-sm">{t("aiIntake.rabbiFailed")}</p> : null}
           <div className="flex flex-wrap gap-2">
