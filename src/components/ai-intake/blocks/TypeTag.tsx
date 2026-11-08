@@ -62,7 +62,7 @@ export function TypeTag({
       <DropdownMenuTrigger asChild disabled={disabled}>
         <button
           type="button"
-          className={cn(chip, variant === "text" && "hover:underline", "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50")}
+          className={cn(chip, variant === "text" && "hover:underline", "touch-target relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50")}
           aria-label={t("aiIntake.changeType", { type: label })}
         >
           {icon}

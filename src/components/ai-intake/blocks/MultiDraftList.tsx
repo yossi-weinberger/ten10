@@ -58,13 +58,13 @@ export function MultiDraftList({
                 ) : (
                   <Checkbox
                     id={`ai-split-${card.key}`}
-                    className="size-4"
+                    className="touch-target relative size-4"
                     checked={card.checked}
                     disabled={!interactive || saving || card.date === null || card.type === null}
                     onCheckedChange={(value) => update(card.key, { checked: value === true })}
                   />
                 )}
-                <label htmlFor={`ai-split-${card.key}`} className="min-w-0 flex-1 truncate">
+                <label htmlFor={`ai-split-${card.key}`} className="min-w-0 flex-1 break-words">
                   <span className="font-medium">{card.description || t("aiIntake.splitUntitled")}</span>
                   <span className="text-xs text-muted-foreground">
                     {" · "}
@@ -81,7 +81,7 @@ export function MultiDraftList({
                     type="button"
                     variant="link"
                     size="sm"
-                    className="h-auto shrink-0 px-0 text-xs"
+                    className="touch-target relative h-auto shrink-0 px-0 text-xs"
                     disabled={!interactive || saving}
                     onClick={() => onUndo(card.key)}
                   >

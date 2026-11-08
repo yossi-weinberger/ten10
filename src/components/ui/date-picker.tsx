@@ -316,7 +316,7 @@ export function DatePicker({
           <Button
             type="button"
             variant="ghost"
-            className={cn("absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0", compact && "right-1 size-6")}
+            className={cn("absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0", compact && "touch-target right-1 size-6")}
           >
             <CalendarIcon className="size-4 text-muted-foreground" />
             <span className="sr-only">Open calendar</span>

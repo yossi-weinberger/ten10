@@ -175,7 +175,8 @@ export function RecurringDraftCard({
   const nextCharges = dates.length > 0 ? (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
       <span>{t("aiIntake.recurring.nextCharges")}</span>
-      {dates.map((date) => (
+      {/* Two are enough to show it repeats, and they fit a 320px phone. */}
+      {dates.slice(0, 2).map((date) => (
         <span key={date} className="rounded-full bg-background/80 px-2 py-0.5 font-medium text-foreground">
           <bdi>{formatDisplayDate(date, "short").primary}</bdi>
         </span>
@@ -187,16 +188,16 @@ export function RecurringDraftCard({
     return (
       <Card className={cn("grid gap-1 p-2.5", surface)}>
         {eyebrow}
-        <div className="flex min-w-0 items-baseline gap-2">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           {amountLabel ? <p className="shrink-0 text-lg font-semibold tabular-nums"><bdi>{amountLabel}</bdi></p> : null}
-          <p className="min-w-0 truncate text-sm text-muted-foreground">
+          <p className="min-w-0 break-words text-sm text-muted-foreground">
             {t("aiIntake.recurring.perMonth")}
             {payee ? ` · ${payee}` : ""}
           </p>
         </div>
         {nextCharges}
         <SavedLine status={footer?.status ?? "recurringSaved"}>
-          <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs">
+          <Button asChild variant="link" size="sm" className="touch-target relative h-auto px-0 text-xs">
             <Link to="/transactions-table/recurring-transactions">{t("aiIntake.recurring.openTable")}</Link>
           </Button>
           {cancelOpen ? (
@@ -204,7 +205,7 @@ export function RecurringDraftCard({
               type="button"
               variant="link"
               size="sm"
-              className="ms-auto h-auto px-0 text-xs"
+              className="touch-target relative ms-auto h-auto px-0 text-xs"
               disabled={!interactive || saving}
               onClick={onCancel}
             >
@@ -260,16 +261,17 @@ export function RecurringDraftCard({
             <span className="text-lg text-muted-foreground">{getCurrencySymbol(card.currency)}</span>
             <span className="text-sm font-medium text-muted-foreground">{t("aiIntake.recurring.perMonth")}</span>
           </label>
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_9.5rem] gap-2">
+          {/* As on a draft: the start date drops to its own row when the card is narrow. */}
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Input
               aria-label={t("aiIntake.editDescription")}
               disabled={locked}
               value={card.description}
-              className="h-8 bg-background text-base sm:text-sm"
+              className="h-8 min-w-0 flex-[999_1_12rem] bg-background text-base sm:text-sm"
               onChange={(event) => onChange({ ...card, description: event.target.value })}
             />
             {/* The app's date picker, as on a draft: typed day/month, whatever the browser's locale. */}
-            <div className="flex min-w-0 items-center gap-1" aria-label={t("aiIntake.recurring.start")} role="group">
+            <div className="flex min-w-0 flex-[1_1_9.5rem] items-center gap-1" aria-label={t("aiIntake.recurring.start")} role="group">
               <span className="shrink-0 text-xs text-muted-foreground">{t("aiIntake.recurring.fromShort")}</span>
               <DatePicker
                 compact

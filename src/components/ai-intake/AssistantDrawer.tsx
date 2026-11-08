@@ -133,22 +133,27 @@ export function AssistantDrawer({
       footer={(
         <>
         {sharedFile ? (
-          <div role="status" className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-sm">
-            <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-            <span className="min-w-0 flex-1 truncate">{state.t("aiIntake.sharedFile", { name: sharedFile.name })}</span>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => {
-                setSharedFile(null);
-                void composer.handleReceipt(sharedFile);
-              }}
-            >
-              {state.t("aiIntake.sharedRead")}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setSharedFile(null)}>
-              {state.t("aiIntake.sharedDismiss")}
-            </Button>
+          // The file name gets the whole first row; the buttons sit under it, so a 320px phone shows both.
+          <div role="status" className="mb-2 grid gap-2 rounded-lg border bg-muted/40 p-2 text-sm">
+            <p className="flex min-w-0 items-center gap-2">
+              <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="min-w-0 flex-1 truncate">{state.t("aiIntake.sharedFile", { name: sharedFile.name })}</span>
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" className="h-10" onClick={() => setSharedFile(null)}>
+                {state.t("aiIntake.sharedDismiss")}
+              </Button>
+              <Button
+                type="button"
+                className="h-10"
+                onClick={() => {
+                  setSharedFile(null);
+                  void composer.handleReceipt(sharedFile);
+                }}
+              >
+                {state.t("aiIntake.sharedRead")}
+              </Button>
+            </div>
           </div>
         ) : null}
         <AssistantComposer

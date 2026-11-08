@@ -117,7 +117,7 @@ function ScanSide({
   return (
     <li className={cn("grid gap-1.5 rounded-md px-2 py-1.5", BASE_TYPE_SURFACE[baseTypeOf(side.type)])}>
       <div className="flex min-w-0 items-center gap-2 text-sm">
-        <span className="min-w-0 flex-1 truncate">
+        <span className="min-w-0 flex-1 break-words">
           <span className="font-medium">{side.description || dateLabel}</span>
           {side.description ? <span className="text-xs text-muted-foreground"> · <bdi>{dateLabel}</bdi></span> : null}
         </span>
@@ -129,7 +129,7 @@ function ScanSide({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-7 shrink-0"
+            className="touch-target relative size-7 shrink-0"
             aria-label={t("aiIntake.duplicateDelete")}
             onClick={() => onAskDelete(side.id)}
           >

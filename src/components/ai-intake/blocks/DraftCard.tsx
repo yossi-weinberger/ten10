@@ -113,11 +113,12 @@ export function DraftCard({
           <bdi>{formatDisplayDate(draft.date, "numeric").primary}</bdi>
           {income && draft.isChomesh ? <>{dot}<span>{t("aiIntake.chomesh")}</span></> : null}
         </div>
-        <div className="flex min-w-0 items-baseline gap-2">
+        {/* The description wraps: on a narrow phone it must still show what was saved. */}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <p className="shrink-0 text-lg font-semibold tabular-nums">
             <bdi>{formatCurrency(typedAmount ?? draft.amount, draft.currency, locale)}</bdi>
           </p>
-          <p className="min-w-0 truncate text-sm text-muted-foreground">{draft.description || t(`aiIntake.types.${draft.type}`)}</p>
+          <p className="min-w-0 break-words text-sm text-muted-foreground">{draft.description || t(`aiIntake.types.${draft.type}`)}</p>
         </div>
         {view.locked ? (
           <SavedLine
@@ -139,7 +140,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="h-auto px-0 text-xs"
+                className="touch-target relative h-auto px-0 text-xs"
                 title={t("aiIntake.receiptKept")}
                 onClick={footer.onOpenReceipt}
               >
@@ -152,7 +153,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="ms-auto h-auto px-0 text-xs"
+                className="touch-target relative ms-auto h-auto px-0 text-xs"
                 disabled={footer.undoing}
                 onClick={footer.onUndo}
               >
@@ -215,14 +216,16 @@ export function DraftCard({
             />
             <span className="text-lg text-muted-foreground">{getCurrencySymbol(draft.currency)}</span>
           </label>
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_8.5rem] gap-2">
+          {/* Side by side when the card is wide enough; on a narrow phone or panel the date drops to its own row. */}
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Input
               value={draft.description}
               enterKeyHint="done"
-              className="h-8 bg-background text-base sm:text-sm"
+              className="h-8 min-w-0 flex-[999_1_12rem] bg-background text-base sm:text-sm"
               aria-label={t("aiIntake.editDescription")}
               onChange={(event) => onDescriptionChange(event.target.value)}
             />
+            <div className="min-w-0 flex-[1_1_8.5rem]">
             <DatePicker
               compact
               date={parseLocalDate(draft.date)}
@@ -233,6 +236,7 @@ export function DraftCard({
                 if (date && formatLocalDate(date) !== draft.date) onDateChange(formatLocalDate(date));
               }}
             />
+            </div>
           </div>
           {dateProblem === "invalid" ? <p className="text-sm text-destructive">{t("aiIntake.editDateInvalid")}</p> : null}
           {dateProblem === "min" ? (

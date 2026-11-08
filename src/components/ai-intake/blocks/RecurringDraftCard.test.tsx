@@ -74,7 +74,7 @@ describe("recurring draft card", () => {
     expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("כולל");
     expect(screen.getByText("2026-11-10")).toBeInTheDocument();
     expect(screen.getByText("2026-12-10")).toBeInTheDocument();
-    expect(screen.getByText("2027-01-10")).toBeInTheDocument();
+    expect(screen.queryByText("2027-01-10")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "aiIntake.recurring.changeDetail" })).toBeEnabled();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();

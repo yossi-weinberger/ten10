@@ -51,7 +51,7 @@ export function InspirationCard({
             </Button>
           ) : null}
           {clipped || open ? (
-            <Button type="button" variant="link" size="sm" className="ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
+            <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
               {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
             </Button>
           ) : null}
