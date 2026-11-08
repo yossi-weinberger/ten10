@@ -109,6 +109,8 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { ranked: false, scores: [] }, 200);
 
+  // ponytail: an automatic check while the user edits a card, so it is not charged per edit. It stops with
+  // the monthly allowance (consume_ai_call) and is bounded by the minute and day caps. Charge it if that is not enough.
   const allowed = await serviceUsageGate().consumeCall(userData.user.id);
   if (!allowed.allowed) return json(origin, { ranked: false, scores: [], reason: allowed.reason }, 200);
 

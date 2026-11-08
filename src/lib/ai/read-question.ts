@@ -18,11 +18,18 @@ export type ReadQuestionSlotsResult = QuestionSlots & {
 /** Null when the question reader service is unavailable or did not return slots. */
 export async function readQuestionSlots(
   text: string,
-  options: { calendar?: "gregorian" | "hebrew"; today?: string; context?: string } = {},
+  /** `turn` is the asking message's, so the question rides on that message's charge. */
+  options: { calendar?: "gregorian" | "hebrew"; today?: string; context?: string; turn?: string } = {},
 ): Promise<ReadQuestionSlotsResult | null> {
   if (!aiCallsAllowed()) return null;
   const { data, error } = await supabase.functions.invoke("ai-read-question", {
-    body: { text, calendar: options.calendar, today: options.today, ...(options.context ? { context: options.context } : {}) },
+    body: {
+      text,
+      calendar: options.calendar,
+      today: options.today,
+      ...(options.context ? { context: options.context } : {}),
+      ...(options.turn ? { turn: options.turn } : {}),
+    },
   });
   if (error || !data || typeof data !== "object") return null;
   const record = data as {

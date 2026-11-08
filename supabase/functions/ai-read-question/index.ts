@@ -7,6 +7,7 @@ import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
+import { readTurnId } from "../_shared/ai/usage-gate.ts";
 import {
   buildQuestionSlotBody,
   predefinedQuestionCategories,
@@ -65,7 +66,14 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown; calendar?: unknown; today?: unknown; context?: unknown } | null;
+  const body = await req.json().catch(() => null) as {
+    text?: unknown;
+    calendar?: unknown;
+    today?: unknown;
+    context?: unknown;
+    /** The turn of the message that asked, so the question rides on that message's charge. */
+    turn?: unknown;
+  } | null;
   const context = readContextField(body?.context);
   const text = typeof body?.text === "string" ? body.text.trim().slice(0, QUESTION_MAX_CHARS) : "";
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
@@ -78,8 +86,10 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { reason: "unavailable" }, 200);
 
   const prepStarted = Date.now();
+  const usage = serviceUsageGate();
   const [allowed, recipientCall, categoryCalls] = await Promise.all([
-    serviceUsageGate().consumeCall(userData.user.id),
+    // Two paid model calls: charged as the asking message's text, never as a free follow-up.
+    usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" }),
     userClient.rpc("list_ai_recipients"),
     Promise.all(CATEGORY_TYPES.map((type) => userClient.rpc("get_user_categories", { p_type: type }))),
   ]);
@@ -93,6 +103,8 @@ Deno.serve(async (req: Request) => {
     ],
   };
 
+  /** The unit goes back only when both model calls failed, so nothing was billed. */
+  let failedCalls = 0;
   const slotsCall = (async () => {
     try {
       const request = buildQuestionSlotBody(text, lists, context);
@@ -116,6 +128,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`jev question slots failed: ${result.status ?? result.errorCode}`);
+        failedCalls += 1;
         return { slots: null, signals: {} as Record<string, number> };
       }
       return {
@@ -124,6 +137,7 @@ Deno.serve(async (req: Request) => {
       };
     } catch {
       logger.error("jev question slots failed");
+      failedCalls += 1;
       return { slots: null, signals: {} as Record<string, number> };
     }
   })();
@@ -147,6 +161,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`question period failed: ${result.status ?? result.errorCode}`);
+        failedCalls += 1;
         return { period: null, nameText: null as string | null };
       }
       const raw = readPeriodPayload(readModelText(result.payload));
@@ -160,12 +175,14 @@ Deno.serve(async (req: Request) => {
       return { period, nameText };
     } catch {
       logger.error("question period failed");
+      failedCalls += 1;
       return { period: null, nameText: null as string | null };
     }
   })();
   const modelStarted = Date.now();
   const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
   const modelMs = Date.now() - modelStarted;
+  if (failedCalls === 2) await usage.release(allowed.usageId);
   const period = read.period;
   let slots = slotOutcome.slots;
   const bareName = anchoredQuestionName(text, read.nameText, []);

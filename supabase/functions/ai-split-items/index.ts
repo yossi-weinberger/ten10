@@ -6,6 +6,7 @@ import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
+import { readTurnId } from "../_shared/ai/usage-gate.ts";
 import { readModelText } from "../_shared/ai/receipt-draft.ts";
 import { parseSplitPayload, readSplitResponse } from "../_shared/ai/split-response.ts";
 import { splitReadContext, type SplitRuleRef } from "../_shared/ai/split-anchor.ts";
@@ -59,6 +60,8 @@ Deno.serve(async (req: Request) => {
     context?: unknown;
     /** The open card's words and amounts. A continuing message may keep an amount only from them, not from the whole chat. */
     cardEvidence?: unknown;
+    /** Shared with the classify call of the same message, so the message is charged once. */
+    turn?: unknown;
   } | null;
 
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
@@ -84,7 +87,8 @@ Deno.serve(async (req: Request) => {
         return { context: {}, rules: [] as SplitRuleRef[] };
       })
       : Promise.resolve({ context: {}, rules: [] as SplitRuleRef[] }),
-    usage.consumeCall(userData.user.id),
+    // The split is a paid model call, so it is charged as the text message itself, not as a free follow-up.
+    usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" }),
   ]);
   const prepMs = Date.now() - prepStarted;
   if (!firstGate.allowed) return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
