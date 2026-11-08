@@ -18,11 +18,11 @@ function readConfidence(value: unknown): number | null {
   return typeof value === "number" && value >= 0 && value <= 1 ? value : null;
 }
 
-/** `context` is the earlier-turns block from conversationContext, or "". */
-export async function classifyIntentFallback(text: string, context = ""): Promise<IntentFallbackResult> {
+/** `context` is the earlier-turns block from conversationContext, or "". `turn` is shared with the split call. */
+export async function classifyIntentFallback(text: string, context = "", turn?: string): Promise<IntentFallbackResult> {
   if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   const { data, error } = await supabase.functions.invoke("ai-classify-intent", {
-    body: context ? { text, context } : { text },
+    body: { text, ...(context ? { context } : {}), ...(turn ? { turn } : {}) },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const record = data as {

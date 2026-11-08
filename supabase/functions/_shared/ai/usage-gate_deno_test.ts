@@ -1,4 +1,4 @@
-import { readUsageDecision } from "./usage-gate.ts";
+import { readTurnId, readUsageDecision } from "./usage-gate.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -33,5 +33,12 @@ Deno.test("an error or an unreadable answer blocks the call", () => {
   ] as const) {
     const decision = readUsageDecision(data, error);
     assert(!decision.allowed && decision.reason === "unavailable", JSON.stringify(data));
+  }
+});
+
+Deno.test("only a uuid is read as a turn", () => {
+  assert(readTurnId("0b7c9a3e-5f1d-4c2a-9e8b-1a2b3c4d5e6f") === "0b7c9a3e-5f1d-4c2a-9e8b-1a2b3c4d5e6f", "uuid");
+  for (const value of [undefined, null, 7, "", "turn-1", "0b7c9a3e-5f1d-4c2a-9e8b-1a2b3c4d5e6f'; --"]) {
+    assert(readTurnId(value) === null, String(value));
   }
 });

@@ -39,6 +39,7 @@
    ```
    - `ai-read-question`, `ai-read-receipt` ו־`ai-split-items` צריכים את ה־import map. הוא כבר מוגדר ב־`supabase/config.toml`; אם `zod` לא נארז, להוסיף `--import-map supabase/functions/deno.json`.
    - `cors.ts` השתנה, ולכן כדאי לפרוס ל־testing גם את הפונקציות שאינן AI.
+   - The text quota fix ([#668](https://github.com/yossi-weinberger/ten10/pull/668): classification, splitting and question reading for one message are counted once, and helper calls stop when the monthly quota is exhausted) changed `ai.consume_usage`, `ai.consume_call`, `ai.release_usage` and `ai.usage_events` within the consolidated migration. On testing, where the old migration has already run, run the SQL in the PR description **first**, then deploy `ai-classify-intent`, `ai-split-items` and `ai-read-question`. In the reverse order, every text message will return "unavailable".
 2. **Vercel Preview:** לוודא ש־`VITE_AI_INTAKE_ENABLED=true` מוגדר ב־**Preview**. זה ה־kill switch של גל 6, וברירת המחדל שלו כבוי. בלעדיו המגירה לא תופיע. לא להגדיר אותו ב־Production.
 3. לפתוח את ה־Preview של `feat/ai-intake` ולהתחבר כמשתמש ניסוי.
 

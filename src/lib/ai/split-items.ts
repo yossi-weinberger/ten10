@@ -31,6 +31,8 @@ export interface SplitCallOptions {
   context?: string;
   /** The words and amounts of the open draft or standing order. A continuing message may keep an amount only from them. */
   cardEvidence?: string;
+  /** The message's turn id, also sent to the classify call, so the message is charged once. */
+  turn?: string;
 }
 
 function usageIdOf(body: { usage_id?: unknown }): string | null {
@@ -53,6 +55,7 @@ export async function splitItems(
       calendar: options.calendar,
       ...(options.context ? { context: options.context } : {}),
       ...(options.cardEvidence ? { cardEvidence: options.cardEvidence } : {}),
+      ...(options.turn ? { turn: options.turn } : {}),
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };

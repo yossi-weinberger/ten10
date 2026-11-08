@@ -13,6 +13,7 @@ import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
+import { readTurnId } from "../_shared/ai/usage-gate.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -41,7 +42,7 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
   if (!isTrialUser(userData.user.id)) return json(origin, { intent: null }, 200);
 
-  const body = await req.json().catch(() => null) as { text?: unknown; context?: unknown } | null;
+  const body = await req.json().catch(() => null) as { text?: unknown; context?: unknown; turn?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
   if (!text) return json(origin, { intent: "out_of_scope" }, 200);
 
@@ -49,7 +50,7 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { intent: null, reason: "unavailable" }, 200);
 
   const usage = serviceUsageGate();
-  const allowed = await usage.consume(userData.user.id, "text");
+  const allowed = await usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "intent" });
   if (!allowed.allowed) return json(origin, { intent: null, reason: allowed.reason }, 200);
 
   try {

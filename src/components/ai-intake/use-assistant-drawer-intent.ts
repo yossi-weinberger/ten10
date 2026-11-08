@@ -224,6 +224,8 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     source: string,
     searchDescriptions = false,
     family?: NonNullable<QuestionSlots["family"]>,
+    /** The asking message's turn. A later read (a chip, a family) has none and pays on its own. */
+    turn?: string,
   ) {
     const request = requestRef.current;
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
@@ -234,6 +236,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         calendar: questionCalendar,
         today: getCurrentLocalDate(),
         context: contextRef.current,
+        turn,
       });
       if (read) {
         periodHold.current = read.period;
@@ -357,7 +360,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     await showFiltered(next.question, next.filter, requestRef.current);
   }
 
-  function applyTurn(source: string, decision: TurnDecision) {
+  function applyTurn(source: string, decision: TurnDecision, turn?: string) {
     memoryRef.current = decision.nextState;
     if (decision.preferRabbi) preferRabbi.current = true;
     if (decision.mode === "ask") {
@@ -462,7 +465,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     if (decision.side === "inspiration") presentInspiration();
     else setInspiration(null);
     if (decision.needsQuestion) {
-      void loadDataAnswer(source);
+      void loadDataAnswer(source, false, undefined, turn);
       return;
     }
     if (decision.data.status === "skip") setDataReply(null);
@@ -496,6 +499,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const turn = crypto.randomUUID();
     const splitPromise = splitItems(source, today, {
       timeZone: zone,
       receivedAt: new Date().toISOString(),
@@ -503,8 +507,9 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       calendar: questionCalendar,
       context: contextRef.current,
       cardEvidence: openCardEvidence(turnStart.current),
+      turn,
     });
-    const decided = await classifyIntentFallback(source, contextRef.current);
+    const decided = await classifyIntentFallback(source, contextRef.current, turn);
     const read = await splitPromise;
     if (requestRef.current !== request) return;
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
@@ -534,7 +539,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       today,
       calendar: questionCalendar,
     });
-    applyTurn(source, decision);
+    applyTurn(source, decision, turn);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {

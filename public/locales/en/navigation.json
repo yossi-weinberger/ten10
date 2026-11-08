@@ -28,6 +28,9 @@
     "emptyDescription": "I'm Natan, and I'm here to help with your maaser: record a transaction, answer questions about your data, and share some encouragement. Type, snap a receipt, or talk.",
     "scrollToLatest": "Back to the latest message",
     "dropReceipt": "Drop the receipt here",
+    "sharedFile": "Shared file: {{name}}",
+    "sharedRead": "Read it",
+    "sharedDismiss": "Dismiss",
     "recording": "Recording",
     "inferred": "Filled in automatically",
     "greeting": {
