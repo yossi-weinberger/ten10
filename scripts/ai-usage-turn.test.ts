@@ -24,6 +24,18 @@ async function consume(user: string, turn: string | null, op: string | null): Pr
   return rows[0].r;
 }
 
+async function helperCall(user: string): Promise<Decision> {
+  const { rows } = await db.query<{ r: Decision }>("SELECT ai.consume_call($1) AS r", [user]);
+  return rows[0].r;
+}
+
+async function useUpMonth(user: string, units = 1000): Promise<void> {
+  await db.query(
+    "INSERT INTO ai.usage_counters (user_id, period_start, units_used) VALUES ($1, date_trunc('month', now() AT TIME ZONE 'UTC')::date, $2)",
+    [user, units],
+  );
+}
+
 async function unitsUsed(user: string): Promise<number> {
   const { rows } = await db.query<{ units: number }>(
     "SELECT coalesce(sum(units_used), 0)::int AS units FROM ai.usage_counters WHERE user_id = $1",
@@ -55,6 +67,7 @@ beforeAll(async () => {
     ${statement("CREATE FUNCTION ai.take_call(", "\n$$;")}
     ${statement("CREATE FUNCTION ai.consume_usage(", "\n$$;")}
     ${statement("CREATE FUNCTION ai.release_usage(", "\n$$;")}
+    ${statement("CREATE FUNCTION ai.consume_call(", "\n$$;")}
     ${statement("CREATE FUNCTION public.consume_ai_usage(", "\n$$;")}
   `);
 }, 60_000);
@@ -83,40 +96,64 @@ describe("one text message is one charge", () => {
     expect(await unitsUsed(user)).toBe(2);
   });
 
-  it("refuses a second split on a turn that was already charged", async () => {
+  it("charges a data question once: classify, split and the question read share the message's turn", async () => {
     const user = randomUUID();
     const turn = randomUUID();
-    await consume(user, turn, "split");
-    expect(await consume(user, turn, "split")).toMatchObject({ allowed: false, reason: "unavailable" });
-    expect(await consume(randomUUID(), turn, "split")).toMatchObject({ allowed: true });
+    for (const op of ["intent", "split", "question"]) {
+      expect(await consume(user, turn, op)).toMatchObject({ allowed: true });
+    }
     expect(await unitsUsed(user)).toBe(1);
   });
 
-  it("refuses the split once the monthly allowance is used up, with or without a turn", async () => {
+  it("charges a second use of an operation on the same turn on its own", async () => {
     const user = randomUUID();
-    await db.query(
-      "INSERT INTO ai.usage_counters (user_id, period_start, units_used) VALUES ($1, date_trunc('month', now() AT TIME ZONE 'UTC')::date, 1000)",
-      [user],
-    );
+    const turn = randomUUID();
+    await consume(user, turn, "split");
+    expect(await consume(user, turn, "split")).toMatchObject({ allowed: true });
+    await consume(user, turn, "question");
+    expect(await consume(user, turn, "question")).toMatchObject({ allowed: true });
+    expect(await unitsUsed(user)).toBe(3);
+    await consume(randomUUID(), turn, "split");
+    expect(await unitsUsed(user)).toBe(3);
+  });
+
+  it("refuses the split and the question read once the monthly allowance is used up, with or without a turn", async () => {
+    const user = randomUUID();
+    await useUpMonth(user);
     const turn = randomUUID();
     expect(await consume(user, turn, "split")).toMatchObject({ allowed: false, reason: "quota_exhausted" });
     expect(await consume(user, turn, "intent")).toMatchObject({ allowed: false, reason: "quota_exhausted" });
+    expect(await consume(user, turn, "question")).toMatchObject({ allowed: false, reason: "quota_exhausted" });
     expect(await consume(user, null, null)).toMatchObject({ allowed: false, reason: "quota_exhausted" });
     expect(await unitsUsed(user)).toBe(1000);
   });
 
-  it("does not let a split join a charge that was given back or is stale", async () => {
+  it("stops helper calls (duplicate ranking, the split's retry) once the month is used up", async () => {
+    const open = randomUUID();
+    await useUpMonth(open, 999);
+    expect(await helperCall(open)).toMatchObject({ allowed: true });
+    expect(await unitsUsed(open)).toBe(999);
+    const spent = randomUUID();
+    await useUpMonth(spent);
+    expect(await helperCall(spent)).toMatchObject({ allowed: false, reason: "quota_exhausted" });
+    const { rows } = await db.query("SELECT 1 FROM ai.usage_rate WHERE user_id = $1", [spent]);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("makes a split pay on its own when the turn's charge was given back or is stale", async () => {
     const user = randomUUID();
     const given = randomUUID();
     const charge = await consume(user, given, "intent");
     expect(await release(charge.usage_id)).toBe(true);
-    expect(await consume(user, given, "split")).toMatchObject({ allowed: false, reason: "unavailable" });
+    expect(await unitsUsed(user)).toBe(0);
+    expect(await consume(user, given, "split")).toMatchObject({ allowed: true });
+    expect(await unitsUsed(user)).toBe(1);
 
     const stale = randomUUID();
     await consume(user, stale, "intent");
     await db.query("UPDATE ai.usage_events SET created_at = now() - interval '3 minutes' WHERE turn_id = $1", [stale]);
-    expect(await consume(user, stale, "split")).toMatchObject({ allowed: false, reason: "unavailable" });
-    expect(await unitsUsed(user)).toBe(1);
+    expect(await consume(user, stale, "split")).toMatchObject({ allowed: true });
+    expect(await unitsUsed(user)).toBe(3);
   });
 
   it("keeps the unit when one call of a shared turn fails", async () => {
@@ -135,6 +172,14 @@ describe("the Edge functions use the shared charge", () => {
     const gate = split.indexOf('usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" })');
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(split.indexOf("const first = await ask("));
+  });
+
+  it("charges the question read on the same turn before its model calls", () => {
+    const read = readFileSync("supabase/functions/ai-read-question/index.ts", "utf8");
+    const gate = read.indexOf('consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" })');
+    expect(gate).toBeGreaterThan(-1);
+    expect(gate).toBeLessThan(read.indexOf("callModel({"));
+    expect(read).not.toContain("consumeCall(");
   });
 
   it("charges the classify call on the same turn", () => {

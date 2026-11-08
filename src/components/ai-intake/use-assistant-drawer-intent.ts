@@ -221,6 +221,8 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     source: string,
     searchDescriptions = false,
     family?: NonNullable<QuestionSlots["family"]>,
+    /** The asking message's turn. A later read (a chip, a family) has none and pays on its own. */
+    turn?: string,
   ) {
     const request = requestRef.current;
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
@@ -231,6 +233,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         calendar: questionCalendar,
         today: getCurrentLocalDate(),
         context: contextRef.current,
+        turn,
       });
       if (read) {
         periodHold.current = read.period;
@@ -354,7 +357,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     await showFiltered(next.question, next.filter, requestRef.current);
   }
 
-  function applyTurn(source: string, decision: TurnDecision) {
+  function applyTurn(source: string, decision: TurnDecision, turn?: string) {
     memoryRef.current = decision.nextState;
     if (decision.preferRabbi) preferRabbi.current = true;
     if (decision.mode === "ask") {
@@ -449,7 +452,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     if (decision.side === "inspiration") presentInspiration();
     else setInspiration(null);
     if (decision.needsQuestion) {
-      void loadDataAnswer(source);
+      void loadDataAnswer(source, false, undefined, turn);
       return;
     }
     if (decision.data.status === "skip") setDataReply(null);
@@ -520,7 +523,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       today,
       calendar: questionCalendar,
     });
-    applyTurn(source, decision);
+    applyTurn(source, decision, turn);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {

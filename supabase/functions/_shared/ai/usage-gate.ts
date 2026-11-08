@@ -2,8 +2,8 @@
 
 export type UsageKind = "text" | "receipt" | "speech";
 
-/** The classify and split calls of one text message bring the same turn and share its one charge. */
-export type UsageTurn = { id: string | null; op: "intent" | "split" };
+/** The classify, split and question calls of one text message bring the same turn and share its one charge. */
+export type UsageTurn = { id: string | null; op: "intent" | "split" | "question" };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

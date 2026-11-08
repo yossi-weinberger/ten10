@@ -501,6 +501,15 @@ CREATE FUNCTION ai.consume_call(p_user_id uuid) RETURNS jsonb
 DECLARE
   v_reason text;
 BEGIN
+  -- A helper call carries no weight, but it stops with the monthly allowance like every other call.
+  IF EXISTS (
+    SELECT 1 FROM ai.usage_counters
+    WHERE user_id = p_user_id
+      AND period_start = date_trunc('month', now() AT TIME ZONE 'UTC')::date
+      AND units_used >= ai.usage_quota(p_user_id)
+  ) THEN
+    RETURN jsonb_build_object('allowed', false, 'reason', 'quota_exhausted');
+  END IF;
   v_reason := ai.take_call(p_user_id);
   RETURN jsonb_build_object('allowed', v_reason IS NULL, 'reason', v_reason);
 END;
@@ -528,9 +537,10 @@ BEGIN
     RETURN jsonb_build_object('allowed', false, 'reason', v_reason, 'resets_at', v_resets);
   END IF;
 
-  -- One message, one charge: its classify and split calls bring the same turn, and the second one joins
-  -- the first one's charge. Each operation joins once, only while the charge is fresh and not given back.
-  -- The first call of a turn holds the row, so two calls that arrive together still charge once.
+  -- One message, one charge: its classify, split and question calls bring the same turn and join the
+  -- first call's charge. Each operation joins once, only while the charge is fresh and not given back;
+  -- otherwise the call pays on its own. The first call of a turn holds the row, so calls that arrive
+  -- together still charge once.
   IF p_turn IS NOT NULL THEN
     INSERT INTO ai.usage_events AS charge (user_id, kind, units, period_start, turn_id, ops)
     VALUES (p_user_id, p_kind, v_weight, v_period, p_turn, ARRAY[p_op])
@@ -540,9 +550,6 @@ BEGIN
       AND charge.created_at > now() - interval '2 minutes'
       AND NOT p_op = ANY (charge.ops)
     RETURNING id, cardinality(ops) > 1 INTO v_usage_id, v_joined;
-    IF v_usage_id IS NULL THEN
-      RETURN jsonb_build_object('allowed', false, 'reason', 'unavailable', 'resets_at', v_resets);
-    END IF;
     IF v_joined THEN
       RETURN jsonb_build_object('allowed', true, 'reason', NULL, 'usage_id', v_usage_id, 'resets_at', v_resets);
     END IF;

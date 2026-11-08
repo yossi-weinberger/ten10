@@ -5,7 +5,7 @@ import { readUsageDecision, type UsageDecision, type UsageKind, type UsageTurn }
 export interface UsageGate {
   /** Weighted use: one text message, receipt, or voice message. */
   consume(userId: string, kind: UsageKind, turn?: UsageTurn): Promise<UsageDecision>;
-  /** A follow-up model call with no weight, counted only against the minute and day caps. */
+  /** A helper model call with no weight: counted against the minute and day caps, refused once the month is used up. */
   consumeCall(userId: string): Promise<UsageDecision>;
   /** Gives the units back after the provider failed. */
   release(usageId: string | null): Promise<void>;
