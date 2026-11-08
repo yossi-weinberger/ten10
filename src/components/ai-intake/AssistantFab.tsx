@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,11 +13,11 @@ export function AssistantFab() {
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            className="size-14 rounded-full shadow-lg"
+            className="size-14 rounded-full shadow-lg [&_svg]:size-7"
             aria-label={t("menu.assistant")}
             onClick={requestAssistantOpen}
           >
-            <Sparkles className="size-6" aria-hidden />
+            <BotMessageSquare aria-hidden />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="top">{t("menu.assistant")}</TooltipContent>
