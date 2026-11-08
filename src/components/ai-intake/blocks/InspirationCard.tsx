@@ -1,7 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import type { InspirationView } from "@/lib/ai/inspiration-pick";
+import { KIND_TINT } from "./card-style";
+import { KindTag } from "./KindTag";
 
 export function InspirationCard({
   item,
@@ -16,7 +20,7 @@ export function InspirationCard({
   const [clipped, setClipped] = useState(false);
   const bodyRef = useRef<HTMLQuoteElement | null>(null);
 
-  // "Read more" only when the six folded lines really hide text, at the panel's current width.
+  // "Read more" only when the four folded lines really hide text, at the panel's current width.
   useLayoutEffect(() => {
     const element = bodyRef.current;
     if (!element || open) return;
@@ -30,24 +34,29 @@ export function InspirationCard({
   if (!item) return <p className="text-sm">{t("aiIntake.inspiration.empty")}</p>;
   const source = item.source.trim();
   return (
-    <figure className="rounded-xl bg-primary/5 p-4">
-      <figcaption className="text-sm font-medium">{item.title}</figcaption>
-      <blockquote ref={bodyRef} className={`mt-2 whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-6"}`}>
+    <Card className="grid gap-2 p-2.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <KindTag icon={BotMessageSquare} tint={KIND_TINT.knowledge}>{t("aiIntake.inspiration.tag")}</KindTag>
+        {source ? <span className="min-w-0 truncate text-xs text-muted-foreground" title={source}>{source}</span> : null}
+      </div>
+      <p className="text-sm font-medium">{item.title}</p>
+      <blockquote ref={bodyRef} className={`whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-4"}`}>
         {item.body}
       </blockquote>
-      {source ? <p className="mt-3 text-xs text-muted-foreground">{source}</p> : null}
-      <div className="mt-3 flex gap-2">
-        {clipped || open ? (
-          <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => setOpen((value) => !value)}>
-            {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
-          </Button>
-        ) : null}
-        {onAnother ? (
-          <Button type="button" variant="outline" size="sm" onClick={onAnother}>
-            {t("aiIntake.inspiration.another")}
-          </Button>
-        ) : null}
-      </div>
-    </figure>
+      {onAnother || clipped || open ? (
+        <div className="flex items-center gap-2">
+          {onAnother ? (
+            <Button type="button" variant="outline" size="sm" onClick={onAnother}>
+              {t("aiIntake.inspiration.another")}
+            </Button>
+          ) : null}
+          {clipped || open ? (
+            <Button type="button" variant="link" size="sm" className="ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
+              {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+    </Card>
   );
 }

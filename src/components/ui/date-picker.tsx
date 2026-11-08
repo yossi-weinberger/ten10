@@ -19,6 +19,7 @@ import {
   getCalendarNavigationBounds,
   parseLocalDate,
 } from "@/lib/utils/local-date";
+import { cn } from "@/lib/utils";
 import { Input } from "./input";
 import {
   formatGregorianDateInput,
@@ -77,10 +78,13 @@ export function DatePicker({
   setDate,
   minDate,
   onInputStatusChange,
+  compact = false,
 }: {
   date?: Date;
   setDate: (date?: Date) => void;
   minDate?: Date;
+  /** 32px tall, for the assistant's cards. */
+  compact?: boolean;
   onInputStatusChange?: (
     status: GregorianDateParseResult["status"],
     inputMethod: "typed" | "calendar"
@@ -292,7 +296,7 @@ export function DatePicker({
           commitInput(inputValueRef.current);
         }}
         readOnly={calendarType === "hebrew"}
-        className="bg-background pr-10"
+        className={cn("bg-background pr-10", compact && "h-8 pr-9")}
         data-ph-unmask-date="true"
         inputMode={calendarType === "hebrew" ? undefined : "numeric"}
         enterKeyHint={calendarType === "hebrew" ? undefined : "next"}
@@ -312,7 +316,7 @@ export function DatePicker({
           <Button
             type="button"
             variant="ghost"
-            className="absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0"
+            className={cn("absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0", compact && "right-1 size-6")}
           >
             <CalendarIcon className="size-4 text-muted-foreground" />
             <span className="sr-only">Open calendar</span>

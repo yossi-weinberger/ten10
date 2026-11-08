@@ -17,6 +17,22 @@ function blocks(overrides: Partial<ReplyState>): ReplyBlock[] {
   return buildReplyBlocks({ ...emptyReplyState(), ...overrides });
 }
 
+const RECURRING_DRAFT = {
+  amount: 200,
+  currency: "ILS",
+  type: "donation",
+  description: "כולל",
+  category: null,
+  paymentMethod: null,
+  frequency: "monthly",
+  calendarType: "gregorian",
+  startDate: "2026-11-01",
+  dayOfMonth: 1,
+  anchorMonthCode: null,
+  totalOccurrences: null,
+  alreadyCharged: false,
+} as const;
+
 const draftView = {
   draft,
   amountInput: "15",
@@ -264,6 +280,96 @@ export const ASSISTANT_GALLERY: GalleryScenario[] = [
       status: "saved",
       savedItemId: "item-1",
     }),
+  },
+  {
+    id: "saved-receipt",
+    title: "נשמר מקבלה",
+    history: [],
+    active: { kind: "receipt", fileName: "receipt.jpg", mimeType: "image/jpeg" },
+    activeBlocks: blocks({
+      intent: "add_transaction",
+      draft: { ...draftView, draft: { ...draft, description: "שופרסל דיל", amount: 286.4 }, amountInput: "286.4", duplicates: [] },
+      receiptArtifactId: "receipt-1",
+      status: "saved",
+      savedItemId: "item-2",
+    }),
+  },
+  {
+    id: "recurring-saved",
+    title: "הוראת קבע נשמרה",
+    history: [],
+    active: { kind: "text", text: "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש" },
+    activeBlocks: blocks({
+      intent: "create_recurring",
+      recurring: {
+        ...cardFromRecurringDraft({ ...RECURRING_DRAFT }),
+        saved: true,
+        savedId: "r1",
+        savedCreatedAt: new Date().toISOString(),
+      },
+      status: "recurringSaved",
+    }),
+  },
+  {
+    id: "split",
+    title: "פיצול",
+    history: [],
+    active: { kind: "receipt", fileName: "bank.png", mimeType: "image/png" },
+    activeBlocks: blocks({
+      intent: "add_transaction",
+      splitDropped: 1,
+      splitDrafts: [
+        { key: "a", description: "סופר יוחננוף", amount: 312.9, currency: "ILS", date: "2026-11-03", type: "expense", category: null, paymentMethod: null, isChomesh: false, checked: true, transactionId: null, itemId: null },
+        { key: "b", description: "קופת העיר", amount: 100, currency: "ILS", date: "2026-11-01", type: "donation", category: null, paymentMethod: null, isChomesh: false, checked: true, transactionId: "t1", itemId: null },
+        { key: "c", description: "העברה - מ. כהן", amount: 450, currency: "ILS", date: "2026-11-02", type: null, category: null, paymentMethod: null, isChomesh: false, checked: false, transactionId: null, itemId: null },
+      ],
+    }),
+  },
+  {
+    id: "balance",
+    title: "יתרת מעשר",
+    history: [],
+    active: { kind: "text", text: "כמה מעשר נשאר לי?" },
+    activeBlocks: blocks({ intent: "ask_data", dataReply: { status: "balance", total: 1240, maaser: 1050, chomesh: 190 } }),
+  },
+  {
+    id: "standing-orders",
+    title: "הוראות קבע פעילות",
+    history: [],
+    active: { kind: "text", text: "אילו הוראות קבע יש לי?" },
+    activeBlocks: blocks({
+      intent: "ask_data",
+      dataReply: {
+        status: "standing_orders",
+        rows: [
+          { id: "1", amount: 100, currency: "ILS", type: "donation", frequency: "monthly", description: "קופת העיר", dayOfMonth: 10 },
+          { id: "2", amount: 180, currency: "ILS", type: "expense", frequency: "monthly", description: "ועד הבית", dayOfMonth: 1 },
+        ],
+      },
+    }),
+  },
+  {
+    id: "inspiration",
+    title: "חיזוק",
+    history: [],
+    active: { kind: "text", text: "תן לי חיזוק" },
+    activeBlocks: blocks({
+      intent: "inspiration",
+      inspiration: {
+        id: "g1",
+        title: "נתון תיתן לו",
+        body: "נָתוֹן תִּתֵּן לוֹ וְלֹא יֵרַע לְבָבְךָ בְּתִתְּךָ לוֹ, כִּי בִּגְלַל הַדָּבָר הַזֶּה יְבָרֶכְךָ ה׳ אֱלֹהֶיךָ בְּכָל מַעֲשֶׂךָ וּבְכֹל מִשְׁלַח יָדֶךָ. כִּי לֹא יֶחְדַּל אֶבְיוֹן מִקֶּרֶב הָאָרֶץ, עַל כֵּן אָנֹכִי מְצַוְּךָ לֵאמֹר: פָּתֹחַ תִּפְתַּח אֶת יָדְךָ לְאָחִיךָ לַעֲנִיֶּךָ וּלְאֶבְיֹנְךָ בְּאַרְצֶךָ.",
+        source: "דברים טו, י–יא",
+      },
+    }),
+  },
+  {
+    id: "rabbi",
+    title: "שאלה לרב",
+    history: [],
+    active: { kind: "text", text: "מותר לשלם שכר לימוד מכספי מעשר?" },
+    // As in the app: the rabbi card comes with no intent line.
+    activeBlocks: blocks({ rabbiText: "מותר לשלם שכר לימוד של הילדים מכספי מעשר?" }),
   },
   {
     id: "thread",

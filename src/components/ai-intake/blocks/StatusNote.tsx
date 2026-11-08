@@ -1,19 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { CircleAlert, CircleCheck, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { STATUS_MESSAGES, type StatusKey } from "../assistant-reply-view";
-
-const TONE_ICON = {
-  success: CircleCheck,
-  error: CircleAlert,
-  info: Info,
-} as const;
-
-const TONE_CLASS = {
-  success: "text-success",
-  error: "text-destructive",
-  info: "text-muted-foreground",
-} as const;
+import { TONE_CLASS, TONE_ICON } from "./card-style";
 
 export function StatusNote({ status }: { status: StatusKey }) {
   const { t } = useTranslation(["navigation", "transactions"]);

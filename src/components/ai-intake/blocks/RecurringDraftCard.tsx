@@ -1,13 +1,15 @@
 import { useState, type ReactNode } from "react";
+import { Repeat } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { getCurrencySymbol, type CurrencyCode } from "@/lib/currencies";
-import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { formatLocalDate, getCurrentLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { formatCurrency } from "@/lib/utils/currency";
 import { parseDraftAmount } from "@/lib/ai/draft-amount";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
@@ -23,10 +25,8 @@ import {
   nextRecurringQuestion,
   recurringCancelOpen,
   recurringCardReady,
-  recurringShortDate,
   recurringTotalOccurrences,
   saveStartDate,
-  recurringSummaryPieces,
   unsupportedRecurringFrequency,
   upcomingRecurringDates,
   withRecurringDay,
@@ -37,8 +37,12 @@ import {
   type RecurringQuestion,
 } from "@/lib/ai/recurring-card";
 import { useDonationStore } from "@/lib/store";
+import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import { cn } from "@/lib/utils";
 import { ChoiceRow } from "./ChoiceRow";
 import { ChomeshToggle } from "./ChomeshToggle";
+import { SavedLine, type SavedFooter } from "./SavedLine";
+import { TypeTag } from "./TypeTag";
 import { TypeChoice } from "./TypeChoice";
 
 const CURRENCIES = SUPPORTED_CURRENCY_CODES;
@@ -90,6 +94,9 @@ function fieldLabelKey(field: RecurringEditField | "amount"): string {
   }
 }
 
+/** Edited in the card itself, like a draft's fields; "change a detail" opens the rest. */
+const INLINE_FIELDS: ReadonlySet<RecurringEditField> = new Set(["amount", "description", "start", "type"]);
+
 export function RecurringDraftCard({
   card,
   saving,
@@ -98,6 +105,7 @@ export function RecurringDraftCard({
   onSave,
   onDismiss,
   onCancel,
+  footer,
 }: {
   card: RecurringCard;
   saving: boolean;
@@ -106,11 +114,14 @@ export function RecurringDraftCard({
   onSave: () => void;
   onDismiss: () => void;
   onCancel: () => void;
+  /** A saved order's last line: its status, filled by the thread. */
+  footer?: SavedFooter;
 }) {
   const { t, i18n } = useTranslation("navigation");
   const formatDisplayDate = useDisplayDate();
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
+  const [amountText, setAmountText] = useState(card.amount === null ? "" : String(card.amount));
   const autoCalcChomesh = useDonationStore((state) => state.settings.autoCalcChomesh);
   const chomesh = card.isChomesh ?? autoCalcChomesh;
   const today = getCurrentLocalDate();
@@ -120,81 +131,94 @@ export function RecurringDraftCard({
   const ready = recurringCardReady(card, today);
   const question = nextRecurringQuestion(card);
   const blocked = unsupportedRecurringFrequency(card.frequency);
-  const showSummary = !blocked && question === null;
+  // Once the fields show, an amount being retyped keeps them; it must not swap the card back to the questions.
+  const [fieldsShown, setFieldsShown] = useState(false);
+  if (!blocked && question === null && !fieldsShown) setFieldsShown(true);
+  const showSummary = !blocked && (question === null || (question === "amount" && fieldsShown));
+  const editing = showSummary && !openField && !picking;
   const cancelOpen = card.saved
     && !card.cancelled
     && card.savedCreatedAt !== null
     && recurringCancelOpen(card.savedCreatedAt, card.executionCount, new Date());
-  const labels = {
-    type: card.type ? t(`aiIntake.types.${card.type}`) : "",
-    currency: getCurrencySymbol(card.currency),
-    amount: card.amount !== null && card.currency !== null
-      ? formatCurrency(card.amount, card.currency as CurrencyCode, i18n.language.toLowerCase().startsWith("en") ? "en" : "he")
-      : undefined,
-    start: start ? recurringShortDate(start, card.calendarType) : "",
-    lead: t("aiIntake.recurring.summaryLead"),
-    payeePrefix: t("aiIntake.recurring.summaryPayee"),
-    monthly: t("aiIntake.recurring.summaryMonthly"),
-    from: t("aiIntake.recurring.summaryFrom"),
-  };
+  const surface = card.type ? BASE_TYPE_SURFACE[baseTypeOf(card.type)] : undefined;
+  const amountLabel = card.amount !== null && card.currency !== null
+    ? formatCurrency(card.amount, card.currency as CurrencyCode, i18n.language.toLowerCase().startsWith("en") ? "en" : "he")
+    : null;
+  // What was typed, unless the amount changed elsewhere (a question, "change a detail").
+  const amountShown = parseDraftAmount(amountText) === card.amount ? amountText : card.amount === null ? "" : String(card.amount);
+  const payee = card.description.trim();
 
   function openOne(field: RecurringEditField) {
     setPicking(false);
     setOpenField(field);
   }
 
-  const summary = (
-    <p className="text-sm leading-8">
-      {recurringSummaryPieces(card, labels).map((piece, index) => {
-        if (piece.field === null || card.saved || locked) {
-          // A word joiner after "מ-" keeps "מ-1/12" on one line.
-          return <span key={index}>{piece.text.replace(/[-־]$/u, "$&⁠")}</span>;
-        }
-        const field = piece.field;
-        return (
-          <button
-            key={index}
-            type="button"
-            className={`-my-2 inline-block rounded py-2 underline decoration-dotted underline-offset-4 ${field === "description" ? "break-words text-start" : "whitespace-nowrap"}`}
-            onClick={() => openOne(field)}
-          >
-            {piece.text}
-          </button>
-        );
-      })}
-    </p>
+  // The order's first line: that it repeats, then its type.
+  const eyebrow = (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+      <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 font-semibold text-primary">
+        <Repeat className="size-3.5" aria-hidden />
+        {t("aiIntake.recurring.monthlyTag")}
+      </span>
+      {card.type ? (
+        <TypeTag
+          type={card.type}
+          variant="text"
+          disabled={locked}
+          onChange={locked ? undefined : (type) => onChange({ ...card, type })}
+        />
+      ) : null}
+      {card.paymentMethod ? <><span aria-hidden>·</span><span>{paymentLabel(t, card.paymentMethod)}</span></> : null}
+    </div>
   );
 
-  const dateList = dates.length > 0 ? (
-    <ul className="grid gap-1 text-sm text-muted-foreground">
+  const nextCharges = dates.length > 0 ? (
+    <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+      <span>{t("aiIntake.recurring.nextCharges")}</span>
       {dates.map((date) => (
-        <li key={date}>{formatDisplayDate(date, "numeric").primary}</li>
+        <span key={date} className="rounded-full bg-background/80 px-2 py-0.5 font-medium text-foreground">
+          <bdi>{formatDisplayDate(date, "short").primary}</bdi>
+        </span>
       ))}
-    </ul>
+    </div>
   ) : null;
 
   if (card.saved) {
     return (
-      <Card className="grid gap-3 p-3">
-        {summary}
-        {dateList}
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm" className="w-fit">
+      <Card className={cn("grid gap-1 p-2.5", surface)}>
+        {eyebrow}
+        <div className="flex min-w-0 items-baseline gap-2">
+          {amountLabel ? <p className="shrink-0 text-lg font-semibold tabular-nums"><bdi>{amountLabel}</bdi></p> : null}
+          <p className="min-w-0 truncate text-sm text-muted-foreground">
+            {t("aiIntake.recurring.perMonth")}
+            {payee ? ` · ${payee}` : ""}
+          </p>
+        </div>
+        {nextCharges}
+        <SavedLine status={footer?.status ?? "recurringSaved"}>
+          <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs">
             <Link to="/transactions-table/recurring-transactions">{t("aiIntake.recurring.openTable")}</Link>
           </Button>
           {cancelOpen ? (
-            <Button type="button" variant="outline" size="sm" disabled={!interactive || saving} onClick={onCancel}>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="ms-auto h-auto px-0 text-xs"
+              disabled={!interactive || saving}
+              onClick={onCancel}
+            >
               {t("aiIntake.recurring.cancel")}
             </Button>
           ) : null}
-        </div>
+        </SavedLine>
       </Card>
     );
   }
 
   if (blocked) {
     return (
-      <Card className="grid gap-3 p-3">
+      <Card className="grid gap-2 p-2.5">
         <p className="text-sm">{t("aiIntake.recurring.monthlyOnly")}</p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -214,15 +238,54 @@ export function RecurringDraftCard({
   }
 
   return (
-    <Card className="grid gap-3 p-3">
-      {showSummary ? summary : null}
-      {showSummary && card.paymentMethod ? (
-        <p className="text-sm text-muted-foreground">
-          {t("aiIntake.recurring.paymentMethod")}: {paymentLabel(t, card.paymentMethod)}
-        </p>
+    <Card className={cn("grid gap-2 p-2.5", surface)}>
+      {showSummary ? eyebrow : null}
+      {editing ? (
+        <>
+          {/* The amount is the headline, as on a draft. Its width follows the digits. */}
+          <label className="flex w-fit max-w-full items-baseline gap-1.5 border-b border-dashed border-input pb-0.5 focus-within:border-primary">
+            <input
+              value={amountShown}
+              inputMode="decimal"
+              dir="ltr"
+              aria-label={t("aiIntake.editAmount")}
+              disabled={locked}
+              className="h-9 min-w-0 border-0 bg-transparent p-0 text-2xl font-semibold tabular-nums shadow-none focus:outline-none focus:ring-0"
+              style={{ width: `${Math.max(2, amountShown.length) + 1}ch` }}
+              onChange={(event) => {
+                setAmountText(event.target.value);
+                onChange({ ...card, amount: parseDraftAmount(event.target.value) });
+              }}
+            />
+            <span className="text-lg text-muted-foreground">{getCurrencySymbol(card.currency)}</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("aiIntake.recurring.perMonth")}</span>
+          </label>
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_9.5rem] gap-2">
+            <Input
+              aria-label={t("aiIntake.editDescription")}
+              disabled={locked}
+              value={card.description}
+              className="h-8 bg-background text-base sm:text-sm"
+              onChange={(event) => onChange({ ...card, description: event.target.value })}
+            />
+            {/* The app's date picker, as on a draft: typed day/month, whatever the browser's locale. */}
+            <div className="flex min-w-0 items-center gap-1" aria-label={t("aiIntake.recurring.start")} role="group">
+              <span className="shrink-0 text-xs text-muted-foreground">{t("aiIntake.recurring.fromShort")}</span>
+              <DatePicker
+                compact
+                date={parseLocalDate(card.startDate ?? start ?? today)}
+                setDate={(date) => {
+                  if (!date || locked) return;
+                  const iso = formatLocalDate(date);
+                  if (iso !== card.startDate) onChange(withRecurringStart(card, iso));
+                }}
+              />
+            </div>
+          </div>
+          {nextCharges}
+        </>
       ) : null}
-      {showSummary ? dateList : null}
-      {question && !openField && !picking ? (
+      {question && !showSummary && !openField && !picking ? (
         <Question
           card={card}
           question={question}
@@ -235,7 +298,7 @@ export function RecurringDraftCard({
       {picking ? (
         <ChoiceRow
           prompt={t("aiIntake.recurring.changeDetail")}
-          options={RECURRING_EDIT_FIELDS.map((field) => ({
+          options={RECURRING_EDIT_FIELDS.filter((field) => !INLINE_FIELDS.has(field)).map((field) => ({
             value: field,
             label: t(fieldLabelKey(field)),
           }))}
@@ -267,10 +330,10 @@ export function RecurringDraftCard({
         </div>
       ) : null}
       {card.includeThisMonth === "yes" && !card.monthDuplicate && showSummary && start !== null && start >= today ? (
-        <p className="text-sm text-muted-foreground">{t("aiIntake.recurring.appearsTomorrow")}</p>
+        <p className="text-xs text-muted-foreground">{t("aiIntake.recurring.appearsTomorrow")}</p>
       ) : null}
-      {showSummary && !openField && !picking ? (
-        <div className="flex flex-wrap gap-2">
+      {editing ? (
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {card.type === "income" ? (
             <ChomeshToggle
               checked={chomesh}
@@ -278,11 +341,11 @@ export function RecurringDraftCard({
               onChange={(isChomesh) => onChange({ ...card, isChomesh })}
             />
           ) : null}
-          <Button type="button" size="sm" disabled={locked || !ready} onClick={onSave}>
-            {t("aiIntake.recurring.save")}
-          </Button>
           <Button type="button" size="sm" variant="outline" disabled={locked} onClick={() => setPicking(true)}>
             {t("aiIntake.recurring.changeDetail")}
+          </Button>
+          <Button type="button" size="sm" className="flex-1" disabled={locked || !ready} onClick={onSave}>
+            {t("aiIntake.recurring.save")}
           </Button>
         </div>
       ) : null}

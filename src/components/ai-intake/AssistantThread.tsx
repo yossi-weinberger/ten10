@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ArrowDown, BookOpen, ChartColumn, CreditCard, FileText, Mic, Receipt, Repeat, Scale, Sparkles } from "lucide-react";
+import { ArrowDown, BookOpen, BotMessageSquare, ChartColumn, CreditCard, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,7 +9,6 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Message, MessageAvatar, MessageContent } from "@/components/ui/message";
 import {
@@ -20,21 +19,52 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
+import { BASE_TYPE_TINT } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { AssistantMark } from "./AssistantMark";
+import { KIND_TINT } from "./blocks/card-style";
+import type { SavedFooter } from "./blocks/SavedLine";
 import { blockListVariants, fieldVariants, greetingKey, turnVariants } from "./assistant-motion";
 import type { AssistantTurn, ReplyBlock, UserTurn } from "./assistant-reply-view";
 import { ReplyBlockView, type ReplyHandlers } from "./ReplyBlockView";
 
-/** One chip per capability. "receipt" opens the file picker; the others send their text. */
+/** One chip per capability, its icon tinted like the cards it leads to. "receipt" opens the file picker; the others send their text. */
 const SUGGESTIONS = [
-  { key: "transaction", icon: CreditCard },
-  { key: "recurring", icon: Repeat },
-  { key: "receipt", icon: Receipt },
-  { key: "question", icon: ChartColumn },
-  { key: "balance", icon: Scale },
-  { key: "inspiration", icon: Sparkles },
-  { key: "halacha", icon: BookOpen },
+  { key: "transaction", icon: CreditCard, tint: BASE_TYPE_TINT.expense },
+  { key: "recurring", icon: Repeat, tint: BASE_TYPE_TINT.donation },
+  { key: "receipt", icon: Receipt, tint: KIND_TINT.neutral },
+  { key: "question", icon: ChartColumn, tint: KIND_TINT.knowledge },
+  { key: "balance", icon: Scale, tint: BASE_TYPE_TINT.donation },
+  { key: "inspiration", icon: BotMessageSquare, tint: KIND_TINT.knowledge },
+  { key: "halacha", icon: BookOpen, tint: KIND_TINT.knowledge },
 ] as const;
+
+/**
+ * A saved draft or standing order shows the turn's status, undo and receipt on its own last line.
+ * Returns the saved card's index (-1 when there is none) and that line.
+ */
+function savedCardFooter(blocks: ReplyBlock[], interactive: boolean, handlers: ReplyHandlers): { at: number; footer?: SavedFooter } {
+  const at = blocks.findIndex((block) => (block.kind === "draft" && block.view.locked) || (block.kind === "recurring" && block.card.saved));
+  if (at < 0) return { at };
+  let status: SavedFooter["status"] = null;
+  let undo = false;
+  let receiptId: string | null = null;
+  blocks.forEach((block, index) => {
+    if (block.kind === "receipt") receiptId = block.artifactId;
+    if (index <= at) return;
+    if (block.kind === "status") status = block.status;
+    if (block.kind === "undo") undo = true;
+  });
+  const artifactId: string | null = receiptId;
+  return {
+    at,
+    footer: {
+      status,
+      onOpenReceipt: artifactId ? () => handlers.onOpenReceipt(artifactId) : undefined,
+      onUndo: interactive && undo ? handlers.onUndo : undefined,
+      undoing: handlers.undoing,
+    },
+  };
+}
 
 function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
   if (turn.kind === "receipt") {
@@ -91,8 +121,8 @@ export function AssistantThread({
     return (
       // Scrolls; auto margins center it but keep the top reachable when the screen is short or the keyboard is open.
       <Empty className="h-full justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
+        {/* No mark here: the panel's header already shows it. */}
         <EmptyHeader className="mt-auto">
-          <AssistantMark size="md" />
           <EmptyTitle>{greeting}</EmptyTitle>
           <EmptyDescription>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
         </EmptyHeader>
@@ -110,26 +140,26 @@ export function AssistantThread({
           }}
         />
         <div className="mb-auto flex flex-wrap justify-center gap-2">
-          {SUGGESTIONS.filter(({ key }) => key !== "receipt" || onReceipt).map(({ key, icon: Icon }, index) => (
+          {SUGGESTIONS.filter(({ key }) => key !== "receipt" || onReceipt).map(({ key, icon: Icon, tint }, index) => (
             <motion.div
               key={key}
               initial={reduce ? false : { opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reduce ? 0 : index * 0.04, duration: 0.22 }}
             >
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
-                className="rounded-full"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => {
                   if (key === "receipt") fileRef.current?.click();
                   else onSuggestion(t(`aiIntake.suggestions.${key}`));
                 }}
               >
-                <Icon aria-hidden />
+                <span className={`inline-flex size-6 items-center justify-center rounded-full ${tint}`}>
+                  <Icon className="size-3.5" aria-hidden />
+                </span>
                 {t(`aiIntake.suggestions.${key}`)}
-              </Button>
+              </button>
             </motion.div>
           ))}
         </div>
@@ -149,6 +179,7 @@ export function AssistantThread({
           <MessageScrollerContent className="gap-6 px-4 py-4" role="log" aria-live="polite">
             {turns.map((turn) => {
               const scanning = turn.fresh && turn.blocks.some((block) => block.kind === "thinking" && block.phase === "receipt");
+              const saved = savedCardFooter(turn.blocks, turn.interactive, handlers);
               return (
                 <motion.div
                   key={turn.id}
@@ -179,7 +210,9 @@ export function AssistantThread({
                             animate="animate"
                           >
                             {turn.blocks.map((block, index) => {
-                              // "Saved" and its undo share one row.
+                              // These live on the saved card's last line.
+                              if (saved.at >= 0 && (block.kind === "receipt" || (index > saved.at && (block.kind === "status" || block.kind === "undo")))) return null;
+                              // Elsewhere, "Saved" and its undo share one row.
                               if (block.kind === "undo" && turn.blocks[index - 1]?.kind === "status") return null;
                               const next = turn.blocks[index + 1];
                               const undo = block.kind === "status" && next?.kind === "undo" && turn.interactive ? next : null;
@@ -189,7 +222,12 @@ export function AssistantThread({
                                   variants={reduce ? undefined : fieldVariants}
                                   className={undo ? "flex flex-wrap items-center justify-between gap-2" : undefined}
                                 >
-                                  <ReplyBlockView block={block} interactive={turn.interactive} handlers={handlers} />
+                                  <ReplyBlockView
+                                    block={block}
+                                    interactive={turn.interactive}
+                                    handlers={handlers}
+                                    footer={index === saved.at ? saved.footer : undefined}
+                                  />
                                   {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} /> : null}
                                 </motion.div>
                               );

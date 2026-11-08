@@ -72,7 +72,6 @@
     "askSpecialYes": "כן",
     "askSpecialNo": "לא",
     "splitList": "נראה כמו רשימה. אפשר לפתוח את הייבוא.",
-    "splitDropped": "מצאתי {{found}}. {{dropped}} לא זיהיתי בוודאות.",
     "splitSave": "שמור את המסומנים ({{count}})",
     "splitCheckDate": "בדוק תאריך",
     "checkAmount": "בדוק סכום",
@@ -117,8 +116,8 @@
     "frequencyUnsupported": "אפשר הוראת קבע יומית, שבועית, חודשית או שנתית.",
     "dataMixed": "יש יותר ממטבע אחד בשנה הזו. לא חיברתי אותם.",
     "dataFailed": "לא הצלחתי לחשב. לא נשמר.",
-    "categoryMissing": "לא מצאתי קטגוריה «{{topic}}». לחפש בתיאור התנועות?",
-    "recipientMissing": "לא מצאתי נמען «{{topic}}». לחפש בתיאור התנועות?",
+    "categoryMissing": "לא מצאתי קטגוריה \"{{topic}}\". לחפש בתיאור התנועות?",
+    "recipientMissing": "לא מצאתי נמען \"{{topic}}\". לחפש בתיאור התנועות?",
     "categorySearch": "חפש בתיאור",
     "allInPeriod": {
       "donation": "כל התרומות בתקופה",
@@ -142,9 +141,7 @@
     "ruleApprove": "אשר את הכלל",
     "ruleSaved": "הכלל נשמר. הוא יחול על תנועות חדשות בלבד.",
     "ruleFailed": "הכלל לא נשמר.",
-    "ruleSentence": "{{name}} · {{type}}. הכלל יחול רק על תנועות חדשות.",
     "ruleApplied": "לפי הכלל שהגדרת: {{name}}",
-    "halachaDisclaimer": "כך כתוב בדף ההלכה של Ten10. לשאלה אישית, פנה לרב.",
     "halachaLink": "לדף ההלכה",
     "rabbiSubject": "שאלה אישית",
     "rabbiReply": "התשובה תגיע אל {{email}}.",
@@ -164,12 +161,13 @@
       "done": "הכול שולם. אין יתרה למעשרות."
     },
     "standingOrders": {
-      "count_one": "יש לך הוראת קבע פעילה אחת.",
-      "count_two": "יש לך שתי הוראות קבע פעילות.",
-      "count_many": "יש לך {{count}} הוראות קבע פעילות.",
-      "count_other": "יש לך {{count}} הוראות קבע פעילות.",
       "none": "אין לך הוראות קבע פעילות.",
-      "open": "לטבלת הוראות הקבע"
+      "open": "לטבלת הוראות הקבע",
+      "tag": "הוראות קבע",
+      "active_one": "אחת פעילה",
+      "active_two": "שתיים פעילות",
+      "active_many": "{{count}} פעילות",
+      "active_other": "{{count}} פעילות"
     },
     "discarded": "בסדר, הכרטיס ירד.",
     "alreadySaved": "זה כבר נשמר, אז לא שיניתי אותו.",
@@ -237,10 +235,6 @@
       "askCurrency": "באיזה מטבע?",
       "askMonthly": "ליצור הוראת קבע חודשית?",
       "askDay": "באיזה יום בחודש?",
-      "summaryLead": "הוראת קבע: ",
-      "summaryPayee": " · ",
-      "summaryMonthly": ", כל חודש ב-",
-      "summaryFrom": ", החל מ-",
       "openTable": "לטבלת הוראות הקבע",
       "openEnded": "בלי סוף",
       "occurrences": "{{count}} פעמים",
@@ -274,7 +268,11 @@
       "categories": {
         "food": "אוכל",
         "transportation": "תחבורה"
-      }
+      },
+      "monthlyTag": "הוראת קבע חודשית",
+      "perMonth": "בכל חודש",
+      "nextCharges": "החיובים הבאים:",
+      "fromShort": "מ־"
     },
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",
@@ -290,9 +288,28 @@
     "inspiration": {
       "more": "קרא עוד",
       "less": "פחות",
-      "another": "עוד אחד",
-      "empty": "אין כרגע חיזוק בשפה הזו."
-    }
+      "another": "חיזוק נוסף",
+      "empty": "אין כרגע חיזוק בשפה הזו.",
+      "tag": "חיזוק"
+    },
+    "categoryLabel": "קטגוריה: {{name}}",
+    "recipientLabel": "נמען: {{name}}",
+    "splitCount_one": "תנועה אחת",
+    "splitCount_two": "שתי תנועות",
+    "splitCount_many": "{{count}} תנועות",
+    "splitCount_other": "{{count}} תנועות",
+    "splitUnsure_one": "אחת לא זוהתה בוודאות",
+    "splitUnsure_two": "שתיים לא זוהו בוודאות",
+    "splitUnsure_many": "{{count}} לא זוהו בוודאות",
+    "splitUnsure_other": "{{count}} לא זוהו בוודאות",
+    "splitAskType": "איזו תנועה?",
+    "ruleTag": "כלל חדש",
+    "ruleNewOnly": "רק לתנועות חדשות",
+    "halachaTag": "הלכה",
+    "halachaPersonal": "לשאלה אישית, פנה לרב.",
+    "rabbiTag": "שאלה לרב",
+    "rabbiIntro": "אין לשאלה הזו תשובה בדפי ההלכה. אפשר לשלוח אותה לרב, והתשובה תגיע אליך במייל.",
+    "duplicateTag": "כפילות"
   },
   "user": {
     "loading": "טוען...",

@@ -72,7 +72,6 @@
     "askSpecialYes": "Yes",
     "askSpecialNo": "No",
     "splitList": "This looks like a list. You can open import.",
-    "splitDropped": "Found {{found}}. {{dropped}} was not read for certain.",
     "splitSave": "Save the checked ones ({{count}})",
     "splitCheckDate": "Check the date",
     "checkAmount": "Check the amount",
@@ -132,9 +131,7 @@
     "ruleApprove": "Approve the rule",
     "ruleSaved": "The rule was saved. It applies only to new transactions.",
     "ruleFailed": "The rule was not saved.",
-    "ruleSentence": "{{name}} · {{type}}. The rule applies only to new transactions.",
     "ruleApplied": "According to your rule: {{name}}",
-    "halachaDisclaimer": "This is what Ten10's halacha page says. For a personal question, ask a rabbi.",
     "halachaLink": "Open the halacha page",
     "rabbiSubject": "A personal question",
     "rabbiReply": "The reply will come to {{email}}.",
@@ -154,10 +151,11 @@
       "done": "All paid. Nothing left to give."
     },
     "standingOrders": {
-      "count_one": "You have one active standing order.",
-      "count_other": "You have {{count}} active standing orders.",
       "none": "You have no active standing orders.",
-      "open": "Open the standing orders table"
+      "open": "Open the standing orders table",
+      "tag": "Standing orders",
+      "active_one": "1 active",
+      "active_other": "{{count}} active"
     },
     "discarded": "OK, I dropped that card.",
     "alreadySaved": "That one is already saved, so I did not change it.",
@@ -225,10 +223,6 @@
       "askCurrency": "Which currency?",
       "askMonthly": "Create a monthly standing order?",
       "askDay": "Which day of the month?",
-      "summaryLead": "Standing order: ",
-      "summaryPayee": " · ",
-      "summaryMonthly": ", every month on the ",
-      "summaryFrom": ", from ",
       "openTable": "Standing orders",
       "openEnded": "no end",
       "occurrences": "{{count}} times",
@@ -262,7 +256,11 @@
       "categories": {
         "food": "Food",
         "transportation": "Transportation"
-      }
+      },
+      "monthlyTag": "Monthly standing order",
+      "perMonth": "every month",
+      "nextCharges": "Next charges:",
+      "fromShort": "From"
     },
     "intents": {
       "add_transaction": "This looks like a transaction.",
@@ -278,9 +276,24 @@
     "inspiration": {
       "more": "Read more",
       "less": "Show less",
-      "another": "Another",
-      "empty": "There is no encouragement in this language yet."
-    }
+      "another": "More encouragement",
+      "empty": "There is no encouragement in this language yet.",
+      "tag": "Encouragement"
+    },
+    "categoryLabel": "Category: {{name}}",
+    "recipientLabel": "Recipient: {{name}}",
+    "splitCount_one": "1 transaction",
+    "splitCount_other": "{{count}} transactions",
+    "splitUnsure_one": "1 not read for certain",
+    "splitUnsure_other": "{{count}} not read for certain",
+    "splitAskType": "which type?",
+    "ruleTag": "New rule",
+    "ruleNewOnly": "New transactions only",
+    "halachaTag": "Halacha",
+    "halachaPersonal": "For a personal question, ask a rabbi.",
+    "rabbiTag": "Question for a rabbi",
+    "rabbiIntro": "Ten10's halacha pages don't answer this question. You can send it to a rabbi, and the answer will come by email.",
+    "duplicateTag": "Duplicate"
   },
   "user": {
     "loading": "Loading...",
