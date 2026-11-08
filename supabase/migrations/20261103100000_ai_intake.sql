@@ -2397,38 +2397,50 @@ CREATE FUNCTION public.list_ai_saved_duplicate_pairs() RETURNS jsonb
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'pg_catalog', 'public', 'ai'
     AS $$
-  WITH pairs AS (
+  -- ponytail: bounded work for a direct call: the latest 1000 transactions, at most 3 matches each
+  -- (≤ 1M comparisons, ≤ 3000 pairs). Older duplicates are out of reach and a flood of equal rows
+  -- shows a lower count; page by date if a full-history scan is ever needed.
+  WITH recent AS MATERIALIZED (
+    SELECT id, user_id, date, amount, upper(coalesce(currency, '')) AS currency, description, type
+    FROM public.transactions
+    WHERE user_id = auth.uid()
+      AND amount IS NOT NULL
+      AND amount <> 0
+    ORDER BY date DESC, id DESC
+    LIMIT 1000
+  ),
+  pairs AS (
     SELECT
       a.id::text AS left_id,
       a.date::text AS left_date,
       a.amount AS left_amount,
-      coalesce(a.currency, '') AS left_currency,
+      a.currency AS left_currency,
       left(coalesce(a.description, ''), 80) AS left_description,
       b.id::text AS right_id,
       b.date::text AS right_date,
       b.amount AS right_amount,
-      coalesce(b.currency, '') AS right_currency,
+      b.currency AS right_currency,
       left(coalesce(b.description, ''), 80) AS right_description,
       greatest(a.date, b.date) AS later_date
-    FROM public.transactions AS a
-    JOIN public.transactions AS b
-      ON b.user_id = a.user_id
-     AND b.id > a.id
-     AND b.type = a.type
-     AND upper(coalesce(b.currency, '')) = upper(coalesce(a.currency, ''))
-     AND b.date BETWEEN a.date - 3 AND a.date + 3
-    WHERE a.user_id = auth.uid()
-      AND a.amount IS NOT NULL
-      AND a.amount <> 0
-      AND b.amount BETWEEN least(a.amount * 0.98, a.amount * 1.02)
-        AND greatest(a.amount * 0.98, a.amount * 1.02)
-      AND NOT EXISTS (
-        SELECT 1
-        FROM ai.duplicate_dismissals AS dismissed
-        WHERE dismissed.user_id = a.user_id
-          AND dismissed.transaction_a = a.id
-          AND dismissed.transaction_b = b.id
-      )
+    FROM recent AS a
+    CROSS JOIN LATERAL (
+      SELECT candidate.*
+      FROM recent AS candidate
+      WHERE candidate.id > a.id
+        AND candidate.type = a.type
+        AND candidate.currency = a.currency
+        AND candidate.date BETWEEN a.date - 3 AND a.date + 3
+        AND candidate.amount BETWEEN least(a.amount * 0.98, a.amount * 1.02)
+          AND greatest(a.amount * 0.98, a.amount * 1.02)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ai.duplicate_dismissals AS dismissed
+          WHERE dismissed.user_id = a.user_id
+            AND dismissed.transaction_a = a.id
+            AND dismissed.transaction_b = candidate.id
+        )
+      LIMIT 3
+    ) AS b
   )
   SELECT jsonb_build_object(
     'count', (SELECT count(*) FROM pairs),
