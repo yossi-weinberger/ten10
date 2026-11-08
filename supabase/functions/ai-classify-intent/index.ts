@@ -6,7 +6,7 @@ import {
   JEV_DUPLICATE_MODEL,
   JEV_SYSTEMONE_URL,
 } from "../_shared/ai/jev-duplicate-rank.ts";
-import { buildIntentBody, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
+import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
@@ -88,6 +88,7 @@ Deno.serve(async (req: Request) => {
       count_confidence: null,
       halacha_page: page?.page ?? null,
       halacha_page_confidence: page?.confidence ?? null,
+      chomesh: readChomeshChoice(payload),
     }, 200);
   } catch {
     logger.error("jev intent failed");

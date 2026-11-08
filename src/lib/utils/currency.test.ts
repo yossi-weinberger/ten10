@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency } from "./currency";
+import { currencyFractionDigits, formatCurrency } from "./currency";
 
 // Intl output varies slightly between ICU versions (NBSP, RTL marks),
 // so assertions strip invisible characters and check content, not exact bytes.
@@ -55,5 +55,16 @@ describe("formatCurrency", () => {
     const out = clean(formatCurrency(0, "ILS", "he"));
     expect(out).toContain("0");
     expect(out).not.toMatch(/0[.,]0/);
+  });
+});
+
+// QA 2026-11-03: a data answer showed 6,289.10 above and 6,289.1 in the sentence.
+describe("currencyFractionDigits", () => {
+  it("gives the big number the decimals formatCurrency uses", () => {
+    const digits = currencyFractionDigits(6289.1);
+    const big = new Intl.NumberFormat("en", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(6289.1);
+    expect(big).toBe("6,289.1");
+    expect(clean(formatCurrency(6289.1, "ILS", "en"))).toContain("6,289.1");
+    expect(currencyFractionDigits(6289)).toBe(0);
   });
 });

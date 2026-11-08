@@ -9,6 +9,8 @@ export type IntentFallbackResult =
     confidence: number | null;
     halachaPage: string | null;
     halachaPageConfidence: number | null;
+    /** The message asked for chomesh on its income. */
+    chomesh?: boolean;
   }
   | { ok: false; reason: "UNAVAILABLE" };
 
@@ -29,6 +31,7 @@ export async function classifyIntentFallback(text: string, context = "", turn?: 
     confidence?: unknown;
     halacha_page?: unknown;
     halacha_page_confidence?: unknown;
+    chomesh?: unknown;
   };
   if (record.reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
   const intent = record.intent;
@@ -41,5 +44,6 @@ export async function classifyIntentFallback(text: string, context = "", turn?: 
     confidence: readConfidence(record.confidence),
     halachaPage: typeof record.halacha_page === "string" ? record.halacha_page : null,
     halachaPageConfidence: readConfidence(record.halacha_page_confidence),
+    chomesh: record.chomesh === true,
   };
 }

@@ -37,4 +37,13 @@ describe("cardsFromSplit", () => {
     expect(cards.map((card) => card.currency)).toEqual(["GBP", "GBP"]);
     expect(cards.map((card) => card.isChomesh)).toEqual([true, false]);
   });
+
+  it("marks chomesh on an income row when the message asked, whatever the setting", () => {
+    const [asked, unsaid] = cardsFromSplit([
+      { description: "משכורת", amount: 8000, currency: "ILS", date: "2026-11-01", typeHint: "income", chomesh: true },
+      { description: "בונוס", amount: 500, currency: "ILS", date: "2026-11-01", typeHint: "income" },
+    ], { autoCalcChomesh: false });
+    expect(asked?.isChomesh).toBe(true);
+    expect(unsaid?.isChomesh).toBe(false);
+  });
 });

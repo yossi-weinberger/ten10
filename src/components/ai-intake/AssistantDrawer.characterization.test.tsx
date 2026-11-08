@@ -323,6 +323,41 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.queryByText("aiIntake.title")).not.toBeInTheDocument();
   });
 
+  // QA 2026-11-03: "תוציא גם חומש" was not marked as chomesh.
+  it("marks chomesh on the income card when Jev heard the user ask for it", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "add_transaction", confidence: 0.95, chomesh: true });
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "משכורת",
+        amount: 8000,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "income",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "קיבלתי משכורת 8000, תוציא גם חומש");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    expect(ai.saveTextDraft.mock.calls[0][0]).toMatchObject({ type: "income", amount: 8000, isChomesh: true });
+  });
+
   it("turns a sentence with a verb and an amount into an editable draft and saves it", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
@@ -364,8 +399,98 @@ describe("AssistantDrawer characterization", () => {
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
     await send(user, "בעצם 20");
     await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
-    expect(ai.classifyIntentFallback.mock.calls[1][1]).toContain("On screen now: the last card was saved.");
+    expect(ai.classifyIntentFallback.mock.calls[1][1]).toContain(
+      "On screen now: one transaction, saved and still open to a correction: expense 15 ILS",
+    );
   });
+
+  function correctionRead() {
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      continues: true,
+      items: [{
+        description: "מאפים באליס",
+        amount: 15,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        typeHint: "donation",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+  }
+
+  // QA 2026-11-03: "זה תרומה" right after a save got "not sure what you meant".
+  it("replaces the saved transaction: undo first, then save, and the old one is no duplicate", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "t1", date: "2026-10-30", amount: 15, description: "מאפים באליס", kind: "transaction" },
+    ]);
+    correctionRead();
+    await send(user, "זה תרומה");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(ai.undoTextIntake.mock.invocationCallOrder[0]).toBeLessThan(ai.saveTextDraft.mock.invocationCallOrder[1]);
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ type: "donation", amount: 15 });
+    expect(ai.saveTextDraft.mock.calls[1][3]).toBeUndefined();
+    expect(screen.queryByText("aiIntake.duplicateWarning")).not.toBeInTheDocument();
+    // One "saved" in the history for the first save, one for the replacement.
+    await waitFor(() => expect(screen.getAllByText("aiIntake.saved")).toHaveLength(2));
+  }, 15_000);
+
+  it("saves nothing new when the saved transaction cannot be undone", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" });
+    ai.undoTextIntake.mockResolvedValue({ ok: false, reason: "NOT_ALLOWED" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    correctionRead();
+    await send(user, "זה תרומה");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    expect(await screen.findByText("aiIntake.undoNotAllowed")).toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+  }, 15_000);
+
+  it("says the old one is gone when the replacement save fails", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: false, reason: "SAVE_FAILED" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    correctionRead();
+    await send(user, "זה תרומה");
+    await clickSave(user);
+    expect(await screen.findByText("aiIntake.replacedNotSaved")).toBeInTheDocument();
+  }, 15_000);
 
   it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({

@@ -22,6 +22,14 @@ export function receiptTooLarge(mediaType: string, base64Chars: number): boolean
   return base64Chars > (mediaType === "application/pdf" ? RECEIPT_MAX_PDF_BASE64_CHARS : RECEIPT_MAX_BASE64_CHARS);
 }
 
+/**
+ * The copy step writes out the file's text. A 264 KB PDF timed out at 20 s on testing (2026-11-03),
+ * so a PDF waits longer. The Edge limit is 150 s, well above both.
+ */
+export function receiptCopyTimeoutMs(mediaType: string): number {
+  return mediaType === "application/pdf" ? 60_000 : 20_000;
+}
+
 export type ReceiptKind = "receipt" | "several_receipts" | "statement";
 
 const RULED_TYPES = ["exempt-income", "recognized-expense", "non_tithe_donation"] as const;

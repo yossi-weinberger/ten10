@@ -451,7 +451,10 @@ describe("decideTurn", () => {
     expect(openCardEvidence(withLiveCard(open, { ...live, draft: { ...fields, amount: null } }))).toBe("");
     const savedLate = withLiveCard(open, { draft: fields, recurring: null, saved: { itemId: "item-1" } });
     expect(savedLate.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
-    expect(openCardEvidence(savedLate)).toBe("");
+    // A saved single transaction can still be corrected, so its words keep backing its amount.
+    expect(openCardEvidence(savedLate)).toBe("חלב 120\n120");
+    const listSaved = withLiveCard(open, { draft: null, recurring: null, saved: { itemId: null } });
+    expect(openCardEvidence(listSaved)).toBe("");
     expect(openCardEvidence(rememberClosed(open))).toBe("");
   });
 
@@ -470,16 +473,165 @@ describe("decideTurn", () => {
     expect(openCardEvidence(order)).toBe("כל חודש 300 לעזר מציון\n300");
   });
 
-  it("says a continued card was already saved and keeps it as saved", () => {
-    const saved = rememberSaved(decideTurn(base()).nextState, "item-1");
+  it("says a continued list or standing order was already saved and keeps it as saved", () => {
+    const saved = rememberSaved(decideTurn(base()).nextState, null);
     const more = decideTurn(base({
       message: "בעצם 20",
       reader: { ok: true, route: "several", items: [item({ amount: 20 })], rule: null, question: null, continues: true },
       state: saved,
     }));
     expect(more.card.type).toBe("already_saved");
-    expect(more.nextState.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    expect(more.replaces).toBeNull();
+    expect(more.nextState.onScreen).toMatchObject({ kind: "saved" });
     expect(summarizeTurn(base(), more).kind).toBe("already_saved");
+  });
+
+  // QA 2026-11-03: "קפה 15", save, then "זה תרומה" got "not sure what you meant".
+  it("turns a correction of the saved transaction into a card that replaces it", () => {
+    const fields = { amount: 15, currency: "ILS", type: "expense", description: "קפה", date: "2026-11-01" };
+    const saved = rememberSaved(decideTurn(base({ message: "קפה 15" })).nextState, "item-1", fields);
+    expect(saved.onScreen?.line).toContain('saved and still open to a correction: expense 15 ILS, "קפה"');
+    expect(openCardEvidence(saved)).toBe("קפה 15\n15");
+    expect(contextFor(saved)).toContain("expense 15 ILS");
+    const correction = base({
+      message: "זה תרומה",
+      jev: { ok: true, intent: "out_of_scope", confidence: 0.85 },
+      reader: { ok: true, route: "several", items: [item({ amount: 15, typeHint: "donation", description: "קפה" })], rule: null, question: null, continues: true },
+      state: saved,
+    });
+    const decision = decideTurn(correction);
+    expect(decision.card.type).toBe("draft");
+    expect(decision.intent).toBe("add_transaction");
+    expect(decision.replaces).toBe("item-1");
+    expect(summarizeTurn(correction, decision)).toMatchObject({ kind: "draft", amount: 15, type: "donation" });
+    // A new message that does not continue the saved card replaces nothing.
+    const fresh = decideTurn({ ...correction, reader: { ok: true, route: "several", items: [item({ amount: 15, typeHint: "donation" })], rule: null, question: null } });
+    expect(fresh.replaces).toBeNull();
+    // An edited amount: the old words no longer back an amount.
+    const edited = rememberSaved(decideTurn(base({ message: "קפה 15" })).nextState, "item-1", { ...fields, amount: 18 });
+    expect(openCardEvidence(edited)).toBe("18");
+  });
+
+  // QA: "לאיזה מקומות?" after a data answer asked "for which period?".
+  it("asks a follow-up question about the period of the answer on screen", () => {
+    const question = (period: { kind: "span"; from: string; to: string } | null) => ({
+      slots: { family: "donation" as const, measure: "sum" as const, recipient: null, category: null, paymentMethod: null },
+      period,
+      nameText: null,
+    });
+    const answered = decideTurn(base({
+      message: "כמה תרמתי החודש?",
+      jev: { ok: true, intent: "ask_data", confidence: 0.99 },
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: question({ kind: "span", from: "2026-11-01", to: "2026-11-30" }),
+    }));
+    expect(answered.nextState.onScreen).toMatchObject({ kind: "data_answer", period: { from: "2026-11-01", to: "2026-11-30" } });
+    const follow = decideTurn(base({
+      message: "לאיזה מקומות?",
+      jev: { ok: true, intent: "ask_data", confidence: 0.99 },
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      question: question(null),
+      state: answered.nextState,
+    }));
+    expect(follow.data.status).toBe("ready");
+    if (follow.data.status === "ready") expect([follow.data.question.from, follow.data.question.to]).toEqual(["2026-11-01", "2026-11-30"]);
+    expect(follow.pending).toBeNull();
+  });
+
+  // QA: a personal halacha question that also read as a data question asked "for which period?".
+  it("shows the rabbi card instead of asking for a period when the question is personal", () => {
+    const decision = decideTurn(base({
+      message: "אני מתלבט אם מותר לי לקזז מהמעשר את שכר הלימוד של הבן שלי",
+      jev: { ok: true, intent: "ask_data", confidence: 0.9 },
+      reader: { ok: true, route: "unreadable" },
+      questionAttempted: true,
+      forcedIntent: "ask_data",
+      preferRabbi: true,
+      question: { slots: { family: "expense", measure: "sum", recipient: null, category: null, paymentMethod: null }, period: null, nameText: null },
+    }));
+    expect(decision.data.status).toBe("rabbi");
+    expect(decision.pending).toBeNull();
+    expect(summarizeTurn(base(), decision).kind).toBe("rabbi");
+  });
+
+  // QA: "ממה בדיוק מפרישים מעשר?" got "I can't" with Jev sure (1.0) and the page at 0.63.
+  it("shows Jev's best page when it is sure a published page answers the question", () => {
+    const sure = decideTurn(base({
+      message: "ממה בדיוק מפרישים מעשר?",
+      jev: { ok: true, intent: "domain_adjacent", confidence: 1, halachaPage: "income", halachaPageConfidence: 0.63 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(sure.publishedPage).toBe("income");
+    expect(summarizeTurn(base(), sure).kind).toBe("halacha");
+    const unsure = decideTurn(base({
+      jev: { ok: true, intent: "domain_adjacent", confidence: 0.5, halachaPage: "income", halachaPageConfidence: 0.63 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(unsure.publishedPage).toBeNull();
+  });
+
+  it("keeps the page on screen for a sure follow-up such as give an example", () => {
+    const shown = decideTurn(base({
+      message: "האם הכנסה משכר דירה חייבת במעשר",
+      jev: { ok: true, intent: "domain_adjacent", confidence: 0.6, halachaPage: "income", halachaPageConfidence: 0.83 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(shown.nextState.onScreen).toMatchObject({ kind: "halacha", page: "income" });
+    expect(contextFor(shown.nextState)).toContain("a published halacha page about income");
+    const example = decideTurn(base({
+      message: "תן דוגמה",
+      jev: { ok: true, intent: "domain_adjacent", confidence: 0.91, halachaPage: "none", halachaPageConfidence: 0.54 },
+      reader: { ok: true, route: "unreadable" },
+      state: shown.nextState,
+    }));
+    expect(example.publishedPage).toBe("income");
+    const fresh = decideTurn(base({
+      message: "תן דוגמה",
+      jev: { ok: true, intent: "domain_adjacent", confidence: 0.91, halachaPage: "none", halachaPageConfidence: 0.54 },
+      reader: { ok: true, route: "unreadable" },
+    }));
+    expect(fresh.publishedPage).toBeNull();
+  });
+
+  // QA: a rule request with no name or type looped on "זו נראית כמו בקשה לכלל".
+  it("remembers a rule request and takes the rule from the next message", () => {
+    const asked = decideTurn(base({
+      message: "אני רוצה ליצור כלל",
+      jev: { ok: true, intent: "create_rule", confidence: 0.88 },
+      reader: { ok: true, route: "several", items: [], rule: null, question: null },
+    }));
+    expect(asked.card.type).toBe("none");
+    expect(asked.pending?.kind).toBe("rule");
+    expect(asked.nextState.onScreen?.kind).toBe("rule");
+    expect(contextFor(asked.nextState)).toContain("waiting for: rule");
+    expect(summarizeTurn(base(), asked).kind).toBe("question");
+    const answer = decideTurn(base({
+      message: "גן הוא הוצאה מוכרת",
+      jev: { ok: true, intent: "add_transaction", confidence: 0.6 },
+      reader: { ok: true, route: "several", items: [], rule: { match: "גן", action: "recognized-expense" }, question: null },
+      state: asked.nextState,
+    }));
+    expect(answer.card).toEqual({ type: "rule", name: "גן", action: "recognized-expense" });
+    expect(answer.pending).toBeNull();
+    expect(answer.nextState.onScreen?.line).toContain('"גן" as recognized-expense');
+    // Chosen from "what is this message?": the same question, not a dead end.
+    const chosen = decideTurn(base({
+      message: "להבא כל מה שאני משלם לגן",
+      jev: { ok: true, intent: "create_rule", confidence: 0.52 },
+      reader: { ok: true, route: "several", items: [], rule: null, question: null },
+      forcedIntent: "create_rule",
+    }));
+    expect(chosen.pending?.kind).toBe("rule");
+  });
+
+  it("carries a stated chomesh into the summary", () => {
+    const input = base({
+      message: "קיבלתי משכורת 8000, תוציא גם חומש",
+      reader: { ok: true, route: "several", items: [item({ amount: 8000, typeHint: "income", description: "משכורת", chomesh: true })], rule: null, question: null },
+    });
+    expect(summarizeTurn(input, decideTurn(input)).chomesh).toBe(true);
   });
 
   it("continues an open draft even when Jev returns out_of_scope", () => {

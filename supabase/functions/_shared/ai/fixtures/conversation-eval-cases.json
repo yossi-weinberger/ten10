@@ -1275,6 +1275,184 @@
           }
         }
       ]
+    },
+    {
+      "id": "qa-01",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "קניתי קפה ב-15",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "זה תרומה",
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-02",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "כמה תרמתי החודש?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "לאיזה מקומות?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-03",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "האם מותר לשלם חובות ממעשר?",
+          "expect": {
+            "kind": "halacha",
+            "alsoOk": [
+              "rabbi"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-04",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "ממה בדיוק מפרישים מעשר?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-05",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "אני מתלבט אם מותר לי לקזז מהמעשר את שכר הלימוד של הבן שלי, מה עושים במקרה שלי?",
+          "expect": {
+            "kind": "rabbi"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-06",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "לאיזה מטרות אפשר לתרום",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-07",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "תעשה כלל שכל תשלום לגן הוא הוצאה מוכרת",
+          "expect": {
+            "kind": "rule"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-08",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "קיבלתי משכורת 8000, תוציא גם חומש",
+          "expect": {
+            "kind": "draft",
+            "amount": 8000,
+            "type": "income",
+            "chomesh": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-09",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "טיפול במוסך 500 תחבורה",
+          "expect": {
+            "kind": "draft",
+            "amount": 500,
+            "type": "expense",
+            "category": "transportation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-10",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "תרמתי 10 לעזר מציון",
+          "expect": {
+            "kind": "draft",
+            "amount": 10,
+            "type": "donation",
+            "description": "עזר מציון"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-11",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "כמה אחוז צריך לתת מעשר?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-12",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "האם צריך להפריש מעשר ממתנות?",
+          "expect": {
+            "kind": "halacha",
+            "alsoOk": [
+              "rabbi"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

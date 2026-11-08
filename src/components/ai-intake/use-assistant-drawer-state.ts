@@ -86,6 +86,10 @@ export function useAssistantDrawerState() {
   const recurringSaveId = useRef<{ signature: string; id: string } | null>(null);
   /** A duplicate-pair delete or dismiss in flight. */
   const pairActionBusy = useRef(false);
+  /** The last single transaction saved from a card, which a correction may replace. */
+  const savedTransaction = useRef<{ itemId: string; transactionId: string } | null>(null);
+  /** The saved transaction the open card corrects. Saving undoes it first. */
+  const replacing = useRef<{ itemId: string; transactionId: string } | null>(null);
   const previewUrls = useRef<string[]>([]);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
@@ -215,8 +219,10 @@ export function useAssistantDrawerState() {
         date: next.date,
         amount,
         currency: next.currency,
-      }).catch(() => []).then(async (rows) => {
+      }).catch(() => []).then(async (found) => {
         if (duplicateRequest.current !== request) return;
+        // The transaction this card replaces is not a duplicate of it.
+        const rows = found.filter((row) => row.id !== replacing.current?.transactionId);
         setDuplicatesPending(false);
         setDuplicates(rows);
         setDuplicatesRanked(false);
@@ -305,6 +311,8 @@ export function useAssistantDrawerState() {
     setReceiptArtifactId(null);
     setReceiptLink(null);
     idempotency.current = null;
+    savedTransaction.current = null;
+    replacing.current = null;
     setHistory([]);
     setActiveUser(null);
     setDuplicateActionFailed(false);
@@ -432,6 +440,7 @@ export function useAssistantDrawerState() {
     setIntentConfidence(null);
     held.current = null;
     idempotency.current = null;
+    replacing.current = null;
     setSlotHold(null);
   }
 
@@ -460,6 +469,8 @@ export function useAssistantDrawerState() {
     originalDraft,
     savedRecurring,
     recurringSaveId,
+    savedTransaction,
+    replacing,
     pairActionBusy,
     previewUrls,
     receiptArtifactId,
