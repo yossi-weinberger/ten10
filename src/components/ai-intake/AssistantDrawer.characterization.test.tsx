@@ -137,6 +137,14 @@ async function clickSave(user: ReturnType<typeof userEvent.setup>) {
   await user.click(save);
 }
 
+/** A share waits for the user: "read" sends the file to the AI. */
+async function readShared(user: ReturnType<typeof userEvent.setup>, file: File) {
+  await act(async () => {
+    receiveRef.current?.receive(file);
+  });
+  await user.click(await screen.findByRole("button", { name: "aiIntake.sharedRead" }));
+}
+
 function confident(intent: string) {
   ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent, confidence: 0.95 });
 }
@@ -703,9 +711,7 @@ describe("AssistantDrawer characterization", () => {
       artifactId: "art1",
     });
     const user = setup();
-    await act(async () => {
-      receiveRef.current?.receive(new File(["x"], "r.jpg", { type: "image/jpeg" }));
-    });
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.askType")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "aiIntake.viewReceipt" }).length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: "aiIntake.types.expense" }));
@@ -714,17 +720,13 @@ describe("AssistantDrawer characterization", () => {
 
   it("does not draft several receipts or a bank statement", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: true, route: "several_receipts" });
-    setup();
-    await act(async () => {
-      receiveRef.current?.receive(new File(["x"], "r.jpg", { type: "image/jpeg" }));
-    });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.severalReceipts")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
 
     ai.readReceiptImage.mockResolvedValue({ ok: true, route: "statement" });
-    await act(async () => {
-      receiveRef.current?.receive(new File(["x"], "s.pdf", { type: "application/pdf" }));
-    });
+    await readShared(user, new File(["x"], "s.pdf", { type: "application/pdf" }));
     expect(await screen.findByText("aiIntake.bankStatement")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "aiIntake.openImport" })).toHaveAttribute("href", "/transactions-table/import");
     expect(screen.queryByRole("button", { name: "aiIntake.types.expense" })).not.toBeInTheDocument();
@@ -795,20 +797,33 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows a provider failure for a receipt", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
+  });
+
+  it("puts shared text in the composer and sends it only on the user's Send", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await act(async () => {
+      receiveRef.current?.receiveText("קניתי מאפים באליס ב-15 שח");
+    });
+    expect(screen.getByRole("textbox", { name: "aiIntake.placeholder" })).toHaveValue("קניתי מאפים באליס ב-15 שח");
+    expect(ai.classifyIntentFallback).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("reads a shared file only after the user's OK, and drops it on dismiss", async () => {
     setup();
     await act(async () => {
       receiveRef.current?.receive(new File(["x"], "r.jpg", { type: "image/jpeg" }));
     });
-    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
-  });
-
-  it("submits shared text like a typed message", async () => {
-    confident("add_transaction");
-    setup();
-    await act(async () => {
-      receiveRef.current?.receiveText("קניתי מאפים באליס ב-15 שח");
-    });
-    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(screen.getByText("aiIntake.sharedFile")).toBeInTheDocument();
+    expect(ai.readReceiptImage).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "aiIntake.sharedDismiss" }));
+    expect(screen.queryByText("aiIntake.sharedFile")).not.toBeInTheDocument();
+    expect(ai.readReceiptImage).not.toHaveBeenCalled();
   });
 
   it("forgets the conversation when closed", async () => {
