@@ -180,6 +180,7 @@ describe("the Edge functions use the shared charge", () => {
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(read.indexOf("callModel({"));
     expect(read).not.toContain("consumeCall(");
+    expect(read).toContain("if (failedCalls === 2) await usage.release(allowed.usageId);");
   });
 
   it("charges the classify call on the same turn", () => {

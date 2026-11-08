@@ -86,9 +86,10 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { reason: "unavailable" }, 200);
 
   const prepStarted = Date.now();
+  const usage = serviceUsageGate();
   const [allowed, recipientCall, categoryCalls] = await Promise.all([
     // Two paid model calls: charged as the asking message's text, never as a free follow-up.
-    serviceUsageGate().consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" }),
+    usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" }),
     userClient.rpc("list_ai_recipients"),
     Promise.all(CATEGORY_TYPES.map((type) => userClient.rpc("get_user_categories", { p_type: type }))),
   ]);
@@ -102,6 +103,8 @@ Deno.serve(async (req: Request) => {
     ],
   };
 
+  /** The unit goes back only when both model calls failed, so nothing was billed. */
+  let failedCalls = 0;
   const slotsCall = (async () => {
     try {
       const request = buildQuestionSlotBody(text, lists, context);
@@ -125,6 +128,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`jev question slots failed: ${result.status ?? result.errorCode}`);
+        failedCalls += 1;
         return { slots: null, signals: {} as Record<string, number> };
       }
       return {
@@ -133,6 +137,7 @@ Deno.serve(async (req: Request) => {
       };
     } catch {
       logger.error("jev question slots failed");
+      failedCalls += 1;
       return { slots: null, signals: {} as Record<string, number> };
     }
   })();
@@ -156,6 +161,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!result.ok) {
         logger.error(`question period failed: ${result.status ?? result.errorCode}`);
+        failedCalls += 1;
         return { period: null, nameText: null as string | null };
       }
       const raw = readPeriodPayload(readModelText(result.payload));
@@ -169,12 +175,14 @@ Deno.serve(async (req: Request) => {
       return { period, nameText };
     } catch {
       logger.error("question period failed");
+      failedCalls += 1;
       return { period: null, nameText: null as string | null };
     }
   })();
   const modelStarted = Date.now();
   const [slotOutcome, read] = await Promise.all([slotsCall, periodCall]);
   const modelMs = Date.now() - modelStarted;
+  if (failedCalls === 2) await usage.release(allowed.usageId);
   const period = read.period;
   let slots = slotOutcome.slots;
   const bareName = anchoredQuestionName(text, read.nameText, []);
