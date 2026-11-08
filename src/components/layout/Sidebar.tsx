@@ -10,8 +10,7 @@ import {
   Book,
   Table,
   PieChart,
-  MessageSquare,
-  MessageSquarePlus,
+  MessageCircleQuestionMark,
 } from "lucide-react";
 import { ContactModal } from "@/components/features/contact";
 import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
@@ -90,7 +89,7 @@ export function Sidebar({
 
   useEffect(() => {
     // A share waits (it expires after a day) until the flag answers yes; no flag, no IndexedDB.
-    if (authLoading || platform === "loading" || !showAssistant) return;
+    if (inSheet || authLoading || platform === "loading" || !showAssistant) return;
     let cancelled = false;
     void takeSharedIntake().then((shared) => {
       if (cancelled || !shared) return;
@@ -101,7 +100,7 @@ export function Sidebar({
     return () => {
       cancelled = true;
     };
-  }, [authLoading, platform, showAssistant]);
+  }, [inSheet, authLoading, platform, showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -403,28 +402,15 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
+            {/* The assistant opens only from the floating button, so "Contact" lives in the menu. */}
             {showAssistant ? (
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full h-12 justify-start px-4"
-                onClick={() => setAssistantOpen(true)}
-              >
-                <MessageSquare className="h-6 w-6" />
-                <span className={expanded ? "ms-4" : "sr-only"}>
-                  {t("menu.assistant")}
-                </span>
-              </Button>
-            ) : null}
-            {/* The floating button belongs to the assistant here, so "Contact" lives in the menu. */}
-            {showAssistant ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full h-12 justify-start px-4"
+                className="w-full h-12 justify-start px-4 text-foreground [&_svg]:size-6"
                 onClick={() => setContactOpen(true)}
               >
-                <MessageSquarePlus className="h-6 w-6" />
+                <MessageCircleQuestionMark className="min-w-[24px] flex-shrink-0" />
                 <span className={expanded ? "ms-4" : "sr-only"}>
                   {t("menu.contact")}
                 </span>
@@ -558,7 +544,8 @@ export function Sidebar({
       <div className="mt-auto pt-4 border-t border-border/20 px-1">
         <PlatformIndicator expanded={expanded} />
       </div>
-      {showAssistant ? (
+      {/* Only the persistent sidebar holds the drawer; the floating button opens it on every screen size. */}
+      {showAssistant && !inSheet ? (
         <Suspense fallback={null}>
           <AssistantDrawer
             open={assistantOpen}
