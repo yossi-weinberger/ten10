@@ -122,6 +122,7 @@ When updating terms:
 ## UI/UX Notes
 
 - **Non-dismissible**: Modal cannot be closed by clicking outside or pressing Escape
+- **What's New**: while this modal is checking or open, the automatic What's New modal stays closed. The manual opener in Version Information is unaffected. Acceptance publishes `clear` on `termsGate` so What's New can run its own check. A failed terms lookup still resolves to `clear` and does not block the app.
 - **RTL Support**: Uses `text-start` for proper alignment in both LTR and RTL languages
 - **Accessibility**: Links to Terms and Privacy pages open in new tabs
 - **Responsive Design**: Uses Dialog (desktop) / Drawer (mobile) with **variant locking pattern** to prevent DOM errors when mobile keyboard changes viewport size. See `ui-component-guidelines.md` section 11 for details.
