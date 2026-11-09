@@ -57,6 +57,9 @@
       "halacha": "What do I give maaser from?"
     },
     "send": "Send",
+    "attach": "Attach",
+    "attachCamera": "Camera",
+    "attachImage": "Image or file",
     "receipt": "Receipt",
     "receiptTooLarge": "The file is too large. Nothing was saved.",
     "receiptUnreadable": "The receipt could not be read. Nothing was saved.",

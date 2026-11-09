@@ -57,6 +57,9 @@
       "halacha": "ממה מפרישים מעשר?"
     },
     "send": "שלח",
+    "attach": "צרף",
+    "attachCamera": "צלם",
+    "attachImage": "תמונה או קובץ",
     "receipt": "קבלה",
     "receiptTooLarge": "הקובץ גדול מדי. לא נשמר.",
     "receiptUnreadable": "לא הצלחתי לקרוא את הקבלה. לא נשמר.",
