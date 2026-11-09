@@ -15,6 +15,8 @@ vi.mock("@/lib/platformManager", () => ({
   getPlatform: () => getPlatform(),
 }));
 
+vi.mock("@/lib/ai/flags", () => ({ aiCallsAllowed: () => true }));
+
 import { openAiReceipt } from "./open-receipt";
 
 const project = "https://bbcllewcotypedqsnwmi.supabase.co";
