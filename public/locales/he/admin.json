@@ -162,7 +162,16 @@
       "billingWarning": "הקצאה מחיוב - דורש אישור",
       "manual": "ידני",
       "billing": "חיוב",
-      "never": "לעולם לא"
+      "never": "ללא תפוגה",
+      "loadError": "טעינת תוכניות המשתמשים נכשלה",
+      "userNotFound": "משתמש לא נמצא",
+      "planNotFound": "תוכנית לא נמצאה",
+      "billingRequiresForce": "לא ניתן לשנות הקצאת חיוב ללא אישור",
+      "expiryInPast": "תאריך תפוגה חייב להיות בעתיד",
+      "genericError": "אירעה שגיאה",
+      "expiryLabel": "תאריך תפוגה",
+      "noteLabel": "הערה",
+      "emailLabel": "אימייל"
     }
   },
   "posthog": {

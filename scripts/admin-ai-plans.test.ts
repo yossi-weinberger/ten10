@@ -116,12 +116,23 @@ describe("admin_set_user_plan", () => {
     expect(planRows[0].source).toBe("manual");
   });
 
+  it("trims email before matching", async () => {
+    const userId = await createUser("trimtest@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    const { rows } = await db.query<{ r: { user_id: string; plan: string } }>(
+      "SELECT public.admin_set_user_plan($1, $2) AS r",
+      ["  trimtest@example.com  ", "beta"],
+    );
+    expect(rows[0].r.user_id).toBe(userId);
+  });
+
   it("cannot set plan for unknown email", async () => {
     const userId = await createUser("admin@example.com");
     await setAdmin(userId);
     await expect(
       db.query("SELECT public.admin_set_user_plan($1, $2)", ["unknown@example.com", "beta"]),
-    ).rejects.toThrow(/User not found/);
+    ).rejects.toThrow(/USER_NOT_FOUND/);
   });
 
   it("cannot set unknown plan", async () => {
@@ -129,7 +140,21 @@ describe("admin_set_user_plan", () => {
     await setAdmin(userId);
     await expect(
       db.query("SELECT public.admin_set_user_plan($1, $2)", ["user2@example.com", "unknown"]),
-    ).rejects.toThrow(/Plan not found/);
+    ).rejects.toThrow(/PLAN_NOT_FOUND/);
+  });
+
+  it("rejects past expiry dates", async () => {
+    const userId = await createUser("pastexpiry@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    const pastDate = new Date("2020-01-01T00:00:00Z").toISOString();
+    await expect(
+      db.query("SELECT public.admin_set_user_plan($1, $2, $3::timestamptz)", [
+        "pastexpiry@example.com",
+        "beta",
+        pastDate,
+      ]),
+    ).rejects.toThrow(/EXPIRY_IN_PAST/);
   });
 
   it("cannot overwrite billing source without force", async () => {
@@ -145,7 +170,23 @@ describe("admin_set_user_plan", () => {
         "billing@example.com",
         "free",
       ]),
-    ).rejects.toThrow(/Cannot overwrite billing assignment/);
+    ).rejects.toThrow(/BILLING_REQUIRES_FORCE/);
+  });
+
+  it("cannot overwrite billing source with NULL force", async () => {
+    const userId = await createUser("billingnull@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, source) VALUES ($1, 'beta', 'billing')",
+      [userId],
+    );
+    await expect(
+      db.query("SELECT public.admin_set_user_plan($1, $2, NULL, NULL, NULL)", [
+        "billingnull@example.com",
+        "free",
+      ]),
+    ).rejects.toThrow(/BILLING_REQUIRES_FORCE/);
   });
 
   it("can overwrite billing source with force", async () => {
@@ -193,6 +234,18 @@ describe("admin_remove_user_plan", () => {
     expect(planRows).toHaveLength(0);
   });
 
+  it("trims email before matching", async () => {
+    const userId = await createUser("trimremove@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query("INSERT INTO public.user_plans (user_id, plan) VALUES ($1, 'beta')", [userId]);
+    const { rows } = await db.query<{ r: { deleted: boolean } }>(
+      "SELECT public.admin_remove_user_plan($1) AS r",
+      ["  trimremove@example.com  "],
+    );
+    expect(rows[0].r.deleted).toBe(true);
+  });
+
   it("cannot remove billing source without force", async () => {
     const userId = await createUser("billing3@example.com");
     await setAdmin(userId);
@@ -203,7 +256,20 @@ describe("admin_remove_user_plan", () => {
     );
     await expect(
       db.query("SELECT public.admin_remove_user_plan($1, false)", ["billing3@example.com"]),
-    ).rejects.toThrow(/Cannot remove billing assignment/);
+    ).rejects.toThrow(/BILLING_REQUIRES_FORCE/);
+  });
+
+  it("cannot remove billing source with NULL force", async () => {
+    const userId = await createUser("billingnullremove@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, source) VALUES ($1, 'beta', 'billing')",
+      [userId],
+    );
+    await expect(
+      db.query("SELECT public.admin_remove_user_plan($1, NULL)", ["billingnullremove@example.com"]),
+    ).rejects.toThrow(/BILLING_REQUIRES_FORCE/);
   });
 
   it("can remove billing source with force", async () => {

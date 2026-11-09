@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -22,30 +24,42 @@ import {
   type AdminUserPlan,
 } from "@/lib/data-layer/aiAdmin.service";
 
+function mapError(error: unknown, t: (key: string) => string): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const msg = String(error.message);
+    if (msg.includes("USER_NOT_FOUND")) return t("ai.userPlans.userNotFound");
+    if (msg.includes("PLAN_NOT_FOUND")) return t("ai.userPlans.planNotFound");
+    if (msg.includes("BILLING_REQUIRES_FORCE")) return t("ai.userPlans.billingRequiresForce");
+    if (msg.includes("EXPIRY_IN_PAST")) return t("ai.userPlans.expiryInPast");
+  }
+  return t("ai.userPlans.genericError");
+}
+
 export function AdminUserPlans() {
-  const { t, i18n } = useTranslation("admin");
+  const { t, i18n } = useTranslation(["admin", "common"]);
   const [plans, setPlans] = useState<AdminPlan[]>([]);
   const [userPlans, setUserPlans] = useState<AdminUserPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [removeDialog, setRemoveDialog] = useState<{ email: string; source: string } | null>(null);
   const [addEmail, setAddEmail] = useState("");
   const [addPlan, setAddPlan] = useState("");
   const [addExpiresAt, setAddExpiresAt] = useState("");
   const [addNote, setAddNote] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        setError(null);
+        setLoadError(null);
         const [plansData, userPlansData] = await Promise.all([fetchPlans(), fetchUserPlans()]);
         setPlans(plansData);
         setUserPlans(userPlansData);
       } catch {
-        setError(t("ai.userPlans.addError"));
+        setLoadError(t("ai.userPlans.loadError"));
       } finally {
         setLoading(false);
       }
@@ -56,30 +70,55 @@ export function AdminUserPlans() {
   const refreshData = async () => {
     try {
       setLoading(true);
-      setError(null);
+      setLoadError(null);
       const [plansData, userPlansData] = await Promise.all([fetchPlans(), fetchUserPlans()]);
       setPlans(plansData);
       setUserPlans(userPlansData);
     } catch {
-      setError(t("ai.userPlans.addError"));
+      setLoadError(t("ai.userPlans.loadError"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddUser = async () => {
-    if (!addEmail || !addPlan) return;
+    const trimmedEmail = addEmail.trim();
+    if (!trimmedEmail || !addPlan) return;
+    
+    setAddError(null);
     try {
       setSubmitting(true);
-      await addUserPlan(addEmail, addPlan, addExpiresAt || null, addNote || null, false);
+      // Convert date to end of day in Asia/Jerusalem if provided
+      let expiresAt: string | null = null;
+      if (addExpiresAt) {
+        const d = new Date(addExpiresAt + "T23:59:59");
+        // Convert to Asia/Jerusalem timezone (UTC+2 or UTC+3 depending on DST)
+        const formatter = new Intl.DateTimeFormat("en-US", {
+          timeZone: "Asia/Jerusalem",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        const parts = formatter.formatToParts(d);
+        const year = parts.find((p) => p.type === "year")?.value;
+        const month = parts.find((p) => p.type === "month")?.value;
+        const day = parts.find((p) => p.type === "day")?.value;
+        expiresAt = `${year}-${month}-${day}T23:59:59+02:00`;
+      }
+      await addUserPlan(trimmedEmail, addPlan, expiresAt, addNote.trim() || null, false);
       setShowAddDialog(false);
       setAddEmail("");
       setAddPlan("");
       setAddExpiresAt("");
       setAddNote("");
+      toast.success(t("ai.userPlans.addSuccess"));
       await refreshData();
-    } catch {
-      setError(t("ai.userPlans.addError"));
+    } catch (err) {
+      setAddError(mapError(err, t));
     } finally {
       setSubmitting(false);
     }
@@ -90,9 +129,10 @@ export function AdminUserPlans() {
       setSubmitting(true);
       await removeUserPlan(email, force);
       setRemoveDialog(null);
+      toast.success(t("ai.userPlans.removeSuccess"));
       await refreshData();
-    } catch {
-      setError(t("ai.userPlans.removeError"));
+    } catch (err) {
+      toast.error(mapError(err, t));
     } finally {
       setSubmitting(false);
     }
@@ -101,6 +141,11 @@ export function AdminUserPlans() {
   const formatDate = (date: string | null) => {
     if (!date) return t("ai.userPlans.never");
     return new Date(date).toLocaleDateString(i18n.language);
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
   };
 
   return (
@@ -113,14 +158,14 @@ export function AdminUserPlans() {
         </Button>
       </div>
 
-      {error ? (
+      {loadError ? (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{loadError}</AlertDescription>
         </Alert>
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">{t("loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("common:labels.loading")}</p>
       ) : userPlans.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("ai.userPlans.noUsers")}</p>
       ) : (
@@ -139,7 +184,7 @@ export function AdminUserPlans() {
             <tbody>
               {userPlans.map((row) => (
                 <tr key={row.user_id} className="border-t">
-                  <td className="py-2">{row.user_email}</td>
+                  <td className="py-2" dir="ltr">{row.user_email}</td>
                   <td>{row.plan}</td>
                   <td>{t(`ai.userPlans.${row.source}`)}</td>
                   <td>{formatDate(row.expires_at)}</td>
@@ -165,17 +210,26 @@ export function AdminUserPlans() {
           <DialogHeader>
             <DialogTitle>{t("ai.userPlans.addUser")}</DialogTitle>
           </DialogHeader>
+          {addError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{addError}</AlertDescription>
+            </Alert>
+          ) : null}
           <div className="space-y-4">
             <div>
+              <Label htmlFor="add-email">{t("ai.userPlans.emailLabel")}</Label>
               <Input
+                id="add-email"
+                dir="ltr"
                 placeholder={t("ai.userPlans.emailPlaceholder")}
                 value={addEmail}
                 onChange={(e) => setAddEmail(e.target.value)}
               />
             </div>
             <div>
+              <Label htmlFor="add-plan">{t("ai.userPlans.plan")}</Label>
               <Select value={addPlan} onValueChange={setAddPlan}>
-                <SelectTrigger>
+                <SelectTrigger id="add-plan">
                   <SelectValue placeholder={t("ai.userPlans.selectPlan")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,15 +242,19 @@ export function AdminUserPlans() {
               </Select>
             </div>
             <div>
+              <Label htmlFor="add-expiry">{t("ai.userPlans.expiryLabel")}</Label>
               <Input
+                id="add-expiry"
                 type="date"
-                placeholder={t("ai.userPlans.optional")}
+                min={getTodayDate()}
                 value={addExpiresAt}
                 onChange={(e) => setAddExpiresAt(e.target.value)}
               />
             </div>
             <div>
+              <Label htmlFor="add-note">{t("ai.userPlans.noteLabel")}</Label>
               <Input
+                id="add-note"
                 placeholder={t("ai.userPlans.notePlaceholder")}
                 value={addNote}
                 onChange={(e) => setAddNote(e.target.value)}
@@ -205,9 +263,9 @@ export function AdminUserPlans() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)} disabled={submitting}>
-              {t("cancel")}
+              {t("common:actions.cancel")}
             </Button>
-            <Button onClick={handleAddUser} disabled={!addEmail || !addPlan || submitting}>
+            <Button onClick={handleAddUser} disabled={!addEmail.trim() || !addPlan || submitting}>
               {t("ai.userPlans.addUser")}
             </Button>
           </DialogFooter>
@@ -226,7 +284,7 @@ export function AdminUserPlans() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveDialog(null)} disabled={submitting}>
-              {t("cancel")}
+              {t("common:actions.cancel")}
             </Button>
             <Button
               variant="destructive"

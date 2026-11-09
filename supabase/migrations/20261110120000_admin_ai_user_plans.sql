@@ -18,7 +18,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public', 'auth', 'pg_catalog'
+SET search_path TO 'pg_catalog', 'public', 'auth'
 AS $$
 BEGIN
   IF auth.uid() IS NULL THEN
@@ -58,7 +58,7 @@ CREATE FUNCTION public.admin_set_user_plan(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public', 'auth', 'pg_catalog'
+SET search_path TO 'pg_catalog', 'public', 'auth'
 AS $$
 DECLARE
   v_user_id uuid;
@@ -72,31 +72,40 @@ BEGIN
     RAISE EXCEPTION 'Access denied: Admin privileges required';
   END IF;
 
-  -- Resolve user by email (case-insensitive)
+  -- Resolve user by email (case-insensitive, trimmed)
   SELECT id INTO v_user_id
   FROM auth.users
-  WHERE lower(email) = lower(p_email)
+  WHERE lower(trim(both from email)) = lower(trim(both from p_email))
     AND deleted_at IS NULL;
 
   IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'User not found: %', p_email
-      USING ERRCODE = 'P0002';
+    RAISE EXCEPTION 'USER_NOT_FOUND'
+      USING DETAIL = p_email,
+            ERRCODE = 'P0002';
   END IF;
 
   -- Verify plan exists
   IF NOT EXISTS (SELECT 1 FROM public.plans WHERE plan = p_plan) THEN
-    RAISE EXCEPTION 'Plan not found: %', p_plan
-      USING ERRCODE = 'P0002';
+    RAISE EXCEPTION 'PLAN_NOT_FOUND'
+      USING DETAIL = p_plan,
+            ERRCODE = 'P0002';
   END IF;
 
-  -- Check if existing assignment is from billing
+  -- Reject past expiry dates (valid through the chosen day in Asia/Jerusalem)
+  IF p_expires_at IS NOT NULL AND p_expires_at < now() THEN
+    RAISE EXCEPTION 'EXPIRY_IN_PAST'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Check if existing assignment is from billing (with lock to avoid race)
   SELECT source INTO v_existing_source
   FROM public.user_plans
-  WHERE user_id = v_user_id;
+  WHERE user_id = v_user_id
+  FOR UPDATE;
 
-  IF v_existing_source = 'billing' AND NOT p_force THEN
-    RAISE EXCEPTION 'Cannot overwrite billing assignment without force flag'
-      USING ERRCODE = '23505';
+  IF v_existing_source = 'billing' AND NOT COALESCE(p_force, false) THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
   END IF;
 
   -- Upsert the assignment
@@ -130,7 +139,7 @@ CREATE FUNCTION public.admin_remove_user_plan(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public', 'auth', 'pg_catalog'
+SET search_path TO 'pg_catalog', 'public', 'auth'
 AS $$
 DECLARE
   v_user_id uuid;
@@ -145,21 +154,23 @@ BEGIN
     RAISE EXCEPTION 'Access denied: Admin privileges required';
   END IF;
 
-  -- Resolve user by email (case-insensitive)
+  -- Resolve user by email (case-insensitive, trimmed)
   SELECT id INTO v_user_id
   FROM auth.users
-  WHERE lower(email) = lower(p_email)
+  WHERE lower(trim(both from email)) = lower(trim(both from p_email))
     AND deleted_at IS NULL;
 
   IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'User not found: %', p_email
-      USING ERRCODE = 'P0002';
+    RAISE EXCEPTION 'USER_NOT_FOUND'
+      USING DETAIL = p_email,
+            ERRCODE = 'P0002';
   END IF;
 
-  -- Check if assignment is from billing
+  -- Check if assignment is from billing (with lock to avoid race)
   SELECT source INTO v_existing_source
   FROM public.user_plans
-  WHERE user_id = v_user_id;
+  WHERE user_id = v_user_id
+  FOR UPDATE;
 
   IF v_existing_source IS NULL THEN
     RETURN jsonb_build_object(
@@ -170,9 +181,9 @@ BEGIN
     );
   END IF;
 
-  IF v_existing_source = 'billing' AND NOT p_force THEN
-    RAISE EXCEPTION 'Cannot remove billing assignment without force flag'
-      USING ERRCODE = '23505';
+  IF v_existing_source = 'billing' AND NOT COALESCE(p_force, false) THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
   END IF;
 
   -- Delete the assignment

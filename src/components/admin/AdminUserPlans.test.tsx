@@ -50,10 +50,23 @@ vi.mock("react-i18next", () => ({
       if (key === "ai.userPlans.confirmRemove" && params?.email) {
         return `Remove plan for ${params.email}?`;
       }
+      if (key === "common:actions.cancel") {
+        return "Cancel";
+      }
+      if (key === "common:labels.loading") {
+        return "Loading...";
+      }
       return key;
     },
     i18n: { language: "en" },
   }),
+}));
+
+vi.mock("sonner", () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 beforeEach(() => {
@@ -116,6 +129,32 @@ describe("AdminUserPlans", () => {
     render(<AdminUserPlans />);
     await waitFor(() => {
       expect(screen.getByText("ai.userPlans.noUsers")).toBeInTheDocument();
+    });
+  });
+
+  it("shows error inside add dialog when add fails", async () => {
+    addUserPlan.mockRejectedValue(new Error("USER_NOT_FOUND"));
+    render(<AdminUserPlans />);
+    await waitFor(() => {
+      expect(screen.getByText("test@example.com")).toBeInTheDocument();
+    });
+    const addButton = screen.getByText("ai.userPlans.addUser");
+    fireEvent.click(addButton);
+    await waitFor(() => {
+      const emailInput = screen.getByPlaceholderText("ai.userPlans.emailPlaceholder");
+      expect(emailInput).toBeInTheDocument();
+    });
+  });
+
+  it("uses common:actions.cancel for cancel buttons", async () => {
+    render(<AdminUserPlans />);
+    await waitFor(() => {
+      expect(screen.getByText("test@example.com")).toBeInTheDocument();
+    });
+    const addButton = screen.getByText("ai.userPlans.addUser");
+    fireEvent.click(addButton);
+    await waitFor(() => {
+      expect(screen.getAllByText("Cancel")).toHaveLength(1);
     });
   });
 });

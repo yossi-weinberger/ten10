@@ -162,7 +162,16 @@
       "billingWarning": "Billing assignment - requires confirmation",
       "manual": "Manual",
       "billing": "Billing",
-      "never": "Never"
+      "never": "Never",
+      "loadError": "Failed to load user plans",
+      "userNotFound": "User not found",
+      "planNotFound": "Plan not found",
+      "billingRequiresForce": "Cannot modify billing assignment without confirmation",
+      "expiryInPast": "Expiry date must be in the future",
+      "genericError": "An error occurred",
+      "expiryLabel": "Expiry Date",
+      "noteLabel": "Note",
+      "emailLabel": "Email"
     }
   },
   "posthog": {
