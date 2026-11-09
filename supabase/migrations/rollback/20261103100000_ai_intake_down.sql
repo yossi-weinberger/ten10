@@ -327,7 +327,12 @@ ALTER TABLE public.recurring_transactions DROP COLUMN IF EXISTS origin;
 -- ---------------------------------------------------------------------------
 -- Receipt bucket
 -- ---------------------------------------------------------------------------
--- Hosted storage refuses SQL deletes of a bucket with files. Empty it through the Storage API first.
-DELETE FROM storage.buckets WHERE id = 'intake-artifacts';
+-- Not deleted here. Hosted Supabase refuses every SQL delete on storage tables (storage.protect_delete,
+-- 42501), even for an empty bucket, and that error aborted this whole rollback on the staging rehearsal
+-- (2026-11-09). After this file commits, empty and delete the bucket through the Storage API, service role:
+--   POST   <SUPABASE_URL>/storage/v1/bucket/intake-artifacts/empty
+--   DELETE <SUPABASE_URL>/storage/v1/bucket/intake-artifacts
+-- or in the dashboard: Storage, intake-artifacts, Empty bucket, then Delete bucket. Emptying is queued; if the
+-- delete says the bucket is not empty, wait for the empty to finish and delete again.
 
 RESET check_function_bodies;

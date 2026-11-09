@@ -15,7 +15,7 @@
   - גיבוי 47 השורות הישנות שמור אצל Claude ב־scratchpad.
 - **מה עוד לא נבדק:**
   1. התיקונים של #656 לא נבדקו באפליקציה, ופונקציות ה־Edge ב־testing עדיין בגרסה שלפני #656.
-  2. הקובץ המאוחד לא רץ על Postgres מאוחסן, רק מקומית.
+  2. ~~הקובץ המאוחד לא רץ על Postgres מאוחסן, רק מקומית.~~ נבדק ב־2026-11-09 בענף staging משוכפל מפרודקשן. ראו "תוצאות החזרה" בסוף שלב ב.
 - **מתג הניסוי** הוא עכשיו רק `AI_TRIAL_ONLY` ב־Edge (`supabase/functions/_shared/ai/trial-users.ts`). ב־SQL אין רשימה. שבעת משתמשי הניסוי קיימים בפרודקשן.
 
 ## 1. כללי ברזל
@@ -83,6 +83,8 @@
    SELECT cron.alter_job(jobid, active := false) FROM cron.job;
    -- לבדוק לאן ה-vault מצביע (כתובת בלבד, בלי המפתח)
    SELECT name, left(decrypted_secret, 45) FROM vault.decrypted_secrets WHERE name = 'functions_base_url';
+   -- בשכפול של 2026-11-09 הוא הצביע לפרודקשן, וב-vault יושב גם service_role_key של פרודקשן. להפנות לענף עצמו:
+   SELECT vault.update_secret(id, 'https://<STG>.supabase.co') FROM vault.secrets WHERE name = 'functions_base_url';
    -- ה-webhook של טופס יצירת הקשר
    DROP TRIGGER IF EXISTS "Trigger Contact Email" ON public.contact_messages;
    -- אופציונלי: מיילים בדויים לכל מי שאינו משתמש ניסוי
@@ -99,7 +101,7 @@
 
 4. **הרצת המיגרציה**, כמו ש־`db push` יעשה (קובץ אחד, טרנזקציה אחת):
    ```bash
-   (echo "BEGIN;"; cat supabase/migrations/20261103100000_ai_intake.sql; echo; echo "COMMIT;") > /tmp/ai_intake_tx.sql
+   (echo "BEGIN;"; cat supabase/migrations/20261103100000_ai_intake.sql; echo; echo "SELECT cron.alter_job(jobid, active := false) FROM cron.job WHERE jobname LIKE 'ai-%';"; echo "COMMIT;") > /tmp/ai_intake_tx.sql
    npx supabase db query --remote=<STG> --yes -f /tmp/ai_intake_tx.sql
    npx supabase db query --remote=<STG> --yes "INSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('20261103100000', 'ai_intake')"
    ```
@@ -109,9 +111,10 @@
    SELECT jobname FROM cron.job WHERE jobname LIKE 'ai-%' ORDER BY 1;           -- 3 jobs
    SELECT id, public FROM storage.buckets WHERE id = 'intake-artifacts';        -- false
    SELECT to_regprocedure('ai.is_trial_user(uuid)');                            -- NULL
-   SELECT pg_get_function_identity_arguments('public.get_user_transactions'::regproc); -- 14 args, last p_origin
+   SELECT pronargs FROM pg_proc WHERE proname = 'get_user_transactions' AND pronamespace = 'public'::regnamespace ORDER BY 1; -- 9, 12, 14
    ```
-   ה־cron החדש של ה־AI נוצר כשהוא פעיל. לכבות גם אותו: `SELECT cron.alter_job(jobid, active := false) FROM cron.job WHERE jobname LIKE 'ai-%';`
+   - ה־cron החדש של ה־AI נוצר כשהוא פעיל. בגלל זה הפקודה למעלה מכבה אותו באותה טרנזקציה, כך שהוא לא רץ אפילו רגע.
+   - ל־`get_user_transactions` יש גם גרסאות ישנות עם 9 ועם 12 ארגומנטים, שקיימות גם בפרודקשן וגם ב־testing. בגללן `::regproc` נכשל ב־"more than one function", ולכן בודקים לפי מספר הארגומנטים.
 
 5. **פריסת כל 19 הפונקציות**, כמו `supabase/scripts/deploy-changed-functions.sh`. `--no-verify-jwt` רק ל־`process-email-request`. כך בודקים גם את ה־redeploy של הפונקציות הקיימות.
    ```bash
@@ -131,17 +134,41 @@
    npx supabase db query --remote=<STG> --yes -f /tmp/ai_down_tx.sql
    npx supabase db query --remote=<STG> --yes "DELETE FROM supabase_migrations.schema_migrations WHERE version = '20261103100000'"
    ```
+   ה־bucket נמחק אחרי ה־SQL דרך ה־Storage API (מפתח service role), כי Supabase חוסם כל מחיקה ב־SQL מטבלאות storage:
+   ```bash
+   curl -X POST   "https://<STG>.supabase.co/storage/v1/bucket/intake-artifacts/empty" -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE"
+   curl -X DELETE "https://<STG>.supabase.co/storage/v1/bucket/intake-artifacts"       -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE"
+   ```
    ואז לבדוק:
    - אין `ai`.
-   - `get_user_transactions` חזרה ל־13 ארגומנטים.
+   - `get_user_transactions` חזרה ל־9, 12 ו־13 ארגומנטים.
    - דף התנועות עובד: `SELECT public.get_user_transactions(<uuid של משתמש ניסוי>, 0, 5, NULL, NULL, NULL, NULL, 'date', 'desc', NULL, NULL, NULL, NULL);`
-   - ה־bucket נמחק. אם Storage מסרב, לרוקן ולמחוק דרך ה־Dashboard.
+   - אין bucket בשם `intake-artifacts`.
 
    אחר כך להריץ שוב את שלב 4 (המיגרציה עולה גם אחרי rollback).
 
 8. **מחיקה:** `npx supabase branches delete ai-staging --remote=flpzqbvbymoluoeeeofg`
 
 9. **דו"ח קצר:** מה עבר, מה נכשל, כמה זמן הענף חי, והמלצת go/no-go.
+
+### תוצאות החזרה (2026-11-09, `feat/ai-intake` ‏ff990143)
+
+ענף `ai-staging` (micro, משוכפל מפרודקשן עם נתונים: 666 משתמשים, 20,298 תנועות) חי בערך שעה ונמחק.
+
+- **נטרול:** 4 crons כובו. `functions_base_url` הצביע לפרודקשן והופנה לענף. ה־webhook "Trigger Contact Email" הוסר. 659 מיילים של מי שאינם משתמשי ניסוי הוחלפו בכתובות `@example.test`. בענף לא היו סודות SES או AI, חוץ ממפתח ה־Gateway שיוסי הגדיר.
+- **מיגרציה:** עברה בטרנזקציה אחת, ב־7 שניות. כל הבדיקות של שלב 4 עברו.
+- **פריסה:** כל 19 הפונקציות. בעשר הפונקציות שאינן AI, הגדרת ה־JWT זהה לפרודקשן.
+- **עשן:** משתמש ניסוי קיבל `add_transaction` ו־`ask_data` מקריאה אמיתית למודל. משתמש רגיל קיבל `null`. בלי JWT או עם anon התקבל 401.
+- **rollback:** בפעם הראשונה **נכשל**: `DELETE FROM storage.buckets` נחסם (42501), וכל ה־rollback בוטל. תוקן בקובץ ה־rollback, שמוחק עכשיו את ה־bucket דרך ה־Storage API. אחרי זה הענף חזר בדיוק לפרודקשן: 184 מיגרציות, בלי `ai`, בלי עמודות `origin`.
+- **הרצה חוזרת:** המיגרציה עלתה שוב, ובדיקת העשן עברה שוב.
+- **שום דבר ישן לא נשבר:** 27 קריאות שהאפליקציה של `main` עושה (RPC וקריאות REST, כולל מסכי האדמין) רצו כאותו משתמש באותם נתונים, לפני המיגרציה ואחריה.
+  - 21 החזירו תוצאה זהה לגמרי.
+  - `get_user_transactions`: אותן 338 תנועות, באותו סדר ובאותם ערכים. התווספו שני שדות, `origin` ו־`receipt_expires_at`.
+  - `get_admin_dashboard_stats`: התווספו `ai_transactions` ו־`ai_users`.
+  - הכתיבות של הטופס הישן עברו: הוספה, עדכון, עדכון מרובה, מחיקה ומחיקה מרובה של תנועות; הוספה, עדכון ומחיקה של הוראת קבע; וטופס יצירת קשר.
+  - `process-recurring-transactions` חייב הוראת קבע שהגיע מועדה, יצר תנועה עם `origin` ריק וקידם את התאריך.
+- **קוד Edge ישן:** עשר הפונקציות שאינן AI זהות ל־`main`. השתנו רק `_shared/cors.ts` (אותם origins, Preview רק ב־testing) והוספת `zod` ל־import map.
+- **המלצה:** go ל־`main`, עם קובץ ה־rollback המתוקן.
 
 ## 4. שלב ג: לפני ה־PR ל־`main` (יוסי)
 
@@ -173,7 +200,7 @@
   - ב־GitHub: שני ה־jobs ב־workflow ירוקים.
 - **אם משהו נשבר** (רק יוסי, כתיבה לפרודקשן):
   1. Vercel: Instant Rollback לפריסה הקודמת.
-  2. DB: להריץ את `rollback/20261103100000_ai_intake_down.sql` בטרנזקציה ואז `DELETE FROM supabase_migrations.schema_migrations WHERE version = '20261103100000'`. ה־rollback מוחק את כל נתוני ה־AI; תנועות שנשמרו נשארות.
+  2. DB: להריץ את `rollback/20261103100000_ai_intake_down.sql` בטרנזקציה ואז `DELETE FROM supabase_migrations.schema_migrations WHERE version = '20261103100000'`. ה־rollback מוחק את כל נתוני ה־AI; תנועות שנשמרו נשארות. אחריו לרוקן ולמחוק את ה־bucket ‏`intake-artifacts` דרך ה־Storage API או ה־Dashboard, כמו בשלב ב, סעיף 7.
   3. Edge: `git revert` לקומיט המיזוג ב־`main`. ה־workflow יפרוס שוב את הגרסאות הקודמות.
 
 ## 6. שלב ה: הדלקה הדרגתית בפרודקשן
