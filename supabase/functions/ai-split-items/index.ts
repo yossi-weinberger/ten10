@@ -1,8 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
-import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
   });
   const { data: userData, error: userError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
+  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { reason: "unavailable" }, 200);
 
   const body = await req.json().catch(() => null) as {
     text?: unknown;
@@ -91,7 +91,10 @@ Deno.serve(async (req: Request) => {
     usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" }),
   ]);
   const prepMs = Date.now() - prepStarted;
-  if (!firstGate.allowed) return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
+  if (!firstGate.allowed) {
+    if (firstGate.reason === "not_allowed") return json(origin, { reason: "unavailable" }, 200);
+    return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
+  }
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const conversation = readContextField(body?.context);
   const promptContext: SplitPromptContext = { ...lists.context, timeZone: zone, calendar, ...(conversation ? { conversation } : {}) };

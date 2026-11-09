@@ -1,8 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
-import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 const BUCKET = "intake-artifacts";
 const URL_SECONDS = 300;
@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
   const artifactId = typeof body?.artifact_id === "string" ? body.artifact_id : "";
   // A receipt already saved on a transaction stays viewable when AI is off or the trial ends.
   const savedReceipt = transactionId !== "" && artifactId === "";
-  if ((!savedReceipt && (!isAiIntakeEnabled() || !isTrialUser(userData.user.id))) || !serviceKey || !supabaseUrl) {
+  if ((!savedReceipt && (!isAiIntakeEnabled() || !(await aiUserAllowed(userData.user.id)))) || !serviceKey || !supabaseUrl) {
     return json(origin, { url: null, reason: "unavailable" }, 200);
   }
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

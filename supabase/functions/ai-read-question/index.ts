@@ -2,8 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
+import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
-import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!isTrialUser(userData.user.id)) return json(origin, { reason: "unavailable" }, 200);
+  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { reason: "unavailable" }, 200);
 
   const body = await req.json().catch(() => null) as {
     text?: unknown;
@@ -94,7 +94,10 @@ Deno.serve(async (req: Request) => {
     Promise.all(CATEGORY_TYPES.map((type) => userClient.rpc("get_user_categories", { p_type: type }))),
   ]);
   const prepMs = Date.now() - prepStarted;
-  if (!allowed.allowed) return json(origin, { reason: allowed.reason, prep_ms: prepMs }, 200);
+  if (!allowed.allowed) {
+    if (allowed.reason === "not_allowed") return json(origin, { reason: "unavailable" }, 200);
+    return json(origin, { reason: allowed.reason, prep_ms: prepMs }, 200);
+  }
   const lists = {
     recipients: namesFrom(recipientCall.data),
     categories: [

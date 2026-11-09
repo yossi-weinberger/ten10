@@ -71,7 +71,7 @@ export async function splitItems(
     continues?: unknown;
     discards?: unknown;
   };
-  if (body.reason === "unavailable" || body.reason === "quota_exhausted" || body.reason === "rate_limited" || body.reason === "daily_limit") {
+  if (body.reason === "unavailable" || body.reason === "quota_exhausted" || body.reason === "rate_limited" || body.reason === "daily_limit" || body.reason === "not_allowed") {
     return { ok: false, reason: "UNAVAILABLE" };
   }
   const usageId = usageIdOf(body);
