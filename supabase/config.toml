@@ -14,6 +14,10 @@ verify_jwt = false
 # Admin monitoring endpoint - requires valid JWT for admin access verification
 verify_jwt = true
 
+[functions.get-ai-admin-spend]
+# Admin AI spend. Requires a valid JWT, then checks admin_emails.
+verify_jwt = true
+
 [functions.send-new-user-email]
 # Daily summary email - requires service_role JWT (pg_cron uses service_role from Vault)
 verify_jwt = true
@@ -25,4 +29,14 @@ import_map = "./functions/deno.json"
 
 [functions.process-recurring-transactions]
 import_map = "./functions/deno.json"
+
+[functions.ai-read-question]
+import_map = "./functions/deno.json"
+
+[functions.ai-read-receipt]
+import_map = "./functions/deno.json"
+
+[functions.ai-split-items]
+import_map = "./functions/deno.json"
+
 

@@ -43,6 +43,8 @@ export interface AdminEngagementStats {
   avg_transactions_per_user: number;
   total_transactions: number;
   users_with_transactions: number;
+  ai_transactions?: number;
+  ai_users?: number;
 }
 
 export interface AdminSystemStats {

@@ -1,13 +1,7 @@
-import { MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ContactModal } from "@/components/features/contact";
 // Tauri APIs will be called via a command, not imported directly
 // import { getVersion } from '@tauri-apps/api/app'
@@ -24,45 +18,33 @@ import { Mail, Bug, ClipboardCopy } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { cn } from "@/lib/utils";
 
-const ContactFAB = () => {
+/**
+ * "Contact", opened from the side menu: the contact form on the web, the copy-email dialog in the desktop app.
+ */
+export function ContactDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { t, i18n } = useTranslation("contact");
   const { platform } = usePlatform();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDesktopChoiceOpen, setIsDesktopChoiceOpen] = useState(false);
-  const [desktopInfo, setDesktopInfo] = useState({
-    body: "",
-    appVersion: "",
-    osPlatform: "",
-  });
+  const isDesktopChoiceOpen = platform === "desktop" && open;
+  const [desktopInfo, setDesktopInfo] = useState({ body: "" });
 
-  const prepareDesktopInfo = useCallback(async () => {
-    if (platform !== "desktop" || !isDesktopChoiceOpen) {
-      return;
-    }
-
-    try {
-      const clientInfo = await getDesktopClientInfo();
-
-      const { os, osVersion, arch, appVersion } = clientInfo;
-
-      const body = `\n\nApp Version: ${appVersion}\nOS: ${os}\nOS Version: ${osVersion}\nArchitecture: ${arch}\nLanguage: ${
-        i18n.language
-      }\nDate: ${new Date().toISOString()}`;
-
-      setDesktopInfo({ body, appVersion, osPlatform: os });
-    } catch (error) {
-      console.error("Failed to get platform info:", error);
-    }
-  }, [platform, isDesktopChoiceOpen, i18n.language]);
-
+  // The app details for a bug report, read when the desktop dialog opens.
   useEffect(() => {
-    // Only run when dialog is open and platform is desktop
-    if (platform === "desktop" && isDesktopChoiceOpen) {
-      prepareDesktopInfo();
-    }
-  }, [isDesktopChoiceOpen, platform, prepareDesktopInfo]);
+    if (!isDesktopChoiceOpen) return;
+    let cancelled = false;
+    getDesktopClientInfo()
+      .then(({ os, osVersion, arch, appVersion }) => {
+        if (cancelled) return;
+        const body = `\n\nApp Version: ${appVersion}\nOS: ${os}\nOS Version: ${osVersion}\nArchitecture: ${arch}\nLanguage: ${
+          i18n.language
+        }\nDate: ${new Date().toISOString()}`;
+        setDesktopInfo({ body });
+      })
+      .catch((error) => console.error("Failed to get platform info:", error));
+    return () => {
+      cancelled = true;
+    };
+  }, [isDesktopChoiceOpen, i18n.language]);
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -75,54 +57,20 @@ const ContactFAB = () => {
     }
   };
 
-  const handleClick = () => {
-    if (platform === "loading") {
-      return; // Early return if platform is still loading
-    }
-    if (platform === "web") {
-      setIsModalOpen(true);
-    } else if (platform === "desktop") {
-      setIsDesktopChoiceOpen(true);
-    }
-  };
-
   if (platform === "loading") {
     return null;
   }
 
   return (
     <>
-      <div
-        className={cn(
-          "fixed bottom-6 z-50",
-          i18n.dir() === "rtl" ? "left-6" : "right-6"
-        )}
-      >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              className="rounded-full w-14 h-14 shadow-lg"
-              onClick={handleClick}
-              aria-label={t("fabTooltip")}
-            >
-              <MessageSquarePlus className="w-6 h-6" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>{t("fabTooltip")}</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
       {platform === "web" && (
-        <ContactModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
+        <ContactModal isOpen={open} onOpenChange={onOpenChange} />
       )}
 
       {platform === "desktop" && (
         <Dialog
-          open={isDesktopChoiceOpen}
-          onOpenChange={setIsDesktopChoiceOpen}
+          open={open}
+          onOpenChange={onOpenChange}
         >
           <DialogContent>
             <DialogHeader>
@@ -196,6 +144,4 @@ const ContactFAB = () => {
       )}
     </>
   );
-};
-
-export default ContactFAB;
+}

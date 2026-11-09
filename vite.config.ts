@@ -1,8 +1,27 @@
-import { defineConfig } from "vitest/config";
+import { readFileSync, writeFileSync } from "node:fs";
+import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import packageJson from "./package.json";
+import {
+  manifestForShareTarget,
+  shareTargetBuildEnabled,
+} from "./src/lib/ai/share-target-manifest";
+
+/** Rewrites the copied public manifest after the build. Static file stays without share_target. */
+function shareTargetManifestPlugin(): Plugin {
+  const enabled = shareTargetBuildEnabled(process.env.VITE_AI_SHARE_TARGET);
+  return {
+    name: "ai-share-target-manifest",
+    apply: "build",
+    closeBundle() {
+      const file = path.resolve("dist/manifest.json");
+      const manifest = JSON.parse(readFileSync(file, "utf8")) as { share_target?: unknown };
+      writeFileSync(file, `${JSON.stringify(manifestForShareTarget(manifest, enabled), null, 2)}\n`);
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
@@ -68,8 +87,11 @@ export default defineConfig(() => {
           // Ensure new SW takes control immediately on next load (no waiting).
           skipWaiting: true,
           clientsClaim: true,
+          // Loaded before the generated worker. It answers only POST /share-target.
+          importScripts: ["share-target-sw.js"],
         },
       }),
+      shareTargetManifestPlugin(),
     ],
     optimizeDeps: {
       exclude: ["lucide-react"],

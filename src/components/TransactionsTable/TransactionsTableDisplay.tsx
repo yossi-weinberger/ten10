@@ -31,6 +31,9 @@ import {
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
+import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { undoAiTransaction } from "@/lib/ai/undo-text-intake";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -119,6 +122,9 @@ export function TransactionsTableDisplay() {
   const [transactionToDelete, setTransactionToDelete] =
     useState<Transaction | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [transactionToUndo, setTransactionToUndo] =
+    useState<Transaction | null>(null);
+  const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -252,6 +258,27 @@ export function TransactionsTableDisplay() {
     setTransactionToDelete(transaction);
     setIsDeleteDialogOpen(true);
   }, []);
+
+  const handleUndoAiInitiate = useCallback((transaction: Transaction) => {
+    setTransactionToUndo(transaction);
+    setIsUndoDialogOpen(true);
+  }, []);
+
+  const handleUndoAiConfirm = useCallback(async () => {
+    if (transactionToUndo) {
+      const result = await undoAiTransaction(transactionToUndo.id);
+      if (result.ok) {
+        refreshAfterIntakeSave();
+        toast.success(t("actions.undoAiDone"));
+      } else {
+        toast.error(
+          t(result.reason === "NOT_ALLOWED" ? "actions.undoAiNotAllowed" : "actions.undoAiFailed"),
+        );
+      }
+    }
+    setIsUndoDialogOpen(false);
+    setTransactionToUndo(null);
+  }, [t, transactionToUndo]);
 
   const handleDeleteConfirm = useCallback(async () => {
     if (transactionToDelete) {
@@ -673,6 +700,7 @@ export function TransactionsTableDisplay() {
                       onEdit={handleEditInitiate}
                       onDelete={handleDeleteInitiate}
                       onEditRecurring={handleEditRecurringInitiate}
+                      onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
                       isFetchingRec={isFetchingRec}
                       selected={selection.selectedIds.has(item.transaction.id)}
                       onToggleSelected={selection.toggle}
@@ -758,6 +786,29 @@ export function TransactionsTableDisplay() {
               })()
             : "",
         })}
+      />
+      <DeleteConfirmationDialog
+        isOpen={isUndoDialogOpen}
+        onOpenChange={setIsUndoDialogOpen}
+        onConfirm={handleUndoAiConfirm}
+        title={t("dialog.undoAiTitle")}
+        description={t("dialog.undoAiDescription", {
+          description:
+            transactionToUndo?.description ||
+            t("messages.defaultTransactionName"),
+          date: transactionToUndo?.date
+            ? (() => {
+                const displayDate = formatDisplayDate(
+                  transactionToUndo.date,
+                  "numeric",
+                );
+                return displayDate.secondary
+                  ? `${displayDate.primary} (${displayDate.secondary})`
+                  : displayDate.primary;
+              })()
+            : "",
+        })}
+        confirmLabel={t("actions.undoAi")}
       />
       {/* Edit Transaction Modal */}
       {isEditModalOpen && editingTransaction && (

@@ -1,0 +1,311 @@
+/** Fields read from a receipt image. The model does not choose the transaction type. */
+
+import {
+  isSupportedCurrencyCode,
+  SUPPORTED_CURRENCY_CODES,
+  type SupportedCurrencyCode,
+} from "../transaction-domain/normalize-core.ts";
+
+const CURRENCIES = SUPPORTED_CURRENCY_CODES;
+
+/** Base64 of a larger file is rejected. The client uses the same byte ceiling. */
+export const RECEIPT_MAX_BASE64_CHARS = 5_500_000;
+export const RECEIPT_MAX_BYTES = Math.floor(RECEIPT_MAX_BASE64_CHARS / 4) * 3;
+/**
+ * A PDF is billed per page, and its page count needs a PDF parser, so a PDF gets a lower ceiling (about 3 MB).
+ * The client checks only the shared ceiling; the server answers too_large.
+ */
+export const RECEIPT_MAX_PDF_BASE64_CHARS = 4_000_000;
+type ReceiptCurrency = SupportedCurrencyCode;
+
+export function receiptTooLarge(mediaType: string, base64Chars: number): boolean {
+  return base64Chars > (mediaType === "application/pdf" ? RECEIPT_MAX_PDF_BASE64_CHARS : RECEIPT_MAX_BASE64_CHARS);
+}
+
+/**
+ * The copy step writes out the file's text. A 264 KB PDF timed out at 20 s on testing (2026-11-03),
+ * so a PDF waits longer. The Edge limit is 150 s, well above both.
+ */
+export function receiptCopyTimeoutMs(mediaType: string): number {
+  return mediaType === "application/pdf" ? 60_000 : 20_000;
+}
+
+export type ReceiptKind = "receipt" | "several_receipts" | "statement";
+
+const RULED_TYPES = ["exempt-income", "recognized-expense", "non_tithe_donation"] as const;
+export type ReceiptRuledType = (typeof RULED_TYPES)[number];
+
+export interface ReceiptDraft {
+  description: string;
+  date: string | null;
+  checkDate: boolean;
+  amount: number;
+  currency: ReceiptCurrency;
+  kind: "receipt";
+  ruleName: string | null;
+  ruledType: ReceiptRuledType | null;
+}
+
+/** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
+export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
+
+export const RECEIPT_COPY_PROMPT = [
+  "Copy this document line by line, as written.",
+  "The photo may be rotated or upside down. Orient and read it in its upright orientation.",
+  "The text may be Hebrew or English. Copy what you can read. Do not refuse.",
+  "Clearly distinguish the total amount paid, cash tendered, and change.",
+  "Do not interpret, translate, calculate, or add fields.",
+  "Keep the original language and the original digits.",
+].join("\n");
+
+const ARTIFACT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** Private bucket path: user id, UTC year, UTC month, artifact id. No original filename. */
+export function receiptStoragePath(userId: string, artifactId: string, receivedAt: Date): string | null {
+  const user = userId.toLowerCase();
+  const artifact = artifactId.toLowerCase();
+  if (!ARTIFACT_ID.test(user) || !ARTIFACT_ID.test(artifact)) return null;
+  const year = String(receivedAt.getUTCFullYear());
+  const month = String(receivedAt.getUTCMonth() + 1).padStart(2, "0");
+  return `${user}/${year}/${month}/${artifact}`;
+}
+
+export function decodeReceiptBase64(data: string): Uint8Array | null {
+  if (data.length === 0 || data.length % 4 !== 0) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) return null;
+  try {
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+/** Declared type must match the file header. A renamed file is not stored or sent. */
+export function receiptMagicMatches(mediaType: string, bytes: Uint8Array): boolean {
+  if (mediaType === "image/jpeg") {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (mediaType === "image/png") {
+    return bytes.length >= 8
+      && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+      && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  }
+  if (mediaType === "image/webp") {
+    return bytes.length >= 12
+      && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+      && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+  }
+  if (mediaType === "application/pdf") {
+    return bytes.length >= 5
+      && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46
+      && bytes[4] === 0x2d;
+  }
+  return false;
+}
+
+export async function receiptSha256(bytes: Uint8Array): Promise<string> {
+  const copy = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copy).set(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", copy);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function readReceiptArtifactId(value: unknown): string | null {
+  if (typeof value !== "string" || !ARTIFACT_ID.test(value.toLowerCase())) return null;
+  return value.toLowerCase();
+}
+
+export function readStoredReceiptPath(value: unknown): {
+  storagePath: string;
+  alreadyStored: boolean;
+  artifactId: string | null;
+} | null {
+  if (!value || typeof value !== "object") return null;
+  const storagePath = (value as { storage_path?: unknown }).storage_path;
+  if (typeof storagePath !== "string" || storagePath.length === 0) return null;
+  return {
+    storagePath,
+    alreadyStored: (value as { already_stored?: unknown }).already_stored === true,
+    artifactId: readReceiptArtifactId((value as { artifact_id?: unknown }).artifact_id),
+  };
+}
+
+export function receiptFilePart(
+  mediaType: string,
+  data: string,
+):
+  | { type: "input_image"; image_url: string }
+  | { type: "input_file"; filename: string; file_data: string }
+  | null {
+  if (mediaType === "application/pdf") {
+    return {
+      type: "input_file",
+      filename: "receipt.pdf",
+      file_data: `data:application/pdf;base64,${data}`,
+    };
+  }
+  if (mediaType === "image/jpeg" || mediaType === "image/png" || mediaType === "image/webp") {
+    return { type: "input_image", image_url: `data:${mediaType};base64,${data}` };
+  }
+  return null;
+}
+
+/** The answer only. A reasoning item is not part of the JSON. */
+export function readModelText(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return "";
+  const output = (payload as { output?: unknown }).output;
+  if (Array.isArray(output)) {
+    const parts: string[] = [];
+    for (const item of output) {
+      if (!item || typeof item !== "object") continue;
+      if ((item as { type?: unknown }).type !== "message") continue;
+      const content = (item as { content?: unknown }).content;
+      if (!Array.isArray(content)) continue;
+      for (const block of content) {
+        if (!block || typeof block !== "object") continue;
+        if ((block as { type?: unknown }).type !== "output_text") continue;
+        const text = (block as { text?: unknown }).text;
+        if (typeof text === "string") parts.push(text);
+      }
+    }
+    if (parts.length > 0) return parts.join("");
+  }
+  const content = (payload as { content?: unknown }).content;
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const block of content) {
+      if (!block || typeof block !== "object") continue;
+      if ((block as { type?: unknown }).type !== "text") continue;
+      const text = (block as { text?: unknown }).text;
+      if (typeof text === "string") parts.push(text);
+    }
+    if (parts.length > 0) return parts.join("");
+  }
+  const direct = (payload as { output_text?: unknown }).output_text;
+  return typeof direct === "string" ? direct : "";
+}
+
+export function isIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day;
+}
+
+function ruledTypeOf(value: unknown): ReceiptRuledType | null {
+  return typeof value === "string" && (RULED_TYPES as readonly string[]).includes(value)
+    ? value as ReceiptRuledType
+    : null;
+}
+
+function receiptRecord(value: unknown): {
+  kind?: unknown;
+  description?: unknown;
+  date?: unknown;
+  amount?: unknown;
+  currency?: unknown;
+  rule_name?: unknown;
+  type?: unknown;
+} | null {
+  let record = value;
+  if (typeof value === "string") {
+    const trimmed = value.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    try {
+      record = JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+  if (!record || typeof record !== "object") return null;
+  return record as {
+    kind?: unknown;
+    description?: unknown;
+    date?: unknown;
+    amount?: unknown;
+    currency?: unknown;
+  };
+}
+
+/** A missing or unknown kind is one receipt. Several receipts and a statement are not. */
+export function readReceiptKind(value: unknown): ReceiptKind {
+  const kind = receiptRecord(value)?.kind;
+  if (kind === "several_receipts" || kind === "statement") return kind;
+  return "receipt";
+}
+
+export function readReceiptDraft(value: unknown): ReceiptDraft | null {
+  if (readReceiptKind(value) !== "receipt") return null;
+  const source = receiptRecord(value);
+  if (!source) return null;
+  if (typeof source.description !== "string") return null;
+  const description = source.description.trim().slice(0, 200);
+  if (description.length < 2) return null;
+  const amount = typeof source.amount === "number" ? source.amount : Number(source.amount);
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return null;
+  const currency = typeof source.currency === "string" ? source.currency.trim().toUpperCase() : "";
+  if (!(CURRENCIES as readonly string[]).includes(currency)) return null;
+  const dated = typeof source.date === "string" && isIsoDate(source.date);
+  const ruleName = typeof source.rule_name === "string" ? source.rule_name.trim() : "";
+  const ruledType = ruleName.length >= 2 ? ruledTypeOf(source.type) : null;
+  return {
+    description,
+    date: dated ? source.date as string : null,
+    checkDate: !dated,
+    amount,
+    currency: currency as ReceiptCurrency,
+    kind: "receipt",
+    ruleName: ruledType ? ruleName : null,
+    ruledType,
+  };
+}
+
+export interface CopiedReceiptItem {
+  description: string;
+  amount: number | null;
+  date: string | null;
+  currency: string;
+  type: string;
+  ruleName: string | null;
+}
+
+/** One copied receipt becomes one draft. Several receipts or a statement do not list rows. */
+export function receiptDraftFromItems(
+  route: "list" | "unreadable" | "several",
+  items: readonly CopiedReceiptItem[],
+  defaultCurrency: SupportedCurrencyCode = "ILS",
+): {
+  kind: ReceiptKind;
+  description?: string;
+  date?: string | null;
+  amount?: number;
+  currency?: string;
+  check_date?: boolean;
+  type?: string | null;
+  rule_name?: string | null;
+} | null {
+  if (route === "list") return { kind: "statement" };
+  if (route !== "several") return null;
+  if (items.length > 1) return { kind: "several_receipts" };
+  const item = items[0];
+  if (!item || item.amount === null || item.amount <= 0) return null;
+  const description = item.description.trim();
+  if (description.length < 2) return null;
+  const currency = isSupportedCurrencyCode(item.currency) ? item.currency : defaultCurrency;
+  const dated = item.date !== null && isIsoDate(item.date);
+  const ruledType = item.ruleName && ruledTypeOf(item.type);
+  return {
+    kind: "receipt",
+    description,
+    date: dated ? item.date : null,
+    amount: item.amount,
+    currency,
+    check_date: !dated,
+    type: ruledType ? item.type : null,
+    rule_name: ruledType ? item.ruleName : null,
+  };
+}

@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -10,7 +10,10 @@ import {
   Book,
   Table,
   PieChart,
+  MessageCircleQuestionMark,
 } from "lucide-react";
+import { ContactDialog } from "@/components/layout/ContactDialog";
+import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +29,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
+import type { AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
+import { useAiIntakeUi } from "@/lib/ai/flags";
+import { takeSharedIntake, type SharedIntake } from "@/lib/ai/share-target";
 import { BrandSidebarLogo } from "@/components/brand/BrandSidebarLogo";
 import { SIDEBAR_SIZE } from "./sidebarSize";
 
@@ -36,6 +42,16 @@ interface SidebarProps {
 }
 
 type SliderStyle = { opacity: number; top: number; height: number };
+
+// The AI drawer and its inspiration library load only for users who see it.
+const AssistantDrawer = lazy(() =>
+  import("@/components/ai-intake/AssistantDrawer").then((module) => ({ default: module.AssistantDrawer }))
+);
+
+function deliverShare(handle: AssistantDrawerHandle, shared: SharedIntake) {
+  if (shared.kind === "file") handle.receive(shared.file);
+  else handle.receiveText(shared.text);
+}
 
 export function Sidebar({
   expanded = false,
@@ -50,6 +66,41 @@ export function Sidebar({
   const [profileFullName, setProfileFullName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const assistantRef = useRef<AssistantDrawerHandle | null>(null);
+  const pendingShare = useRef<SharedIntake | null>(null);
+  const showAssistant = useAiIntakeUi(platform, Boolean(session?.user));
+
+  // The floating button opens the drawer of the persistent sidebar, which is mounted on every screen size.
+  useEffect(() => {
+    if (inSheet || !showAssistant) return;
+    return onAssistantOpenRequest(() => setAssistantOpen(true));
+  }, [inSheet, showAssistant]);
+
+  // The drawer loads lazily, so a share can arrive before it mounts. It waits here.
+  const receiveRef = useCallback((handle: AssistantDrawerHandle | null) => {
+    assistantRef.current = handle;
+    const shared = pendingShare.current;
+    if (!handle || !shared) return;
+    pendingShare.current = null;
+    deliverShare(handle, shared);
+  }, []);
+
+  useEffect(() => {
+    // A share waits (it expires after a day) until the flag answers yes; no flag, no IndexedDB.
+    if (inSheet || authLoading || platform === "loading" || !showAssistant) return;
+    let cancelled = false;
+    void takeSharedIntake().then((shared) => {
+      if (cancelled || !shared) return;
+      setAssistantOpen(true);
+      if (assistantRef.current) deliverShare(assistantRef.current, shared);
+      else pendingShare.current = shared;
+    }).catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [inSheet, authLoading, platform, showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -351,6 +402,20 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
+            {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
+            {platform !== "loading" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full h-12 justify-start px-4 text-foreground [&_svg]:size-6"
+                onClick={() => setContactOpen(true)}
+              >
+                <MessageCircleQuestionMark className="min-w-[24px] flex-shrink-0" />
+                <span className={expanded ? "ms-4" : "sr-only"}>
+                  {t("menu.contact")}
+                </span>
+              </Button>
+            ) : null}
 
             {/* Support Us Button - Standard Style */}
             <NavLink
@@ -479,6 +544,22 @@ export function Sidebar({
       <div className="mt-auto pt-4 border-t border-border/20 px-1">
         <PlatformIndicator expanded={expanded} />
       </div>
+      {/* Only the persistent sidebar holds the drawer; the floating button opens it on every screen size. */}
+      {showAssistant && !inSheet ? (
+        <Suspense fallback={null}>
+          <AssistantDrawer
+            open={assistantOpen}
+            onOpenChange={setAssistantOpen}
+            receiveRef={receiveRef}
+            userName={profileFullName}
+            onNavigate={() => {
+              setAssistantOpen(false);
+              onLinkClick?.();
+            }}
+          />
+        </Suspense>
+      ) : null}
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }

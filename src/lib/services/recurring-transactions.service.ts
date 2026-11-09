@@ -13,6 +13,7 @@ import {
   getCalendarAdapter,
 } from "@/lib/calendar";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
 /**
  * Advances the due date based on frequency
@@ -131,9 +132,14 @@ export const RecurringTransactionsService = {
 
                 if (freshRate) {
                   // Got fresh rate - use it
-                  finalAmount = Number(
-                    (rec.original_amount * freshRate).toFixed(2)
-                  );
+                  finalAmount = applyConversion({
+                    originalAmount: rec.original_amount,
+                    originalCurrency: rec.original_currency,
+                    defaultCurrency,
+                    rate: freshRate,
+                    conversionDate: getCurrentLocalDate(),
+                    rateSource: "auto",
+                  }).amount;
                   finalCurrency = defaultCurrency;
                   originalAmount = rec.original_amount;
                   originalCurrency = rec.original_currency;
@@ -165,7 +171,14 @@ export const RecurringTransactionsService = {
               );
 
               if (rate) {
-                finalAmount = Number((rec.amount * rate).toFixed(2));
+                finalAmount = applyConversion({
+                  originalAmount: rec.amount,
+                  originalCurrency: rec.currency,
+                  defaultCurrency,
+                  rate,
+                  conversionDate: getCurrentLocalDate(),
+                  rateSource: "auto",
+                }).amount;
                 originalAmount = rec.amount;
                 originalCurrency = rec.currency;
                 conversionRate = rate;

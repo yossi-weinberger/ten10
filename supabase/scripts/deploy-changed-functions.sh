@@ -37,6 +37,15 @@ ALL_FUNCTIONS=(
   get-monitoring-data
   get-posthog-analytics
   send-cron-alerts
+  ai-rank-duplicates
+  ai-split-items
+  ai-classify-intent
+  ai-read-question
+  ai-read-receipt
+  ai-receipt-url
+  ai-purge-receipts
+  ai-transcribe-speech
+  get-ai-admin-spend
 )
 
 # Redeploy when supabase/functions/_shared changes
@@ -51,6 +60,15 @@ SHARED_DEPENDENT=(
   get-monitoring-data
   get-posthog-analytics
   send-cron-alerts
+  ai-rank-duplicates
+  ai-split-items
+  ai-classify-intent
+  ai-read-question
+  ai-read-receipt
+  ai-receipt-url
+  ai-purge-receipts
+  ai-transcribe-speech
+  get-ai-admin-spend
 )
 
 is_managed_function() {
@@ -89,7 +107,7 @@ collect_from_changed_files() {
       redeploy_all=true
       break
     fi
-    if [[ "$file" == supabase/functions/_shared/* ]]; then
+    if [[ "$file" == supabase/functions/_shared/* || "$file" == "supabase/functions/deno.json" || "$file" == "supabase/functions/deno.lock" ]]; then
       for fn in "${SHARED_DEPENDENT[@]}"; do
         DEPLOY_SET["$fn"]=1
       done

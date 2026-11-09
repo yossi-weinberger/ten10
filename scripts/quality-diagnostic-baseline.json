@@ -15,7 +15,7 @@
         "react-hooks/incompatible-library": 4,
         "react-hooks/refs": 23,
         "react-hooks/rules-of-hooks": 1,
-        "react-hooks/set-state-in-effect": 42,
+        "react-hooks/set-state-in-effect": 41,
         "react-hooks/static-components": 8,
         "react-refresh/only-export-components": 9,
         "unknown": 1
@@ -242,13 +242,6 @@
           "code": "@typescript-eslint/no-explicit-any",
           "file": "src/components/halacha/utils.ts",
           "message": "Unexpected any. Specify a different type.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "react-hooks/set-state-in-effect",
-          "file": "src/components/layout/ContactFAB.tsx",
-          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
           "severity": "error",
           "count": 1
         },
@@ -961,10 +954,10 @@
         }
       ],
       "severities": {
-        "error": 162,
+        "error": 161,
         "warning": 24
       },
-      "total": 186
+      "total": 185
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",

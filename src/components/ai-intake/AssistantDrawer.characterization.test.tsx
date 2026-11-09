@@ -1,0 +1,1356 @@
+// @vitest-environment jsdom
+import "@testing-library/jest-dom/vitest";
+import { act, createRef, useState, type ReactNode } from "react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { installDomPolyfills } from "./assistant-test-setup";
+import he from "../../../public/locales/he/navigation.json";
+
+const ai = vi.hoisted(() => ({
+  platform: { value: "web" as string },
+  classifyIntentFallback: vi.fn(),
+  saveTextDraft: vi.fn(),
+  undoTextIntake: vi.fn(),
+  listActiveUserRules: vi.fn(),
+  approveUserRule: vi.fn(),
+  listDuplicateCandidates: vi.fn(),
+  rankDuplicateCandidates: vi.fn(),
+  readReceiptImage: vi.fn(),
+  openAiReceipt: vi.fn(),
+  loadDuplicateScan: vi.fn(),
+  dismissDuplicatePair: vi.fn(),
+  readQuestionSlots: vi.fn(),
+  markQuestionOutcome: vi.fn(),
+  resolveQuestionFilter: vi.fn(),
+  sumYearType: vi.fn(),
+  loadTitheBalance: vi.fn(),
+  loadStandingOrders: vi.fn(),
+  transcribeSpeech: vi.fn(),
+  refreshAfterIntakeSave: vi.fn(),
+  deleteTransaction: vi.fn(),
+  createRecurringTransaction: vi.fn(),
+  getRecurringTransactionById: vi.fn(),
+  updateRecurringTransaction: vi.fn(),
+  splitItems: vi.fn(),
+}));
+
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
+vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: "he", dir: () => "rtl" },
+  }),
+}));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
+}));
+vi.mock("@/contexts/PlatformContext", () => ({ usePlatform: () => ({ platform: ai.platform.value }) }));
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { email: "qa@example.com", user_metadata: { full_name: "QA" } } }),
+}));
+vi.mock("@/lib/platformManager", () => ({ getPlatform: () => ai.platform.value }));
+vi.mock("@/lib/ai/flags", () => ({ isAiIntakeEnabled: () => true, aiCallsAllowed: () => true }));
+vi.mock("@/lib/ai/intent-fallback", () => ({ classifyIntentFallback: ai.classifyIntentFallback }));
+vi.mock("@/lib/ai/save-text-draft", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai/save-text-draft")>();
+  return { ...actual, saveTextDraft: ai.saveTextDraft };
+});
+vi.mock("@/lib/ai/undo-text-intake", () => ({ undoTextIntake: ai.undoTextIntake }));
+vi.mock("@/lib/ai/user-rules", () => ({
+  listActiveUserRules: ai.listActiveUserRules,
+  approveUserRule: ai.approveUserRule,
+}));
+vi.mock("@/lib/ai/duplicate-candidates", () => ({ listDuplicateCandidates: ai.listDuplicateCandidates }));
+vi.mock("@/lib/ai/rank-duplicates", () => ({ rankDuplicateCandidates: ai.rankDuplicateCandidates }));
+vi.mock("@/lib/ai/split-items", () => ({ splitItems: ai.splitItems }));
+vi.mock("@/lib/ai/read-receipt", () => ({ readReceiptImage: ai.readReceiptImage }));
+vi.mock("@/lib/ai/open-receipt", () => ({ openAiReceipt: ai.openAiReceipt }));
+vi.mock("@/lib/ai/load-duplicate-scan", () => ({
+  loadDuplicateScan: ai.loadDuplicateScan,
+  dismissDuplicatePair: ai.dismissDuplicatePair,
+}));
+vi.mock("@/lib/ai/read-question", () => ({ readQuestionSlots: ai.readQuestionSlots }));
+vi.mock("@/lib/ai/assistant-extras", () => ({
+  loadTitheBalance: ai.loadTitheBalance,
+  loadStandingOrders: ai.loadStandingOrders,
+}));
+vi.mock("@/lib/ai/sum-year-type", () => ({
+  resolveQuestionFilter: ai.resolveQuestionFilter,
+  sumYearType: ai.sumYearType,
+}));
+vi.mock("@/lib/ai/transcribe-speech", () => ({ transcribeSpeech: ai.transcribeSpeech }));
+vi.mock("@/lib/ai/refresh-after-intake", () => ({ refreshAfterIntakeSave: ai.refreshAfterIntakeSave }));
+vi.mock("@/lib/data-layer/recurringTransactions.service", () => ({
+  createRecurringTransaction: ai.createRecurringTransaction,
+  getRecurringTransactionById: ai.getRecurringTransactionById,
+}));
+vi.mock("@/lib/tableTransactions/recurringTable.service", () => ({
+  updateRecurringTransaction: ai.updateRecurringTransaction,
+}));
+vi.mock("@/lib/analytics/productAnalytics", () => ({ trackProductEvent: vi.fn() }));
+vi.mock("@/lib/tableTransactions/recurringTable.store", () => ({
+  useRecurringTableStore: { getState: () => ({ fetchRecurring: vi.fn() }) },
+}));
+vi.mock("@/lib/ai/question-outcome", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai/question-outcome")>();
+  return { ...actual, markQuestionOutcome: ai.markQuestionOutcome };
+});
+vi.mock("@/lib/ai/format-data-answer", () => ({
+  formatDataAnswer: (input: { measure: string; count: number }) => `answer:${input.measure}:${input.count}`,
+}));
+vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
+  useTableTransactionsStore: { getState: () => ({ deleteTransaction: ai.deleteTransaction }) },
+}));
+
+import { AssistantDrawer, type AssistantDrawerHandle } from "./AssistantDrawer";
+
+const receiveRef = createRef<AssistantDrawerHandle>();
+
+function Harness() {
+  const [open, setOpen] = useState(true);
+  return (
+    <TooltipProvider>
+      <button type="button" onClick={() => setOpen(true)}>reopen</button>
+      <AssistantDrawer open={open} onOpenChange={setOpen} receiveRef={receiveRef} />
+    </TooltipProvider>
+  );
+}
+
+function setup() {
+  const user = userEvent.setup();
+  render(<Harness />);
+  return user;
+}
+
+async function send(user: ReturnType<typeof userEvent.setup>, text: string) {
+  await user.type(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), text);
+  await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+}
+
+/** Save waits for the duplicate check, so the click comes once the button is enabled. */
+async function clickSave(user: ReturnType<typeof userEvent.setup>) {
+  const save = await screen.findByRole("button", { name: "aiIntake.save" });
+  await waitFor(() => expect(save).toBeEnabled());
+  await user.click(save);
+}
+
+/** A share waits for the user: "read" sends the file to the AI. */
+async function readShared(user: ReturnType<typeof userEvent.setup>, file: File) {
+  await act(async () => {
+    receiveRef.current?.receive(file);
+  });
+  await user.click(await screen.findByRole("button", { name: "aiIntake.sharedRead" }));
+}
+
+function confident(intent: string) {
+  ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent, confidence: 0.95 });
+}
+
+beforeEach(() => {
+  installDomPolyfills();
+  ai.platform.value = "web";
+  for (const value of Object.values(ai)) {
+    if (typeof value === "function" && "mockReset" in value) value.mockReset();
+  }
+  ai.listActiveUserRules.mockResolvedValue([]);
+  ai.loadTitheBalance.mockResolvedValue(null);
+  ai.listDuplicateCandidates.mockResolvedValue([]);
+  ai.rankDuplicateCandidates.mockResolvedValue(null);
+  ai.splitItems.mockImplementation(async (sentence: string) => {
+    if (sentence.includes("הוראת קבע")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "כולל",
+          amount: 200,
+          currency: "ILS",
+          date: "2026-11-01",
+          checkDate: false,
+          typeHint: "donation",
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: {
+            frequency: "monthly",
+            calendarType: "gregorian",
+            startDate: "2026-11-01",
+            dayOfMonth: 1,
+            weekday: null,
+            totalOccurrences: null,
+            alreadyCharged: false,
+          },
+        }],
+      };
+    }
+    if (sentence.includes("גן")) {
+      return {
+        ok: true,
+        route: "several",
+        found: 0,
+        dropped: 0,
+        usageId: null,
+        items: [],
+        question: null,
+        rule: { match: "גן", action: "recognized-expense" },
+      };
+    }
+    if (sentence.includes("מאפים")) {
+      const amount = /\d/.test(sentence) ? 15 : null;
+      const typeHint = sentence.includes("קניתי") ? "expense" : "";
+      return {
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "מאפים באליס",
+          amount,
+          currency: "ILS",
+          date: "2026-10-30",
+          checkDate: false,
+          typeHint,
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: null,
+        }],
+      };
+    }
+    return { ok: true, route: "unreadable", usageId: null };
+  });
+});
+
+afterEach(() => cleanup());
+
+describe("AssistantDrawer characterization", () => {
+  it("opens with the user's tithe balance, or the general text without one", async () => {
+    ai.loadTitheBalance.mockResolvedValue({ total: 340, maaser: 340, chomesh: 0 });
+    setup();
+    expect(screen.getByText("aiIntake.emptyDescription", { selector: "[data-slot=empty-description]" })).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.openingBalance")).toBeInTheDocument();
+  });
+
+  it("pushes the app aside while the desktop side panel is open", async () => {
+    const user = setup();
+    expect(document.documentElement.dataset.assistantPanel).toBe("open");
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    await waitFor(() => expect(document.documentElement.dataset.assistantPanel).toBeUndefined());
+  });
+
+  it("keeps the full-screen drawer on a phone, without pushing the app", () => {
+    installDomPolyfills("mobile");
+    setup();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(document.documentElement.dataset.assistantPanel).toBeUndefined();
+  });
+
+  it("opens warmly, without the 'nothing is saved' line", () => {
+    for (const copy of [he.aiIntake.emptyDescription, he.aiIntake.openingBalance, he.aiIntake.openingCovered]) {
+      expect(copy).toContain("אני נתן");
+      expect(copy).not.toContain("שום דבר לא נשמר");
+    }
+  });
+
+  it("sends on Enter on a touch screen too, and Shift+Enter is a new line", async () => {
+    confident("add_transaction");
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes("coarse"),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    })) as unknown as typeof window.matchMedia;
+    const user = setup();
+    const box = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
+    expect(box).toHaveAttribute("enterkeyhint", "send");
+    await user.type(box, "קניתי מאפים{Shift>}{Enter}{/Shift}באליס ב-15 שח{Enter}");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1));
+    expect(ai.classifyIntentFallback.mock.calls[0][0]).toBe("קניתי מאפים\nבאליס ב-15 שח");
+  });
+
+  it("keeps new chat beside a single close button", () => {
+    setup();
+    expect(screen.getByRole("button", { name: "aiIntake.newChat" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "actions.close" })).toHaveLength(1);
+  });
+
+  it("shows a published halacha page when the classifier names one", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.95,
+      halachaPage: "tithes",
+      halachaPageConfidence: 0.95,
+    });
+    const user = setup();
+    await send(user, "האם מעשרות משכורת הן מהברוטו או מהנטו?");
+    expect(await screen.findByText("introduction.body")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
+  });
+
+  it("reads a receipt pasted into the composer", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    setup();
+    const file = new File(["png"], "snap.png", { type: "image/png" });
+    fireEvent.paste(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), {
+      clipboardData: { files: [file] },
+    });
+    await waitFor(() => expect(ai.readReceiptImage).toHaveBeenCalledWith(file, expect.any(String)));
+  });
+
+  it("renders nothing outside web", () => {
+    ai.platform.value = "desktop";
+    render(<AssistantDrawer open onOpenChange={vi.fn()} receiveRef={receiveRef} />);
+    expect(screen.queryByText("aiIntake.title")).not.toBeInTheDocument();
+  });
+
+  // QA 2026-11-03: "תוציא גם חומש" was not marked as chomesh.
+  it("marks chomesh on the income card when Jev heard the user ask for it", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "add_transaction", confidence: 0.95, chomesh: true });
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "משכורת",
+        amount: 8000,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "income",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "קיבלתי משכורת 8000, תוציא גם חומש");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    expect(ai.saveTextDraft.mock.calls[0][0]).toMatchObject({ type: "income", amount: 8000, isChomesh: true });
+  });
+
+  it("turns a sentence with a verb and an amount into an editable draft and saves it", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("מאפים באליס");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    expect(ai.saveTextDraft.mock.calls[0][0]).toMatchObject({ type: "expense", amount: 15 });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+    expect(ai.refreshAfterIntakeSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the earlier message and the open draft with the next message, and forgets them on a new chat", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(ai.classifyIntentFallback.mock.calls[0][1]).toBe("");
+    await send(user, "בעצם 20");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
+    const context = ai.classifyIntentFallback.mock.calls[1][1] as string;
+    expect(context).toContain("1. \"קניתי מאפים באליס ב-15 שח\"");
+    expect(context).toContain("On screen now: one transaction, not saved: expense 15 ILS");
+    expect(ai.splitItems.mock.calls[1][2]).toMatchObject({ context });
+    await user.click(screen.getByRole("button", { name: "aiIntake.newChat" }));
+    await send(user, "קניתי לחם ב-10");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(3));
+    expect(ai.classifyIntentFallback.mock.calls[2][1]).toBe("");
+  });
+
+  it("tells the next message that the draft was saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    await send(user, "בעצם 20");
+    await waitFor(() => expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(2));
+    expect(ai.classifyIntentFallback.mock.calls[1][1]).toContain(
+      "On screen now: one transaction, saved and still open to a correction: expense 15 ILS",
+    );
+  });
+
+  function correctionRead() {
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      continues: true,
+      items: [{
+        description: "מאפים באליס",
+        amount: 15,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        typeHint: "donation",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+  }
+
+  // QA 2026-11-03: "זה תרומה" right after a save got "not sure what you meant".
+  it("replaces the saved transaction: undo first, then save, and the old one is no duplicate", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "t1", date: "2026-10-30", amount: 15, description: "מאפים באליס", kind: "transaction" },
+    ]);
+    correctionRead();
+    await send(user, "זה תרומה");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(ai.undoTextIntake.mock.invocationCallOrder[0]).toBeLessThan(ai.saveTextDraft.mock.invocationCallOrder[1]);
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ type: "donation", amount: 15 });
+    expect(ai.saveTextDraft.mock.calls[1][3]).toBeUndefined();
+    expect(screen.queryByText("aiIntake.duplicateWarning")).not.toBeInTheDocument();
+    // One "saved" in the history for the first save, one for the replacement.
+    await waitFor(() => expect(screen.getAllByText("aiIntake.saved")).toHaveLength(2));
+  }, 15_000);
+
+  it("saves nothing new when the saved transaction cannot be undone", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" });
+    ai.undoTextIntake.mockResolvedValue({ ok: false, reason: "NOT_ALLOWED" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    correctionRead();
+    await send(user, "זה תרומה");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    expect(await screen.findByText("aiIntake.undoNotAllowed")).toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+  }, 15_000);
+
+  it("says the old one is gone when the replacement save fails", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: false, reason: "SAVE_FAILED" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    correctionRead();
+    await send(user, "זה תרומה");
+    await clickSave(user);
+    expect(await screen.findByText("aiIntake.replacedNotSaved")).toBeInTheDocument();
+  }, 15_000);
+
+  /** The pastry read again after a save, as the reader returns it for a repeat or a rephrasing. */
+  function repeatRead(over: { amount?: number; continues?: boolean } = {}) {
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      ...(over.continues === undefined ? {} : { continues: over.continues }),
+      items: [{
+        description: "מאפים באליס",
+        amount: over.amount ?? 15,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+  }
+
+  async function saveFirst(user: ReturnType<typeof userEvent.setup>) {
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    // The saved row now exists, so the duplicate check finds it.
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "t1", date: "2026-10-30", amount: 15, description: "מאפים באליס", kind: "transaction" },
+    ]);
+  }
+
+  // QA 6: the same message again offered to replace the saved one.
+  it("says the same message again is already saved, and saves nothing", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ continues: true });
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.replacesSaved")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /aiIntake\.save/ })).not.toBeInTheDocument();
+    // Twice in a row: still the saved one.
+    repeatRead({ continues: true });
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await waitFor(() => expect(screen.getAllByText("aiIntake.alreadySaved")).toHaveLength(2));
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+    expect(ai.undoTextIntake).not.toHaveBeenCalled();
+  }, 15_000);
+
+  // QA 6: a rephrasing the reader took for a new transaction was saved a second time.
+  it("says a rephrasing with the same amount, description and date is already saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ continues: false });
+    await send(user, "שילמתי 15 שקל על מאפים באליס");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /aiIntake\.save/ })).not.toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+  }, 15_000);
+
+  it("replaces once on a real correction, so one row stays saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ amount: 20, continues: true });
+    await send(user, "בעצם 20");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ amount: 20 });
+    expect(ai.undoTextIntake).toHaveBeenCalledTimes(1);
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    // Saves minus undos: one row.
+    expect(ai.saveTextDraft.mock.calls.length - ai.undoTextIntake.mock.calls.length).toBe(1);
+    // The corrected amount again is the saved one now, not another replacement.
+    repeatRead({ amount: 20, continues: true });
+    await send(user, "בעצם 20");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(2);
+  }, 20_000);
+
+  it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+    });
+    const user = setup();
+    await send(user, "50 במכולת ו־120 לישיבה");
+    expect(await screen.findByText("aiIntake.couldNotRead")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+  });
+
+  it("shows a card for each split item", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+    });
+    ai.splitItems.mockResolvedValue({
+      ok: true,
+      route: "several",
+      found: 2,
+      dropped: 0,
+      items: [
+        { description: "מכולת", amount: 50, currency: "ILS", date: "2026-10-29", typeHint: "expense" },
+        { description: "ישיבה", amount: 120, currency: "ILS", date: "2026-10-29", typeHint: "donation" },
+      ],
+    });
+    const user = setup();
+    await send(user, "50 במכולת ו־120 לישיבה");
+    expect(await screen.findByRole("button", { name: "aiIntake.splitSave" })).toBeInTheDocument();
+  });
+
+  it("still drafts a sentence with one amount when Jev says one", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+    });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(screen.queryByText("aiIntake.oneAtATime")).not.toBeInTheDocument();
+  });
+
+  it("undoes a saved draft", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await user.click(await screen.findByRole("button", { name: "aiIntake.undo" }));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(await screen.findByText("aiIntake.undone")).toBeInTheDocument();
+  });
+
+  it("saves the draft on Enter in a field", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    const save = await screen.findByRole("button", { name: "aiIntake.save" });
+    await waitFor(() => expect(save).toBeEnabled());
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.editDescription" }), "{Enter}");
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+  });
+
+  it("changes a saved draft's type by undoing it and saving it again", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await user.click(await screen.findByRole("button", { name: "aiIntake.changeType" }));
+    await user.click(await screen.findByRole("menuitemradio", { name: "aiIntake.types.donation" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ type: "donation", amount: 15, category: null });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+  });
+
+  it("asks for the type when the sentence has no verb", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.askType")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "aiIntake.types.expense" }));
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("asks for the amount when the sentence has none", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס");
+    expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "15");
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("shows the amount reply and drops a late reader", async () => {
+    confident("add_transaction");
+    let finish: (value: unknown) => void = () => {};
+    const user = setup();
+    await send(user, "קניתי מאפים באליס");
+    expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
+    let hangReply = true;
+    ai.splitItems.mockImplementation((sentence: string) => {
+      if (hangReply && String(sentence).includes("חמישה")) {
+        hangReply = false;
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        route: "several",
+        found: 1,
+        dropped: 0,
+        usageId: null,
+        rule: null,
+        question: null,
+        items: [{
+          description: "לחם",
+          amount: 10,
+          currency: "ILS",
+          date: "2026-10-30",
+          checkDate: false,
+          checkAmount: false,
+          typeHint: "expense",
+          typeQuestion: null,
+          requestedRate: null,
+          paymentMethod: null,
+          category: null,
+          ruleId: null,
+          ruleName: null,
+          recurrence: null,
+        }],
+      });
+    });
+    await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "חמישה");
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+    expect(await screen.findByText("חמישה")).toBeInTheDocument();
+    expect(screen.getAllByText("aiIntake.thinking.reading").length).toBeGreaterThan(0);
+    const composer = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
+    await user.clear(composer);
+    await send(user, "קניתי לחם ב-10");
+    expect(await screen.findByText("קניתי לחם ב-10")).toBeInTheDocument();
+    finish({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "מאוחר",
+        amount: 5,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        checkAmount: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByText("מאוחר")).not.toBeInTheDocument();
+    expect(screen.getByText("קניתי לחם ב-10")).toBeInTheDocument();
+    expect(screen.getAllByText("חמישה").length).toBeGreaterThan(0);
+  });
+
+  it("warns about a duplicate and keeps the old one on 'same event'", async () => {
+    confident("add_transaction");
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "d1", date: "2026-10-20", amount: 15, description: "מאפים", kind: "transaction" },
+    ]);
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: null, itemId: "i1", sameEvent: true });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText(/aiIntake\.duplicateWarning/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "aiIntake.sameEvent" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    expect(ai.saveTextDraft.mock.calls[0][3]).toEqual({ choice: "same_event", candidateIds: ["d1"] });
+    expect(await screen.findByText("aiIntake.duplicateKept")).toBeInTheDocument();
+  });
+
+  it("saves anyway in one click after keeping the same event", async () => {
+    confident("add_transaction");
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "d1", date: "2026-10-20", amount: 15, description: "מאפים", kind: "transaction" },
+    ]);
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: null, itemId: "i1", sameEvent: true })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.sameEvent" }));
+    await screen.findByText("aiIntake.duplicateKept");
+    await user.click(screen.getByRole("button", { name: "aiIntake.saveAnyway" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.saveTextDraft.mock.calls[1][1]).not.toBe(ai.saveTextDraft.mock.calls[0][1]);
+    expect(ai.saveTextDraft.mock.calls[1][3]).toEqual({ choice: "saved_anyway", candidateIds: ["d1"] });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+  });
+
+  it("asks what the message is when Jev is unsure", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "ask_data", confidence: 0.5 });
+    const user = setup();
+    await send(user, "תרומות 2025");
+    expect(await screen.findByText("aiIntake.askIntent")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.intentChoices.add_transaction" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.intentChoices.ask_data" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.intentChoices.create_rule" })).toBeInTheDocument();
+  });
+
+  it("answers a data question from SQL totals", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "donation",
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: null,
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
+    });
+    ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
+    ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
+    const user = setup();
+    await send(user, "כמה תרמתי ב-2025?");
+    expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
+  });
+
+  it("answers the tithe balance and the standing orders without asking a period", async () => {
+    confident("ask_data");
+    const slots = { family: null, measure: null, recipient: null, category: null, paymentMethod: null, measurementId: null, period: null };
+    ai.readQuestionSlots.mockResolvedValueOnce({ ...slots, subject: "balance" });
+    ai.loadTitheBalance.mockResolvedValue({ total: 420, maaser: 420, chomesh: 0 });
+    const user = setup();
+    await send(user, "כמה אני חייב למעשרות?");
+    expect(await screen.findByText("aiIntake.balance.title")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askPeriod")).not.toBeInTheDocument();
+    ai.readQuestionSlots.mockResolvedValueOnce({ ...slots, subject: "standing_orders" });
+    ai.loadStandingOrders.mockResolvedValue([
+      { id: "r1", amount: 250, currency: "ILS", type: "exempt-income", frequency: "monthly", description: "ביטוח לאומי", dayOfMonth: 10 },
+    ]);
+    await send(user, "כמה הוראות קבע יש לי");
+    expect(await screen.findByText("ביטוח לאומי")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "aiIntake.standingOrders.open" })).toBeInTheDocument();
+  });
+
+  it("does not record an outcome when a family prompt is closed", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue({
+      family: null,
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: "m-1",
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
+    });
+    const user = setup();
+    await send(user, "כמה ב-2025?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    expect(ai.markQuestionOutcome).not.toHaveBeenCalled();
+  });
+
+  it("records answered once when a numeric answer is closed before the window ends", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "donation",
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: "m-1",
+      period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
+    });
+    ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
+    ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
+    const user = setup();
+    await send(user, "כמה תרמתי ב-2025?");
+    expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    expect(ai.markQuestionOutcome).toHaveBeenCalledTimes(1);
+    expect(ai.markQuestionOutcome).toHaveBeenCalledWith("m-1", "answered");
+  });
+
+  it("deletes a duplicate only after a second confirmation", async () => {
+    confident("find_duplicates");
+    ai.loadDuplicateScan.mockResolvedValue({
+      ok: true,
+      count: 1,
+      pairs: [{
+        left: { id: "a", date: "2026-10-01", amount: 50, currency: "ILS", type: "expense", description: "סופר" },
+        right: { id: "b", date: "2026-10-02", amount: 50, currency: "ILS", type: "expense", description: "סופר" },
+      }],
+    });
+    ai.deleteTransaction.mockResolvedValue(undefined);
+    const user = setup();
+    await send(user, "יש כפילויות?");
+    const deletes = await screen.findAllByRole("button", { name: "aiIntake.duplicateDelete" });
+    expect(deletes).toHaveLength(2);
+    await user.click(deletes[0]);
+    expect(ai.deleteTransaction).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "aiIntake.duplicateConfirm" }));
+    await waitFor(() => expect(ai.deleteTransaction).toHaveBeenCalledWith("a", "web"));
+  });
+
+  it("saves a forward rule only after approval", async () => {
+    confident("create_rule");
+    ai.approveUserRule.mockResolvedValue(true);
+    const user = setup();
+    await send(user, "מהיום כל הוצאה על גן היא הוצאה מוכרת");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.ruleApprove" }));
+    expect(ai.approveUserRule).toHaveBeenCalledWith("גן", "recognized-expense", expect.any(String));
+    expect(await screen.findByText("aiIntake.ruleSaved")).toBeInTheDocument();
+  });
+
+  it("reads a shared receipt and asks for the type before the draft", async () => {
+    ai.readReceiptImage.mockResolvedValue({
+      ok: true,
+      route: "receipt",
+      fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS", checkDate: false, ruleName: null, ruledType: null },
+      artifactId: "art1",
+    });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.askType")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "aiIntake.viewReceipt" }).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: "aiIntake.types.expense" }));
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("42.5");
+  });
+
+  it("does not draft several receipts or a bank statement", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: true, route: "several_receipts" });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.severalReceipts")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+
+    ai.readReceiptImage.mockResolvedValue({ ok: true, route: "statement" });
+    await readShared(user, new File(["x"], "s.pdf", { type: "application/pdf" }));
+    expect(await screen.findByText("aiIntake.bankStatement")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "aiIntake.openImport" })).toHaveAttribute("href", "/transactions-table/import");
+    expect(screen.queryByRole("button", { name: "aiIntake.types.expense" })).not.toBeInTheDocument();
+  });
+
+  it("shows a provider failure for a voice message instead of returning to the start", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+  it("transcribes a recording made after the drawer was closed and reopened by its host", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "reopen" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    await waitFor(() => expect(ai.transcribeSpeech).toHaveBeenCalledOnce());
+    vi.unstubAllGlobals();
+  });
+
+  it("shows a provider failure for a receipt", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
+  });
+
+  it("puts shared text in the composer and sends it only on the user's Send", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await act(async () => {
+      receiveRef.current?.receiveText("קניתי מאפים באליס ב-15 שח");
+    });
+    expect(screen.getByRole("textbox", { name: "aiIntake.placeholder" })).toHaveValue("קניתי מאפים באליס ב-15 שח");
+    expect(ai.classifyIntentFallback).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("reads a shared file only after the user's OK, and drops it on dismiss", async () => {
+    setup();
+    await act(async () => {
+      receiveRef.current?.receive(new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    });
+    expect(screen.getByText("aiIntake.sharedFile")).toBeInTheDocument();
+    expect(ai.readReceiptImage).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "aiIntake.sharedDismiss" }));
+    expect(screen.queryByText("aiIntake.sharedFile")).not.toBeInTheDocument();
+    expect(ai.readReceiptImage).not.toHaveBeenCalled();
+  });
+
+  it("forgets the conversation when closed", async () => {
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "reopen" }));
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the previous message visible and locks a saved draft", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.save" })).not.toBeInTheDocument();
+    await send(user, "עוד משפט");
+    expect(screen.getByText("קניתי מאפים באליס ב-15 שח")).toBeInTheDocument();
+  });
+
+  it("shows a standing order and saves it only after the click", async () => {
+    confident("create_recurring");
+    const createdAt = new Date().toISOString();
+    ai.createRecurringTransaction.mockResolvedValue({
+      id: "r1",
+      created_at: createdAt,
+      execution_count: 0,
+      amount: 200,
+    });
+    // The table changed the amount after the save. Cancel must send the fresh row, not the old copy.
+    ai.getRecurringTransactionById.mockResolvedValue({
+      id: "r1",
+      created_at: createdAt,
+      execution_count: 0,
+      amount: 250,
+    });
+    ai.updateRecurringTransaction.mockResolvedValue({ id: "r1", status: "cancelled" });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("200");
+    expect(screen.queryByRole("combobox", { name: "aiIntake.recurring.type" })).not.toBeInTheDocument();
+    expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
+    await waitFor(() => expect(ai.createRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(ai.createRecurringTransaction.mock.calls[0][0].origin).toBe("ai");
+    expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
+    await waitFor(() => expect(ai.updateRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(ai.getRecurringTransactionById).toHaveBeenCalledWith("r1");
+    expect(ai.updateRecurringTransaction.mock.calls[0][1].status).toBe("cancelled");
+    expect(ai.updateRecurringTransaction.mock.calls[0][1].amount).toBe(250);
+    expect(await screen.findByText("aiIntake.recurring.cancelled")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
+  });
+
+  it("does not cancel when the fresh row shows a charge since the save", async () => {
+    confident("create_recurring");
+    const createdAt = new Date().toISOString();
+    ai.createRecurringTransaction.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 0 });
+    ai.getRecurringTransactionById.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 1 });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
+    expect(await screen.findByText("aiIntake.recurring.cancelFailed")).toBeInTheDocument();
+    expect(ai.updateRecurringTransaction).not.toHaveBeenCalled();
+  });
+
+  it("hides cancel after the standing order has already charged", async () => {
+    confident("create_recurring");
+    ai.createRecurringTransaction.mockResolvedValue({
+      id: "r1",
+      created_at: new Date().toISOString(),
+      execution_count: 1,
+    });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
+    expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
+  });
+
+  it("disables send when the field is empty and clears the chat", async () => {
+    confident("add_transaction");
+    const user = setup();
+    expect(screen.getByRole("button", { name: "aiIntake.send" })).toBeDisabled();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
+    await user.click(screen.getByRole("button", { name: "aiIntake.newChat" }));
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByText("קניתי מאפים באליס ב-15 שח")).not.toBeInTheDocument();
+  });
+
+  it("opens the same draft inside the mobile drawer", async () => {
+    installDomPolyfills("mobile");
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+  });
+
+  it("shows the rabbi card for a personal question below the page floor", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.9,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.3,
+    });
+    const user = setup();
+    await send(user, "קיבלתי ירושה מאבא שלי, האם אני חייב לתת ממנה מעשר?");
+    expect(await screen.findByRole("button", { name: "aiIntake.rabbiSend" })).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
+  });
+
+  it("shows the bread card and the expense answer instead of the rabbi card", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "ask_data",
+      confidence: 0.66,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.5,
+    });
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "expense",
+      measure: "sum",
+      recipient: null,
+      category: "food",
+      paymentMethod: null,
+      period: { kind: "span", from: "2026-11-01", to: "2026-11-30" },
+    });
+    ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
+    ai.sumYearType.mockResolvedValue({ ok: true, total: 40, count: 1, currency: "ILS" });
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: {
+        measure: "sum",
+        family: "expense",
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: "2026-11-01",
+        to: "2026-11-30",
+      },
+      items: [{
+        description: "לחם",
+        amount: 15,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "קניתי לחם ב-15 וכמה הוצאתי החודש?");
+    const amount = await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
+    const answer = await screen.findByText("answer:sum:1");
+    expect(amount).toHaveValue("15");
+    expect(amount.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(ai.sumYearType.mock.calls[0]?.[0]).toMatchObject({ type: "expense", topic: null, recipient: null });
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
+  });
+
+  it("asks which family for a tithe balance when the saved reader has no period", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue(null);
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 0,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      items: [],
+      question: {
+        measure: "sum",
+        family: null,
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: null,
+        to: null,
+      },
+    });
+    const user = setup();
+    await send(user, "מה יתרת המעשרות שלי?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.dataUnsupported")).not.toBeInTheDocument();
+  });
+
+  it("answers a tithe question from the reader instead of showing only the rabbi card", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "out_of_scope",
+      confidence: 0.9,
+      halachaPage: "personal",
+      halachaPageConfidence: 0.4,
+    });
+    ai.readQuestionSlots.mockResolvedValue(null);
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 0,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      items: [],
+      question: {
+        measure: "sum",
+        family: null,
+        recipient: null,
+        category: null,
+        paymentMethod: null,
+        from: null,
+        to: null,
+      },
+    });
+    const user = setup();
+    await send(user, "כמה מעשרות אני עוד צריך לתת?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
+  });
+
+  it("offers a ready rule after the user accepts a special type", async () => {
+    confident("add_transaction");
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "גן",
+        amount: 900,
+        currency: "ILS",
+        date: "2026-11-01",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: "recognized-expense",
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+    const user = setup();
+    await send(user, "שילמתי לגן 900, הוצאה מוכרת");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.askSpecialYes" }));
+    expect(await screen.findByRole("button", { name: "aiIntake.ruleApprove" })).toBeInTheDocument();
+    expect(screen.getByText("גן")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("900");
+  });
+
+  it("names the frequencies when the standing order is not one of them", async () => {
+    confident("create_recurring");
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      items: [{
+        description: "gym",
+        amount: 40,
+        currency: "USD",
+        date: null,
+        checkDate: false,
+        checkAmount: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+        unsupportedFrequency: true,
+      }],
+    });
+    const user = setup();
+    await send(user, "Pay 40 dollars bimonthly for the gym");
+    expect(await screen.findByText("aiIntake.frequencyUnsupported")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.save" })).not.toBeInTheDocument();
+  });
+});

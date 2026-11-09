@@ -5,6 +5,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import {
   initialTableTransactionFilters,
   IsRecurringFilter,
+  OriginFilter,
 } from "@/lib/tableTransactions/tableTransactions.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { TransactionType } from "@/types/transaction";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import type { DateRange } from "react-day-picker";
 import {
   DropdownMenu,
@@ -100,6 +102,9 @@ export function TransactionsFilters() {
   );
   const [localIsRecurring, setLocalIsRecurring] = useState<IsRecurringFilter>(
     storeFilters.isRecurring
+  );
+  const [localOrigin, setLocalOrigin] = useState<OriginFilter>(
+    storeFilters.origin ?? "all",
   );
   const [localRecurringStatuses, setLocalRecurringStatuses] = useState<
     string[]
@@ -206,6 +211,7 @@ export function TransactionsFilters() {
     setLocalTypes(initialTableTransactionFilters.types);
     setLocalPaymentMethods(initialTableTransactionFilters.paymentMethods);
     setLocalIsRecurring(initialTableTransactionFilters.isRecurring);
+    setLocalOrigin(initialTableTransactionFilters.origin);
     setLocalRecurringStatuses(initialTableTransactionFilters.recurringStatuses);
     // setLocalRecurringFrequencies( // Commented out - frequency filter disabled
     //   initialTableTransactionFilters.recurringFrequencies
@@ -435,6 +441,36 @@ export function TransactionsFilters() {
                 </SelectContent>
               </Select>
             </div>
+
+            {platform === "web" && isAiIntakeEnabled() ? (
+              <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+                <Label className="mb-2 block text-sm font-medium">
+                  {tTables("filters.origin")}
+                </Label>
+                <Select
+                  value={localOrigin}
+                  onValueChange={(value) => {
+                    if (value !== "all" && value !== "ai" && value !== "ai_auto") {
+                      return;
+                    }
+                    setLocalOrigin(value);
+                    setStoreFilters({ origin: value });
+                  }}
+                  dir="rtl"
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{tTables("filters.all")}</SelectItem>
+                    <SelectItem value="ai">{tTables("filters.originAi")}</SelectItem>
+                    <SelectItem value="ai_auto">
+                      {tTables("filters.originAuto")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
           </div>
 
           {/* Conditional Recurring Filters & Reset Button Group */}

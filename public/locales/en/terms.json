@@ -34,6 +34,7 @@
     "item3": "Web: communication preferences (e.g., reminders, mailing consent) may be stored to respect your choices",
     "item4": "Support: if you contact us, we may store your message, attachments, and basic technical metadata (e.g., app version, locale, user-agent)",
     "item5": "Desktop: your financial data is stored locally on your device (SQLite) unless you choose to export/share it",
+    "item6": "Web: a receipt you upload to the assistant (image or PDF) is stored privately for up to 30 days and then deleted. Deleting the file does not delete a transaction you already saved",
     "privacyLinkPrefix": "For details, see our",
     "privacyLinkText": "Privacy Policy",
     "privacyLinkSuffix": "."

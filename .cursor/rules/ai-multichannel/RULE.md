@@ -1,11 +1,12 @@
 ---
 description: "Ten10 AI multichannel intake: non-negotiable rules for AI intake, the ai schema, channel adapters and the shared transaction-domain code."
-globs: supabase/functions/_shared/intake/**,supabase/functions/_shared/ai/**,supabase/functions/_shared/transaction-domain/**,supabase/migrations/**,src/lib/intake/**,src/lib/import/**,src/components/ai-intake/**,infrastructure/cloudflare/**,docs/superpowers/plans/*ai-*.md
+globs: supabase/functions/_shared/intake/**,supabase/functions/_shared/ai/**,supabase/functions/_shared/transaction-domain/**,supabase/migrations/**,src/lib/intake/**,src/lib/import/**,src/components/ai-intake/**,infrastructure/cloudflare/**,docs/superpowers/plans/*ai-*.md,llm-instructions/features/ai/**
 alwaysApply: false
 ---
 
 # Ten10 AI Multichannel — חוקי עבודה
 
+- **איך זה עובד היום:** `llm-instructions/features/ai/ai-intake-how-it-works.md`. זה המקום לתיעוד פיצ'ר. עדכן אותו כשההתנהגות הקיימת משתנה.
 - **המסמך המלא:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.6). אל תקרא אותו כולו. פתח רק סעיפים לפי הפניה (§).
 - **התקדמות והחלטות:** `docs/superpowers/plans/ai-progress.md`. קרא בתחילת כל סשן, ועדכן בסוף.
 - **תוכנית לכל PR:** `docs/superpowers/plans/2026-10-18-ai-pr*.md`. עבוד רק על המשימה שהוגדרה לסשן.
@@ -29,6 +30,13 @@ alwaysApply: false
 11. אין תוכן קבלות, טקסט הודעות או פרומפטים בלוגים וב־PostHog. ב־`src` משתמשים ב־`src/lib/logger.ts`, לא ב־`console`. ב־Edge אין עדיין logger משותף; מוסיפים אחד ל־`_shared` לפני קוד AI ראשון, ולא כותבים `console.*` חדש.
 12. ב־testing, עבודת AI רק על משתמשי הניסוי, דרך allowlist בצד השרת (§22.1). ענף ה־testing מכיל נתוני ייצור.
 
+## ענפים
+
+- כל עבודת ה־AI נפתחת מ־`feat/ai-intake`, וה־PR שלה מכוון אליו, לא ל־`main`.
+- `feat/ai-intake` ממוזג ל־`main` רק כשיכולת שלמה עובדת בפני עצמה, מאחורי flags כבויים.
+- ממזגים את `main` לתוך `feat/ai-intake` בערך פעם בשבוע, כדי שהמיזוג הסופי יהיה קטן.
+- תיקון שאינו AI (באג, אבטחה, תשתית כללית) הולך ישר ל־`main` ב־PR נפרד.
+
 ## לפני PR
 
 - `npm run typecheck`, `npm run lint:ratchet`, `npm test` (כולל `scripts/tauri-web-boundary.test.ts`), ו־`npm run check-supabase-imports`.
@@ -42,3 +50,24 @@ alwaysApply: false
 - משימה אחת לסשן. קודם תוכנית, אחר כך קוד.
 - בסוף הסשן: 3–5 שורות ב־`ai-progress.md` (מה נעשה, החלטות, הצעד הבא), ואז commit.
 - קוד, הערות והודעות commit באנגלית, Conventional Commits.
+
+## בדיקות מודל ודיווח
+
+בתוקף מ־1/11/2026.
+
+- כל PR מכוון ל־`feat/ai-intake`. לא לפתוח, לא למזג ולא לדחוף שום דבר ל־`main`. המעבר ל־`main` הוא של יוסי.
+- «המודל קורא, הקוד בודק ומחשב». בלי רשימות מילים ובלי regex על הטקסט של המשתמש. כשהמודל החזיר מבנה נכון והקוד לא חישב, מתקנים את הקוד ולא את ההוראות.
+- בדיקה (eval) קוראת לפונקציות של האפליקציה, עם אותם קלטים כמו האפליקציה: רשימות, לוח שנה וקטגוריות מובנות. לא מעתיקים לוגיקה לתוך הבדיקה. שאלה שהעוזר שאל נספרת בנפרד מתשובה שגויה.
+- לפני כל שינוי בהוראות או בקוד, לסווג את ההחטאות. בכל שורת תוצאה לשמור את הקלט, את הפלט הגולמי ואת הסיבה.
+- לא לשנות תוויות כדי שיתאימו לפלט. שינוי תווית רק בהחלטה של יוסי, עם note.
+- ריצות מודל:
+  - בזמן תיקון: רק מה שנכשל ועוד כ־10 משפטי ביקורת, פעם אחת.
+  - כשהתיקון גמור: הסט שהשינוי נוגע בו, פעם אחת.
+  - פעמיים רק בבדיקה הסופית.
+  - לא להריץ מודלים אחרים בלי בקשה של יוסי.
+- דיווח:
+  - המספרים כמו שהם בקובץ, עם רשימת המשפטים. `wrong_X` הוא `wrong_X`, גם אם יש לו הסבר.
+  - בכל דיווח לציין כמה ריצות היו ובערך כמה עלו.
+  - כל קובץ תוצאות שמצוטט בדיווח נשמר ב־git.
+  - שינוי בהתנהגות שלא התבקש מדווחים במפורש.
+- מדד הבטיחות: סכום שגוי שנשמר, וסינון שגוי בשאלה. שניהם חייבים להיות 0.

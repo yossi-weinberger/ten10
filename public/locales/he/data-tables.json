@@ -57,6 +57,12 @@
     "edit": "עריכה",
     "editRecurring": "ערוך הו\"ק",
     "delete": "מחיקה",
+    "viewReceipt": "הצג קבלה",
+    "receiptUntil": "זמינה עד {{date}}",
+    "undoAi": "בטל שמירת AI",
+    "undoAiDone": "השמירה בוטלה והתנועה נמחקה.",
+    "undoAiNotAllowed": "אי אפשר לבטל. אם התנועה נערכה או עברו 7 ימים, מחקים אותה כרגיל.",
+    "undoAiFailed": "הביטול נכשל. התנועה נשארה.",
     "duplicate": "שכפול",
     "export": "ייצוא",
     "cancel": "ביטול"
@@ -202,7 +208,9 @@
   },
   "dialog": {
     "deleteTitle": "אישור מחיקת תנועה",
-    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו."
+    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו.",
+    "undoAiTitle": "אישור ביטול שמירת AI",
+    "undoAiDescription": "האם לבטל את השמירה של \"{{description}}\" מתאריך {{date}}? התנועה תימחק."
   },
   "modal": {
     "editTitle": "עריכת תנועה",
@@ -252,6 +260,12 @@
     "all": "הכל",
     "recurringOnly": "הוראות קבע בלבד",
     "regularOnly": "תנועות רגילות בלבד",
+    "origin": "מקור",
+    "originAi": "נוצר מ-AI",
+    "originAuto": "נשמר אוטומטית",
+    "receiptNone": "אין קובץ מקור לתנועה הזו.",
+    "receiptOpen": "הצג את הקבלה",
+    "receiptFailed": "הקובץ לא זמין כרגע.",
     "recurringStatus": "סטטוס קבע",
     "allStatuses": "כל הסטטוסים",
     "statusesSelected": "{{count}} נבחרו",

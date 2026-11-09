@@ -27,3 +27,8 @@ export function normalizeCurrencyCode(
   }
   return "ILS";
 }
+
+export function getCurrencySymbol(code: string | undefined | null): string {
+  if (!code) return "";
+  return CURRENCIES.find((item) => item.code === code)?.symbol ?? code;
+}

@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import type { WithReactNodeChildren } from "./types";
@@ -34,8 +35,10 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   WithReactNodeChildren<
     React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
-  >
->(({ className, children, ...props }, ref) => (
+  > & { hideClose?: boolean }
+>(({ className, children, hideClose = false, ...props }, ref) => {
+  const { t } = useTranslation();
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -47,13 +50,16 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute end-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {hideClose ? null : (
+        <DialogPrimitive.Close className="absolute end-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">{t("actions.close")}</span>
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({

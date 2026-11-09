@@ -12,7 +12,7 @@ vi.mock("./save-export-file", () => ({
   saveOrDownloadExportedFile: vi.fn(async () => true),
 }));
 
-import { exportTransactionsToCSV } from "./export-csv";
+import { escapeCsvCell, exportTransactionsToCSV } from "./export-csv";
 import { saveOrDownloadExportedFile } from "./save-export-file";
 
 beforeEach(() => {
@@ -114,5 +114,44 @@ describe("exportTransactionsToCSV (integration with shared export fields)", () =
     const row = await exportedRow();
     expect(row["columns.date"]).toBe("12/09/2026");
     expect(row["columns.hebrewDate"]).toBe("א׳ בתשרי תשפ״ז");
+  });
+});
+
+describe("escapeCsvCell (spreadsheet formula injection)", () => {
+  it.each([
+    ["=1+1", "'=1+1"],
+    ["  =cmd", "'  =cmd"],
+    ["+972501234567", "'+972501234567"],
+    ["-2+3", "'-2+3"],
+    ["@SUM(A1)", "'@SUM(A1)"],
+    ["\tfoo", "'\tfoo"],
+    ["\rfoo", "\"'\rfoo\""],
+    ['=HYPERLINK("http://x","y")', `"'=HYPERLINK(""http://x"",""y"")"`],
+  ])("neutralizes %j", (input, expected) => {
+    expect(escapeCsvCell(input)).toBe(expected);
+  });
+
+  it.each([
+    ["תרומה לבית הכנסת", "תרומה לבית הכנסת"],
+    ["a, b", '"a, b"'],
+    ['say "hi"', '"say ""hi"""'],
+    ["a=b", "a=b"],
+  ])("leaves ordinary text %j as is", (input, expected) => {
+    expect(escapeCsvCell(input)).toBe(expected);
+  });
+
+  it("keeps a negative number amount numeric", () => {
+    expect(escapeCsvCell(-50)).toBe("-50");
+  });
+
+  it("neutralizes a formula description in a real export, amount untouched", async () => {
+    await exportTransactionsToCSV(
+      [baseTransaction({ description: "=HYPERLINK(\"http://x\")", amount: -50 })],
+      "test",
+      "en"
+    );
+    const row = await exportedRow();
+    expect(row["columns.description"]).toBe("'=HYPERLINK(\"http://x\")");
+    expect(String(row["columns.amount"])).toBe("-50");
   });
 });

@@ -48,6 +48,9 @@ supabase/.temp/
 playwright-report/
 test-results/
 
+# Local eval runner output (not the committed fixtures)
+supabase/functions/_shared/ai/fixtures/out/
+
 # Tauri generated artifacts (auto-generated schemas / permissions)
 /src-tauri/gen/
 

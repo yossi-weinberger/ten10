@@ -1,5 +1,14 @@
 // supabase/functions/_shared/cors.ts
 
+function readSupabaseUrl(): string {
+  try {
+    return Deno.env.get("SUPABASE_URL") || "";
+  } catch (error) {
+    if (error instanceof Deno.errors.NotCapable) return "";
+    throw error;
+  }
+}
+
 export const getCorsHeaders = (
   origin: string | null,
 ): Record<string, string> => {
@@ -9,16 +18,17 @@ export const getCorsHeaders = (
     "http://localhost:5173",
     "http://127.0.0.1:54321",
   ];
-
-  // TESTING only: allow Vercel preview origins
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  // TESTING only: any https://*.vercel.app, team preview deploys included. Production allows none.
+  // Deno tests run without env permission, so a denied read stays closed.
+  const supabaseUrl = readSupabaseUrl();
   const isTestingProject = supabaseUrl.includes("bbcllewcotypedqsnwmi");
-  
-  // Strict regex: https://*.vercel.app (https only, no http)
   const isVercelPreview = origin && /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
-  // If origin is allowed, return it.
-  if (origin && (ALLOWED_ORIGINS.includes(origin) || (isTestingProject && isVercelPreview))) {
+  if (
+    origin &&
+    (ALLOWED_ORIGINS.includes(origin) ||
+      (isTestingProject && isVercelPreview))
+  ) {
     return {
       "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Headers":

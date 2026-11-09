@@ -28,6 +28,12 @@
     "all": "All",
     "recurringOnly": "Recurring Only",
     "regularOnly": "Regular Only",
+    "origin": "Source",
+    "originAi": "Created by AI",
+    "originAuto": "Saved automatically",
+    "receiptNone": "This transaction has no source file.",
+    "receiptOpen": "Show the receipt",
+    "receiptFailed": "The file is not available right now.",
     "recurringStatus": "Recurring Status",
     "allStatuses": "All Statuses",
     "statusesSelected": "{{count}} selected",
@@ -75,6 +81,12 @@
     "edit": "Edit",
     "editRecurring": "Edit Recurring",
     "delete": "Delete",
+    "viewReceipt": "Show receipt",
+    "receiptUntil": "Available until {{date}}",
+    "undoAi": "Undo AI save",
+    "undoAiDone": "The save was undone and the transaction was deleted.",
+    "undoAiNotAllowed": "This cannot be undone. If it was edited or 7 days have passed, delete it normally.",
+    "undoAiFailed": "Undo failed. The transaction is still saved.",
     "duplicate": "Duplicate",
     "export": "Export",
     "cancel": "Cancel"
@@ -201,6 +213,7 @@
     "defaultRecurringName": "this recurring transaction",
     "deleteErrorWithDescription": "Error deleting \"{{description}}\": {{error}}",
     "platformError": "Cannot delete because the platform is still loading or invalid",
+    "recurringError": "Error loading recurring transaction details",
     "loadingError": "Error loading data: {{error}}",
     "unknownError": "Unknown error",
     "recurringUpdateSuccess": "Recurring transaction updated successfully!",
@@ -219,7 +232,9 @@
   },
   "dialog": {
     "deleteTitle": "Confirm Transaction Deletion",
-    "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone."
+    "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone.",
+    "undoAiTitle": "Confirm undoing the AI save",
+    "undoAiDescription": "Undo the save of \"{{description}}\" from {{date}}? The transaction will be deleted."
   },
   "modal": {
     "editTitle": "Edit Transaction",

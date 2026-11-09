@@ -24,7 +24,7 @@
 - **`SECURITY DEFINER` שמשתמש מחובר יכול להריץ:** 15, כולן עם `search_path` קשיח ובלי הרשאה ל־`anon`. נבדקו `calculate_user_tithe_balance` (שתי החתימות, בודקות `auth.uid()` מול `p_user_id`), `get_user_categories` (מסנן לפי `auth.uid()`) ו־`get_earliest_system_date` (בודקת admin). נשארו לבדיקה: `get_admin_dashboard_stats` (שתיים), `get_admin_monthly_trends`, `handle_contact_form` (שתיים), `is_admin_user`, `get_user_payment_methods`, `get_category_breakdown`, `get_daily_transaction_heatmap`, `get_analytics_breakdowns`, `get_analytics_range_stats`.
 - **`update_user_transaction`:** הגוף נמצא ב־repo (`20260122_update_transaction_rpc_currency_fields.sql`), `SECURITY INVOKER`, רשימה סגורה של עמודות בלי `origin`. משימה 4 סגורה.
 - **`get_user_transactions`:** לחתימה עם 9 פרמטרים יש 8 ברירות מחדל, ולחתימות עם 12 ו־13 אין. קורא יחיד: `tableTransactionService.ts`, ששולח תמיד 13 שמות. `track_functions=none`.
-- **testing:** 183 migrations כמו בייצור, ארבעת ה־crons כבויים. ב־Vault יש `service_role_key` ו־`functions_base_url`.
+- **testing:** 183 migrations כמו בייצור, ארבעת ה־crons כבויים. ב־Vault יש `service_role_key` ו־`functions_base_url`, ושניהם של testing.
 - **Storage:** רק `contact-attachments` (פרטי, 5MB, PNG/JPEG/PDF/TXT/ZIP). אין bucket בשם `avatars`.
 
 ## משימות
@@ -52,7 +52,7 @@
 
 ### משימה 6: סביבת ה־testing (§3.2, §22, §22.1)
 - [ ] לוודא שאינטגרציית GitHub של Supabase עדיין מריצה migrations של PRs חדשים על ענף ה־testing. התיעוד משייך אותו ל־`feat/hebrew-calendar-foundation`. לעדכן את `supabase-database-migrations-workflow.md` לפי המצב בפועל.
-- [ ] Vault של testing: להחליף **גם** את `service_role_key` **וגם** את `functions_base_url` בערכי testing. בלי `functions_base_url`, cron של testing יקרא לפונקציות של הייצור. ה־crons העסקיים נשארים כבויים.
+- [x] Vault של testing: `service_role_key` ו־`functions_base_url` כבר של testing (אומת בדשבורד). ה־crons העסקיים נשארים כבויים.
 - [ ] לוודא שמשתני הסביבה של Vercel Preview מצביעים על testing.
 - [ ] לרשום ב־`ai-progress.md` את ה־`user_id` של משתמשי הניסוי. אלה מזהים, לא סודות.
 

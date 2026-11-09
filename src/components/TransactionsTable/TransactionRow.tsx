@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles, Undo2, Receipt } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -21,12 +21,18 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
+import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
+  onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   selected: boolean;
   onToggleSelected: (id: string) => void;
@@ -39,6 +45,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEdit,
   onDelete,
   onEditRecurring,
+  onUndoAi,
   isFetchingRec,
   selected,
   onToggleSelected,
@@ -46,8 +53,31 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const { platform } = usePlatform();
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
+  const receiptVisible = showReceiptAction({
+    platform,
+    enabled: isAiIntakeEnabled(),
+    expiresAt: transaction.receipt_expires_at,
+  });
+  const receiptUntil = transaction.receipt_expires_at
+    ? formatDisplayDate(receiptExpiryDate(transaction.receipt_expires_at), "numeric").primary
+    : "";
+  const [receiptNote, setReceiptNote] = React.useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = React.useState<string | null>(null);
+
+  async function openReceipt() {
+    setReceiptNote(null);
+    setReceiptLink(null);
+    const result = await openAiReceipt({ transactionId: transaction.id });
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+  }
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
@@ -60,7 +90,29 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         )}
       </TableCell>
       <TableCell className="text-start">
-        {transaction.description || "-"}
+        <span className="inline-flex items-center gap-1">
+          {transaction.description || "-"}
+          {platform === "web" &&
+          isAiIntakeEnabled() &&
+          (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
+            <span
+              className="inline-flex"
+              aria-label={t(
+                transaction.origin === "ai_auto"
+                  ? "filters.originAuto"
+                  : "filters.originAi",
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            </span>
+          ) : null}
+        </span>
+        {receiptLink ? (
+          <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">
+            {t("filters.receiptOpen")}
+          </a>
+        ) : null}
+        {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
         <CurrencyConversionInfo
@@ -159,6 +211,30 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                 </span>
               </DropdownMenuItem>
             )}
+            {receiptVisible ? (
+              <DropdownMenuItem
+                aria-label={receiptUntil
+                  ? `${t("actions.viewReceipt")}, ${t("actions.receiptUntil", { date: receiptUntil })}`
+                  : t("actions.viewReceipt")}
+                onClick={() => void openReceipt()}
+              >
+                <Receipt className="me-2 h-4 w-4" />
+                <span>
+                  {t("actions.viewReceipt")}
+                  {receiptUntil ? ` · ${t("actions.receiptUntil", { date: receiptUntil })}` : ""}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            {platform === "web" &&
+            isAiIntakeEnabled() &&
+            onUndoAi &&
+            canUndoAiTransaction(transaction) &&
+            (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
+              <DropdownMenuItem onClick={() => onUndoAi(transaction)}>
+                <Undo2 className="me-2 h-4 w-4" />
+                {t("actions.undoAi")}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(transaction)}

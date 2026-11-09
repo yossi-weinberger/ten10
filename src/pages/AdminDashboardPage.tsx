@@ -13,6 +13,7 @@ import {
   Download,
   Gauge,
   BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -27,6 +28,7 @@ import { AdminEngagementSection } from "@/components/admin/AdminEngagementSectio
 import { AdminTrendsChart } from "@/components/admin/AdminTrendsChart";
 import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSection";
 import { AdminPostHogSection } from "@/components/admin/AdminPostHogSection";
+import { AdminAiSection } from "@/components/admin/AdminAiSection";
 import { cn } from "@/lib/utils";
 
 type AdminTab =
@@ -35,7 +37,8 @@ type AdminTab =
   | "trends"
   | "downloads"
   | "monitoring"
-  | "posthog";
+  | "posthog"
+  | "ai";
 
 function isAdminTab(value: string): value is AdminTab {
   switch (value) {
@@ -45,6 +48,7 @@ function isAdminTab(value: string): value is AdminTab {
     case "downloads":
     case "monitoring":
     case "posthog":
+    case "ai":
       return true;
     default:
       return false;
@@ -100,6 +104,7 @@ export function AdminDashboardPage() {
         break;
       case "monitoring":
       case "posthog":
+      case "ai":
         break;
       default: {
         const _exhaustive: never = value;
@@ -221,7 +226,7 @@ export function AdminDashboardPage() {
           className={cn(
             "grid w-full grid-cols-2 gap-2 p-2 h-auto",
             "rounded-lg border bg-card",
-            "sm:grid-cols-6 sm:gap-0 sm:p-1 sm:rounded-md sm:border-0 sm:bg-muted",
+            "sm:grid-cols-7 sm:gap-0 sm:p-1 sm:rounded-md sm:border-0 sm:bg-muted",
             "lg:inline-flex lg:w-auto"
           )}
         >
@@ -301,6 +306,18 @@ export function AdminDashboardPage() {
             <span className="hidden sm:inline">{t("tabs.posthog")}</span>
             <span className="sm:hidden">{t("tabs.posthogShort")}</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="ai"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{t("tabs.ai")}</span>
+            <span className="sm:hidden">{t("tabs.aiShort")}</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -355,6 +372,10 @@ export function AdminDashboardPage() {
         {/* PostHog Analytics Tab — fetches itself, not blocked on stats */}
         <TabsContent value="posthog" className="space-y-6">
           <AdminPostHogSection />
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6">
+          <AdminAiSection />
         </TabsContent>
       </Tabs>
     </div>

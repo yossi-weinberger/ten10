@@ -25,13 +25,17 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
+import {
+  recurringFromSearch,
+  useTransactionFormInitialization,
+} from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { useTrackAddFormLifecycle } from "./useTrackAddFormLifecycle";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
 
 interface TransactionFormProps {
@@ -132,7 +136,7 @@ export function TransactionForm({
       isExempt: false,
       isRecognized: false,
       isFromPersonalFunds: false,
-      is_recurring: false,
+      is_recurring: recurringFromSearch(search),
       frequency: "monthly",
       recurring_calendar_type: defaultRecurringCalendar,
       recurring_day_of_month: undefined,
@@ -273,17 +277,26 @@ export function TransactionForm({
         const originalAmount = values.amount;
         const originalCurrency = values.currency;
         const conversionRate = values.conversion_rate;
-        const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
+        const converted = applyConversion({
+            originalAmount,
+            originalCurrency,
+            defaultCurrency,
+            rate: conversionRate,
+            conversionDate: values.conversion_date,
+            rateSource: values.rate_source,
+        });
         
         submissionValues = {
             ...values,
-            amount: convertedAmount,
+            amount: converted.amount,
             currency: defaultCurrency,
-            original_amount: originalAmount,
-            original_currency: originalCurrency,
-            // conversion_rate, date, source are already in values
+            original_amount: converted.original_amount,
+            original_currency: converted.original_currency,
+            conversion_rate: converted.conversion_rate,
+            conversion_date: converted.conversion_date,
+            rate_source: converted.rate_source,
         };
-        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: converted.amount });
     } else {
         // Default currency - ensure clean state (no conversion fields)
         submissionValues.original_amount = null;

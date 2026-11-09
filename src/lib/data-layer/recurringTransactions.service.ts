@@ -22,14 +22,17 @@ export type NewRecurringTransaction = Omit<
 /**
  * Creates a new recurring transaction definition in the database.
  * @param definition - The recurring transaction details.
+ * @param id - Optional row id chosen by the caller (web only), so a retry cannot insert a second row.
  * @returns The created recurring transaction data.
  */
 export async function createRecurringTransaction(
-  definition: NewRecurringTransaction
+  definition: NewRecurringTransaction,
+  id?: string
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
+  const { origin, ...definitionWithoutOrigin } = definition;
   const normalizedDefinition = {
-    ...definition,
+    ...definitionWithoutOrigin,
     payment_method:
       normalizePaymentMethodValue(definition.payment_method) ?? undefined,
   };
@@ -51,6 +54,8 @@ export async function createRecurringTransaction(
       .insert([
         {
           ...normalizedDefinition,
+          ...(origin === "ai" ? { origin } : {}),
+          ...(id ? { id } : {}),
           user_id: user.id,
         },
       ])

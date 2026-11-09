@@ -151,6 +151,7 @@ export function TermsPage() {
                     <li>{t("dataAndPrivacy.item3")}</li>
                     <li>{t("dataAndPrivacy.item4")}</li>
                     <li>{t("dataAndPrivacy.item5")}</li>
+                    <li>{t("dataAndPrivacy.item6")}</li>
                   </ul>
                   <p className="text-gray-600 dark:text-gray-300 mt-4">
                     <span>{t("dataAndPrivacy.privacyLinkPrefix")}</span>{" "}
