@@ -109,7 +109,7 @@ Responses API (`/v1/responses`, כמו היום ב־`ai-split-items`). היום 
 
 ## סט הבדיקה
 
-- **הסט:** מרחיבים את `split-eval-cases.json`, ומריצים אותו ב־`split-eval-run.ts` וב־`split-score.ts` הקיימים. התוצאות בריפו, עם תג `source:eval`.
+- **הסט:** מרחיבים את `split-eval-cases.json`, ומריצים אותו ב־`split-eval-run.ts` וב־`split-score.ts` הקיימים. התוצאות בריפו, עם תג `source:eval`. Note: eval run outputs are archived outside the repo and written to `fixtures/out/`.
 - **בסיס:** 80 המשפטים של `split-eval-cases.json`, שכבר בריפו, ו־180 המשפטים העיוורים מ־exp-haiku, שיוסי מספק.
 - **מה להוסיף:**
   - ששת הסוגים, כולל משפטים שבהם הסוג המיוחד לא נאמר.

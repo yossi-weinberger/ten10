@@ -44,7 +44,7 @@
 | `gen-en-rule-14` | My 120 NIS standing order is monthly; don't log just this one, make it recurring | `create_rule` | `create_recurring` |
 | `gen-he-rule-15` | כל ראש חודש 100 לגמ״ח | `create_rule` (מקובל: `add_transaction`) | `create_recurring` (מקובל: `add_transaction`) |
 
-ה־ids נשארים, כדי שההיסטוריה ב־`intent-eval-inbox-results.json` תהיה ניתנת להשוואה. אחרי התיוג: `create_rule` יורד מ־15 ל־9, ו־`create_recurring` מקבל 6.
+ה־ids נשארים, כדי שההיסטוריה ב־`intent-eval-inbox-results.json` תהיה ניתנת להשוואה. Note: that eval run output is archived outside the repo. אחרי התיוג: `create_rule` יורד מ־15 ל־9, ו־`create_recurring` מקבל 6.
 
 **`intent-eval-cases.json` (68 המשפטים) אין בו אף משפט על חזרה.** בדיקת הכיסוי תיכשל בלי משפטים של `create_recurring`. נכנסים 6 המשפטים שסופקו, כמו שהם:
 

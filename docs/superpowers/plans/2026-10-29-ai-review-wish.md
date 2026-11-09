@@ -36,7 +36,7 @@
 - [ ] id מהלקוח בשמירה, כדי שניסיון חוזר לא ייצור שתי הוראות.
 - [ ] בדיקת כפילות שנכשלת שואלת, ולא ממשיכה.
 - [ ] סמני חזרה בזיהוי בלי Jev הם מילה שלמה. «bimonthly» ו־«non-recurring» אינם הוראת קבע.
-- [ ] לשמור בריפו את `intent-eval-results.json` ו־`intent-eval-inbox-results.json` מכיול R1.
+- [ ] לשמור בריפו את `intent-eval-results.json` ו־`intent-eval-inbox-results.json` מכיול R1. Note: those eval run outputs are archived outside the repo.
 
 ## 3. נמען ומספרים במילים
 
