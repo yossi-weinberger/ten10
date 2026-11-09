@@ -33,26 +33,27 @@ export function InspirationCard({
 
   if (!item) return <p className="text-sm">{t("aiIntake.inspiration.empty")}</p>;
   const source = item.source.trim();
+  const showSource = source && source !== "לא צוין במקור המיובא" && source !== "Not specified in imported source";
   return (
     <Card className="grid gap-2 p-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <KindTag icon={BotMessageSquare} tint={KIND_TINT.knowledge}>{t("aiIntake.inspiration.tag")}</KindTag>
-        {source ? <span className="min-w-0 truncate text-xs text-muted-foreground" title={source}>{source}</span> : null}
+        {showSource ? <span className="min-w-0 truncate text-xs text-muted-foreground" title={source}>{source}</span> : null}
       </div>
       <p className="text-sm font-medium">{item.title}</p>
       <blockquote ref={bodyRef} className={`whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-4"}`}>
         {item.body}
       </blockquote>
-      {onAnother || clipped || open ? (
+      {onAnother || (clipped && !open) ? (
         <div className="flex items-center gap-2">
           {onAnother ? (
             <Button type="button" variant="outline" size="sm" onClick={onAnother}>
               {t("aiIntake.inspiration.another")}
             </Button>
           ) : null}
-          {clipped || open ? (
-            <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
-              {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
+          {clipped && !open ? (
+            <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen(true)}>
+              {t("aiIntake.inspiration.more")}
             </Button>
           ) : null}
         </div>

@@ -22,7 +22,6 @@ import { donationRecipient } from "@/lib/ai/build-commit-payload";
 import { isPredefinedCategory } from "../../../../supabase/functions/_shared/transaction-domain/category-keys.ts";
 import type { DraftView } from "../assistant-reply-view";
 import { ChomeshToggle } from "./ChomeshToggle";
-import { Confetti } from "./Confetti";
 import { SavedLine, type SavedFooter } from "./SavedLine";
 import { TypeTag } from "./TypeTag";
 
@@ -133,7 +132,6 @@ export function DraftCard({
                 transition={{ type: "spring", stiffness: 420, damping: 18 }}
               >
                 <CircleCheck className="size-3.5" aria-hidden />
-                {typeKey === "donation" ? <Confetti burst={savedBurst} /> : null}
               </motion.span>
             )}
           >
