@@ -512,6 +512,38 @@ describe("decideTurn", () => {
     expect(openCardEvidence(edited)).toBe("18");
   });
 
+  // QA 6: the same transaction again offered to replace the saved one, or was saved twice.
+  it("tells the saved transaction again from a correction of it", () => {
+    const fields = { amount: 15, currency: "ILS", type: "expense", description: "מאפים", date: "2026-11-01", category: null, paymentMethod: null, isChomesh: false };
+    const saved = rememberSaved(decideTurn(base()).nextState, "item-1", fields);
+    const again = (over: Partial<AnchoredSplitItem>, continues?: boolean) => decideTurn(base({
+      state: saved,
+      reader: { ok: true, route: "several", items: [item(over)], rule: null, question: null, ...(continues === undefined ? {} : { continues }) },
+    }));
+    // The same item, whatever the continue flag, and with spacing or case changed.
+    for (const continues of [true, false, undefined]) {
+      const decision = again({ description: " מאפים " }, continues);
+      expect(decision.card.type).toBe("already_saved");
+      expect(decision.replaces).toBeNull();
+      expect(decision.nextState.onScreen).toMatchObject({ kind: "saved", savedItemId: "item-1" });
+    }
+    // A field the item leaves empty keeps the saved one.
+    expect(again({ typeHint: "", currency: "", date: null }, true).card.type).toBe("already_saved");
+    // Any changed field is a correction, and only a continuing one replaces.
+    const changes: Partial<AnchoredSplitItem>[] = [{ amount: 20 }, { date: "2026-10-31" }, { typeHint: "donation" }, { description: "לחם" }, { paymentMethod: "cash" }, { category: "food" }];
+    for (const change of changes) {
+      expect(again(change, true)).toMatchObject({ card: { type: "draft" }, replaces: "item-1" });
+      expect(again(change, false)).toMatchObject({ card: { type: "draft" }, replaces: null });
+    }
+    // A special type already answered on the saved card is not asked again.
+    const special = rememberSaved(decideTurn(base()).nextState, "item-2", { ...fields, type: "recognized-expense" });
+    const asked = decideTurn(base({
+      state: special,
+      reader: { ok: true, route: "several", items: [item({ typeQuestion: "recognized-expense" })], rule: null, question: null, continues: true },
+    }));
+    expect(asked.card.type).toBe("already_saved");
+  });
+
   // QA: "לאיזה מקומות?" after a data answer asked "for which period?".
   it("asks a follow-up question about the period of the answer on screen", () => {
     const question = (period: { kind: "span"; from: string; to: string } | null) => ({

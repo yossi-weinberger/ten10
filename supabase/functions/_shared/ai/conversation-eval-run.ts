@@ -63,6 +63,7 @@ const TOPIC_COUNTS: Record<string, number> = {
   inspiration_more: 1,
   multi_request: 2,
   qa_2026_11: 12,
+  repeat_after_save: 3,
 };
 
 function readGatewayKey(): string {
@@ -153,6 +154,8 @@ function flagsFor(expect: ExpectTurn, summary: TurnSummary): string[] {
   if (summary.kind === "recurring" && expect.frequency !== undefined && summary.frequency !== expect.frequency) flags.push("wrong_save");
   if (summary.kind === "recurring" && expect.day !== undefined && summary.day !== expect.day) flags.push("wrong_save");
   if (expect.kind === "recurring" && (summary.kind === "draft" || summary.kind === "drafts")) flags.push("recurring_as_one_time");
+  // A card for a transaction that is already saved can be saved a second time.
+  if (expect.kind === "already_saved" && card) flags.push("double_save");
   if ((summary.kind === "out_of_scope" || summary.kind === "could_not_read") && !accepted.includes("out_of_scope")) flags.push("dead_end");
   if (summary.kind === "question" && !accepted.includes("question")) flags.push("unnecessary_question");
   return [...new Set(flags)];
@@ -274,6 +277,8 @@ async function runConversation(
         type: summary.type,
         description: summary.description ?? "",
         date: summary.date,
+        category: summary.category,
+        isChomesh: summary.chomesh,
       });
     }
   }
@@ -300,6 +305,7 @@ const summary = {
   turn_correct: rows.filter((row) => row.reason === "turn_correct").length,
   turn_correct_rate: turns === 0 ? 0 : rows.filter((row) => row.reason === "turn_correct").length / turns,
   wrong_save: count("wrong_save"),
+  double_save: count("double_save"),
   recurring_as_one_time: count("recurring_as_one_time"),
   dead_end: count("dead_end"),
   unnecessary_question: count("unnecessary_question"),

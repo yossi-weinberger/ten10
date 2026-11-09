@@ -492,6 +492,102 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.replacedNotSaved")).toBeInTheDocument();
   }, 15_000);
 
+  /** The pastry read again after a save, as the reader returns it for a repeat or a rephrasing. */
+  function repeatRead(over: { amount?: number; continues?: boolean } = {}) {
+    ai.splitItems.mockResolvedValueOnce({
+      ok: true,
+      route: "several",
+      found: 1,
+      dropped: 0,
+      usageId: null,
+      rule: null,
+      question: null,
+      ...(over.continues === undefined ? {} : { continues: over.continues }),
+      items: [{
+        description: "מאפים באליס",
+        amount: over.amount ?? 15,
+        currency: "ILS",
+        date: "2026-10-30",
+        checkDate: false,
+        typeHint: "expense",
+        typeQuestion: null,
+        requestedRate: null,
+        paymentMethod: null,
+        category: null,
+        ruleId: null,
+        ruleName: null,
+        recurrence: null,
+      }],
+    });
+  }
+
+  async function saveFirst(user: ReturnType<typeof userEvent.setup>) {
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
+    // The saved row now exists, so the duplicate check finds it.
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "t1", date: "2026-10-30", amount: 15, description: "מאפים באליס", kind: "transaction" },
+    ]);
+  }
+
+  // QA 6: the same message again offered to replace the saved one.
+  it("says the same message again is already saved, and saves nothing", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ continues: true });
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.replacesSaved")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /aiIntake\.save/ })).not.toBeInTheDocument();
+    // Twice in a row: still the saved one.
+    repeatRead({ continues: true });
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await waitFor(() => expect(screen.getAllByText("aiIntake.alreadySaved")).toHaveLength(2));
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+    expect(ai.undoTextIntake).not.toHaveBeenCalled();
+  }, 15_000);
+
+  // QA 6: a rephrasing the reader took for a new transaction was saved a second time.
+  it("says a rephrasing with the same amount, description and date is already saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ continues: false });
+    await send(user, "שילמתי 15 שקל על מאפים באליס");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /aiIntake\.save/ })).not.toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(1);
+  }, 15_000);
+
+  it("replaces once on a real correction, so one row stays saved", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
+    const user = setup();
+    await saveFirst(user);
+    repeatRead({ amount: 20, continues: true });
+    await send(user, "בעצם 20");
+    expect(await screen.findByText("aiIntake.replacesSaved")).toBeInTheDocument();
+    await clickSave(user);
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.saveTextDraft.mock.calls[1][0]).toMatchObject({ amount: 20 });
+    expect(ai.undoTextIntake).toHaveBeenCalledTimes(1);
+    expect(ai.undoTextIntake).toHaveBeenCalledWith("i1");
+    // Saves minus undos: one row.
+    expect(ai.saveTextDraft.mock.calls.length - ai.undoTextIntake.mock.calls.length).toBe(1);
+    // The corrected amount again is the saved one now, not another replacement.
+    repeatRead({ amount: 20, continues: true });
+    await send(user, "בעצם 20");
+    expect(await screen.findByText("aiIntake.alreadySaved")).toBeInTheDocument();
+    expect(ai.saveTextDraft).toHaveBeenCalledTimes(2);
+  }, 20_000);
+
   it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({
       ok: true,
