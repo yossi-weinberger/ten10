@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,15 @@ import { Card } from "@/components/ui/card";
 import { KIND_TINT } from "./card-style";
 import { KindTag } from "./KindTag";
 
-export function HalachaCard({ namespace }: { namespace: string }) {
+export function HalachaCard({
+  namespace,
+  userQuestion,
+  onAskRabbi,
+}: {
+  namespace: string;
+  userQuestion?: string;
+  onAskRabbi?: () => void;
+}) {
   const { t } = useTranslation([
     "navigation",
     "halacha-expenses",
@@ -22,7 +30,13 @@ export function HalachaCard({ namespace }: { namespace: string }) {
       <blockquote className="text-sm leading-relaxed">{t("introduction.body", { ns: namespace })}</blockquote>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground">{t("aiIntake.halachaPersonal")}</span>
-        <Button asChild variant="outline" size="sm" className="ms-auto">
+        {userQuestion && onAskRabbi ? (
+          <Button variant="outline" size="sm" onClick={onAskRabbi}>
+            <MessageCircle aria-hidden />
+            {t("aiIntake.askRabbi")}
+          </Button>
+        ) : null}
+        <Button asChild variant="outline" size="sm" className={userQuestion && onAskRabbi ? "" : "ms-auto"}>
           <Link to="/halacha">
             <BookOpen aria-hidden />
             {t("aiIntake.halachaLink")}
