@@ -142,7 +142,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="touch-target relative h-auto px-0 text-xs"
+                className="touch-target relative h-auto min-h-11 px-0 py-2 text-xs"
                 title={t("aiIntake.receiptKept")}
                 onClick={footer.onOpenReceipt}
               >
@@ -155,7 +155,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="touch-target relative ms-auto h-auto px-0 text-xs"
+                className="touch-target relative ms-auto h-auto min-h-11 px-0 py-2 text-xs"
                 disabled={footer.undoing}
                 onClick={footer.onUndo}
               >

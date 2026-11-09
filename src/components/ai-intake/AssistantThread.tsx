@@ -120,9 +120,9 @@ export function AssistantThread({
     const greeting = opening?.name ? t("aiIntake.greetingNamed", { greeting: hello, name: opening.name }) : hello;
     return (
       // Scrolls; auto margins center it but keep the top reachable when the screen is short or the keyboard is open.
-      <Empty className="h-full justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
+      <Empty className="h-full min-h-0 justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
         {/* No mark here: the panel's header already shows it. */}
-        <EmptyHeader className="mt-auto">
+        <EmptyHeader className="mt-auto shrink-0">
           <EmptyTitle>{greeting}</EmptyTitle>
           <EmptyDescription>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
         </EmptyHeader>
@@ -139,7 +139,7 @@ export function AssistantThread({
             event.target.value = "";
           }}
         />
-        <div className="mb-auto flex flex-wrap justify-center gap-2">
+        <div className="mb-auto shrink-0 flex flex-wrap justify-center gap-2">
           {SUGGESTIONS.filter(({ key }) => key !== "receipt" || onReceipt).map(({ key, icon: Icon, tint }, index) => (
             <motion.div
               key={key}
@@ -149,7 +149,7 @@ export function AssistantThread({
             >
               <button
                 type="button"
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-11 min-h-11 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-target"
                 onClick={() => {
                   if (key === "receipt") fileRef.current?.click();
                   else onSuggestion(t(`aiIntake.suggestions.${key}`));
@@ -198,8 +198,8 @@ export function AssistantThread({
                   {turn.blocks.length > 0 ? (
                     <MessageScrollerItem messageId={`${turn.id}-reply`}>
                       <Message>
-                        {/* No avatar column on narrow phones: the cards get the width. */}
-                        <MessageAvatar className="bg-transparent max-sm:hidden">
+                        {/* No avatar column on narrow phones: the cards get the width. Hidden under 400px to maximize card space. */}
+                        <MessageAvatar className="bg-transparent max-[399px]:hidden">
                           <AssistantMark />
                         </MessageAvatar>
                         <MessageContent>

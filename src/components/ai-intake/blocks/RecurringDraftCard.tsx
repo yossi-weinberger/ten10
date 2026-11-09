@@ -177,7 +177,7 @@ export function RecurringDraftCard({
       <span>{t("aiIntake.recurring.nextCharges")}</span>
       {/* Two are enough to show it repeats, and they fit a 320px phone. */}
       {dates.slice(0, 2).map((date) => (
-        <span key={date} className="rounded-full bg-background/80 px-2 py-0.5 font-medium text-foreground">
+        <span key={date} className="inline-block whitespace-nowrap rounded-full bg-background/80 px-2 py-0.5 font-medium text-foreground">
           <bdi>{formatDisplayDate(date, "short").primary}</bdi>
         </span>
       ))}
@@ -197,7 +197,7 @@ export function RecurringDraftCard({
         </div>
         {nextCharges}
         <SavedLine status={footer?.status ?? "recurringSaved"}>
-          <Button asChild variant="link" size="sm" className="touch-target relative h-auto px-0 text-xs">
+          <Button asChild variant="link" size="sm" className="touch-target relative h-auto min-h-11 px-0 py-2 text-xs">
             <Link to="/transactions-table/recurring-transactions">{t("aiIntake.recurring.openTable")}</Link>
           </Button>
           {cancelOpen ? (
@@ -205,7 +205,7 @@ export function RecurringDraftCard({
               type="button"
               variant="link"
               size="sm"
-              className="touch-target relative ms-auto h-auto px-0 text-xs"
+              className="touch-target relative ms-auto h-auto min-h-11 px-0 py-2 text-xs"
               disabled={!interactive || saving}
               onClick={onCancel}
             >
