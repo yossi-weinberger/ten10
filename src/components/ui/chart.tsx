@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
+import type { DefaultLegendContentProps } from 'recharts';
 
 import { cn } from '@/lib/utils';
 import { isPresentChartValue } from '@/lib/admin/trend-chart.utils';
@@ -262,7 +263,7 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> &
-    Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
+    Pick<DefaultLegendContentProps, 'payload' | 'verticalAlign'> & {
       hideIcon?: boolean;
       nameKey?: string;
     }

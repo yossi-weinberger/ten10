@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 
 import { cn } from '@/lib/utils';
+import type { WithReactNodeChildren } from './types';
 
 const Drawer = ({
   shouldScaleBackground = true,
@@ -36,7 +37,9 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+  WithReactNodeChildren<
+    React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+  >
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
