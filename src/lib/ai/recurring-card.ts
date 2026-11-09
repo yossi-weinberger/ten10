@@ -105,11 +105,6 @@ export const RECURRING_EDIT_FIELDS = [
 
 export type RecurringEditField = (typeof RECURRING_EDIT_FIELDS)[number];
 
-export type RecurringSummaryPiece = {
-  field: "type" | "amount" | "description" | "day" | "start" | null;
-  text: string;
-};
-
 /**
  * Daily, weekly, and yearly are recognized and refused.
  * They are not turned into a monthly order.
@@ -122,7 +117,7 @@ export function unsupportedRecurringFrequency(
   return frequency === "daily" || frequency === "weekly" || frequency === "yearly";
 }
 
-/** The one missing answer, in order. Null when the card can show the summary. */
+/** The one missing answer, in order. Null when the card can show its fields. */
 export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | null {
   if (card.saved || unsupportedRecurringFrequency(card.frequency)) return null;
   if (card.amount === null || !(card.amount > 0)) return "amount";
@@ -134,45 +129,6 @@ export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | 
   if (card.startDate === null) return "day";
   if (card.alreadyCharged && card.includeThisMonth === null) return "includeThisMonth";
   return null;
-}
-
-/** Day and month in the card's calendar, without a year. Gregorian 2026-11-10 is "10/11". */
-export function recurringShortDate(iso: string, calendarType: CalendarType): string {
-  const representation = getCalendarAdapter(calendarType).fromIsoDate(iso);
-  return `${representation.day}/${representation.month}`;
-}
-
-export function recurringSummaryPieces(
-  card: RecurringCard,
-  labels: {
-    type: string;
-    currency: string;
-    start: string;
-    lead: string;
-    payeePrefix: string;
-    monthly: string;
-    from: string;
-    /** The amount formatted with its currency. Without it, the number and the currency symbol. */
-    amount?: string;
-  },
-): RecurringSummaryPiece[] {
-  const pieces: RecurringSummaryPiece[] = [
-    { field: null, text: labels.lead },
-    { field: "type", text: labels.type },
-    { field: null, text: " " },
-    { field: "amount", text: labels.amount ?? `${card.amount ?? ""} ${labels.currency}` },
-  ];
-  const payee = card.description.trim();
-  if (payee) {
-    pieces.push({ field: null, text: labels.payeePrefix }, { field: "description", text: payee });
-  }
-  pieces.push(
-    { field: null, text: labels.monthly },
-    { field: "day", text: String(dayOf(card) ?? "") },
-    { field: null, text: labels.from },
-    { field: "start", text: labels.start },
-  );
-  return pieces;
 }
 
 /** The assistant cancel button stays up for 7 days, and only before the first charge. */

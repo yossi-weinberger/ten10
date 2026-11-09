@@ -993,7 +993,7 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
-    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("200");
     expect(screen.queryByRole("combobox", { name: "aiIntake.recurring.type" })).not.toBeInTheDocument();
     expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));

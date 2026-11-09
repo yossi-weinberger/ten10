@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Turnstile from "react-turnstile";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ContactModal } from "@/components/features/contact/ContactModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { contactService } from "@/lib/data-layer/contact.service";
+import { KIND_TINT } from "./card-style";
+import { KindTag } from "./KindTag";
 
 export function RabbiCard({
   text,
@@ -49,11 +53,17 @@ export function RabbiCard({
   }
 
   return (
-    <div className="grid gap-3 rounded-xl bg-primary/5 p-4">
+    <div className="grid gap-2.5">
+      {/* Why a rabbi: the halacha pages have no answer for this. */}
+      <p className="text-sm">{t("aiIntake.rabbiIntro")}</p>
+      <Card className="grid gap-2 p-2.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <KindTag icon={MessageCircle} tint={KIND_TINT.knowledge}>{t("aiIntake.rabbiTag")}</KindTag>
+        <span className="min-w-0 truncate text-xs text-muted-foreground">
+          {t("aiIntake.rabbiReply", { email: user?.email ?? t("aiIntake.rabbiYourEmail") })}
+        </span>
+      </div>
       <p className="text-sm whitespace-pre-wrap">{text}</p>
-      <p className="text-xs text-muted-foreground">
-        {t("aiIntake.rabbiReply", { email: user?.email ?? t("aiIntake.rabbiYourEmail") })}
-      </p>
       {ticket ? <p className="text-sm">{t("aiIntake.rabbiSent", { ticket })}</p> : !interactive ? null : (
         <>
           <Turnstile
@@ -65,19 +75,20 @@ export function RabbiCard({
             size={window.matchMedia?.("(max-width: 399px)").matches ? "compact" : "normal"}
           />
           {failed ? <p className="text-sm">{t("aiIntake.rabbiFailed")}</p> : null}
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" disabled={!captchaToken || sending} onClick={() => void send()}>
-              {t("aiIntake.rabbiSend")}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" variant="ghost" className="px-2" onClick={onDismiss}>
+              {t("aiIntake.rabbiLater")}
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+            <Button type="button" size="sm" variant="outline" className="ms-auto" onClick={() => setEditing(true)}>
               {t("aiIntake.rabbiEdit")}
             </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={onDismiss}>
-              {t("aiIntake.rabbiLater")}
+            <Button type="button" size="sm" disabled={!captchaToken || sending} onClick={() => void send()}>
+              {t("aiIntake.rabbiSend")}
             </Button>
           </div>
         </>
       )}
+      </Card>
       <ContactModal
         isOpen={editing}
         onOpenChange={setEditing}

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
+import { useState } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -10,13 +11,9 @@ import { RecurringDraftCard } from "./RecurringDraftCard";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => ({
-      "aiIntake.recurring.summaryLead": "הוראת קבע: ",
-      "aiIntake.recurring.summaryPayee": " · ",
-      "aiIntake.recurring.summaryMonthly": ", כל חודש ב-",
-      "aiIntake.recurring.summaryFrom": ", החל מ-",
       "aiIntake.types.donation": "תרומה",
     }[key] ?? key),
-    i18n: { language: "he" },
+    i18n: { language: "he", dir: () => "rtl" },
   }),
 }));
 
@@ -70,26 +67,55 @@ function renderCard(value: RecurringCard, onChange = vi.fn(), onSave = vi.fn()) 
 describe("recurring draft card", () => {
   afterEach(() => cleanup());
 
-  it("shows the summary and hides the inputs when the order is complete", () => {
+  it("shows the order's own fields when it is complete, like a draft", () => {
     renderCard(card());
-    expect(screen.getByText(/הוראת קבע:/)).toBeInTheDocument();
+    expect(screen.getByText("aiIntake.recurring.monthlyTag")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("100");
+    expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("כולל");
     expect(screen.getByText("2026-11-10")).toBeInTheDocument();
     expect(screen.getByText("2026-12-10")).toBeInTheDocument();
-    expect(screen.getByText("2027-01-10")).toBeInTheDocument();
+    expect(screen.queryByText("2027-01-10")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "aiIntake.recurring.changeDetail" })).toBeEnabled();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("sends a typed amount as a number", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    function Harness() {
+      const [value, setValue] = useState(card());
+      return (
+        <RecurringDraftCard
+          card={value}
+          saving={false}
+          interactive
+          onChange={(next) => {
+            setValue(next);
+            onChange(next);
+          }}
+          onSave={vi.fn()}
+          onDismiss={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      );
+    }
+    render(<Harness />);
+    const amount = screen.getByRole("textbox", { name: "aiIntake.editAmount" });
+    await user.clear(amount);
+    await user.type(amount, "1,500");
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ amount: 1500 }));
   });
 
   it("opens only the chosen field", async () => {
     const user = userEvent.setup();
     renderCard(card());
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.changeDetail" }));
-    await user.click(screen.getByRole("button", { name: "aiIntake.editAmount" }));
-    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "aiIntake.recurring.day" }));
+    expect(screen.getByRole("textbox", { name: "aiIntake.recurring.day" })).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "aiIntake.recurring.type" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox", { name: "aiIntake.recurring.day" })).not.toBeInTheDocument();
   });
 
   it("asks for a missing amount before anything else", () => {
