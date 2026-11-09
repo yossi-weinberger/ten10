@@ -9,21 +9,25 @@ import {
   type CalendarExportSettings,
 } from "@/lib/calendar/export-date";
 
-function escapeCsvCell(
+// Excel/Sheets treat a cell starting with one of these as a formula, so text
+// from outside (an AI-read receipt, an imported file) could run one.
+const FORMULA_START = /^(?:\s*[=+\-@]|[\t\r])/;
+
+export function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
 ): string {
   if (cellData == null) {
     // handles undefined and null
     return "";
   }
-  const stringData = String(cellData);
+  let stringData = String(cellData);
+  // Only text is neutralized: numbers (e.g. amount -50) must stay numeric.
+  if (typeof cellData === "string" && FORMULA_START.test(stringData)) {
+    stringData = `'${stringData}`;
+  }
   // If the string contains a comma, newline, or double quote, enclose it in double quotes.
   // Also, any existing double quotes within the string must be escaped by doubling them.
-  if (
-    stringData.includes(",") ||
-    stringData.includes("\n") ||
-    stringData.includes('"')
-  ) {
+  if (/[",\n\r]/.test(stringData)) {
     return `"${stringData.replace(/"/g, '""')}"`;
   }
   return stringData;
