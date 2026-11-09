@@ -44,16 +44,16 @@ export function InspirationCard({
       <blockquote ref={bodyRef} className={`whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-4"}`}>
         {item.body}
       </blockquote>
-      {onAnother || (clipped && !open) ? (
+      {onAnother || clipped ? (
         <div className="flex items-center gap-2">
           {onAnother ? (
             <Button type="button" variant="outline" size="sm" onClick={onAnother}>
               {t("aiIntake.inspiration.another")}
             </Button>
           ) : null}
-          {clipped && !open ? (
-            <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen(true)}>
-              {t("aiIntake.inspiration.more")}
+          {clipped ? (
+            <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
+              {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
             </Button>
           ) : null}
         </div>

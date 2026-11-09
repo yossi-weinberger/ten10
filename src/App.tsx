@@ -370,7 +370,11 @@ function App() {
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={() => setIsSidebarExpanded(true)}
+            onMouseEnter={() => {
+              if (!document.documentElement.dataset.assistantPanel) {
+                setIsSidebarExpanded(true);
+              }
+            }}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
             <Sidebar expanded={isSidebarExpanded} />

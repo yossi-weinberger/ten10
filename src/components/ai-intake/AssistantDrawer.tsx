@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
-import { RefreshCw } from "lucide-react";
+import { Paperclip, SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { loadTitheBalance } from "@/lib/ai/assistant-extras";
 import type { CurrencyCode } from "@/lib/currencies";
@@ -123,9 +123,9 @@ export function AssistantDrawer({
             state.clearConversation();
           }}
           title={state.t("aiIntake.newChat")}
+          aria-label={state.t("aiIntake.newChat")}
         >
-          <RefreshCw className="size-4" aria-hidden />
-          <span className="sr-only">{state.t("aiIntake.newChat")}</span>
+          <SquarePen aria-hidden />
         </Button>
       )}
       onReceipt={(file) => {

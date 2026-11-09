@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ArrowDown, BookOpen, BotMessageSquare, ChartColumn, CreditCard, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
+import { ArrowDown, BookOpen, ChartColumn, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {

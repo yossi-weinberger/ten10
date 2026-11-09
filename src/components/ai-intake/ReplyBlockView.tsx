@@ -82,9 +82,14 @@ export function ReplyBlockView({
   switch (block.kind) {
     case "thinking":
       return (
-        <div role="status" className="grid gap-2" aria-label={t(`aiIntake.thinking.${block.phase}`)}>
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
+        <div role="status" className="grid gap-2.5">
+          <p className="text-sm">
+            <Shimmer>{t(`aiIntake.thinking.${block.phase}`)}</Shimmer>
+          </p>
+          <div className="grid gap-2">
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
         </div>
       );
     case "askIntent":
