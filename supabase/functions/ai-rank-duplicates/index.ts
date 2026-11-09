@@ -109,8 +109,8 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { ranked: false, scores: [] }, 200);
 
-  // Duplicate ranking stays free to the user: no usage weight is charged (consumeCall only counts against
-  // the monthly allowance). Model cost is logged. Bounded by MAX_CANDIDATES=20 and the rate limiter.
+  // Duplicate ranking adds 0 units but is refused once the monthly allowance is exhausted and still counts
+  // toward day/minute rate limits. Model cost is logged. Bounded by MAX_CANDIDATES=20 (jev-duplicate-rank.ts:20).
   const allowed = await serviceUsageGate().consumeCall(userData.user.id);
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { ranked: false, scores: [] }, 200);
