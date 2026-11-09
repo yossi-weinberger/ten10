@@ -181,6 +181,7 @@
     "receiptMissing": "This receipt has no file.",
     "receiptUnavailable": "The file is not available right now.",
     "editDescription": "Description",
+    "edit": "Edit",
     "editDate": "Date",
     "editDateInvalid": "The date is not valid. Nothing was saved.",
     "editAmount": "Amount",

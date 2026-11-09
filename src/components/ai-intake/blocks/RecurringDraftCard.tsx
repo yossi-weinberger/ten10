@@ -122,6 +122,7 @@ export function RecurringDraftCard({
   const [openField, setOpenField] = useState<RecurringEditField | null>(null);
   const [picking, setPicking] = useState(false);
   const [amountText, setAmountText] = useState(card.amount === null ? "" : String(card.amount));
+  const [expanded, setExpanded] = useState(false);
   const autoCalcChomesh = useDonationStore((state) => state.settings.autoCalcChomesh);
   const chomesh = card.isChomesh ?? autoCalcChomesh;
   const today = getCurrentLocalDate();
@@ -135,7 +136,7 @@ export function RecurringDraftCard({
   const [fieldsShown, setFieldsShown] = useState(false);
   if (!blocked && question === null && !fieldsShown) setFieldsShown(true);
   const showSummary = !blocked && (question === null || (question === "amount" && fieldsShown));
-  const editing = showSummary && !openField && !picking;
+  const editing = showSummary && !openField && !picking && (expanded || !ready);
   const cancelOpen = card.saved
     && !card.cancelled
     && card.savedCreatedAt !== null
@@ -232,6 +233,31 @@ export function RecurringDraftCard({
           </Button>
           <Button type="button" size="sm" variant="outline" disabled={locked} onClick={onDismiss}>
             {t("aiIntake.recurring.decline")}
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  // Collapsed summary: show when ready but not expanded
+  if (showSummary && ready && !expanded) {
+    return (
+      <Card className={cn("grid gap-2 p-2.5", surface)}>
+        {eyebrow}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+          {amountLabel ? <p className="shrink-0 text-lg font-semibold tabular-nums"><bdi>{amountLabel}</bdi></p> : null}
+          <p className="min-w-0 break-words text-sm text-muted-foreground">
+            {t("aiIntake.recurring.perMonth")}
+            {payee ? ` · ${payee}` : ""}
+          </p>
+        </div>
+        {nextCharges}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" size="sm" className="flex-1" disabled={locked} onClick={onSave}>
+            {t("aiIntake.recurring.save")}
+          </Button>
+          <Button type="button" size="sm" variant="outline" disabled={locked} onClick={() => setExpanded(true)}>
+            {t("aiIntake.edit")}
           </Button>
         </div>
       </Card>
