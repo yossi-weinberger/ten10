@@ -259,10 +259,8 @@ function CalendarDayButton({
   }, [modifiers.focused]);
 
   return (
-    <Button
+    <button
       ref={ref}
-      variant="ghost"
-      size="icon"
       data-day={day.date.toLocaleDateString()}
       data-shabbat={isShabbat ? "true" : undefined}
       data-yom-tov={isYomTov ? "true" : undefined}
@@ -276,11 +274,17 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
-        marked && isYomTov && "bg-amber-500/25 text-amber-950 dark:text-amber-100",
-        marked && isShabbat && !isYomTov && "bg-sky-500/15 text-sky-950 dark:text-sky-100",
-        defaultClassNames.day,
-        className
+        buttonVariants({
+          variant: "ghost",
+          size: "icon",
+          className: cn(
+            "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+            marked && isYomTov && "bg-amber-500/25 text-amber-950 dark:text-amber-100",
+            marked && isShabbat && !isYomTov && "bg-sky-500/15 text-sky-950 dark:text-sky-100",
+            defaultClassNames.day,
+            className
+          ),
+        })
       )}
       {...props}
       aria-label={accessibleName ?? props["aria-label"]}
