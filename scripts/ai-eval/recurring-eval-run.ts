@@ -1,7 +1,7 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
-import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { parseSplitPayload, readSplitResponse } from "../../supabase/functions/_shared/ai/split-response.ts";
 
 /** Standing-order sentences from the plan, including review-wish section 2. Not fitted to a model. */
 

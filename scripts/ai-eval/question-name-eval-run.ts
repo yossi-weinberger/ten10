@@ -1,11 +1,11 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { anchoredQuestionName, questionFromSlots } from "./data-question.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { boundsFromPeriod, explainPeriodRead, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
-import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
-import { decideQuestionFilter } from "../../../../src/lib/ai/question-filter.ts";
-import { matchUserCategory } from "../../../../src/lib/ai/match-category.ts";
+import { anchoredQuestionName, questionFromSlots } from "../../supabase/functions/_shared/ai/data-question.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { boundsFromPeriod, explainPeriodRead, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/question-period.ts";
+import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "../../supabase/functions/_shared/ai/question-slots.ts";
+import { decideQuestionFilter } from "../../src/lib/ai/question-filter.ts";
+import { matchUserCategory } from "../../src/lib/ai/match-category.ts";
 
 /** Args: env, fixture, results json. Scores the same name decision the app makes. */
 

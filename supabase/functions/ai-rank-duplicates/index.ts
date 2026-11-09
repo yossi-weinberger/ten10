@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
     notAllowedBody: { ranked: false, scores: [] },
   });
   if (!setup.ok) return setup.response;
-  const { userId, origin } = setup;
+  const { userId, origin, userClient } = setup;
 
   const input = readInput(await req.json().catch(() => null));
   if (!input) return json(origin, { ranked: false, scores: [] }, 400);

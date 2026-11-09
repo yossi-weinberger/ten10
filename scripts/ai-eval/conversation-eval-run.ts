@@ -1,14 +1,14 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "./jev-intent.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { readModelUsage } from "./model-call.ts";
-import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
-import { splitReadContext, withChomesh } from "./split-anchor.ts";
-import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
-import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "./question-slots.ts";
-import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "./question-period.ts";
-import { contextFor, decideTurn, emptyConversation, openCardEvidence, rememberData, rememberSaved, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../../../src/lib/ai/assistant-turn.ts";
+import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "../../supabase/functions/_shared/ai/jev-intent.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { readModelUsage } from "../../supabase/functions/_shared/ai/model-call.ts";
+import { parseSplitPayload, readSplitResponse } from "../../supabase/functions/_shared/ai/split-response.ts";
+import { splitReadContext, withChomesh } from "../../supabase/functions/_shared/ai/split-anchor.ts";
+import { splitRequestBody, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { buildQuestionSlotBody, predefinedQuestionCategories, readQuestionSlots } from "../../supabase/functions/_shared/ai/question-slots.ts";
+import { boundsFromPeriod, periodRequestBody, readPeriodPayload } from "../../supabase/functions/_shared/ai/question-period.ts";
+import { contextFor, decideTurn, emptyConversation, openCardEvidence, rememberData, rememberSaved, summarizeTurn, type TurnQuestion, type TurnSummary } from "../../src/lib/ai/assistant-turn.ts";
 
 interface ExpectTurn {
   kind: string;

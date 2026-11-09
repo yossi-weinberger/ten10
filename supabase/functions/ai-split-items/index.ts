@@ -1,3 +1,4 @@
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
