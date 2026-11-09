@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { anchoredQuestionName, questionFromSlots } from "./data-question.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { readModelText } from "./receipt-draft.ts";
@@ -262,4 +263,4 @@ console.log(JSON.stringify({
   askedFamilyIds: ids("asked_family"),
   noQuestionIds: ids("no_question"),
 }));
-if (OUT_PATH) await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+if (OUT_PATH) await writeEvalOut(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");

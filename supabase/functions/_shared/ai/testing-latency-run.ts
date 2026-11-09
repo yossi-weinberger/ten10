@@ -3,10 +3,12 @@
  * Args: path to a local env file that is not committed.
  * That file must set TEST_USER_EMAIL, TEST_USER_PASSWORD,
  * VITE_SUPABASE_URL, and VITE_SUPABASE_ANON_KEY for the testing project.
+ * Receipts come from AI_RECEIPTS_DIR (same layout as the old fixtures/receipts folder).
  * Run only after list_ai_reader_rules exists on testing.
  */
 
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
+import { receiptsEvalPath, writeEvalOut } from "./eval-out.ts";
 
 const ENV_PATH = Deno.args[0] ?? "";
 const TESTING_REF = "bbcllewcotypedqsnwmi";
@@ -93,7 +95,7 @@ function numberOf(record: Record<string, unknown>, key: string): number | null {
   return typeof value === "number" ? Math.round(value) : null;
 }
 
-async function invokeTimed(name: string, id: string, body: unknown): Promise<Timed> {
+async function invokeTimed(name: string, id: string, body: Record<string, unknown>): Promise<Timed> {
   const started = performance.now();
   const result = await supabase.functions.invoke(name, { body });
   const ms = Math.round(performance.now() - started);
@@ -118,8 +120,7 @@ async function invokeTimed(name: string, id: string, body: unknown): Promise<Tim
 const root = new URL("./fixtures/", import.meta.url);
 const splits = textsFrom(new URL("split-eval-cases.json", root), 60);
 const questions = textsFrom(new URL("question-slot-eval-cases.json", root), 30);
-const receiptRoot = new URL("./fixtures/receipts/", import.meta.url);
-const receiptLines = Deno.readTextFileSync(new URL("answers.jsonl", receiptRoot)).split(/\r?\n/).filter((line) => line.length > 0);
+const receiptLines = Deno.readTextFileSync(receiptsEvalPath("answers.jsonl")).split(/\r?\n/).filter((line) => line.length > 0);
 const receipts = receiptLines.flatMap((line) => {
   const row = JSON.parse(line) as { id?: unknown; file?: unknown; kind?: unknown };
   if (row.kind !== "receipt" || typeof row.id !== "string" || typeof row.file !== "string") return [];
@@ -150,10 +151,20 @@ const receiptMeasured: Timed[] = [];
 for (const item of receipts) {
   const type = mediaType(item.file);
   if (!type) {
-    receiptMeasured.push({ id: item.id, ms: 0, ok: false });
+    receiptMeasured.push({
+      id: item.id,
+      ms: 0,
+      ok: false,
+      retried: false,
+      prepMs: null,
+      modelMs: null,
+      copyMs: null,
+      listsMs: null,
+      splitMs: null,
+    });
     continue;
   }
-  const bytes = Deno.readFileSync(new URL(item.file, receiptRoot));
+  const bytes = Deno.readFileSync(receiptsEvalPath(item.file));
   receiptMeasured.push(await invokeTimed("ai-read-receipt", item.id, {
     media_type: type,
     data: encodeBase64(bytes),
@@ -192,4 +203,4 @@ console.log(JSON.stringify({
   question: summary.question,
   receipt: summary.receipt,
 }, null, 2));
-await Deno.writeTextFile(new URL("./fixtures/testing-latency.json", import.meta.url), JSON.stringify(summary, null, 2) + "\n");
+await writeEvalOut("testing-latency.json", JSON.stringify(summary, null, 2) + "\n");

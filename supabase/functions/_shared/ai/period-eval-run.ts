@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
 import { SPLIT_MODEL } from "./split-prompt.ts";
@@ -107,4 +108,4 @@ console.log(JSON.stringify({
   labeled,
   labeledCorrect,
 }));
-if (OUT_PATH) await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+if (OUT_PATH) await writeEvalOut(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");

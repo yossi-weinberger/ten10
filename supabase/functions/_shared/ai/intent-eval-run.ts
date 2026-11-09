@@ -1,4 +1,5 @@
 import intentCases from "./fixtures/intent-eval-cases.json" with { type: "json" };
+import { writeEvalOut } from "./eval-out.ts";
 import { buildIntentBody, readIntentChoice } from "./jev-intent.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 
@@ -93,7 +94,5 @@ const summary = {
   outputTokens,
 };
 const outName = Deno.args[0] ?? "intent-eval-results.json";
-if (outName.includes("/") || outName.includes("\\")) throw new Error("pass a file name, not a path");
-const out = new URL(`./fixtures/${outName}`, import.meta.url);
-Deno.writeTextFileSync(out, JSON.stringify({ summary, rows }, null, 2));
+await writeEvalOut(outName, JSON.stringify({ summary, rows }, null, 2));
 console.log(JSON.stringify(summary));

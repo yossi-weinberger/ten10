@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
@@ -261,5 +262,5 @@ for (const item of CASES) {
 }
 console.log(`recurring ${passed}/${CASES.length}`);
 if (outPath) {
-  await Deno.writeTextFile(outPath, JSON.stringify({ passed, cases: CASES.length, rows }, null, 2) + "\n");
+  await writeEvalOut(outPath, JSON.stringify({ passed, cases: CASES.length, rows }, null, 2) + "\n");
 }

@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { buildQuestionSlotBody } from "./question-slots.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { readSlotEvalFixture, scoreSlotEval, SLOT_EVAL_FIELDS } from "./question-slot-eval.ts";
@@ -39,7 +40,7 @@ for (const item of fixture.cases) {
 }
 
 const summary = scoreSlotEval(fixture.cases, answers);
-Deno.writeTextFileSync(resultsPath, JSON.stringify({ summary, answers }, null, 2));
+await writeEvalOut(resultsPath, JSON.stringify({ summary, answers }, null, 2));
 console.log(JSON.stringify({
   total: summary.total,
   correct: summary.correct,

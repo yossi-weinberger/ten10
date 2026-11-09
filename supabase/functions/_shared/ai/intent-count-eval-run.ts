@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { buildIntentBody, INTAKE_COUNTS, readCountChoice, readIntentChoice } from "./jev-intent.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { INTAKE_INTENTS, type IntakeIntent } from "./intent.ts";
@@ -85,8 +86,7 @@ const summary = {
   count: scoreLabelEval(countCases, countAnswers, INTAKE_COUNTS),
   intent: intentSummaries,
 };
-const out = new URL("./fixtures/intent-count-eval-results.json", import.meta.url);
-Deno.writeTextFileSync(out, JSON.stringify({ summary, countAnswers }, null, 2));
+await writeEvalOut("intent-count-eval-results.json", JSON.stringify({ summary, countAnswers }, null, 2));
 console.log(JSON.stringify({
   count: { accuracy: summary.count.accuracy, byLabel: summary.count.byLabel, confidentWrong: summary.count.confidentWrong },
   intent: Object.fromEntries(

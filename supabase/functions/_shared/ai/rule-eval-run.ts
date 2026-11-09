@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { splitReadContext } from "./split-anchor.ts";
 import { splitPrompt, splitRequestBody, SPLIT_RESPONSES_URL, type SplitPromptContext } from "./split-prompt.ts";
@@ -80,5 +81,5 @@ const summary = {
 };
 console.log(JSON.stringify({ promptSeesExamples, cases: summary.cases, passed: summary.passed }));
 if (OUT_PATH) {
-  await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+  await writeEvalOut(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
 }

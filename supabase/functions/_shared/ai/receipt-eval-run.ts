@@ -1,3 +1,4 @@
+import { receiptsEvalPath, writeEvalOut } from "./eval-out.ts";
 import { readModelText, receiptDraftFromItems, receiptFilePart, RECEIPT_COPY_PROMPT } from "./receipt-draft.ts";
 import { splitReadContext } from "./split-anchor.ts";
 import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
@@ -10,6 +11,7 @@ import { gatewayProviderOptions } from "./gateway-tags.ts";
  * Args: transcription model, env file, results json path.
  * Copy the file to text, then read that text with the intake model.
  * The copy prompt is the generic instruction. It is not fitted to this set.
+ * Receipts come from AI_RECEIPTS_DIR (same layout as the old fixtures/receipts folder).
  */
 
 const TRANSCRIBE_MODEL = Deno.args[0] ?? "anthropic/claude-sonnet-5";
@@ -92,8 +94,7 @@ async function post(key: string, url: string, body: unknown): Promise<unknown> {
   return response.json();
 }
 
-const root = new URL("./fixtures/receipts/", import.meta.url);
-const lines = Deno.readTextFileSync(new URL("answers.jsonl", root)).split(/\r?\n/).filter((line) => line.length > 0);
+const lines = Deno.readTextFileSync(receiptsEvalPath("answers.jsonl")).split(/\r?\n/).filter((line) => line.length > 0);
 const cases = lines.map((line) => JSON.parse(line) as ReceiptCase);
 const only = new Set((Deno.args[3] ?? "").split(",").filter((id) => id.length > 0));
 const selectedCases = only.size === 0 ? cases : cases.filter((item) => only.has(item.id));
@@ -116,7 +117,7 @@ let failed = 0;
 for (const item of selectedCases) {
   try {
     const type = mediaType(item.file);
-    const bytes = Deno.readFileSync(new URL(item.file, root));
+    const bytes = Deno.readFileSync(receiptsEvalPath(item.file));
     const part = type ? receiptFilePart(type, encodeBase64(bytes)) : null;
     if (!part) throw new Error(`${item.id} unsupported file`);
     const copiedPayload = await post(key, SPLIT_RESPONSES_URL, {
@@ -226,4 +227,4 @@ const summary = {
 };
 
 console.log(JSON.stringify({ ...summary, sentences: sentences.length }, null, 2));
-if (OUT_PATH) await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+if (OUT_PATH) await writeEvalOut(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");

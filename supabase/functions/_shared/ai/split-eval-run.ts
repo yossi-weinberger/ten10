@@ -1,3 +1,4 @@
+import { readEvalOut, writeEvalOut } from "./eval-out.ts";
 import { readModelText } from "./receipt-draft.ts";
 import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
 import { parseSplitPayload } from "./split-response.ts";
@@ -247,8 +248,8 @@ const summary = {
 
 console.log(JSON.stringify({ ...summary, sentences: sentences.length }, null, 2));
 if (OUT_PATH) {
-  await Deno.writeTextFile(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
-  const saved = JSON.parse(await Deno.readTextFile(OUT_PATH)) as { sentences?: { model?: unknown }[] };
+  await writeEvalOut(OUT_PATH, JSON.stringify(summary, null, 2) + "\n");
+  const saved = JSON.parse(await readEvalOut(OUT_PATH)) as { sentences?: { model?: unknown }[] };
   const kept = (saved.sentences ?? []).filter((sentence) => typeof sentence.model === "string" && sentence.model.length > 0);
   if (kept.length !== sentences.length) throw new Error(`model text saved ${kept.length}/${sentences.length}`);
   console.log(`saved model text ${kept.length}/${sentences.length}`);

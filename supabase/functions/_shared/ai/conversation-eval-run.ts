@@ -1,3 +1,4 @@
+import { writeEvalOut } from "./eval-out.ts";
 import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "./jev-intent.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
 import { readModelText } from "./receipt-draft.ts";
@@ -319,6 +320,5 @@ const summary = {
   runs: 1,
 };
 const outName = Deno.args[0] ?? "conversation-eval-baseline.json";
-if (outName.includes("/") || outName.includes("\\")) throw new Error("pass a file name, not a path");
-Deno.writeTextFileSync(new URL(`./fixtures/${outName}`, import.meta.url), JSON.stringify({ summary, rows }, null, 2));
+await writeEvalOut(outName, JSON.stringify({ summary, rows }, null, 2));
 console.log(JSON.stringify(summary));
