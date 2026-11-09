@@ -12,7 +12,7 @@ import {
   PieChart,
   MessageCircleQuestionMark,
 } from "lucide-react";
-import { ContactModal } from "@/components/features/contact";
+import { ContactDialog } from "@/components/layout/ContactDialog";
 import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
 import {
   Tooltip,
@@ -402,9 +402,8 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
-            {/* "Contact" lives in the menu for every web user; the floating button is the assistant's.
-                The desktop app keeps its own floating contact button (no web form there). */}
-            {platform === "web" ? (
+            {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
+            {platform !== "loading" ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -560,7 +559,7 @@ export function Sidebar({
           />
         </Suspense>
       ) : null}
-      {platform === "web" ? <ContactModal isOpen={contactOpen} onOpenChange={setContactOpen} /> : null}
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }
