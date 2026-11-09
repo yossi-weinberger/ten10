@@ -229,6 +229,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const { t } = useTranslation();
@@ -258,6 +259,10 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
+  // react-i18next augments HTMLAttributes.children; Button requires ReactNode.
+  // DayPicker only passes real React children through DayButton.
+  const buttonChildren: React.ReactNode = children as React.ReactNode;
+
   return (
     <Button
       ref={ref}
@@ -284,6 +289,7 @@ function CalendarDayButton({
       )}
       {...props}
       aria-label={accessibleName ?? props["aria-label"]}
+      children={buttonChildren}
     />
   );
 }

@@ -964,9 +964,9 @@
       "categories": {
         "TS2305": 6,
         "TS2307": 3,
-        "TS2322": 18,
-        "TS2339": 14,
-        "TS2344": 2,
+        "TS2322": 4,
+        "TS2339": 12,
+        "TS2344": 1,
         "TS2345": 4,
         "TS2349": 1,
         "TS2353": 3,
@@ -976,30 +976,16 @@
         "TS2724": 4,
         "TS2739": 1,
         "TS2740": 2,
-        "TS2741": 5,
+        "TS2741": 1,
         "TS6133": 17,
         "TS6192": 1,
-        "TS7006": 11
+        "TS7006": 10
       },
       "diagnostics": [
-        {
-          "code": "TS2741",
-          "file": "src/components/admin/AdminTrendsChart.tsx",
-          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"verticalAlign\" | \"payload\"> & { ...; }, \"ref\">'.",
-          "severity": "error",
-          "count": 3
-        },
         {
           "code": "TS2345",
           "file": "src/components/analytics/RecurringRatioInsight.tsx",
           "message": "Argument of type 'string' is not assignable to parameter of type '\"ILS\" | \"USD\" | \"EUR\" | \"CAD\" | \"GBP\" | \"AUD\" | \"CHF\" | \"ARS\" | \"BRL\" | \"ZAR\" | \"MXN\" | \"UAH\" | undefined'.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2741",
-          "file": "src/components/charts/area-chart-interactive.tsx",
-          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"verticalAlign\" | \"payload\"> & { ...; }, \"ref\">'.",
           "severity": "error",
           "count": 1
         },
@@ -1109,27 +1095,6 @@
           "count": 1
         },
         {
-          "code": "TS2322",
-          "file": "src/components/ui/accordion.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/breadcrumb.tsx",
-          "message": "Type '{ type?: string | undefined; defaultChecked?: boolean | undefined; defaultValue?: string | number | readonly string[] | undefined; suppressContentEditableWarning?: boolean | undefined; suppressHydrationWarning?: boolean | undefined; ... 282 more ...; className: string; }' is not assignable to type '{ children?: ReactNode; }'. Types of property 'children' are incompatible. Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/button.tsx",
-          "message": "Type '{ disabled?: boolean | undefined; form?: string | undefined; formAction?: string | ((formData: FormData) => void | Promise<void>) | undefined; formEncType?: string | undefined; ... 284 more ...; ref: ForwardedRef<...>; }' is not assignable to type '{ children?: ReactNode; }'. Types of property 'children' are incompatible. Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
           "code": "TS2353",
           "file": "src/components/ui/calendar.tsx",
           "message": "Object literal may only specify known properties, and 'table' does not exist in type 'Partial<ClassNames>'.",
@@ -1146,28 +1111,7 @@
         {
           "code": "TS2339",
           "file": "src/components/ui/chart.tsx",
-          "message": "Property 'length' does not exist on type '{}'.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2339",
-          "file": "src/components/ui/chart.tsx",
-          "message": "Property 'map' does not exist on type '{}'.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2339",
-          "file": "src/components/ui/chart.tsx",
           "message": "Property 'payload' does not exist on type 'Omit<Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }, \"ref\">'.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2344",
-          "file": "src/components/ui/chart.tsx",
-          "message": "Type '\"verticalAlign\" | \"payload\"' does not satisfy the constraint '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'. Type '\"payload\"' is not assignable to type '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'.",
           "severity": "error",
           "count": 1
         },
@@ -1183,7 +1127,7 @@
           "file": "src/components/ui/chart.tsx",
           "message": "Parameter 'item' implicitly has an 'any' type.",
           "severity": "error",
-          "count": 2
+          "count": 1
         },
         {
           "code": "TS2305",
@@ -1305,27 +1249,6 @@
           "count": 1
         },
         {
-          "code": "TS2322",
-          "file": "src/components/ui/dialog.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/drawer.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/dropdown-menu.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 3
-        },
-        {
           "code": "TS2339",
           "file": "src/components/ui/resizable.tsx",
           "message": "Property 'PanelGroup' does not exist on type 'typeof import(\"<repo>/node_modules/react-resizable-panels/dist/react-resizable-panels\")'.",
@@ -1338,27 +1261,6 @@
           "message": "Property 'PanelResizeHandle' does not exist on type 'typeof import(\"<repo>/node_modules/react-resizable-panels/dist/react-resizable-panels\")'.",
           "severity": "error",
           "count": 3
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/select.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/sheet.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS2322",
-          "file": "src/components/ui/toggle-group.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 1
         },
         {
           "code": "TS2322",
@@ -1564,13 +1466,6 @@
           "count": 1
         },
         {
-          "code": "TS2322",
-          "file": "src/pages/landing/components/LandingButtons.tsx",
-          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
-          "severity": "error",
-          "count": 3
-        },
-        {
           "code": "TS6133",
           "file": "src/pages/RecurringTransactionsTable.tsx",
           "message": "'React' is declared but its value is never read.",
@@ -1586,9 +1481,9 @@
         }
       ],
       "severities": {
-        "error": 101
+        "error": 79
       },
-      "total": 101
+      "total": 79
     }
   },
   "version": 1

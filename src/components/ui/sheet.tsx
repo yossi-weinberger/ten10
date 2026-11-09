@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
+import type { WithReactNodeChildren } from './types';
 
 const Sheet = SheetPrimitive.Root;
 
@@ -50,11 +51,12 @@ const sheetVariants = cva(
   }
 );
 
-interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {
-  hideClose?: boolean;
-}
+type SheetContentProps = WithReactNodeChildren<
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>
+> &
+  VariantProps<typeof sheetVariants> & {
+    hideClose?: boolean;
+  };
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,

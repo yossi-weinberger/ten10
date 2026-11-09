@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
+import type { WithReactNodeChildren } from "./types";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -32,7 +33,9 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { hideClose?: boolean }
+  WithReactNodeChildren<
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+  > & { hideClose?: boolean }
 >(({ className, children, hideClose = false, ...props }, ref) => {
   const { t } = useTranslation();
   return (

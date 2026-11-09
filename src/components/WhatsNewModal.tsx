@@ -31,6 +31,12 @@ import {
   WHATS_NEW_SUPPRESS_EVENT,
 } from "@/lib/onboarding/whatsNew";
 import {
+  getTermsSurface,
+  subscribeTermsSurface,
+  whatsNewWaitsForTerms,
+  type TermsSurface,
+} from "@/components/auth/termsGate";
+import {
   CalendarClock,
   CalendarDays,
   Coins,
@@ -84,6 +90,7 @@ export function WhatsNewModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [termsSurface, setTermsSurface] = useState<TermsSurface>(getTermsSurface);
   const updatePromiseRef = useRef<Promise<void> | null>(null);
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
@@ -115,6 +122,8 @@ export function WhatsNewModal({
   const isPartialManualMode =
     forcedOpen !== undefined && onForcedOpenChange === undefined;
 
+  useEffect(() => subscribeTermsSurface(setTermsSurface), []);
+
   useEffect(() => {
     // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
     if (isManuallyControlled) {
@@ -129,6 +138,13 @@ export function WhatsNewModal({
       return;
     }
 
+    if (whatsNewWaitsForTerms(termsSurface)) {
+      setIsOpen(false);
+      setCheckingStatus(true);
+      return;
+    }
+
+    let cancelled = false;
     const checkWhatsNewStatus = async () => {
       setCheckingStatus(true);
 
@@ -173,6 +189,8 @@ export function WhatsNewModal({
             .eq("id", userId)
             .single();
 
+          if (cancelled) return;
+
           if (error) {
             logger.error("Error checking whats-new status:", error);
             // On error, don't block UX - let user proceed
@@ -189,10 +207,11 @@ export function WhatsNewModal({
             }
           }
         } catch (err) {
+          if (cancelled) return;
           logger.error("Unexpected error checking whats-new:", err);
           setIsOpen(false);
         } finally {
-          setCheckingStatus(false);
+          if (!cancelled) setCheckingStatus(false);
         }
       }
     };
@@ -204,8 +223,9 @@ export function WhatsNewModal({
     };
     window.addEventListener(WHATS_NEW_SUPPRESS_EVENT, closeIfSuppressed);
 
-    checkWhatsNewStatus();
+    void checkWhatsNewStatus();
     return () => {
+      cancelled = true;
       window.removeEventListener(WHATS_NEW_SUPPRESS_EVENT, closeIfSuppressed);
     };
     // userId changes when user switches accounts - this triggers re-check
@@ -217,6 +237,7 @@ export function WhatsNewModal({
     isPublicPath,
     isManuallyControlled,
     isPartialManualMode,
+    termsSurface,
     lastSeenVersion,
     forcedOpen,
     onForcedOpenChange,
