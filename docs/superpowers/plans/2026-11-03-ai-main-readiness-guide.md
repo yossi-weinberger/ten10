@@ -226,7 +226,7 @@ SELECT id, 'beta', '<note>' FROM auth.users WHERE email = '<email>';
 
 1. **שרת, ניסוי בלבד:** סוד בפרודקשן: `VERCEL_AI_GATEWAY_API_KEY`, ואז `AI_INTAKE_ENABLED=true`. הקוד קורא את שני אלה (בנוסף ל־`SUPABASE_*` המובנים). רק למי שיש שורת `beta` ב־`user_plans` יש AI.
 2. **לקוח:** `VITE_AI_INTAKE_ENABLED=true` ב־Vercel Production, ופריסה מחדש (זה משתנה build). בלי זה ה־UI לא יופיע גם למשתמשי ניסוי.
-3. **PostHog:** `ai_intake_web` רק לשבעת משתמשי הניסוי.
+3. **PostHog:** `ai_intake_web` מופעל ל־100% ומשמש רק כמתג כיבוי UI. `user_plans` הוא המקור היחיד לבקרת גישה.
 4. **QA בפרודקשן** של משתמשי הניסוי (הטבלה בשלב א, בקיצור). לעקוב אחרי העלות בלשונית ה־AI באדמין.
 5. **פתיחה רחבה**, רק אחרי שלב ו: תוכנית `'free'` עם `is_default = true`, ואז אחוזים ב־PostHog.
 
