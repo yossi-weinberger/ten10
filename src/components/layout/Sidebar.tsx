@@ -402,8 +402,9 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
-            {/* The assistant opens only from the floating button, so "Contact" lives in the menu. */}
-            {showAssistant ? (
+            {/* "Contact" lives in the menu for every web user; the floating button is the assistant's.
+                The desktop app keeps its own floating contact button (no web form there). */}
+            {platform === "web" ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -559,7 +560,7 @@ export function Sidebar({
           />
         </Suspense>
       ) : null}
-      {showAssistant ? <ContactModal isOpen={contactOpen} onOpenChange={setContactOpen} /> : null}
+      {platform === "web" ? <ContactModal isOpen={contactOpen} onOpenChange={setContactOpen} /> : null}
     </div>
   );
 }

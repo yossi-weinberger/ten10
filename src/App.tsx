@@ -113,7 +113,8 @@ function App() {
   const shouldShowContactFab =
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
-  // Where the assistant is on, it takes the floating button; "Contact" moves into the menu.
+  // On the web "Contact" is in the menu for everyone, so the floating button is only the assistant's.
+  // The desktop app keeps its floating contact button: its contact flow differs and it has no assistant.
   const showAssistant = useAiIntakeUi(platform, Boolean(user));
 
   // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)
@@ -454,7 +455,7 @@ function App() {
           }}
         />
       </div>
-      {shouldShowContactFab && (showAssistant ? <AssistantFab /> : <ContactFAB />)}
+      {shouldShowContactFab && (showAssistant ? <AssistantFab /> : platform === "desktop" ? <ContactFAB /> : null)}
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />
