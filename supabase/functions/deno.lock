@@ -1,8 +1,14 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
     "npm:@supabase/supabase-js@2.116.0": "2.116.0",
     "npm:zod@4.6.5": "4.6.5"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e"
+    }
   },
   "npm": {
     "@supabase/auth-js@2.116.0": {

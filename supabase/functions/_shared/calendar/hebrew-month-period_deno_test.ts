@@ -2,7 +2,6 @@ import { assert } from "jsr:@std/assert@1/assert";
 import { parseHebrewMonthPeriod } from "./hebrew-month-period.ts";
 
 const TODAY_GREGORIAN = "2026-11-09"; // Monday, Nov 9, 2026
-const TODAY_HEBREW_YEAR = 5787;
 
 Deno.test("parseHebrewMonthPeriod: תשרי (Tishrei) - most recent occurrence", () => {
   // תשרי תשפ"ז = Tishrei 5787 started September 12, 2026 and ended October 11, 2026

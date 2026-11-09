@@ -1,5 +1,4 @@
 import {
-  hebrewDaysInMonth,
   hebrewFromIsoDate,
   hebrewToIsoDate,
 } from "./hebrew-calendar.ts";
