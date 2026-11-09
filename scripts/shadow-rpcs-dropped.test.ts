@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
-const intakeSql = readFileSync("supabase/migrations/20261103100000_ai_intake.sql", "utf8");
+const rollbackSql = readFileSync("supabase/migrations/rollback/20261110110000_drop_shadow_rpcs_down.sql", "utf8");
 const dropShadowSql = readFileSync("supabase/migrations/20261110110000_drop_shadow_rpcs.sql", "utf8");
 
 let db: PGlite;
@@ -29,12 +29,17 @@ beforeAll(async () => {
       quality_signals jsonb,
       status text NOT NULL DEFAULT 'draft'
     );
+    CREATE TABLE public.transactions (
+      user_id uuid NOT NULL,
+      type text NOT NULL,
+      category text
+    );
     GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
     GRANT USAGE ON SCHEMA ai TO anon, authenticated, service_role;
   `);
   
-  // Apply intake migration (which creates the shadow RPCs)
-  await db.exec(intakeSql);
+  // Create the shadow RPCs using the rollback file
+  await db.exec(rollbackSql);
   
   // Apply drop migration
   await db.exec(dropShadowSql);
