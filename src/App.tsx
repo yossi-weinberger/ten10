@@ -22,7 +22,6 @@ import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
-import ContactFAB from "./components/layout/ContactFAB";
 import { AssistantFab } from "./components/ai-intake/AssistantFab";
 import { useAiIntakeUi } from "./lib/ai/flags";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
@@ -108,12 +107,12 @@ function App() {
     "/reset-password",
   ].includes(currentPath);
 
-  // Hide floating contact button on auth + landing pages (FULL_SCREEN_ROUTES)
-  // BUT allow it on terms/privacy if user is logged in
-  const shouldShowContactFab =
+  // The floating button (the assistant's) stays off the auth + landing pages (FULL_SCREEN_ROUTES)
+  // BUT shows on terms/privacy if the user is logged in
+  const shouldShowFab =
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
-  // Where the assistant is on, it takes the floating button; "Contact" moves into the menu.
+  // "Contact" is in the side menu on every platform, so the floating button is only the assistant's.
   const showAssistant = useAiIntakeUi(platform, Boolean(user));
 
   // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)
@@ -440,7 +439,7 @@ function App() {
             LTR), shifted inward by the sidebar's actual current width (collapsed w-16 by
             default, or expanded w-44 while hovered) so it never renders on top of it. 0 extra
             clearance below `md`, where the sidebar doesn't exist (replaced by the mobile Sheet).
-            This also keeps it clear of ContactFAB, which sits on the opposite side.
+            This also keeps it clear of the assistant's floating button, which sits on the opposite side.
             No `richColors` — success/error/warning/info are styled with the app's own brand tokens in components/ui/sonner.tsx. */}
         <Toaster
           closeButton
@@ -454,7 +453,7 @@ function App() {
           }}
         />
       </div>
-      {shouldShowContactFab && (showAssistant ? <AssistantFab /> : <ContactFAB />)}
+      {shouldShowFab && showAssistant ? <AssistantFab /> : null}
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />

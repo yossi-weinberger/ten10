@@ -12,7 +12,7 @@ import {
   PieChart,
   MessageCircleQuestionMark,
 } from "lucide-react";
-import { ContactModal } from "@/components/features/contact";
+import { ContactDialog } from "@/components/layout/ContactDialog";
 import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
 import {
   Tooltip,
@@ -402,8 +402,8 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
-            {/* The assistant opens only from the floating button, so "Contact" lives in the menu. */}
-            {showAssistant ? (
+            {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
+            {platform !== "loading" ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -559,7 +559,7 @@ export function Sidebar({
           />
         </Suspense>
       ) : null}
-      {showAssistant ? <ContactModal isOpen={contactOpen} onOpenChange={setContactOpen} /> : null}
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }
