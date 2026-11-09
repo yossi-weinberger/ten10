@@ -1,5 +1,5 @@
 import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
-import type { TextTransactionDraft } from "../../../supabase/functions/_shared/ai/text-draft.ts";
+import { donationRecipient, type TextTransactionDraft } from "../../../supabase/functions/_shared/ai/text-draft.ts";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 export interface CommitPayload {
@@ -25,14 +25,7 @@ export type BuildCommitResult =
   | { ok: true; payload: CommitPayload }
   | { ok: false; reason: "NO_RATE" };
 
-const DONATION_TYPES: ReadonlySet<TextTransactionDraft["type"]> = new Set(["donation", "non_tithe_donation"]);
-
-/** The payee of a donation, as the form saves it. The card's description is the name when no payee was read. */
-export function donationRecipient(draft: Pick<TextTransactionDraft, "type" | "recipient" | "description">): string | null {
-  if (!DONATION_TYPES.has(draft.type)) return null;
-  const named = draft.recipient?.trim() || draft.description.trim();
-  return named.length > 0 ? named : null;
-}
+export { donationRecipient };
 
 export function buildCommitPayload(input: {
   draft: TextTransactionDraft;
