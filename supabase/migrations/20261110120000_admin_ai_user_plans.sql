@@ -47,11 +47,12 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Set or update a user's plan assignment by email
+-- p_expires_on is a plain date; NULL = no expiry. Stored as 23:59:59 on that day in Asia/Jerusalem.
 -- ---------------------------------------------------------------------------
 CREATE FUNCTION public.admin_set_user_plan(
   p_email text,
   p_plan text,
-  p_expires_at timestamp with time zone DEFAULT NULL,
+  p_expires_on date DEFAULT NULL,
   p_note text DEFAULT NULL,
   p_force boolean DEFAULT false
 )
@@ -63,6 +64,8 @@ AS $$
 DECLARE
   v_user_id uuid;
   v_existing_source text;
+  v_expires_at timestamp with time zone;
+  v_rows_affected integer;
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Unauthorized: Authentication required';
@@ -92,9 +95,16 @@ BEGIN
   END IF;
 
   -- Reject past expiry dates (valid through the chosen day in Asia/Jerusalem)
-  IF p_expires_at IS NOT NULL AND p_expires_at < now() THEN
+  IF p_expires_on IS NOT NULL AND p_expires_on < (now() AT TIME ZONE 'Asia/Jerusalem')::date THEN
     RAISE EXCEPTION 'EXPIRY_IN_PAST'
       USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Compute expiry timestamp: 23:59:59 on the chosen day in Asia/Jerusalem
+  IF p_expires_on IS NOT NULL THEN
+    v_expires_at := ((p_expires_on + 1)::timestamp AT TIME ZONE 'Asia/Jerusalem') - interval '1 second';
+  ELSE
+    v_expires_at := NULL;
   END IF;
 
   -- Check if existing assignment is from billing (with lock to avoid race)
@@ -108,22 +118,30 @@ BEGIN
       USING ERRCODE = 'P0001';
   END IF;
 
-  -- Upsert the assignment
+  -- Upsert the assignment (protect billing rows in DO UPDATE)
   INSERT INTO public.user_plans (user_id, plan, expires_at, note, source)
-  VALUES (v_user_id, p_plan, p_expires_at, p_note, 'manual')
+  VALUES (v_user_id, p_plan, v_expires_at, p_note, 'manual')
   ON CONFLICT (user_id)
   DO UPDATE SET
     plan = EXCLUDED.plan,
     expires_at = EXCLUDED.expires_at,
     note = EXCLUDED.note,
     source = 'manual',
-    updated_at = now();
+    updated_at = now()
+  WHERE user_plans.source <> 'billing' OR COALESCE(p_force, false);
+
+  GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+
+  IF v_rows_affected = 0 THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
+  END IF;
 
   RETURN jsonb_build_object(
     'user_id', v_user_id,
     'email', p_email,
     'plan', p_plan,
-    'expires_at', p_expires_at,
+    'expires_at', v_expires_at,
     'note', p_note
   );
 END;
@@ -208,9 +226,9 @@ REVOKE ALL ON FUNCTION public.admin_list_user_plans()
 GRANT EXECUTE ON FUNCTION public.admin_list_user_plans()
   TO authenticated;
 
-REVOKE ALL ON FUNCTION public.admin_set_user_plan(text, text, timestamp with time zone, text, boolean)
+REVOKE ALL ON FUNCTION public.admin_set_user_plan(text, text, date, text, boolean)
   FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.admin_set_user_plan(text, text, timestamp with time zone, text, boolean)
+GRANT EXECUTE ON FUNCTION public.admin_set_user_plan(text, text, date, text, boolean)
   TO authenticated;
 
 REVOKE ALL ON FUNCTION public.admin_remove_user_plan(text, boolean)

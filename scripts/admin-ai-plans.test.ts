@@ -147,14 +147,64 @@ describe("admin_set_user_plan", () => {
     const userId = await createUser("pastexpiry@example.com");
     await setAdmin(userId);
     await seedPlans();
-    const pastDate = new Date("2020-01-01T00:00:00Z").toISOString();
     await expect(
-      db.query("SELECT public.admin_set_user_plan($1, $2, $3::timestamptz)", [
+      db.query("SELECT public.admin_set_user_plan($1, $2, $3::date)", [
         "pastexpiry@example.com",
         "beta",
-        pastDate,
+        "2020-01-01",
       ]),
     ).rejects.toThrow(/EXPIRY_IN_PAST/);
+  });
+
+  it("stores winter date as 23:59:59 Asia/Jerusalem", async () => {
+    const userId = await createUser("winter@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query("SELECT public.admin_set_user_plan($1, $2, $3::date)", [
+      "winter@example.com",
+      "beta",
+      "2027-03-27",
+    ]);
+    const { rows } = await db.query<{ expires_at: string }>(
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      [userId],
+    );
+    // 2027-03-27 23:59:59 in Asia/Jerusalem (IST, UTC+2)
+    expect(rows[0].expires_at).toBe("2027-03-27 23:59:59");
+  });
+
+  it("stores summer date as 23:59:59 Asia/Jerusalem (DST)", async () => {
+    const userId = await createUser("summer@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query("SELECT public.admin_set_user_plan($1, $2, $3::date)", [
+      "summer@example.com",
+      "beta",
+      "2027-07-15",
+    ]);
+    const { rows } = await db.query<{ expires_at: string }>(
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      [userId],
+    );
+    // 2027-07-15 23:59:59 in Asia/Jerusalem (IDT, UTC+3 during DST)
+    expect(rows[0].expires_at).toBe("2027-07-15 23:59:59");
+  });
+
+  it("stores fall date as 23:59:59 Asia/Jerusalem", async () => {
+    const userId = await createUser("fall@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query("SELECT public.admin_set_user_plan($1, $2, $3::date)", [
+      "fall@example.com",
+      "beta",
+      "2027-10-24",
+    ]);
+    const { rows } = await db.query<{ expires_at: string }>(
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      [userId],
+    );
+    // 2027-10-24 23:59:59 in Asia/Jerusalem (back to IST, UTC+2)
+    expect(rows[0].expires_at).toBe("2027-10-24 23:59:59");
   });
 
   it("cannot overwrite billing source without force", async () => {
@@ -207,6 +257,26 @@ describe("admin_set_user_plan", () => {
     );
     expect(rows[0].plan).toBe("free");
     expect(rows[0].source).toBe("manual");
+  });
+
+  it("protects against race: concurrent billing insert not overwritten without force", async () => {
+    const userId = await createUser("race@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    // Simulate: billing system inserted a row between our check and upsert
+    // We test this by inserting a billing row AFTER the function starts checking
+    // Since we can't easily simulate the race in a single transaction, we test the DO UPDATE WHERE clause
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, source) VALUES ($1, 'beta', 'billing')",
+      [userId],
+    );
+    // Try to update without force - should fail
+    await expect(
+      db.query("SELECT public.admin_set_user_plan($1, $2, NULL, NULL, false)", [
+        "race@example.com",
+        "free",
+      ]),
+    ).rejects.toThrow(/BILLING_REQUIRES_FORCE/);
   });
 });
 

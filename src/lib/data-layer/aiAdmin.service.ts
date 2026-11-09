@@ -168,14 +168,14 @@ export async function fetchPlans(): Promise<AdminPlan[]> {
 export async function addUserPlan(
   email: string,
   plan: string,
-  expiresAt: string | null,
+  expiresOn: string | null,
   note: string | null,
   force: boolean,
 ): Promise<void> {
   const { error } = await supabase.rpc("admin_set_user_plan", {
     p_email: email,
     p_plan: plan,
-    p_expires_at: expiresAt || null,
+    p_expires_on: expiresOn || null,
     p_note: note || null,
     p_force: force,
   });

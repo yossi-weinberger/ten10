@@ -88,28 +88,7 @@ export function AdminUserPlans() {
     setAddError(null);
     try {
       setSubmitting(true);
-      // Convert date to end of day in Asia/Jerusalem if provided
-      let expiresAt: string | null = null;
-      if (addExpiresAt) {
-        const d = new Date(addExpiresAt + "T23:59:59");
-        // Convert to Asia/Jerusalem timezone (UTC+2 or UTC+3 depending on DST)
-        const formatter = new Intl.DateTimeFormat("en-US", {
-          timeZone: "Asia/Jerusalem",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-        const parts = formatter.formatToParts(d);
-        const year = parts.find((p) => p.type === "year")?.value;
-        const month = parts.find((p) => p.type === "month")?.value;
-        const day = parts.find((p) => p.type === "day")?.value;
-        expiresAt = `${year}-${month}-${day}T23:59:59+02:00`;
-      }
-      await addUserPlan(trimmedEmail, addPlan, expiresAt, addNote.trim() || null, false);
+      await addUserPlan(trimmedEmail, addPlan, addExpiresAt || null, addNote.trim() || null, false);
       setShowAddDialog(false);
       setAddEmail("");
       setAddPlan("");
@@ -140,12 +119,22 @@ export function AdminUserPlans() {
 
   const formatDate = (date: string | null) => {
     if (!date) return t("ai.userPlans.never");
-    return new Date(date).toLocaleDateString(i18n.language);
+    return new Date(date).toLocaleDateString(i18n.language, {
+      timeZone: "Asia/Jerusalem",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
   };
 
   const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Jerusalem",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
   };
 
   return (
