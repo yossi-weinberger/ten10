@@ -6,6 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import type { WithReactNodeChildren } from './types';
 
 const Sheet = SheetPrimitive.Root;
 
@@ -49,9 +50,10 @@ const sheetVariants = cva(
   }
 );
 
-interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+type SheetContentProps = WithReactNodeChildren<
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>
+> &
+  VariantProps<typeof sheetVariants>;
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
