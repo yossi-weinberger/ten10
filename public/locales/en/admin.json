@@ -137,6 +137,32 @@
         "failed": "Share of calls without a valid answer, and the most common error code.",
         "compare": "Gateway spend per day minus measurement runs (source:eval), against the cost recorded for each call. Days before the first recorded call are not shown, and the first day is partial."
       }
+    },
+    "userPlans": {
+      "title": "User Plans",
+      "addUser": "Add User",
+      "email": "Email",
+      "plan": "Plan",
+      "source": "Source",
+      "expiresAt": "Expires",
+      "note": "Note",
+      "actions": "Actions",
+      "remove": "Remove",
+      "noUsers": "No users with plans",
+      "addSuccess": "User plan added",
+      "removeSuccess": "User plan removed",
+      "addError": "Failed to add user plan",
+      "removeError": "Failed to remove user plan",
+      "emailPlaceholder": "user@example.com",
+      "notePlaceholder": "Optional note",
+      "selectPlan": "Select a plan",
+      "optional": "Optional",
+      "confirmRemove": "Remove plan for {{email}}?",
+      "confirmRemoveForce": "This is a billing assignment. Are you sure you want to remove it?",
+      "billingWarning": "Billing assignment - requires confirmation",
+      "manual": "Manual",
+      "billing": "Billing",
+      "never": "Never"
     }
   },
   "posthog": {
