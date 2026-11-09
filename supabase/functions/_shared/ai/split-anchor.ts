@@ -221,6 +221,37 @@ function isLetter(char: string): boolean {
   return /\p{L}|\p{N}/u.test(char);
 }
 
+/**
+ * Strip leading ל preposition from a description when it appears as "ל<name>" in the source
+ * after giving verbs or "תרומה". Conservative: only strips when clearly a preposition.
+ */
+function stripPrepositionLamed(description: string, source: string): string {
+  // Check if description starts with ל or ל־ or ל-
+  const match = description.match(/^ל[־-]?(.+)$/);
+  if (!match) return description;
+  
+  const remainder = match[1].trim();
+  if (remainder.length < 2) return description;
+  
+  // Check if the ל-prefixed form appears in source after giving verbs/contexts
+  // Common giving verbs: נתתי, נתן, תרמתי, תרם, העברתי, העבר, שילמתי, שילם
+  // Or after "תרומה" (donation)
+  // Allow for amounts and other text between the verb and the payee
+  const prefixedForm = description.trim();
+  const escapedForm = prefixedForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `(נתתי|נתן|תרמתי|תרם|העברתי|העבר|שילמתי|שילם|תרומה).*${escapedForm}`,
+    'i'
+  );
+  
+  if (pattern.test(source)) {
+    // It's a preposition, strip it
+    return remainder;
+  }
+  
+  return description;
+}
+
 /** The rule name is a whole word in the item text, or that word with one prefix letter. */
 export function nameStands(text: string, name: string): boolean {
   const source = text.replace(/־/g, " ");
@@ -311,7 +342,7 @@ export function anchorSplitItems(
     kept.push({
       total: item.is_total,
       item: {
-        description: item.description.trim(),
+        description: stripPrepositionLamed(item.description.trim(), source),
         amount: amount.amount,
         currency: item.currency ?? context.defaultCurrency,
         date: dated.date,
