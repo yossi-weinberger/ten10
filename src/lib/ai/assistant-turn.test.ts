@@ -503,7 +503,7 @@ describe("decideTurn", () => {
     expect(decision.card.type).toBe("draft");
     expect(decision.intent).toBe("add_transaction");
     expect(decision.replaces).toBe("item-1");
-    expect(summarizeTurn(correction, decision)).toMatchObject({ kind: "draft", amount: 15, type: "donation" });
+    expect(summarizeTurn(correction, decision)).toMatchObject({ kind: "draft", amount: 15, type: "donation", recipient: "קפה" });
     // A new message that does not continue the saved card replaces nothing.
     const fresh = decideTurn({ ...correction, reader: { ok: true, route: "several", items: [item({ amount: 15, typeHint: "donation" })], rule: null, question: null } });
     expect(fresh.replaces).toBeNull();

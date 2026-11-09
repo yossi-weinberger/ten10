@@ -22,7 +22,7 @@ export function ChomeshToggle({
       aria-pressed={checked}
       disabled={disabled || !onChange}
       className={cn(
-        "relative inline-flex h-9 w-fit items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors",
+        "relative inline-flex h-8 w-fit shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
         checked ? "bg-golden-static border-transparent text-yellow-950" : "bg-background hover:bg-muted",
       )}

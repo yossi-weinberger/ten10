@@ -19,6 +19,7 @@ import { RuleCard } from "./blocks/RuleCard";
 import { RecurringDraftCard } from "./blocks/RecurringDraftCard";
 import { MultiDraftList } from "./blocks/MultiDraftList";
 import { StatusNote } from "./blocks/StatusNote";
+import type { SavedFooter } from "./blocks/SavedLine";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import type { SplitDraft } from "@/lib/ai/split-cards";
 
@@ -67,10 +68,13 @@ export function ReplyBlockView({
   block,
   interactive,
   handlers,
+  footer,
 }: {
   block: ReplyBlock;
   interactive: boolean;
   handlers: ReplyHandlers;
+  /** A saved draft or standing order: its last line, filled by the thread. */
+  footer?: SavedFooter;
 }) {
   const { t } = useTranslation("navigation");
 
@@ -209,6 +213,7 @@ export function ReplyBlockView({
           onSave={handlers.onSaveRecurring}
           onDismiss={handlers.onDismissRecurring}
           onCancel={handlers.onCancelRecurring}
+          footer={footer}
         />
       );
     case "drafts":
@@ -236,6 +241,7 @@ export function ReplyBlockView({
           onChomeshChange={handlers.onChomeshChange}
           onTypeChange={handlers.onTypeChange}
           onSave={handlers.onSave}
+          footer={footer}
         />
       );
     case "status":

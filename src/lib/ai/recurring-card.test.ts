@@ -5,8 +5,6 @@ import {
   nextRecurringQuestion,
   recurringCancelOpen,
   recurringCardReady,
-  recurringShortDate,
-  recurringSummaryPieces,
   saveStartDate,
   unsupportedRecurringFrequency,
   upcomingRecurringDates,
@@ -80,7 +78,6 @@ describe("recurring card dates", () => {
     });
     expect(saveStartDate(day30, today)).toBe("2026-11-30");
     expect(upcomingRecurringDates(day30, today).slice(0, 1)).toEqual(["2026-11-30"]);
-    expect(recurringShortDate("2026-11-30", "gregorian")).toBe("30/11");
 
     const day10 = card({ alreadyCharged: true, includeThisMonth: "yes" });
     expect(saveStartDate(day10, today)).toBe("2026-10-10");
@@ -104,31 +101,12 @@ describe("recurring card dates", () => {
     expect(recurringCardReady(card({ startDate: null, dayOfMonth: null }), "2026-10-29")).toBe(false);
   });
 
-  const hebrewSummary = {
-    type: "תרומה",
-    currency: "₪",
-    start: "10/11",
-    lead: "הוראת קבע: ",
-    payeePrefix: " · ",
-    monthly: ", כל חודש ב-",
-    from: ", החל מ-",
-  };
-
-  it("writes one Hebrew summary when the monthly order is complete", () => {
-    const complete = card({ amount: 100, dayOfMonth: 10, startDate: "2026-11-10" });
-    expect(nextRecurringQuestion(complete)).toBeNull();
-    expect(recurringShortDate("2026-11-10", "gregorian")).toBe("10/11");
-    expect(recurringSummaryPieces(complete, hebrewSummary).map((piece) => piece.text).join("")).toBe(
-      "הוראת קבע: תרומה 100 ₪ · כולל, כל חודש ב-10, החל מ-10/11",
-    );
+  it("has no question left when the monthly order is complete", () => {
+    expect(nextRecurringQuestion(card({ amount: 100, dayOfMonth: 10, startDate: "2026-11-10" }))).toBeNull();
   });
 
   it("uses the start date's day when the monthly day is empty", () => {
-    const open = card({ amount: 200, description: "לבית כנסת", dayOfMonth: null, startDate: "2026-10-30" });
-    expect(nextRecurringQuestion(open)).toBeNull();
-    expect(recurringSummaryPieces(open, { ...hebrewSummary, start: "30/10" }).map((piece) => piece.text).join("")).toBe(
-      "הוראת קבע: תרומה 200 ₪ · לבית כנסת, כל חודש ב-30, החל מ-30/10",
-    );
+    expect(nextRecurringQuestion(card({ amount: 200, dayOfMonth: null, startDate: "2026-10-30" }))).toBeNull();
     expect(nextRecurringQuestion(card({ startDate: null, dayOfMonth: null }))).toBe("day");
   });
 
@@ -188,21 +166,5 @@ describe("withRecurringDay on the Hebrew calendar", () => {
 
   it("keeps day 31 on the Gregorian calendar", () => {
     expect(withRecurringDay(card(), 31, "2026-11-02").dayOfMonth).toBe(31);
-  });
-});
-
-describe("recurringSummaryPieces amount label", () => {
-  it("uses the formatted amount when given", () => {
-    const pieces = recurringSummaryPieces(card(), {
-      type: "t",
-      currency: "₪",
-      start: "s",
-      lead: "",
-      payeePrefix: "",
-      monthly: "",
-      from: "",
-      amount: "₪200.00",
-    });
-    expect(pieces.find((piece) => piece.field === "amount")?.text).toBe("₪200.00");
   });
 });

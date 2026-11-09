@@ -1,5 +1,11 @@
-import { HandCoins, Search } from "lucide-react";
-import { BASE_TYPE_ICON, BASE_TYPE_TINT } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import { HandCoins, Repeat, Search } from "lucide-react";
+import {
+  BASE_TYPE_ICON,
+  BASE_TYPE_SURFACE,
+  BASE_TYPE_TINT,
+  baseTypeOf,
+} from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
 import { useReducedMotion } from "framer-motion";
@@ -14,6 +20,8 @@ import { currencyFractionDigits, formatCurrency } from "@/lib/utils/currency";
 import type { ReadyDataReply, StatusKey } from "../assistant-reply-view";
 import type { BalanceAnswer, StandingOrderRow } from "@/lib/ai/assistant-extras";
 import { Link } from "@tanstack/react-router";
+import { KIND_TINT } from "./card-style";
+import { KindTag } from "./KindTag";
 import { StatusNote } from "./StatusNote";
 
 function hebrewPeriodPhrase(label: string, language: string): string {
@@ -35,7 +43,7 @@ export function DataAnswer({
   reply: ReadyDataReply;
   questionCalendar: "hebrew" | "gregorian";
 }) {
-  const { i18n } = useTranslation("navigation");
+  const { t, i18n } = useTranslation("navigation");
   const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const language = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
@@ -50,15 +58,13 @@ export function DataAnswer({
   const Icon = BASE_TYPE_ICON[reply.type];
 
   return (
-    <Card className="flex flex-col gap-1 p-3">
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT[reply.type]}`}>
-          <Icon className="size-3.5" aria-hidden />
-        </span>
-        <span dir="auto">{from} – {to}</span>
-      </p>
+    <Card className="grid gap-1 p-2.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <KindTag icon={Icon} tint={BASE_TYPE_TINT[reply.type]}>{t(`aiIntake.typesPlural.${reply.type}`)}</KindTag>
+        <span className="ms-auto text-xs text-muted-foreground" dir="auto">{from} – {to}</span>
+      </div>
       {/* The number reads left to right but sits at the start of the card in either language. */}
-      <p className="text-3xl font-semibold tabular-nums">
+      <p className="text-2xl font-semibold leading-tight tabular-nums">
         <span dir="ltr">
         {reply.measure === "count" ? (
           reduce ? reply.count : <CountUp end={reply.count} duration={0.6} preserveValue />
@@ -80,7 +86,7 @@ export function DataAnswer({
         )}
         </span>
       </p>
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <p className="text-xs leading-relaxed text-muted-foreground">
         {formatDataAnswer({
           measure: reply.measure,
           count: reply.count,
@@ -118,21 +124,21 @@ export function NameMissing({
 }) {
   const { t } = useTranslation("navigation");
   return (
-    <div className="flex flex-col items-start gap-2">
-      <p className="text-sm">
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">
         {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic })}
       </p>
       {interactive ? (
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-wrap gap-2">
           {suggestions.map((name) => (
-            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words py-1.5 text-start" onClick={() => onChooseName(name)}>
+            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words rounded-full py-1.5 text-start" onClick={() => onChooseName(name)}>
               {name}
             </Button>
           ))}
-          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onAllInPeriod}>
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={onAllInPeriod}>
             {t(`aiIntake.allInPeriod.${family}`)}
           </Button>
-          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onSearch}>
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={onSearch}>
             <Search aria-hidden />
             {t("aiIntake.categorySearch")}
           </Button>
@@ -152,15 +158,12 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const money = (value: number) => formatCurrency(value, defaultCurrency as CurrencyCode, i18n.language);
   return (
-    <Card className="grid gap-1 p-3">
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={`inline-flex size-6 items-center justify-center rounded-full text-foreground ${BASE_TYPE_TINT.donation}`}>
-          <HandCoins className="size-3.5" aria-hidden />
-        </span>
-        {t("aiIntake.balance.title")}
-      </p>
+    <Card className="grid gap-1 p-2.5">
+      <div className="flex">
+        <KindTag icon={HandCoins} tint={BASE_TYPE_TINT.donation}>{t("aiIntake.balance.title")}</KindTag>
+      </div>
       {balance.total > 0 ? (
-        <p className="text-3xl font-semibold tabular-nums">{money(balance.total)}</p>
+        <p className="text-2xl font-semibold leading-tight tabular-nums">{money(balance.total)}</p>
       ) : (
         <p className="text-sm">{t("aiIntake.balance.done")}</p>
       )}
@@ -177,23 +180,31 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
 export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
   const { t, i18n } = useTranslation("navigation");
   return (
-    <Card className="grid gap-2 p-3">
-      <p className="text-sm">
-        {rows.length === 0 ? t("aiIntake.standingOrders.none") : t("aiIntake.standingOrders.count", { count: rows.length })}
-      </p>
+    <Card className="grid gap-2 p-2.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <KindTag icon={Repeat} tint={KIND_TINT.neutral}>{t("aiIntake.standingOrders.tag")}</KindTag>
+        <span className="text-xs text-muted-foreground">
+          {rows.length === 0 ? t("aiIntake.standingOrders.none") : t("aiIntake.standingOrders.active", { count: rows.length })}
+        </span>
+      </div>
       {rows.length > 0 ? (
-        <ul className="grid divide-y text-sm">
+        <ul className="grid gap-1 text-sm">
           {rows.slice(0, 5).map((row) => (
-            <li key={row.id} className="flex justify-between gap-2 py-1.5">
+            // Each order is tinted by its type, like a transaction.
+            <li key={row.id} className={cn("flex justify-between gap-2 rounded-md px-2 py-1.5", BASE_TYPE_SURFACE[baseTypeOf(row.type)])}>
               <span className="truncate">{row.description}</span>
-              <span className="tabular-nums">{formatCurrency(row.amount, row.currency as CurrencyCode, i18n.language)}</span>
+              <span className="tabular-nums">
+                <bdi>{formatCurrency(row.amount, row.currency as CurrencyCode, i18n.language)}</bdi>
+              </span>
             </li>
           ))}
         </ul>
       ) : null}
-      <Button asChild variant="outline" size="sm" className="w-fit">
-        <Link to="/transactions-table/recurring-transactions">{t("aiIntake.standingOrders.open")}</Link>
-      </Button>
+      <div className="flex justify-end">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/transactions-table/recurring-transactions">{t("aiIntake.standingOrders.open")}</Link>
+        </Button>
+      </div>
     </Card>
   );
 }
