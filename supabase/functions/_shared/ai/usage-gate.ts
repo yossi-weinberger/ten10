@@ -12,13 +12,13 @@ export function readTurnId(value: unknown): string | null {
   return typeof value === "string" && UUID.test(value) ? value : null;
 }
 
-export type UsageBlockReason = "quota_exhausted" | "rate_limited" | "daily_limit" | "unavailable";
+export type UsageBlockReason = "quota_exhausted" | "rate_limited" | "daily_limit" | "not_allowed" | "unavailable";
 
 export type UsageDecision =
   | { allowed: true; usageId: string | null }
   | { allowed: false; reason: UsageBlockReason; resetsAt: string | null };
 
-const BLOCK_REASONS: readonly UsageBlockReason[] = ["quota_exhausted", "rate_limited", "daily_limit"];
+const BLOCK_REASONS: readonly UsageBlockReason[] = ["quota_exhausted", "rate_limited", "daily_limit", "not_allowed"];
 
 /** A failed or unreadable check blocks the call: the provider is never reached without a count. */
 export function readUsageDecision(data: unknown, error: unknown): UsageDecision {

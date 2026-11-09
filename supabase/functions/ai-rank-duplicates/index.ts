@@ -9,8 +9,8 @@ import {
   JEV_SYSTEMONE_URL,
   readDuplicateRanks,
 } from "../_shared/ai/jev-duplicate-rank.ts";
+import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
-import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!isTrialUser(userData.user.id)) return json(origin, { ranked: false, scores: [] }, 200);
+  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { ranked: false, scores: [] }, 200);
 
   const input = readInput(await req.json().catch(() => null));
   if (!input) return json(origin, { ranked: false, scores: [] }, 400);
@@ -112,7 +112,10 @@ Deno.serve(async (req: Request) => {
   // ponytail: an automatic check while the user edits a card, so it is not charged per edit. It stops with
   // the monthly allowance (consume_ai_call) and is bounded by the minute and day caps. Charge it if that is not enough.
   const allowed = await serviceUsageGate().consumeCall(userData.user.id);
-  if (!allowed.allowed) return json(origin, { ranked: false, scores: [], reason: allowed.reason }, 200);
+  if (!allowed.allowed) {
+    if (allowed.reason === "not_allowed") return json(origin, { ranked: false, scores: [] }, 200);
+    return json(origin, { ranked: false, scores: [], reason: allowed.reason }, 200);
+  }
 
   const { body, idsByKey } = buildDuplicateRankBody({
     description: input.description,

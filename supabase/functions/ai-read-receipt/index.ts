@@ -7,8 +7,8 @@ import { splitReadContext } from "../_shared/ai/split-anchor.ts";
 import { loadSplitLists } from "../_shared/ai/split-lists.ts";
 import { todayInZone } from "../_shared/ai/split-date.ts";
 import { SPLIT_MODEL, SPLIT_RESPONSES_URL, SPLIT_TIMEOUT_MS, splitRequestBody } from "../_shared/ai/split-prompt.ts";
+import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
-import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel, failedBeforeBilling } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!isTrialUser(userData.user.id)) return json(origin, { draft: null }, 200);
+  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { draft: null }, 200);
 
   const body = await req.json().catch(() => null) as {
     media_type?: unknown;
@@ -142,7 +142,10 @@ Deno.serve(async (req: Request) => {
 
   const usage = serviceUsageGate();
   const allowed = await usage.consume(userData.user.id, "receipt");
-  if (!allowed.allowed) return json(origin, { draft: null, reason: allowed.reason }, 200);
+  if (!allowed.allowed) {
+    if (allowed.reason === "not_allowed") return json(origin, { draft: null }, 200);
+    return json(origin, { draft: null, reason: allowed.reason }, 200);
+  }
 
   let billed = false;
   try {

@@ -6,6 +6,8 @@ vi.mock("@/lib/supabaseClient", () => ({
   supabase: { rpc },
 }));
 
+vi.mock("@/lib/ai/flags", () => ({ aiCallsAllowed: () => true }));
+
 import { disableUserRule } from "./user-rules";
 
 describe("disableUserRule", () => {
