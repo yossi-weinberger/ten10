@@ -24,6 +24,7 @@ import {
   readPeriodPayload,
   SPLIT_RESPONSES_URL,
 } from "../_shared/ai/question-period.ts";
+import { parseHebrewMonthPeriod } from "../_shared/calendar/hebrew-month-period.ts";
 import { SPLIT_MODEL } from "../_shared/ai/split-prompt.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
 
@@ -171,7 +172,12 @@ Deno.serve(async (req: Request) => {
       if (!raw) return { period: null, nameText: null as string | null };
       const nameText = raw.name_text ?? null;
       if (raw.kind === "all") return { period: { kind: "all" as const }, nameText };
-      const bounds = boundsFromPeriod(raw, today);
+      
+      // Deterministic post-processing: check for Hebrew month names in the input text
+      // and override the model's period bounds with the correct Hebrew month range
+      const hebrewMonthBounds = parseHebrewMonthPeriod(text, today);
+      const bounds = hebrewMonthBounds ?? boundsFromPeriod(raw, today);
+      
       const period = bounds?.from && bounds.to
         ? { kind: "span" as const, from: bounds.from, to: bounds.to }
         : null;
