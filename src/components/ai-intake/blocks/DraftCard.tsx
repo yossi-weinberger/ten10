@@ -22,6 +22,7 @@ import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import type { BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { donationRecipient } from "@/lib/ai/build-commit-payload";
 import { isPredefinedCategory } from "../../../../supabase/functions/_shared/transaction-domain/category-keys.ts";
 import type { DraftView } from "../assistant-reply-view";
 import { ChomeshToggle } from "./ChomeshToggle";
@@ -82,8 +83,9 @@ export function DraftCard({
     setWasLocked(view.locked);
     if (view.locked) setSavedBurst((value) => value + 1);
   }
+  // A donation shows the recipient the save writes: the read payee, else the description.
   const detail = typeKey === "donation"
-    ? draft.recipient?.trim() || null
+    ? donationRecipient(draft)
     : draft.category
       ? isPredefinedCategory(draft.category)
         ? t(`transactionForm.category.${typeKey}.${draft.category}`, { ns: "transactions", defaultValue: draft.category })

@@ -1453,6 +1453,80 @@
           }
         }
       ]
+    },
+    {
+      "id": "donation-payee-1",
+      "topic": "donation_payee",
+      "note": "QA 2026-11-08 item 8: the payee is the card's recipient, without the joining ל.",
+      "turns": [
+        {
+          "user": "תרומה 50 לקופת העיר",
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation",
+            "description": "קופת העיר",
+            "recipient": "קופת העיר"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-2",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "נתתי 100 לבית חב\"ד",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 100,
+            "type": "donation",
+            "description": "בית חב\"ד",
+            "recipient": "בית חב\"ד"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-3",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "180 לעזר מציון",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 180,
+            "type": "donation",
+            "description": "עזר מציון",
+            "recipient": "עזר מציון"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-4",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "נתתי 100 לישיבת נחלת",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 100,
+            "type": "donation",
+            "description": "ישיבת נחלת",
+            "recipient": "ישיבת נחלת"
+          }
+        }
+      ]
     }
   ]
 }

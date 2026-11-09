@@ -2,6 +2,7 @@ import type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent
 import { questionFromSlots, type YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 import type { QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
 import { statedSpecialType, type AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+import { donationRecipient, type TextTransactionDraft } from "../../../supabase/functions/_shared/ai/text-draft.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import { namedHalachaPage, shownIntent, type ShownIntent } from "../../components/ai-intake/assistant-shown-intent.ts";
 import { yearSumFromReader } from "./reader-question.ts";
@@ -318,6 +319,8 @@ export interface TurnSummary {
   typeAsked: string | null;
   category: string | null;
   description: string | null;
+  /** The donation recipient the card shows and the save writes. */
+  recipient: string | null;
   chomesh: boolean | null;
 }
 
@@ -717,10 +720,11 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
   const item = firstItem(input.reader);
   const question = decision.data.status === "ready" || decision.data.status === "name_missing" ? decision.data.question : null;
   const kind = summaryKind(decision);
+  const type = (item ? statedSpecialType(item) : null) ?? (item?.typeHint ? item.typeHint : question?.type ?? null);
   return {
     kind,
     amount: item?.amount ?? null,
-    type: (item ? statedSpecialType(item) : null) ?? (item?.typeHint ? item.typeHint : question?.type ?? null),
+    type,
     date: item?.date ?? null,
     frequency: item?.recurrence?.frequency ?? null,
     day: item?.recurrence?.dayOfMonth ?? null,
@@ -730,6 +734,7 @@ export function summarizeTurn(input: TurnInput, decision: TurnDecision): TurnSum
     typeAsked: item && item.typeQuestion && !statedSpecialType(item) ? item.typeQuestion : null,
     category: item?.category ?? null,
     description: item?.description ?? null,
+    recipient: item && type ? donationRecipient({ type: type as TextTransactionDraft["type"], description: item.description }) : null,
     chomesh: item?.chomesh ?? null,
   };
 }

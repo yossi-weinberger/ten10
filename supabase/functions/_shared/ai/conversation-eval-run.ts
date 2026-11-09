@@ -22,6 +22,7 @@ interface ExpectTurn {
   pending?: string | null;
   category?: string;
   description?: string;
+  recipient?: string;
   chomesh?: boolean;
 }
 
@@ -63,6 +64,7 @@ const TOPIC_COUNTS: Record<string, number> = {
   inspiration_more: 1,
   multi_request: 2,
   qa_2026_11: 12,
+  donation_payee: 4,
 };
 
 function readGatewayKey(): string {
@@ -166,6 +168,8 @@ function fieldsMatch(expect: ExpectTurn, summary: TurnSummary): boolean {
   if (expect.family !== undefined && summary.family !== expect.family) return false;
   if (expect.category !== undefined && summary.category !== expect.category) return false;
   if (expect.description !== undefined && summary.description !== expect.description) return false;
+  // Like type: a card that still asks the type has no recipient yet.
+  if (expect.recipient !== undefined && summary.kind !== "question" && summary.recipient !== expect.recipient) return false;
   if (expect.chomesh !== undefined && summary.chomesh !== expect.chomesh) return false;
   // A kind accepted through alsoOk has no pending question to compare.
   if (expect.pending !== undefined && summary.kind === expect.kind && summary.pending !== expect.pending) return false;
