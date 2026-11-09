@@ -354,6 +354,9 @@ export function useAssistantDrawerThread(
         type: savingDraft.type,
         description: savingDraft.description,
         date: savingDraft.date,
+        category: savingDraft.category,
+        paymentMethod: savingDraft.paymentMethod,
+        isChomesh: savingDraft.isChomesh ?? null,
       });
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();

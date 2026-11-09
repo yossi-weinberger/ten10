@@ -21,6 +21,8 @@ export interface ConversationOnScreen {
   /** The single card's date as shown, to notice when the user changes it. */
   date?: string | null;
   savedItemId?: string;
+  /** The saved transaction's fields, to tell the same transaction again from a correction. */
+  saved?: ScreenFields;
   /** The period a data answer covered, for a follow-up that names none. */
   period?: { from: string; to: string };
   /** The published page shown, for a follow-up such as "give an example". */
@@ -79,7 +81,7 @@ export function rememberSaved(state: ConversationState, savedItemId: string | nu
       kind: "saved",
       sourceText: saved && !same ? "" : open?.sourceText ?? "",
       line: saved ? `one transaction, saved and still open to a correction: ${fieldsLine(saved)}, one time.` : "the last card was saved.",
-      ...(saved ? { amounts, date: saved.date } : {}),
+      ...(saved ? { amounts, date: saved.date, saved } : {}),
       ...(savedItemId ? { savedItemId } : {}),
     },
     pending: null,
@@ -92,6 +94,9 @@ export interface ScreenFields {
   type: string | null;
   description: string;
   date: string | null;
+  category?: string | null;
+  paymentMethod?: string | null;
+  isChomesh?: boolean | null;
 }
 
 function fieldsLine(fields: ScreenFields): string {
@@ -344,7 +349,38 @@ function correctedSaved(input: TurnInput): string | null {
   const open = input.state.onScreen;
   if (input.forcedIntent || open?.kind !== "saved" || !open.savedItemId || !readerSays(input.reader, "continues")) return null;
   const items = severalOf(input.reader)?.items ?? [];
+  if (repeatsSaved(input)) return null;
   return items.length === 1 && items[0]?.amount !== null && !items[0]?.recurrence ? open.savedItemId : null;
+}
+
+function sameText(a: string, b: string): boolean {
+  const flat = (text: string) => text.replace(/\s+/g, " ").trim().toLowerCase();
+  return flat(a) === flat(b);
+}
+
+/**
+ * The one item read is the saved transaction again: the same message, or a rephrasing, whatever
+ * the reader's continue flag says. A field the item leaves empty keeps the saved value.
+ * ponytail: a second identical transaction (same amount, description and date) right after the
+ * first is taken for a repeat too; the form still adds it. A "new" flag from the reader if that bites.
+ */
+function repeatsSaved(input: TurnInput): boolean {
+  const open = input.state.onScreen;
+  const saved = open?.kind === "saved" ? open.saved : undefined;
+  const items = severalOf(input.reader)?.items ?? [];
+  const item = items[0];
+  if (!saved || items.length !== 1 || !item || item.recurrence || item.amount === null) return false;
+  const keeps = <T>(read: T | null | undefined, kept: T | null | undefined) => read === null || read === undefined || read === kept;
+  // A special type the card would ask about again was already answered on the saved one.
+  const types: (string | null)[] = [statedSpecialType(item) ?? item.typeHint, item.typeQuestion];
+  return item.amount === saved.amount
+    && (item.currency === "" || item.currency === saved.currency)
+    && (item.typeHint === "" || types.includes(saved.type))
+    && keeps(item.date, saved.date)
+    && sameText(item.description, saved.description)
+    && keeps(item.category, saved.category)
+    && keeps<string>(item.paymentMethod, saved.paymentMethod)
+    && keeps(item.chomesh, saved.isChomesh);
 }
 
 function namedPage(jev: TurnJev, state: ConversationState): string | null {
@@ -658,7 +694,7 @@ function cardTurn(input: TurnInput): TurnDecision | null {
   const onlyDrops = !readerHasMovement(input.reader) && !severalOf(input.reader)?.items.length;
   const card: TurnCard | null = readerSays(input.reader, "discards") && onlyDrops && (open?.kind === "draft" || open?.kind === "recurring")
     ? { type: "discarded" }
-    : readerSays(input.reader, "continues") && open?.kind === "saved" && !correctedSaved(input)
+    : open?.kind === "saved" && (repeatsSaved(input) || (readerSays(input.reader, "continues") && !correctedSaved(input)))
       ? { type: "already_saved" }
       : null;
   if (!card) return null;

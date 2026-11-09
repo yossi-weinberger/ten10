@@ -1527,6 +1527,71 @@
           }
         }
       ]
+    },
+    {
+      "id": "qa6-01",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "expect": {
+            "kind": "already_saved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa6-02",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "נתתי היום 50 שקל לעזר מציון",
+          "expect": {
+            "kind": "already_saved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa6-03",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "בעצם 20",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "donation"
+          }
+        }
+      ]
     }
   ]
 }
