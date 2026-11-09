@@ -1,4 +1,3 @@
-import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { AI_DRAFT_ALLOWED_TYPES } from "../_shared/transaction-domain/transaction-types.ts";
@@ -9,11 +8,10 @@ import {
   JEV_SYSTEMONE_URL,
   readDuplicateRanks,
 } from "../_shared/ai/jev-duplicate-rank.ts";
-import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
-import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
+import { requireAiUser } from "../_shared/ai/require-ai-user.ts";
 
 const ALLOWED_TYPES = new Set<string>(AI_DRAFT_ALLOWED_TYPES);
 
@@ -51,26 +49,12 @@ function readInput(value: unknown): RankInput | null {
 }
 
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get("origin");
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: getCorsHeaders(origin) });
-  }
-  if (req.method !== "POST") return json(origin, { ranked: false, scores: [] }, 405);
-  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
-
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: authHeader } },
+  const setup = await requireAiUser(req, {
+    methodNotAllowedBody: { ranked: false, scores: [] },
+    notAllowedBody: { ranked: false, scores: [] },
   });
-  const { data: userData, error: userError } = await userClient.auth.getUser(
-    authHeader.replace("Bearer ", ""),
-  );
-  if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { ranked: false, scores: [] }, 200);
+  if (!setup.ok) return setup.response;
+  const { userId, origin } = setup;
 
   const input = readInput(await req.json().catch(() => null));
   if (!input) return json(origin, { ranked: false, scores: [] }, 400);
@@ -111,7 +95,7 @@ Deno.serve(async (req: Request) => {
 
   // ponytail: an automatic check while the user edits a card, so it is not charged per edit. It stops with
   // the monthly allowance (consume_ai_call) and is bounded by the minute and day caps. Charge it if that is not enough.
-  const allowed = await serviceUsageGate().consumeCall(userData.user.id);
+  const allowed = await serviceUsageGate().consumeCall(userId);
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { ranked: false, scores: [] }, 200);
     return json(origin, { ranked: false, scores: [], reason: allowed.reason }, 200);
@@ -127,7 +111,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const result = await callModel({
-      userId: userData.user.id,
+      userId,
       operation: "duplicates",
       model: body.model,
       url: JEV_SYSTEMONE_URL,
