@@ -1,4 +1,4 @@
-import { INTENT_CONFIDENCE_MIN } from "./jev-intent.ts";
+import { INTENT_CONFIDENCE_MIN } from "../../supabase/functions/_shared/ai/jev-intent.ts";
 
 export interface LabelEvalCase<T extends string> {
   id: string;

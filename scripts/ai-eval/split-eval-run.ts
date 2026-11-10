@@ -1,10 +1,10 @@
 import { readEvalOut, writeEvalOut } from "./eval-out.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { splitRequestBody, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
-import { parseSplitPayload } from "./split-response.ts";
-import { scoreSplit, scoreSplitFields, type SplitExpected, type SplitFieldScore } from "./split-score.ts";
-import { buildIntentBody, JEV_SYSTEMONE_URL } from "./jev-intent.ts";
-import { gatewaySystemOneBody } from "./jev-duplicate-rank.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { splitRequestBody, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { parseSplitPayload } from "../../supabase/functions/_shared/ai/split-response.ts";
+import { scoreSplit, scoreSplitFields, type SplitExpected, type SplitFieldScore } from "../../supabase/functions/_shared/ai/split-score.ts";
+import { buildIntentBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-intent.ts";
+import { gatewaySystemOneBody } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
 
 /** Args: model, env file, results json path. One row per sentence. Raw text only when the schema did not parse. */
 

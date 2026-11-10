@@ -1,6 +1,6 @@
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
-import { periodRequestBody, SPLIT_RESPONSES_URL } from "./question-period.ts";
-import { buildQuestionSlotBody } from "./question-slots.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
+import { periodRequestBody, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/question-period.ts";
+import { buildQuestionSlotBody } from "../../supabase/functions/_shared/ai/question-slots.ts";
 
 /** Args: env file. p95 of a data question: slots and period in parallel. */
 

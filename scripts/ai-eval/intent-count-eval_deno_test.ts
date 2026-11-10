@@ -1,4 +1,4 @@
-import { INTAKE_COUNTS } from "./jev-intent.ts";
+import { INTAKE_COUNTS } from "../../supabase/functions/_shared/ai/jev-intent.ts";
 import { readLabelEvalCases, scoreLabelEval } from "./intent-count-eval.ts";
 
 function assert(condition: boolean, message: string): asserts condition {

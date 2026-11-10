@@ -1,9 +1,6 @@
-import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
-import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
-import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -26,6 +23,8 @@ import {
 } from "../_shared/ai/question-period.ts";
 import { SPLIT_MODEL } from "../_shared/ai/split-prompt.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
+import { requireAiUser } from "../_shared/ai/require-ai-user.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
 const CATEGORY_TYPES = ["income", "exempt-income", "expense", "recognized-expense"] as const;
 
@@ -47,24 +46,12 @@ function namesFrom(data: unknown): string[] {
 }
 
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get("origin");
-  if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
-  if (req.method !== "POST") return json(origin, { reason: "unavailable" }, 405);
-  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
-
-  const userClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: authHeader } } },
-  );
-  const { data: userData, error: userError } = await userClient.auth.getUser(
-    authHeader.replace("Bearer ", ""),
-  );
-  if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { reason: "unavailable" }, 200);
+  const setup = await requireAiUser(req, {
+    methodNotAllowedBody: { reason: "unavailable" },
+    notAllowedBody: { reason: "unavailable" },
+  });
+  if (!setup.ok) return setup.response;
+  const { userId, origin, userClient } = setup;
 
   const body = await req.json().catch(() => null) as {
     text?: unknown;
@@ -89,7 +76,7 @@ Deno.serve(async (req: Request) => {
   const usage = serviceUsageGate();
   const [allowed, recipientCall, categoryCalls] = await Promise.all([
     // Two paid model calls: charged as the asking message's text, never as a free follow-up.
-    usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" }),
+    usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "question" }),
     userClient.rpc("list_ai_recipients"),
     Promise.all(CATEGORY_TYPES.map((type) => userClient.rpc("get_user_categories", { p_type: type }))),
   ]);
@@ -112,7 +99,7 @@ Deno.serve(async (req: Request) => {
     try {
       const request = buildQuestionSlotBody(text, lists, context);
       const result = await callModel({
-        userId: userData.user.id,
+        userId: userId,
         operation: "question_slots",
         model: request.model,
         url: JEV_SYSTEMONE_URL,
@@ -147,7 +134,7 @@ Deno.serve(async (req: Request) => {
   const periodCall = (async () => {
     try {
       const result = await callModel({
-        userId: userData.user.id,
+        userId: userId,
         operation: "question_period",
         model: SPLIT_MODEL,
         url: SPLIT_RESPONSES_URL,
@@ -204,7 +191,7 @@ Deno.serve(async (req: Request) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);
     measurementId = await saveQuestionMeasurement(
       (args) => admin.rpc("record_ai_slot_confidence", args),
-      userData.user.id,
+      userId,
       signals,
     );
     if (!measurementId) logger.error("slot confidence was not saved");

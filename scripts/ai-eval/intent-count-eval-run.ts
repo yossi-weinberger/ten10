@@ -1,7 +1,7 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { buildIntentBody, INTAKE_COUNTS, readCountChoice, readIntentChoice } from "./jev-intent.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
-import { INTAKE_INTENTS, type IntakeIntent } from "./intent.ts";
+import { buildIntentBody, INTAKE_COUNTS, readCountChoice, readIntentChoice } from "../../supabase/functions/_shared/ai/jev-intent.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
+import { INTAKE_INTENTS, type IntakeIntent } from "../../supabase/functions/_shared/ai/intent.ts";
 import { type EvalAnswer, type LabelEvalSummary, readLabelEvalCases, scoreLabelEval } from "./intent-count-eval.ts";
 
 const COUNT_FIXTURE = "intent-count-eval-cases.json";

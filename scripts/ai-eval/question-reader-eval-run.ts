@@ -1,7 +1,7 @@
-import { readModelText } from "./receipt-draft.ts";
-import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
-import { parseSplitPayload } from "./split-response.ts";
-import { periodBounds } from "./split-period.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { parseSplitPayload } from "../../supabase/functions/_shared/ai/split-response.ts";
+import { periodBounds } from "../../supabase/functions/_shared/ai/split-period.ts";
 import { readSlotEvalFixture, scoreSlotEval, type SlotEvalField } from "./question-slot-eval.ts";
 
 /** Scores the reader's question field. The production path stays on ai-read-question until this passes. */
