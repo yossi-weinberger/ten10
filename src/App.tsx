@@ -395,7 +395,7 @@ function App() {
                 </SheetTrigger>
                 <SheetContent
                   side={i18n.dir() === "rtl" ? "right" : "left"}
-                  className="p-0 flex flex-col overflow-x-hidden min-w-[min(18rem,85vw)] max-w-[85vw] w-auto"
+                  className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
                 >
                   {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
                   <SheetHeader>
