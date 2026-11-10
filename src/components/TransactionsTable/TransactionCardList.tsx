@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, memo } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Repeat, Trash2, Undo2, Receipt, Coins } from "lucide-react";
+import { Edit3, Repeat, Trash2, Undo2, Receipt, BadgeCheck } from "lucide-react";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -47,7 +47,7 @@ interface TransactionCardListProps {
   onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   loading?: boolean;
-  selectedIds?: ReadonlySet<string>;
+  selectedIds?: Set<string>;
   onToggleSelected?: (id: string) => void;
   onClearSelection?: () => void;
   selectionDisabled?: boolean;
@@ -69,166 +69,6 @@ const isSpecialType = (type: TransactionType): boolean => {
          type === "initial_balance";
 };
 
-interface TransactionCardProps {
-  transaction: TransactionForTable;
-  displayDate: string;
-  categoryText: string;
-  hasDescription: boolean;
-  cardTitle: string;
-  surfaceClasses: string;
-  isSelected: boolean;
-  inSelectionMode: boolean;
-  onClick: () => void;
-  onKeyDown: (e: React.KeyboardEvent) => void;
-  onToggleSelected?: (id: string) => void;
-  selectionDisabled: boolean;
-  longPressTriggeredRef: React.MutableRefObject<boolean>;
-  trackChomeshSeparately: boolean;
-  t: (key: string, defaultValue?: string) => string;
-}
-
-const TransactionCard = memo(function TransactionCard({
-  transaction,
-  displayDate,
-  categoryText,
-  hasDescription,
-  cardTitle,
-  surfaceClasses,
-  isSelected,
-  inSelectionMode,
-  onClick,
-  onKeyDown,
-  onToggleSelected,
-  selectionDisabled,
-  longPressTriggeredRef,
-  trackChomeshSeparately,
-  t,
-}: TransactionCardProps) {
-  const longPressHandlers = useLongPress({
-    onLongPress: () => {
-      if (!selectionDisabled && onToggleSelected) {
-        longPressTriggeredRef.current = true;
-        onToggleSelected(transaction.id);
-      }
-    },
-    onCancel: () => {
-      longPressTriggeredRef.current = false;
-    },
-    threshold: 450,
-    movementThreshold: 10,
-  });
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    longPressTriggeredRef.current = false;
-    longPressHandlers.onPointerDown(e);
-  };
-
-  const handlePointerCancel = () => {
-    longPressTriggeredRef.current = false;
-    longPressHandlers.onPointerCancel();
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
-      || window.matchMedia("(pointer: coarse)").matches;
-    if (isTouch) {
-      e.preventDefault();
-    }
-  };
-
-  return (
-    <Card
-      role="button"
-      tabIndex={0}
-      aria-selected={inSelectionMode ? isSelected : undefined}
-      aria-pressed={inSelectionMode ? isSelected : undefined}
-      className={cn(
-        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
-        surfaceClasses,
-        isSelected && "ring-2 ring-primary ring-offset-2"
-      )}
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      onContextMenu={handleContextMenu}
-      onPointerDown={handlePointerDown}
-      onPointerMove={longPressHandlers.onPointerMove}
-      onPointerUp={longPressHandlers.onPointerUp}
-      onPointerCancel={handlePointerCancel}
-    >
-      <div className="flex-1 overflow-hidden">
-        <div
-          className={cn(
-            "truncate font-medium",
-            !hasDescription && "text-muted-foreground",
-            PH_SENSITIVE_PROPS.className
-          )}
-          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-        >
-          {cardTitle}
-        </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span>{displayDate}</span>
-          {categoryText && (
-            <>
-              <span>·</span>
-              <span
-                className={cn(
-                  "truncate",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                {categoryText}
-              </span>
-            </>
-          )}
-          {transaction.recurring_info && (
-            <>
-              <span>·</span>
-              <Repeat className="h-3 w-3" aria-hidden="true" />
-            </>
-          )}
-          {isSpecialType(transaction.type) && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 border px-1.5 py-0 text-[10px]",
-                typeBadgeColors[transaction.type as TransactionType]
-              )}
-            >
-              {t(`types.${transaction.type}`, transaction.type)}
-            </Badge>
-          )}
-          {trackChomeshSeparately && transaction.is_chomesh && (
-            <span className="inline-flex items-center gap-0.5 text-[10px]">
-              <Coins className="h-3 w-3" aria-hidden="true" />
-              <span>{t("columns.chomesh")}</span>
-            </span>
-          )}
-        </div>
-      </div>
-      <div
-        className={cn(
-          "shrink-0 text-end font-bold",
-          PH_SENSITIVE_PROPS.className
-        )}
-        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-      >
-        <CurrencyConversionInfo
-          amount={transaction.amount}
-          currency={transaction.currency}
-          originalAmount={transaction.original_amount}
-          originalCurrency={transaction.original_currency}
-          conversionRate={transaction.conversion_rate}
-          conversionDate={transaction.conversion_date}
-          rateSource={transaction.rate_source}
-          mode="static"
-        />
-      </div>
-    </Card>
-  );
-});
-
 export function TransactionCardList({
   transactions,
   onEdit,
@@ -241,11 +81,11 @@ export function TransactionCardList({
   onToggleSelected,
   onClearSelection,
   selectionDisabled = false,
-  selectedCountLabel = "",
-  editLabel = "",
-  deleteLabel = "",
-  clearLabel = "",
-  bulkToolbarAriaLabel = "",
+  selectedCountLabel,
+  editLabel,
+  deleteLabel,
+  clearLabel,
+  bulkToolbarAriaLabel,
   onSelectionEdit,
   onSelectionDelete,
   bulkPending = false,
@@ -404,7 +244,8 @@ export function TransactionCardList({
 
   return (
     <>
-      {inSelectionMode && onClearSelection && onSelectionEdit && onSelectionDelete && (
+      {inSelectionMode && onClearSelection && onSelectionEdit && onSelectionDelete && 
+       selectedCountLabel && editLabel && deleteLabel && clearLabel && bulkToolbarAriaLabel && (
         <BulkActionsToolbar
           selectedCount={selectedIds.size}
           selectedCountLabel={selectedCountLabel}
@@ -442,7 +283,7 @@ export function TransactionCardList({
           const displayDate = formatDisplayDate(transaction.date, "numeric");
           
           const hasDescription = !!transaction.description;
-          const cardTitle = transaction.description
+          const cardTitle = hasDescription
             ? transaction.description
             : formatCategory(
                 transaction.type === "income" || transaction.type === "exempt-income" ? "income"
@@ -466,6 +307,38 @@ export function TransactionCardList({
 
           const isSelected = selectedIds.has(transaction.id);
 
+          const longPressHandlers = useLongPress({
+            onLongPress: () => {
+              if (!selectionDisabled && onToggleSelected) {
+                longPressTriggeredRef.current = true;
+                onToggleSelected(transaction.id);
+              }
+            },
+            onCancel: () => {
+              longPressTriggeredRef.current = false;
+            },
+            threshold: 450,
+            movementThreshold: 10,
+          });
+
+          const handlePointerDown = (e: React.PointerEvent) => {
+            longPressTriggeredRef.current = false;
+            longPressHandlers.onPointerDown(e);
+          };
+
+          const handlePointerCancel = () => {
+            longPressTriggeredRef.current = false;
+            longPressHandlers.onPointerCancel();
+          };
+
+          const handleContextMenu = (e: React.MouseEvent) => {
+            const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
+              || window.matchMedia("(pointer: coarse)").matches;
+            if (isTouch) {
+              e.preventDefault();
+            }
+          };
+
           const handleKeyDown = (e: React.KeyboardEvent) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -474,24 +347,96 @@ export function TransactionCardList({
           };
 
           return (
-            <TransactionCard
+            <Card
               key={transaction.id}
-              transaction={transaction}
-              displayDate={displayDate.primary ?? transaction.date}
-              categoryText={categoryText}
-              hasDescription={hasDescription}
-              cardTitle={cardTitle}
-              surfaceClasses={surfaceClasses}
-              isSelected={isSelected}
-              inSelectionMode={inSelectionMode}
+              role="button"
+              tabIndex={0}
+              aria-selected={inSelectionMode ? isSelected : undefined}
+              aria-pressed={inSelectionMode ? isSelected : undefined}
+              className={cn(
+                "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
+                surfaceClasses,
+                isSelected && "ring-2 ring-primary ring-offset-2"
+              )}
               onClick={() => handleCardClick(transaction)}
               onKeyDown={handleKeyDown}
-              onToggleSelected={onToggleSelected}
-              selectionDisabled={selectionDisabled}
-              longPressTriggeredRef={longPressTriggeredRef}
-              trackChomeshSeparately={trackChomeshSeparately}
-              t={t}
-            />
+              onContextMenu={handleContextMenu}
+              onPointerDown={handlePointerDown}
+              onPointerMove={longPressHandlers.onPointerMove}
+              onPointerUp={longPressHandlers.onPointerUp}
+              onPointerCancel={handlePointerCancel}
+            >
+              <div className="flex-1 overflow-hidden">
+                <div
+                  className={cn(
+                    "truncate font-medium",
+                    !hasDescription && "text-muted-foreground",
+                    PH_SENSITIVE_PROPS.className
+                  )}
+                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                >
+                  {cardTitle}
+                </div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                  <span>{displayDate.primary}</span>
+                  {categoryText && (
+                    <>
+                      <span>·</span>
+                      <span
+                        className={cn(
+                          "truncate",
+                          PH_SENSITIVE_PROPS.className
+                        )}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {categoryText}
+                      </span>
+                    </>
+                  )}
+                  {transaction.recurring_info && (
+                    <>
+                      <span>·</span>
+                      <Repeat className="h-3 w-3" aria-hidden="true" />
+                    </>
+                  )}
+                  {isSpecialType(transaction.type) && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-5 border px-1.5 py-0 text-[10px]",
+                        typeBadgeColors[transaction.type as TransactionType]
+                      )}
+                    >
+                      {t(`types.${transaction.type}`, transaction.type)}
+                    </Badge>
+                  )}
+                  {trackChomeshSeparately && transaction.is_chomesh && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px]">
+                      <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+                      <span>{t("cards.chomesh")}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div
+                className={cn(
+                  "shrink-0 text-end font-bold",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <CurrencyConversionInfo
+                  amount={transaction.amount}
+                  currency={transaction.currency}
+                  originalAmount={transaction.original_amount}
+                  originalCurrency={transaction.original_currency}
+                  conversionRate={transaction.conversion_rate}
+                  conversionDate={transaction.conversion_date}
+                  rateSource={transaction.rate_source}
+                  mode="static"
+                />
+              </div>
+            </Card>
           );
         })}
       </div>
