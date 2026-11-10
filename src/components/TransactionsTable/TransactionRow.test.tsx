@@ -5,6 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import { TransactionRow } from "./TransactionRow";
 import type { TransactionForTable } from "@/types/transaction";
 
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
+
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => undefined },
   useTranslation: () => ({
