@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveWaveform } from "./live-waveform";
 
@@ -415,5 +415,38 @@ describe("LiveWaveform", () => {
     });
 
     expect(waveformDiv).toBeInTheDocument();
+  });
+
+  it("processing animation runs without errors and schedules animation frames", async () => {
+    // Track requestAnimationFrame calls to verify animation loop runs
+    let rafCallCount = 0;
+    const originalRAF = globalThis.requestAnimationFrame;
+    globalThis.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+      rafCallCount++;
+      // Call the callback asynchronously to simulate real behavior
+      setTimeout(() => callback(performance.now()), 0);
+      return rafCallCount;
+    }) as typeof requestAnimationFrame;
+
+    // Render with processing=true, active=false, no mediaStream
+    const { container, unmount } = render(
+      <LiveWaveform active={false} processing={true} mode="scrolling" height={40} barWidth={3} barGap={1} />
+    );
+
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+
+    // Wait for processing animation to schedule multiple frames
+    // The fix ensures animation continues when processing=true even though active=false
+    await waitFor(
+      () => {
+        expect(rafCallCount).toBeGreaterThan(5);
+      },
+      { timeout: 1000 }
+    );
+
+    // Cleanup
+    unmount();
+    globalThis.requestAnimationFrame = originalRAF;
   });
 });

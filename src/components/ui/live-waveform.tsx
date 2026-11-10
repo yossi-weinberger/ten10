@@ -363,12 +363,12 @@ export const LiveWaveform = ({
       }
 
       // Only redraw if needed
-      if (!needsRedrawRef.current && !active) {
+      if (!needsRedrawRef.current && !active && !processing) {
         rafId = requestAnimationFrame(animate);
         return;
       }
 
-      needsRedrawRef.current = active;
+      needsRedrawRef.current = active || processing;
       ctx.clearRect(0, 0, rect.width, rect.height);
 
       // Read color from Ten10 design token (text-primary)
