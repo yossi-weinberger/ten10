@@ -109,11 +109,28 @@ const TransactionCard = memo(function TransactionCard({
       if (!selectionDisabled && onToggleSelected) {
         longPressTriggeredRef.current = true;
         onToggleSelected(transaction.id);
+        // Reset after a brief delay to allow the immediate click to be handled,
+        // but not eat subsequent taps on this or other cards
+        setTimeout(() => {
+          longPressTriggeredRef.current = false;
+        }, 100);
       }
+    },
+    onCancel: () => {
+      // Reset on cancel to prevent eating the next tap
+      longPressTriggeredRef.current = false;
     },
     threshold: 450,
     movementThreshold: 10,
   });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Reset the flag at the start of any new gesture (for safety)
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+    }
+    longPressHandlers.onPointerDown(e);
+  };
 
   const handleContextMenu = (e: React.MouseEvent) => {
     const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
@@ -137,7 +154,7 @@ const TransactionCard = memo(function TransactionCard({
       onClick={onClick}
       onKeyDown={onKeyDown}
       onContextMenu={handleContextMenu}
-      onPointerDown={longPressHandlers.onPointerDown}
+      onPointerDown={handlePointerDown}
       onPointerMove={longPressHandlers.onPointerMove}
       onPointerUp={longPressHandlers.onPointerUp}
       onPointerCancel={longPressHandlers.onPointerCancel}

@@ -1413,6 +1413,121 @@ describe("TransactionCardList", () => {
       expect(onToggleSelected).toHaveBeenCalledWith("1");
       expect(onToggleSelected).toHaveBeenCalledTimes(1);
     });
+
+    it("long-press then tap on another card selects it", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["1"]); // Card 1 already selected
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+      const secondCard = cards.find((c) => c.textContent?.includes("Groceries"));
+
+      // Long-press the first card
+      act(() => {
+        fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      // The first call is from the long-press
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        fireEvent.pointerUp(firstCard!);
+      });
+
+      // Wait for the timeout to clear the longPressTriggeredRef
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+
+      // Tap on a different card
+      fireEvent.click(secondCard!);
+
+      // Should select card 2 (not be swallowed)
+      expect(onToggleSelected).toHaveBeenCalledWith("2");
+      expect(onToggleSelected).toHaveBeenCalledTimes(2);
+    });
+
+    it("long-press then tap on same card deselects it after brief delay", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["1"]); // Card 1 already selected
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+
+      // Long-press the first card
+      act(() => {
+        fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+
+      act(() => {
+        fireEvent.pointerUp(firstCard!);
+      });
+
+      // Wait for the timeout to clear the longPressTriggeredRef
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+
+      // Tap the same card after the brief delay
+      fireEvent.click(firstCard!);
+
+      // Should toggle card 1 again (deselect it)
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(2);
+    });
   });
 
   it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {
