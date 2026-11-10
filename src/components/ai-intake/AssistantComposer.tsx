@@ -13,7 +13,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
-import { BarVisualizer } from "@/components/ui/bar-visualizer";
+import { LiveWaveform } from "@/components/ui/live-waveform";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface AssistantComposerProps {
@@ -118,13 +118,15 @@ export function AssistantComposer({
         {recording ? (
           <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
             <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
-            <BarVisualizer
+            <LiveWaveform
+              active={true}
               mediaStream={mediaStream}
-              state="listening"
-              barCount={8}
-              minHeight={15}
-              maxHeight={90}
-              className="h-6 w-auto flex-1 bg-transparent p-0"
+              height={40}
+              barWidth={3}
+              barGap={1}
+              barRadius={1.5}
+              sensitivity={1.2}
+              className="flex-1"
             />
             <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
           </div>

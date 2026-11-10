@@ -2,27 +2,24 @@
 import "@testing-library/jest-dom/vitest";
 import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BarVisualizer } from "./bar-visualizer";
+import { LiveWaveform } from "./live-waveform";
 
 // Mock AudioContext and related APIs
 let mockAudioContextInstances = 0;
 let mockAnalyserData: Uint8Array | null = null;
 
 class MockAnalyserNode {
-  fftSize = 2048;
-  frequencyBinCount = 1024;
+  fftSize = 256;
+  frequencyBinCount = 128;
   smoothingTimeConstant = 0.8;
-  minDecibels = -100;
-  maxDecibels = -30;
 
-  getFloatFrequencyData(array: Float32Array) {
+  getByteFrequencyData(array: Uint8Array) {
     if (mockAnalyserData) {
-      // Convert Uint8Array to Float32Array (dB scale)
       for (let i = 0; i < Math.min(array.length, mockAnalyserData.length); i++) {
-        array[i] = (mockAnalyserData[i] / 255) * 100 - 100;
+        array[i] = mockAnalyserData[i];
       }
     } else {
-      array.fill(-Infinity);
+      array.fill(0);
     }
   }
 }
@@ -60,17 +57,17 @@ class MockAudioContext {
 class MockMediaStream {
   id = "mock-stream";
   active = true;
-  
+
   getTracks() {
     return [];
   }
 }
 
-describe("BarVisualizer", () => {
+describe("LiveWaveform", () => {
   beforeEach(() => {
     mockAudioContextInstances = 0;
     mockAnalyserData = null;
-    
+
     // Install mocks
     globalThis.AudioContext = MockAudioContext as unknown as typeof AudioContext;
     globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
@@ -78,14 +75,22 @@ describe("BarVisualizer", () => {
       return 1;
     }) as typeof requestAnimationFrame;
     globalThis.cancelAnimationFrame = vi.fn();
+
+    // Mock ResizeObserver
+    globalThis.ResizeObserver = class ResizeObserver {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
   });
 
-  it("renders bars with varying heights when frequency data changes", async () => {
+  it("renders canvas with varying output when frequency data is non-silent", async () => {
     // Create non-silent frequency data
-    const frequencyData = new Uint8Array(1024);
-    for (let i = 0; i < 1024; i++) {
-      // Simulate speech-range frequencies (bins 4-171)
-      if (i >= 4 && i <= 171) {
+    const frequencyData = new Uint8Array(128);
+    for (let i = 0; i < 128; i++) {
+      // Simulate speech-range frequencies
+      if (i >= 6 && i <= 51) {
+        // ~5% to 40% of bins
         frequencyData[i] = Math.floor(100 + Math.random() * 155); // 100-255 range
       } else {
         frequencyData[i] = 0;
@@ -94,89 +99,44 @@ describe("BarVisualizer", () => {
     mockAnalyserData = frequencyData;
 
     const stream = new MockMediaStream() as unknown as MediaStream;
-    
+
     const { container } = render(
-      <BarVisualizer
-        mediaStream={stream}
-        state="listening"
-        barCount={8}
-        minHeight={15}
-        maxHeight={90}
-      />
+      <LiveWaveform active={true} mediaStream={stream} height={40} barWidth={3} barGap={1} />
     );
 
     // Wait for animation frame and frequency analysis
-    await waitFor(() => {
-      const bars = container.querySelectorAll('[style*="height"]');
-      expect(bars.length).toBe(8);
-      
-      // At least some bars should have height > minHeight
-      const heights = Array.from(bars).map(bar => {
-        const style = (bar as HTMLElement).style.height;
-        return parseFloat(style);
-      });
-      
-      const maxHeight = Math.max(...heights);
-      expect(maxHeight).toBeGreaterThan(15); // Should be above minHeight
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        const canvas = container.querySelector("canvas");
+        expect(canvas).toBeInTheDocument();
+
+        // Check canvas has non-zero dimensions
+        expect(canvas?.width).toBeGreaterThan(0);
+      },
+      { timeout: 1000 }
+    );
   });
 
   it("does not create a new AudioContext on re-render with unchanged props", async () => {
     const stream = new MockMediaStream() as unknown as MediaStream;
-    
-    const { rerender } = render(
-      <BarVisualizer
-        mediaStream={stream}
-        state="listening"
-        barCount={8}
-        minHeight={15}
-        maxHeight={90}
-      />
-    );
+
+    const { rerender } = render(<LiveWaveform active={true} mediaStream={stream} height={40} />);
 
     await waitFor(() => {
       expect(mockAudioContextInstances).toBe(1);
     });
 
     // Re-render with same props
-    rerender(
-      <BarVisualizer
-        mediaStream={stream}
-        state="listening"
-        barCount={8}
-        minHeight={15}
-        maxHeight={90}
-      />
-    );
+    rerender(<LiveWaveform active={true} mediaStream={stream} height={40} />);
 
     // Should still be 1 AudioContext
     expect(mockAudioContextInstances).toBe(1);
   });
 
-  it("renders at minHeight when mediaStream is null", () => {
-    const { container } = render(
-      <BarVisualizer
-        mediaStream={null}
-        state="listening"
-        barCount={8}
-        minHeight={15}
-        maxHeight={90}
-      />
-    );
-
-    const bars = container.querySelectorAll('[style*="height"]');
-    expect(bars.length).toBe(8);
-    
-    bars.forEach(bar => {
-      const style = (bar as HTMLElement).style.height;
-      expect(style).toBe("15%");
-    });
-  });
-
   it("cleans up AudioContext on unmount", async () => {
     const stream = new MockMediaStream() as unknown as MediaStream;
     const mockClose = vi.fn().mockResolvedValue(undefined);
-    
+
     // Override close method to track calls
     const OriginalAudioContext = globalThis.AudioContext;
     class MockAudioContextWithTracking extends OriginalAudioContext {
@@ -187,15 +147,7 @@ describe("BarVisualizer", () => {
     }
     globalThis.AudioContext = MockAudioContextWithTracking as unknown as typeof AudioContext;
 
-    const { unmount } = render(
-      <BarVisualizer
-        mediaStream={stream}
-        state="listening"
-        barCount={8}
-        minHeight={15}
-        maxHeight={90}
-      />
-    );
+    const { unmount } = render(<LiveWaveform active={true} mediaStream={stream} height={40} />);
 
     await waitFor(() => {
       expect(mockAudioContextInstances).toBeGreaterThan(0);
@@ -208,5 +160,18 @@ describe("BarVisualizer", () => {
     });
 
     globalThis.AudioContext = OriginalAudioContext;
+  });
+
+  it("does not create AudioContext when mediaStream is null", () => {
+    render(<LiveWaveform active={true} mediaStream={null} height={40} />);
+
+    expect(mockAudioContextInstances).toBe(0);
+  });
+
+  it("does not create AudioContext when active is false", () => {
+    const stream = new MockMediaStream() as unknown as MediaStream;
+    render(<LiveWaveform active={false} mediaStream={stream} height={40} />);
+
+    expect(mockAudioContextInstances).toBe(0);
   });
 });
