@@ -3,7 +3,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { parseLocalDate } from "@/lib/utils/local-date";
@@ -27,6 +27,26 @@ vi.mock("@/hooks/use-media-query", () => ({
 vi.mock("@/lib/calendar/use-display-date", () => ({
   useDisplayDate: () => () => ({ day: "1", month: "Jan", year: "2026" }),
 }));
+
+beforeEach(() => {
+  HTMLElement.prototype.setPointerCapture = vi.fn();
+  HTMLElement.prototype.releasePointerCapture = vi.fn();
+  HTMLElement.prototype.hasPointerCapture = vi.fn();
+  
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+});
 
 afterEach(() => {
   cleanup();
@@ -87,6 +107,8 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
+    await screen.findByRole("button", { name: /go to the next month/i });
+
     const captions = document.querySelectorAll('.rdp-caption');
     expect(captions.length).toBe(1);
   });
@@ -106,6 +128,8 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
+    await screen.findByRole("button", { name: /go to the next month/i });
+
     const captions = document.querySelectorAll('.rdp-caption');
     expect(captions.length).toBe(2);
   });
@@ -124,6 +148,8 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
 
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
+
+    await screen.findByRole("button", { name: /go to the next month/i });
 
     const dayButtons = screen.getAllByRole("button").filter(button => 
       /^\d+$/.test(button.textContent || "")
@@ -148,6 +174,8 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
+    await screen.findByRole("button", { name: /go to the next month/i });
+
     const dayButtons = screen.getAllByRole("button").filter(button => 
       /^\d+$/.test(button.textContent || "")
     );
@@ -171,8 +199,12 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
-    expect(screen.getByText("common:clear")).toBeInTheDocument();
-    expect(screen.getByText("common:apply")).toBeInTheDocument();
+    const buttons = screen.getAllByRole("button");
+    const clearButton = buttons.find(btn => btn.textContent === "clear");
+    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    
+    expect(clearButton).toBeInTheDocument();
+    expect(applyButton).toBeInTheDocument();
   });
 
   it("does not show Clear and Apply buttons in Popover on desktop", async () => {
@@ -190,8 +222,12 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
-    expect(screen.queryByText("common:clear")).not.toBeInTheDocument();
-    expect(screen.queryByText("common:apply")).not.toBeInTheDocument();
+    const buttons = screen.getAllByRole("button");
+    const clearButton = buttons.find(btn => btn.textContent === "clear");
+    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    
+    expect(clearButton).toBeUndefined();
+    expect(applyButton).toBeUndefined();
   });
 
   it("Clear button clears the range and closes Drawer", async () => {
@@ -209,8 +245,9 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
-    const clearButton = screen.getByText("common:clear");
-    await user.click(clearButton);
+    const buttons = screen.getAllByRole("button");
+    const clearButton = buttons.find(btn => btn.textContent === "clear");
+    await user.click(clearButton!);
 
     expect(onDateChange).toHaveBeenCalledWith(undefined);
     
@@ -233,8 +270,9 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
-    const applyButton = screen.getByText("common:apply");
-    await user.click(applyButton);
+    const buttons = screen.getAllByRole("button");
+    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    await user.click(applyButton!);
 
     expect(onDateChange).toHaveBeenCalledWith({ 
       from: parseLocalDate("2026-10-01"), 
