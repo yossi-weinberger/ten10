@@ -234,9 +234,9 @@ function stripPrepositionLamed(description: string, source: string): string {
   if (remainder.length < 2) return description;
   
   // Check if the lamed-prefixed form appears in source after giving verbs/contexts
-  // Common giving verbs: נתתי (gave), נתן (give), תרמתי (donated), תרם (donate),
-  // העברתי (transferred), העבר (transfer), שילמתי (paid), שילם (pay)
-  // Or after תרומה (donation)
+  // Common giving verbs: natati (gave), natan (give), taramti (donated), taram (donate),
+  // he'evarti (transferred), he'evar (transfer), shilamti (paid), shilam (pay)
+  // Or after trumah (donation)
   // Allow for amounts and other text between the verb and the payee
   const prefixedForm = description.trim();
   const escapedForm = prefixedForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -362,7 +362,7 @@ export function anchorSplitItems(
       },
     });
   }
-  // When the model splits a special classification into an amountless item (e.g. הוצאה מוכרת / recognized expense),
+  // When the model splits a special classification into an amountless item (e.g. recognized expense),
   // and exactly one real transaction item was kept without special classification, apply it to that item.
   if (kept.length === 1 && !kept[0].item.specialStated && !kept[0].item.typeQuestion && !kept[0].item.ruleId) {
     const droppedSpecial = items.find((item) => (
