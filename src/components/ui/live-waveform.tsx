@@ -76,6 +76,14 @@ export const LiveWaveform = ({
 
   const heightStyle = typeof height === "number" ? `${height}px` : height;
 
+  // Mount/unmount lifecycle
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Handle canvas resizing
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -206,6 +214,7 @@ export const LiveWaveform = ({
 
       if (hasData) {
         let fadeProgress = 0;
+        let fadeRafId: number | null = null;
         const fadeToIdle = () => {
           fadeProgress += 0.03;
           if (fadeProgress < 1) {
@@ -215,7 +224,7 @@ export const LiveWaveform = ({
               historyRef.current = historyRef.current.map((value) => value * (1 - fadeProgress));
             }
             needsRedrawRef.current = true;
-            requestAnimationFrame(fadeToIdle);
+            fadeRafId = requestAnimationFrame(fadeToIdle);
           } else {
             if (mode === "static") {
               staticBarsRef.current = [];
@@ -225,14 +234,18 @@ export const LiveWaveform = ({
           }
         };
         fadeToIdle();
+
+        return () => {
+          if (fadeRafId !== null) {
+            cancelAnimationFrame(fadeRafId);
+          }
+        };
       }
     }
   }, [processing, active, barWidth, barGap, mode]);
 
   // Setup audio analysis from external MediaStream
   useEffect(() => {
-    mountedRef.current = true;
-
     if (!active || !mediaStream) {
       // Cleanup
       if (sourceRef.current) {
@@ -284,7 +297,6 @@ export const LiveWaveform = ({
         audioContextRef.current.close();
         audioContextRef.current = null;
       }
-      mountedRef.current = false;
       analyserRef.current = null;
     };
   }, [active, mediaStream, fftSize, smoothingTimeConstant]);
@@ -483,6 +495,8 @@ export const LiveWaveform = ({
       ref={containerRef}
       className={cn("relative min-w-0 w-full", className)}
       style={{ height: heightStyle }}
+      data-active={active ? "true" : "false"}
+      data-processing={processing ? "true" : "false"}
       {...props}
     >
       <canvas ref={canvasRef} className="size-full" />

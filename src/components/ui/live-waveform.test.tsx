@@ -521,4 +521,112 @@ describe("LiveWaveform", () => {
     unmount();
     globalThis.requestAnimationFrame = originalRAF;
   });
+
+  it("processing animation survives transition from active recording to processing transcription", async () => {
+    // This test reproduces the real transition: active=true with mediaStream → active=false, processing=true, no mediaStream
+    // Before the mountedRef fix, the processing animation would freeze because React runs all cleanups first,
+    // setting mountedRef.current = false in the audio effect cleanup, then runs the processing effect which
+    // calls animateProcessing() and immediately returns due to !mountedRef.current check.
+
+    // Create mock frequency data
+    const frequencyData = new Uint8Array(128);
+    frequencyData.fill(100);
+    mockAnalyserData = frequencyData;
+
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    // Track canvas drawing to verify animation
+    const roundRectCalls: Array<{ time: number; heights: number[] }> = [];
+    let frameCount = 0;
+
+    // Override requestAnimationFrame to track frames
+    const originalRAF = globalThis.requestAnimationFrame;
+    globalThis.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+      frameCount++;
+      setTimeout(() => callback(performance.now()), 16);
+      return frameCount;
+    }) as typeof requestAnimationFrame;
+
+    // Mock canvas context to capture bar heights
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn(function (this: HTMLCanvasElement, contextId: string) {
+      if (contextId === "2d") {
+        const mockCtx: Partial<CanvasRenderingContext2D> = {
+          scale: vi.fn(),
+          clearRect: vi.fn(),
+          fillRect: vi.fn(),
+          roundRect: vi.fn((x: number, y: number, width: number, height: number) => {
+            const currentFrame = roundRectCalls.find((c) => c.time === frameCount);
+            if (currentFrame) {
+              currentFrame.heights.push(height);
+            } else {
+              roundRectCalls.push({ time: frameCount, heights: [height] });
+            }
+          }),
+          fill: vi.fn(),
+          beginPath: vi.fn(),
+          createLinearGradient: vi.fn(() => ({
+            addColorStop: vi.fn(),
+          })),
+          fillStyle: "",
+          globalAlpha: 1,
+          globalCompositeOperation: "source-over" as GlobalCompositeOperation,
+        };
+        return mockCtx;
+      }
+      return null;
+    }) as typeof HTMLCanvasElement.prototype.getContext;
+
+    // Step 1: Render with active=true and mediaStream (recording)
+    const { rerender, container } = render(
+      <LiveWaveform active={true} mediaStream={stream} mode="scrolling" height={40} barWidth={3} barGap={1} />
+    );
+
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+
+    // Wait for recording animation to start
+    await waitFor(() => {
+      expect(frameCount).toBeGreaterThan(2);
+    });
+
+    const recordingFrameCount = frameCount;
+
+    // Step 2: Transition to processing=true, active=false, no mediaStream (transcribing)
+    // This is the exact transition that happens in the real app when recording stops
+    rerender(
+      <LiveWaveform active={false} processing={true} mode="scrolling" height={40} barWidth={3} barGap={1} />
+    );
+
+    // Wait for processing animation to continue scheduling frames
+    // Before the fix, this would timeout because the processing loop dies immediately
+    await waitFor(
+      () => {
+        expect(frameCount).toBeGreaterThan(recordingFrameCount + 5);
+      },
+      { timeout: 1000 }
+    );
+
+    // Verify that bar heights are actually changing (animation is running, not frozen)
+    if (roundRectCalls.length >= 2) {
+      const firstFrame = roundRectCalls[0]!;
+      const lastFrame = roundRectCalls[roundRectCalls.length - 1]!;
+
+      if (firstFrame.heights.length > 0 && lastFrame.heights.length > 0) {
+        // At least one bar height should be different between first and last frame
+        let foundDifference = false;
+        for (let i = 0; i < Math.min(firstFrame.heights.length, lastFrame.heights.length); i++) {
+          if (Math.abs(firstFrame.heights[i]! - lastFrame.heights[i]!) > 0.1) {
+            foundDifference = true;
+            break;
+          }
+        }
+        expect(foundDifference).toBe(true);
+      }
+    }
+
+    // Cleanup
+    globalThis.requestAnimationFrame = originalRAF;
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
+  });
 });
