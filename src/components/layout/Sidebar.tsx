@@ -372,8 +372,8 @@ export function Sidebar({
         <div
           ref={scrollRef}
           className={cn(
-            "flex-1 min-h-0 overflow-x-hidden min-w-0",
-            inSheet ? "" : "overflow-y-auto"
+            "overflow-x-hidden min-w-0",
+            inSheet ? "flex-none" : "flex-1 min-h-0 overflow-y-auto"
           )}
         >
           <nav className="flex flex-col gap-1 min-w-0">
