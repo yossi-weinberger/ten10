@@ -30,7 +30,7 @@ const HEBREW_MONTH_PATTERNS = {
 /**
  * Parse a Hebrew month name from text and return the Gregorian date range.
  * 
- * @param text - The text containing a Hebrew month name (e.g. "תשרי", "בתשרי", "תשרי 5786")
+ * @param text - The text containing a Hebrew month name (e.g. "Tishrei", "b-Tishrei", "Tishrei 5786")
  * @param today - Today's date in ISO format (YYYY-MM-DD)
  * @returns The Gregorian date range { from, to } or null if no match
  */

@@ -222,11 +222,11 @@ function isLetter(char: string): boolean {
 }
 
 /**
- * Strip leading lamed preposition from a description when it appears as "ל<name>" in the source
+ * Strip leading lamed preposition from a description when it appears as "lamed + <name>" in the source
  * after giving verbs or charity keywords. Conservative: only strips when clearly a preposition.
  */
 function stripPrepositionLamed(description: string, source: string): string {
-  // Check if description starts with lamed (ל) or lamed with hyphen (ל־ or ל-)
+  // Check if description starts with lamed, optionally followed by maqaf or hyphen
   const match = description.match(/^ל[־-]?(.+)$/);
   if (!match) return description;
   
