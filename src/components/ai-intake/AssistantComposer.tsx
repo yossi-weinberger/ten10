@@ -22,6 +22,7 @@ interface AssistantComposerProps {
   onSubmit: () => void;
   onReceipt: (file: File | undefined) => void;
   onToggleVoice: () => void;
+  /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
   recording: boolean;
   mediaStream?: MediaStream | null;
@@ -125,7 +126,7 @@ export function AssistantComposer({
               maxHeight={90}
               className="h-6 w-auto flex-1 bg-transparent p-0"
             />
-            <span className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+            <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
           </div>
         ) : null}
         <InputGroupAddon align="block-end">
