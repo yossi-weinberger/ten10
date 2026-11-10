@@ -340,8 +340,9 @@ export function Sidebar({
       <div
         ref={listRef}
         className={cn(
-          "relative flex-1 p-1 overflow-x-hidden", // not scrollable
-          "flex flex-col min-h-0 gap-1"
+          "relative flex-1 p-1 overflow-x-hidden",
+          "flex flex-col min-h-0 gap-1",
+          inSheet ? "overflow-y-auto" : ""
         )}
       >
         {/* Slider overlay over the whole wrapper */}
@@ -370,7 +371,10 @@ export function Sidebar({
         {/* Scrollable NAV area */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden min-w-0"
+          className={cn(
+            "flex-1 min-h-0 overflow-x-hidden min-w-0",
+            inSheet ? "" : "overflow-y-auto"
+          )}
         >
           <nav className="flex flex-col gap-1 min-w-0">
             <NavLink to="/" icon={Home}>
@@ -403,11 +407,6 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
-            {inSheet && platform === "web" && session?.user && (
-              <NavLink to="/profile" icon={User}>
-                {t("menu.profile")}
-              </NavLink>
-            )}
             {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
             {platform !== "loading" ? (
               <Button
@@ -449,15 +448,15 @@ export function Sidebar({
         </div>
 
         {/* Divider spans the padded width */}
-        {!inSheet && <div className="my-2 h-px bg-border/20" />}
+        <div className="my-2 h-px bg-border/20" />
 
         {/* Feedback (above profile) — web + PostHog only; hides after submit */}
-        {!inSheet && platform === "web" && session?.user && (
+        {platform === "web" && session?.user && (
           <HomeFeedbackCard variant="sidebar" expanded={expanded} />
         )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
-        {!inSheet && platform === "web" && session?.user && (
+        {platform === "web" && session?.user && (
           <Link
             to="/profile"
             onClick={onLinkClick}

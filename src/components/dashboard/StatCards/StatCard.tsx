@@ -149,7 +149,7 @@ export function StatCard({
             {title}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0 md:block max-md:hidden`} />
+            <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
             {showAddButton && onAddClick && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,7 +158,7 @@ export function StatCard({
                     size="sm"
                     onClick={onAddClick}
                     data-onboarding={addButtonOnboarding}
-                    className={`md:hidden size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                    className={`md:hidden mobile-landscape:!inline-flex size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                   >
                     <BadgePlus className="h-6 w-6" />
                   </Button>
@@ -219,7 +219,7 @@ export function StatCard({
 
         {showAddButton && onAddClick && (
           <div
-            className={`absolute bottom-2 max-md:hidden ${
+            className={`absolute bottom-2 max-md:hidden mobile-landscape:hidden ${
               i18n.dir() === "rtl" ? "left-2" : "right-2"
             }`}
           >
