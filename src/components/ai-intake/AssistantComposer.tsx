@@ -1,6 +1,7 @@
 import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
 import { ArrowUp, Camera, Image, Mic, Plus, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -112,13 +113,14 @@ export function AssistantComposer({
           enterKeyHint="send"
           placeholder={label}
           aria-label={label}
-          className={recording ? "sr-only" : "max-h-40 min-h-12 text-base [field-sizing:content]"}
+          className={cn(recording ? "sr-only" : "max-h-40 min-h-12 text-base [field-sizing:content]", "ph-mask ph-sensitive")}
+          data-ph-mask=""
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
         />
         {recording || transcribing ? (
-          <div className="flex min-h-12 w-full items-center gap-2 px-3" role="status" aria-label={t(transcribing ? "aiIntake.transcribing" : "aiIntake.recording")}>
+          <div className="flex min-h-12 w-full items-center gap-2 px-3 ph-mask ph-sensitive" data-ph-mask="" role="status" aria-label={t(transcribing ? "aiIntake.transcribing" : "aiIntake.recording")}>
             {recording ? (
               <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
             ) : null}

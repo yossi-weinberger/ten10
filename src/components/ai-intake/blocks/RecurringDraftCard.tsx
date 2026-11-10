@@ -187,7 +187,7 @@ export function RecurringDraftCard({
 
   if (card.saved) {
     return (
-      <Card className={cn("grid gap-1 p-2.5", surface)}>
+      <Card className={cn("grid gap-1 p-2.5 ph-mask ph-sensitive", surface)} data-ph-mask="">
         {eyebrow}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           {amountLabel ? <p className="shrink-0 text-lg font-semibold tabular-nums"><bdi>{amountLabel}</bdi></p> : null}
@@ -220,7 +220,7 @@ export function RecurringDraftCard({
 
   if (blocked) {
     return (
-      <Card className="grid gap-2 p-2.5">
+      <Card className="grid gap-2 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
         <p className="text-sm">{t("aiIntake.recurring.monthlyOnly")}</p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -242,7 +242,7 @@ export function RecurringDraftCard({
   // Collapsed summary: show when ready but not expanded
   if (showSummary && ready && !expanded) {
     return (
-      <Card className={cn("grid gap-2 p-2.5", surface)}>
+      <Card className={cn("grid gap-2 p-2.5 ph-mask ph-sensitive", surface)} data-ph-mask="">
         {eyebrow}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           {amountLabel ? <p className="shrink-0 text-lg font-semibold tabular-nums"><bdi>{amountLabel}</bdi></p> : null}
@@ -265,7 +265,7 @@ export function RecurringDraftCard({
   }
 
   return (
-    <Card className={cn("grid gap-2 p-2.5", surface)}>
+    <Card className={cn("grid gap-2 p-2.5 ph-mask ph-sensitive", surface)} data-ph-mask="">
       {showSummary ? eyebrow : null}
       {editing ? (
         <>

@@ -101,7 +101,7 @@ export function DraftCard({
   if (readOnly) {
     return (
       // The app's own Card, tinted by type like the add-transaction form.
-      <Card className={cn("grid gap-1 p-2.5", surface)}>
+      <Card className={cn("grid gap-1 p-2.5 ph-mask ph-sensitive", surface)} data-ph-mask="">
         <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
           <TypeTag
             type={draft.type}
@@ -168,7 +168,7 @@ export function DraftCard({
   }
 
   return (
-    <Card className={cn("p-2.5", surface)}>
+    <Card className={cn("p-2.5 ph-mask ph-sensitive", surface)} data-ph-mask="">
       <form
         className="grid gap-2"
         onSubmit={(event) => {

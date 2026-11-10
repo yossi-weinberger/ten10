@@ -58,7 +58,7 @@ function Frame({
   return (
     // justify-end: when the keyboard leaves less room than header + composer (a phone in landscape),
     // the header slides off the top and the composer stays whole at the bottom.
-    <div {...dropProps} className={cn("relative flex h-full min-h-0 flex-1 flex-col justify-end overflow-hidden ph-mask ph-sensitive", dropProps.className)} data-ph-mask>
+    <div {...dropProps} className={cn("relative flex h-full min-h-0 flex-1 flex-col justify-end overflow-hidden", dropProps.className)}>
       {dragging ? (
         <div className="absolute inset-2 z-10 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-background/90 text-sm">
           <Receipt className="size-5 text-primary" aria-hidden />

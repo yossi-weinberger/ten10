@@ -74,7 +74,7 @@ const mockHandlers = {
 describe("AssistantShell privacy masking", () => {
   afterEach(() => cleanup());
 
-  it("should have ph-mask, ph-sensitive, and data-ph-mask on root element", () => {
+  it("should NOT have masking classes on Frame root element", () => {
     const mockRef = { current: null };
     
     render(
@@ -90,14 +90,34 @@ describe("AssistantShell privacy masking", () => {
       </AssistantShell>
     );
 
-    // The root element is inside SheetContent (desktop mode by default in mock)
-    // Find the element with our masking classes
-    const maskedElement = document.querySelector(".ph-mask.ph-sensitive[data-ph-mask]");
+    // The Frame root should NOT have masking classes
+    const frameRoot = document.querySelector('[class*="flex"][class*="flex-col"][class*="justify-end"]');
+    expect(frameRoot).toBeTruthy();
+    expect(frameRoot?.classList.contains("ph-mask")).toBe(false);
+    expect(frameRoot?.classList.contains("ph-sensitive")).toBe(false);
+    expect(frameRoot?.hasAttribute("data-ph-mask")).toBe(false);
+  });
+
+  it("should NOT have masking on header and static elements", () => {
+    const mockRef = { current: null };
     
-    expect(maskedElement).toBeTruthy();
-    expect(maskedElement?.classList.contains("ph-mask")).toBe(true);
-    expect(maskedElement?.classList.contains("ph-sensitive")).toBe(true);
-    expect(maskedElement?.hasAttribute("data-ph-mask")).toBe(true);
+    render(
+      <AssistantShell
+        open={true}
+        onOpenChange={() => {}}
+        title="Test Assistant"
+        description="Test Description"
+        initialFocusRef={mockRef}
+        footer={<div>Footer</div>}
+      >
+        <div data-testid="content">Content</div>
+      </AssistantShell>
+    );
+
+    // Title should not be masked (no user name in this case)
+    const title = document.querySelector('[class*="font-semibold"]');
+    expect(title?.textContent).toContain("Test Assistant");
+    expect(title?.classList.contains("ph-mask")).toBe(false);
   });
 
   it("should have ph-no-capture on receipt preview image", () => {
@@ -123,5 +143,99 @@ describe("AssistantShell privacy masking", () => {
     
     expect(receiptImg).toBeTruthy();
     expect(receiptImg?.classList.contains("ph-no-capture")).toBe(true);
+  });
+
+  it("should have masking on user message bubble", () => {
+    const { container } = render(
+      <AssistantThread
+        history={[
+          {
+            id: "text-turn",
+            user: { kind: "text", text: "Personal message from user" },
+            blocks: [],
+          },
+        ]}
+        active={null}
+        activeBlocks={[]}
+        interactiveActive={false}
+        onSuggestion={vi.fn()}
+        handlers={mockHandlers}
+      />
+    );
+
+    // User message bubble should be masked
+    const maskedBubble = container.querySelector(".ph-mask.ph-sensitive[data-ph-mask]");
+    expect(maskedBubble).toBeTruthy();
+    expect(maskedBubble?.textContent).toContain("Personal message from user");
+  });
+
+  it("should have masking on draft card with personal data", () => {
+    const { container } = render(
+      <AssistantThread
+        history={[
+          {
+            id: "draft-turn",
+            user: { kind: "text", text: "expense" },
+            blocks: [
+              {
+                kind: "draft",
+                view: {
+                  draft: {
+                    date: "2024-01-15",
+                    amount: 100,
+                    currency: "ILS",
+                    type: "expense",
+                    description: "Coffee",
+                    category: null,
+                    paymentMethod: null,
+                    requestedRate: null,
+                    isChomesh: false,
+                  },
+                  amountInput: "100",
+                  locked: false,
+                  duplicates: [],
+                  duplicatesRanked: false,
+                  inferred: { amount: false, date: false, description: false },
+                  appliedRuleName: null,
+                },
+              },
+            ],
+          },
+        ]}
+        active={null}
+        activeBlocks={[]}
+        interactiveActive={false}
+        onSuggestion={vi.fn()}
+        handlers={mockHandlers}
+      />
+    );
+
+    // Draft card should be masked - find any element with all three classes
+    const draftCard = container.querySelector(".ph-mask.ph-sensitive[data-ph-mask]");
+    expect(draftCard).toBeTruthy();
+    expect(draftCard?.classList.contains("ph-mask")).toBe(true);
+    expect(draftCard?.classList.contains("ph-sensitive")).toBe(true);
+    expect(draftCard?.hasAttribute("data-ph-mask")).toBe(true);
+  });
+
+  it("should NOT have masking on static quick-action chips", () => {
+    const { container } = render(
+      <AssistantThread
+        history={[]}
+        active={null}
+        activeBlocks={[]}
+        interactiveActive={false}
+        onSuggestion={vi.fn()}
+        handlers={mockHandlers}
+      />
+    );
+
+    // Static chips should not be masked
+    const chips = container.querySelectorAll("button[class*='rounded-full']");
+    expect(chips.length).toBeGreaterThan(0);
+    
+    chips.forEach(chip => {
+      expect(chip.classList.contains("ph-mask")).toBe(false);
+    });
   });
 });
