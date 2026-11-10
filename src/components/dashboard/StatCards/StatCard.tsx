@@ -143,18 +143,18 @@ export function StatCard({
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight max-md:leading-none">
             {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon}`} />}
             {title}
           </CardTitle>
           <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
         </CardHeader>
-        <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6">
+        <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-0">
           <div
             className={`text-center ${
               i18n.dir() === "rtl" ? "sm:text-right" : "sm:text-left"
-            } mt-2 sm:mt-0 h-10 sm:h-12`}
+            } mt-2 sm:mt-0 max-md:mt-0 h-10 sm:h-12 max-md:h-8`}
           >
             {error ? (
               <p className="text-xs text-red-500" dir={i18n.dir()}>
