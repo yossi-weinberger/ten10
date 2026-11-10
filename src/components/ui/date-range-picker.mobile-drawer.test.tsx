@@ -25,7 +25,7 @@ vi.mock("@/hooks/use-media-query", () => ({
 }));
 
 vi.mock("@/lib/calendar/use-display-date", () => ({
-  useDisplayDate: () => (date: string) => ({ day: "1", month: "Jan", year: "2026" }),
+  useDisplayDate: () => () => ({ day: "1", month: "Jan", year: "2026" }),
 }));
 
 afterEach(() => {
