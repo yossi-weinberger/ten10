@@ -6,6 +6,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -78,30 +79,20 @@ export function AreaChartInteractive({
     "donations",
   ];
 
-  const compactNumber = React.useCallback((value: number): string => {
-    if (!Number.isFinite(value)) return "";
-    
-    const absValue = Math.abs(value);
-    
-    if (absValue >= 1000000) {
-      return `${(value / 1000000).toFixed(absValue >= 10000000 ? 0 : 1)}M`;
-    }
-    if (absValue >= 1000) {
-      return `${(value / 1000).toFixed(absValue >= 10000 ? 0 : 1)}K`;
-    }
-    return value.toFixed(0);
-  }, []);
-
   const formatYAxisTick = React.useCallback((value: number): string => {
     const num = Number(value);
     if (!Number.isFinite(num)) return "";
     
     if (isSmallScreen) {
-      return `${currencySymbol}${compactNumber(num)}`;
+      const compact = new Intl.NumberFormat(locale, {
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(num);
+      return `${currencySymbol}${compact}`;
     }
     
     return `${currencySymbol}${num.toLocaleString(locale)}`;
-  }, [isSmallScreen, currencySymbol, locale, compactNumber]);
+  }, [isSmallScreen, currencySymbol, locale]);
 
   const xAxisInterval = React.useMemo(() => {
     if (!isSmallScreen) return undefined;
@@ -110,16 +101,6 @@ export function AreaChartInteractive({
     if (dataLength <= 6) return 1;
     return 2;
   }, [isSmallScreen, chartData.length]);
-
-  const chartHeight = React.useMemo(() => {
-    if (isLandscape) return "h-[180px]";
-    if (isSmallScreen) return "h-[240px]";
-    return "h-full";
-  }, [isLandscape, isSmallScreen]);
-
-  const legendAlign = React.useMemo(() => isSmallScreen ? "center" : undefined, [isSmallScreen]);
-  const legendVerticalAlign = React.useMemo(() => isSmallScreen ? "bottom" : "top", [isSmallScreen]);
-  const legendLayout = React.useMemo(() => isSmallScreen ? "horizontal" : undefined, [isSmallScreen]);
 
   const seriesToDisplay = React.useMemo(() => {
     const availableSeries = (
@@ -165,10 +146,16 @@ export function AreaChartInteractive({
     );
   }
 
+  const mobileHeightOverride = isLandscape 
+    ? "max-md:!h-[180px]" 
+    : isSmallScreen 
+    ? "max-md:!h-[240px]" 
+    : "";
+
   const chart = (
     <ChartContainer
       config={chartConfig}
-      className={cn("aspect-auto w-full", chartHeight, className)}
+      className={cn("aspect-auto w-full", mobileHeightOverride, className)}
     >
       <AreaChart
         accessibilityLayer
@@ -187,8 +174,8 @@ export function AreaChartInteractive({
           axisLine={false}
           tickMargin={isSmallScreen ? 4 : 8}
           interval={xAxisInterval}
-          className="text-xs md:text-sm font-medium"
-          tick={{ fill: "currentColor", fontSize: isSmallScreen ? 11 : 12 }}
+          className="text-sm font-medium"
+          tick={{ fill: "currentColor" }}
         />
         <YAxis
           orientation="right"
@@ -197,24 +184,21 @@ export function AreaChartInteractive({
           tickMargin={isSmallScreen ? 4 : 8}
           width={isSmallScreen ? 50 : undefined}
           tickFormatter={formatYAxisTick}
-          className="text-xs md:text-sm font-medium"
-          tick={{ fill: "currentColor", fontSize: isSmallScreen ? 11 : 12 }}
+          className="text-sm font-medium"
+          tick={{ fill: "currentColor" }}
         />
         <ChartTooltip
           cursor={true}
           content={<ChartTooltipContent indicator="dot" />}
-          wrapperStyle={{ zIndex: 1000 }}
-          allowEscapeViewBox={{ x: false, y: false }}
+          wrapperStyle={isSmallScreen ? { zIndex: 1000 } : undefined}
+          allowEscapeViewBox={isSmallScreen ? { x: false, y: false } : undefined}
         />
         <ChartLegend
           content={<ChartLegendContent />}
-          align={legendAlign}
-          verticalAlign={legendVerticalAlign}
-          layout={legendLayout}
-          wrapperStyle={{ 
-            paddingTop: isSmallScreen ? "4px" : "20px",
-            paddingBottom: isSmallScreen ? "4px" : "0px"
-          }}
+          align={isSmallScreen ? "center" : undefined}
+          verticalAlign={isSmallScreen ? "bottom" : undefined}
+          layout={isSmallScreen ? "horizontal" : undefined}
+          wrapperStyle={{ paddingTop: isSmallScreen ? "4px" : "20px" }}
         />
         <defs>
           {seriesToDisplay.map((key) => {
