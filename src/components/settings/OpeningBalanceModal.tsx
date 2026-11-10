@@ -93,7 +93,7 @@ export function OpeningBalanceModal({
   const [resolvedTransaction, setResolvedTransaction] =
     useState<Transaction | null>(null);
 
-  const isDesktopQuery = useMediaQuery("(min-width: 768px)");
+  const isDesktopQuery = useMediaQuery("(min-width: 768px) and ((pointer: fine) or (min-height: 501px))");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
   /** Stable primitive for effect deps (avoids reference churn and keeps dependency array length fixed). */
@@ -528,13 +528,13 @@ export function OpeningBalanceModal({
   );
 
   const footerContent = (
-    <div className="flex w-full justify-end gap-3">
-      <Button variant="outline" onClick={onClose} type="button">
-        {t("balanceManagement.cancelButton")}
-      </Button>
-      <Button onClick={form.handleSubmit(handleSubmit)} disabled={isSubmitting} type="submit">
+    <div className="grid grid-cols-2 gap-3 w-full">
+      <Button onClick={form.handleSubmit(handleSubmit)} disabled={isSubmitting} type="submit" className="h-11 w-full">
         {isSubmitting && <BrandInlineSpinner tone="current" />}
         {isSubmitting ? t("balanceManagement.saveButton") + "..." : t("balanceManagement.saveButton")}
+      </Button>
+      <Button variant="outline" onClick={onClose} type="button" className="h-11 w-full">
+        {t("balanceManagement.cancelButton")}
       </Button>
     </div>
   );
@@ -586,7 +586,7 @@ export function OpeningBalanceModal({
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4">{formContent}</div>
 
-        <DrawerFooter className="pt-2">{footerContent}</DrawerFooter>
+        <DrawerFooter className="pb-[max(1rem,env(safe-area-inset-bottom))]">{footerContent}</DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

@@ -44,7 +44,7 @@ export function DatePickerWithRange({
   const { t: tCommon } = useTranslation("common");
   const formatDisplayDate = useDisplayDate();
   const yearBounds = getCalendarNavigationBounds();
-  const useDrawer = useMediaQuery("(max-width: 767px)");
+  const useDrawer = useMediaQuery("(max-width: 767px), ((pointer: coarse) and (max-height: 500px))");
   
   // Use local state to manage range selection
   const [localRange, setLocalRange] = React.useState<DateRange | undefined>(
@@ -255,15 +255,20 @@ export function DatePickerWithRange({
       }}
       classNames={{
         caption: "text-right font-bold",
-        nav_button_previous: "!right-auto !left-1",
-        nav_button_next: "!left-auto !right-1",
+        nav_button_previous: useDrawer ? "!right-auto !left-1 h-11 w-11" : "!right-auto !left-1",
+        nav_button_next: useDrawer ? "!left-auto !right-1 h-11 w-11" : "!left-auto !right-1",
         head_cell: "text-right font-normal text-muted-foreground",
         cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
-        day: useDrawer ? "h-11 w-11 p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+        day: useDrawer ? "p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
+        months_dropdown: useDrawer ? "h-11" : undefined,
+        years_dropdown: useDrawer ? "h-11" : undefined,
       }}
+      style={useDrawer ? {
+        "--cell-size": "min(44px, calc((100vw - 32px) / 7))"
+      } as React.CSSProperties : undefined}
     />
   );
 
@@ -278,15 +283,13 @@ export function DatePickerWithRange({
             <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-2 pt-4">
               {calendarComponent}
             </div>
-            <DrawerFooter className="pt-2">
-              <div className="flex w-full justify-end gap-3">
-                <Button variant="outline" onClick={handleClear} type="button">
-                  {tCommon("actions.clear")}
-                </Button>
-                <Button onClick={handleApply} type="button">
-                  {tCommon("actions.apply")}
-                </Button>
-              </div>
+            <DrawerFooter className="grid grid-cols-2 gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <Button onClick={handleApply} type="button" className="h-11 w-full">
+                {tCommon("actions.apply")}
+              </Button>
+              <Button variant="outline" onClick={handleClear} type="button" className="h-11 w-full">
+                {tCommon("actions.clear")}
+              </Button>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>

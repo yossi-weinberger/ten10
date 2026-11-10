@@ -15,6 +15,7 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
@@ -105,8 +106,8 @@ export function DatePicker({
   const onInputStatusChangeRef = React.useRef(onInputStatusChange);
   const caretPositionRef = React.useRef<number>(0);
   const needsCaretUpdate = React.useRef(false);
-  const { i18n } = useTranslation(["dashboard", "transactions"]);
-  const useDrawer = useMediaQuery("(max-width: 767px)");
+  const { t, i18n } = useTranslation(["dashboard", "transactions"]);
+  const useDrawer = useMediaQuery("(max-width: 767px), ((pointer: coarse) and (max-height: 500px))");
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
@@ -315,15 +316,20 @@ export function DatePicker({
       }}
       classNames={{
         caption: "text-right font-bold",
-        nav_button_previous: "!right-auto !left-1",
-        nav_button_next: "!left-auto !right-1",
+        nav_button_previous: useDrawer ? "!right-auto !left-1 h-11 w-11" : "!right-auto !left-1",
+        nav_button_next: useDrawer ? "!left-auto !right-1 h-11 w-11" : "!left-auto !right-1",
         head_cell: "text-right font-normal text-muted-foreground",
         cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
-        day: useDrawer ? "h-11 w-11 p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+        day: useDrawer ? "p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
+        months_dropdown: useDrawer ? "h-11" : undefined,
+        years_dropdown: useDrawer ? "h-11" : undefined,
       }}
+      style={useDrawer ? {
+        "--cell-size": "min(44px, calc((100vw - 32px) / 7))"
+      } as React.CSSProperties : undefined}
     />
   );
 
@@ -365,6 +371,7 @@ export function DatePicker({
         </Button>
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent dir={i18n.dir()}>
+            <DrawerTitle className="sr-only">{t("datePicker.selectDate")}</DrawerTitle>
             <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-6 pt-4">
               {calendarComponent}
             </div>
