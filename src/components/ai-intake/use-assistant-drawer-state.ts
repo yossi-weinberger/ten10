@@ -116,9 +116,9 @@ export function useAssistantDrawerState() {
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
   const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
-  const [level, setLevel] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusKey | null>(null);
@@ -156,9 +156,8 @@ export function useAssistantDrawerState() {
   }>({ history: [], active: null, reply: emptyReplyState() });
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const audioFrame = useRef(0);
-  const audioContext = useRef<AudioContext | null>(null);
-  const levelTick = useRef(0);
+  const mediaStream = useRef<MediaStream | null>(null);
+  const elapsedTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const duplicateRequest = useRef(0);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -301,7 +300,6 @@ export function useAssistantDrawerState() {
     setHalachaUserQuestion(null);
     setChecking(false);
     setPendingPhase(null);
-    setLevel(0);
     setElapsed(0);
     setStatus(null);
     setLimitInfo(null);
@@ -379,6 +377,8 @@ export function useAssistantDrawerState() {
   function disposeAssistant() {
     discardRecording.current = true;
     if (recordTimer.current) clearTimeout(recordTimer.current);
+    if (elapsedTimer.current) clearInterval(elapsedTimer.current);
+    mediaStream.current = null;
     settleOpenMeasurement();
     const active = recorder.current;
     if (active && active.state !== "inactive") active.stop();
@@ -524,12 +524,12 @@ export function useAssistantDrawerState() {
     setChecking,
     pendingPhase,
     setPendingPhase,
-    level,
-    setLevel,
     elapsed,
     setElapsed,
     recording,
     setRecording,
+    transcribing,
+    setTranscribing,
     undoing,
     setUndoing,
     savedItemId,
@@ -575,9 +575,8 @@ export function useAssistantDrawerState() {
     conversationRef,
     discardRecording,
     recordTimer,
-    audioFrame,
-    audioContext,
-    levelTick,
+    mediaStream,
+    elapsedTimer,
     settleOpenMeasurement,
     followQuestion,
     holdMeasurement,

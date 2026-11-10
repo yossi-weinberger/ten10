@@ -5,7 +5,7 @@ export interface ComposerWiringInput extends DrawerThinkingInput {
   text: string;
   clarification: ClarificationField | null;
   recording: boolean;
-  level: number;
+  transcribing: boolean;
   elapsed: number;
 }
 
@@ -13,7 +13,7 @@ export interface ComposerWiring {
   value: string;
   busyKey: ReturnType<typeof composerBusyKey>;
   recording: boolean;
-  level: number;
+  transcribing: boolean;
   elapsed: number;
   mode: "amount" | "message";
 }
@@ -24,7 +24,7 @@ export function composerWiring(input: ComposerWiringInput): ComposerWiring {
     value: input.text,
     busyKey: composerBusyKey(input),
     recording: input.recording,
-    level: input.level,
+    transcribing: input.transcribing,
     elapsed: input.elapsed,
     mode: composerMode(input.clarification),
   };

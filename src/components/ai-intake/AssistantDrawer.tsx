@@ -164,7 +164,8 @@ export function AssistantDrawer({
           textareaRef={state.textareaRef}
           busy={composer.wiring.busyKey !== undefined}
           recording={composer.wiring.recording}
-          level={composer.wiring.level}
+          transcribing={composer.wiring.transcribing}
+          mediaStream={state.mediaStream.current}
           elapsed={composer.wiring.elapsed}
           mode={composer.wiring.mode}
           onReceipt={(file) => {
@@ -193,6 +194,7 @@ export function AssistantDrawer({
           active={thread.active}
           activeBlocks={thread.blocks}
           interactiveActive
+          transcribing={composer.wiring.transcribing}
           opening={{ name: firstName, line: openingLine }}
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);

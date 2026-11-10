@@ -986,14 +986,16 @@ describe("AssistantDrawer characterization", () => {
     await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
     
-    // Key assertion: skeleton should appear AND voice bubble should exist
-    // (not between old messages, but after the voice bubble)
-    expect(await screen.findByText("aiIntake.thinking.voice")).toBeInTheDocument();
+    // Key assertion: voice bubble should exist and composer should show processing animation
+    // (skeleton is hidden during transcription, replaced by waveform processing animation)
     const voiceBubbles = screen.getAllByRole("log")[0]?.querySelectorAll('[data-align="end"]');
     expect(voiceBubbles.length).toBeGreaterThan(0);
     
+    // The skeleton should NOT appear during transcription because the composer shows processing animation
+    expect(screen.queryByText("aiIntake.thinking.voice")).not.toBeInTheDocument();
+    
     // This test verifies the fix: on main, the skeleton appeared before any voice bubble existed,
-    // causing it to render in the wrong position. Now it appears after the voice bubble.
+    // causing it to render in the wrong position. Now the waveform processing animation replaces the skeleton.
     
     vi.unstubAllGlobals();
   });

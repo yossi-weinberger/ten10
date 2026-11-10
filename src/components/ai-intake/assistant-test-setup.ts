@@ -32,4 +32,28 @@ export function installDomPolyfills(viewport: "desktop" | "mobile" = "desktop") 
   Element.prototype.hasPointerCapture ??= () => false;
   Element.prototype.setPointerCapture ??= () => {};
   Element.prototype.releasePointerCapture ??= () => {};
+  if (typeof AudioContext === "undefined") {
+    globalThis.AudioContext = class {
+      createAnalyser() {
+        return {
+          fftSize: 256,
+          smoothingTimeConstant: 0.8,
+          minDecibels: -100,
+          maxDecibels: -30,
+          frequencyBinCount: 128,
+          getByteFrequencyData: () => {},
+          getFloatFrequencyData: () => {},
+          getByteTimeDomainData: () => {},
+          connect: () => {},
+          disconnect: () => {},
+        };
+      }
+      createMediaStreamSource() {
+        return { connect: () => {}, disconnect: () => {} };
+      }
+      close() {
+        return Promise.resolve();
+      }
+    } as unknown as typeof AudioContext;
+  }
 }

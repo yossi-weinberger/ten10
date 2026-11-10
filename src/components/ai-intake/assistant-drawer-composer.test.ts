@@ -20,7 +20,7 @@ describe("composerWiring", () => {
     duplicateScan: null,
     clarification: null,
     recording: false,
-    level: 0,
+    transcribing: false,
     elapsed: 0,
   } as const;
 
@@ -29,7 +29,7 @@ describe("composerWiring", () => {
       value: "שלום",
       busyKey: undefined,
       recording: false,
-      level: 0,
+      transcribing: false,
       elapsed: 0,
       mode: "message",
     });
@@ -42,13 +42,12 @@ describe("composerWiring", () => {
       pendingPhase: "receipt",
       clarification: "amount",
       recording: true,
-      level: 0.4,
       elapsed: 3,
     })).toEqual({
       value: "שלום",
       busyKey: "aiIntake.thinking.receipt",
       recording: true,
-      level: 0.4,
+      transcribing: false,
       elapsed: 3,
       mode: "amount",
     });

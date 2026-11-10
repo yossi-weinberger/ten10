@@ -6,7 +6,6 @@ import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { splitItems } from "@/lib/ai/split-items";
 import { openCardEvidence, rememberClosed, rememberDraft } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount } from "@/lib/ai/split-draft";
-import { levelFromSamples } from "./assistant-audio-level";
 import {
   isSingleReceipt,
   openReceiptFailureStatus,
@@ -43,16 +42,16 @@ export function useAssistantDrawerComposer(
     setHalachaUserQuestion,
     setChecking,
     setPendingPhase,
-    setLevel,
     setElapsed,
     recording,
     setRecording,
+    transcribing,
+    setTranscribing,
     setStatus,
     askIntent,
     dataReply,
     duplicateScan,
     clarification,
-    level,
     elapsed,
     pendingPhase,
     checking,
@@ -64,19 +63,16 @@ export function useAssistantDrawerComposer(
     discardRecording,
     recorder,
     recordTimer,
-    audioFrame,
-    audioContext,
-    levelTick,
+    mediaStream,
+    elapsedTimer,
     showDraft,
     beginTurn,
   } = state;
 
   function stopMeter() {
-    if (audioFrame.current) cancelAnimationFrame(audioFrame.current);
-    audioFrame.current = 0;
-    void audioContext.current?.close();
-    audioContext.current = null;
-    setLevel(0);
+    if (elapsedTimer.current) clearInterval(elapsedTimer.current);
+    elapsedTimer.current = null;
+    mediaStream.current = null;
   }
 
   function stopRecording() {
@@ -169,6 +165,7 @@ export function useAssistantDrawerComposer(
     beginTurn(emptyVoiceTurn);
     setPendingPhase("voice");
     setChecking(true);
+    setTranscribing(true);
     const heard = await transcribeSpeech(blob);
     if (requestRef.current !== request) {
       // A newer request started. Only clear if our empty turn is still active.
@@ -176,8 +173,10 @@ export function useAssistantDrawerComposer(
         state.setActiveUser(null);
         state.conversationRef.current.active = null;
       }
+      setTranscribing(false);
       return;
     }
+    setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
       setStatus(voiceFailureStatus(heard));
@@ -206,6 +205,7 @@ export function useAssistantDrawerComposer(
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStream.current = stream;
     } catch {
       setStatus("voiceDenied");
       return;
@@ -225,7 +225,10 @@ export function useAssistantDrawerComposer(
       if (recordTimer.current) clearTimeout(recordTimer.current);
       recorder.current = null;
       setRecording(false);
-      if (discardRecording.current) return;
+      if (discardRecording.current) {
+        setTranscribing(false);
+        return;
+      }
       void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
     };
     // A close or "new chat" set this for the recording it stopped; this one is new.
@@ -235,25 +238,10 @@ export function useAssistantDrawerComposer(
     setRecording(true);
     setStatus(null);
     const started = Date.now();
-    if (typeof AudioContext !== "undefined") {
-      const context = new AudioContext();
-      audioContext.current = context;
-      const analyser = context.createAnalyser();
-      analyser.fftSize = 256;
-      context.createMediaStreamSource(stream).connect(analyser);
-      const samples = new Uint8Array(analyser.fftSize);
-      const tick = () => {
-        const now = Date.now();
-        if (now - levelTick.current >= 66) {
-          levelTick.current = now;
-          analyser.getByteTimeDomainData(samples);
-          setLevel(levelFromSamples(samples));
-          setElapsed(Math.min(60, Math.floor((now - started) / 1000)));
-        }
-        audioFrame.current = requestAnimationFrame(tick);
-      };
-      audioFrame.current = requestAnimationFrame(tick);
-    }
+    setElapsed(0);
+    elapsedTimer.current = setInterval(() => {
+      setElapsed(Math.min(60, Math.floor((Date.now() - started) / 1000)));
+    }, 100);
     recordTimer.current = setTimeout(() => {
       if (media.state !== "inactive") media.stop();
     }, 60_000);
@@ -304,7 +292,7 @@ export function useAssistantDrawerComposer(
     saving: state.saving || state.undoing,
     clarification,
     recording,
-    level,
+    transcribing,
     elapsed,
   });
 

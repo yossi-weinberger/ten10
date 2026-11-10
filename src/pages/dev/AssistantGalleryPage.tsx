@@ -97,6 +97,7 @@ export function AssistantGalleryPage() {
                   onReceipt={noop}
                   onToggleVoice={noop}
                   recording={false}
+                  transcribing={false}
                   mode={scenario.id === "amount" ? "amount" : "message"}
                   textareaRef={{ current: null }}
                 />

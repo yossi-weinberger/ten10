@@ -13,6 +13,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { LiveWaveform } from "@/components/ui/live-waveform";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface AssistantComposerProps {
@@ -24,7 +25,8 @@ interface AssistantComposerProps {
   /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
   recording: boolean;
-  level?: number;
+  transcribing: boolean;
+  mediaStream?: MediaStream | null;
   elapsed?: number;
   mode: "message" | "amount";
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -38,7 +40,8 @@ export function AssistantComposer({
   onToggleVoice,
   busy = false,
   recording,
-  level = 0,
+  transcribing,
+  mediaStream,
   elapsed = 0,
   mode,
   textareaRef,
@@ -73,7 +76,6 @@ export function AssistantComposer({
     onReceipt(file);
   }
 
-  const weights = [0.45, 0.7, 1, 0.7, 0.45];
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
   return (
@@ -115,17 +117,26 @@ export function AssistantComposer({
           onKeyDown={onKeyDown}
           onPaste={onPaste}
         />
-        {recording ? (
-          <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
-            <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
-            {weights.map((weight, index) => (
-              <span
-                key={index}
-                className="h-6 w-1 origin-bottom rounded-full bg-primary motion-reduce:!transform-none"
-                style={{ transform: `scaleY(${0.25 + level * weight})` }}
-              />
-            ))}
-            <span className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+        {recording || transcribing ? (
+          <div className="flex min-h-12 w-full items-center gap-2 px-3" role="status" aria-label={t(transcribing ? "aiIntake.transcribing" : "aiIntake.recording")}>
+            {recording ? (
+              <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
+            ) : null}
+            <LiveWaveform
+              active={recording}
+              processing={transcribing}
+              mediaStream={mediaStream}
+              mode="scrolling"
+              height={40}
+              barWidth={3}
+              barGap={1}
+              barRadius={1.5}
+              sensitivity={1.2}
+              className="min-w-0 flex-1"
+            />
+            {recording ? (
+              <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+            ) : null}
           </div>
         ) : null}
         <InputGroupAddon align="block-end">
