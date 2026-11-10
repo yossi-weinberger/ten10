@@ -58,7 +58,7 @@ export function DataAnswer({
   const Icon = BASE_TYPE_ICON[reply.type];
 
   return (
-    <Card className="grid gap-1 p-2.5">
+    <Card className="grid gap-1 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <KindTag icon={Icon} tint={BASE_TYPE_TINT[reply.type]}>{t(`aiIntake.typesPlural.${reply.type}`)}</KindTag>
         <span className="ms-auto text-xs text-muted-foreground" dir="auto">{from} – {to}</span>
@@ -126,12 +126,13 @@ export function NameMissing({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">
-        {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic })}
+        {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic: "" })}
+        <span className="ph-mask ph-sensitive" data-ph-mask="">{topic}</span>
       </p>
       {interactive ? (
         <div className="flex flex-wrap gap-2">
           {suggestions.map((name) => (
-            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words rounded-full py-1.5 text-start" onClick={() => onChooseName(name)}>
+            <Button key={name} type="button" variant="outline" size="sm" className="h-auto min-h-8 max-w-full whitespace-normal break-words rounded-full py-1.5 text-start ph-mask ph-sensitive" data-ph-mask="" onClick={() => onChooseName(name)}>
               {name}
             </Button>
           ))}
@@ -158,7 +159,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const money = (value: number) => formatCurrency(value, defaultCurrency as CurrencyCode, i18n.language);
   return (
-    <Card className="grid gap-1 p-2.5">
+    <Card className="grid gap-1 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex">
         <KindTag icon={HandCoins} tint={BASE_TYPE_TINT.donation}>{t("aiIntake.balance.title")}</KindTag>
       </div>
@@ -180,7 +181,7 @@ export function BalanceAnswerCard({ balance }: { balance: BalanceAnswer }) {
 export function StandingOrdersCard({ rows }: { rows: StandingOrderRow[] }) {
   const { t, i18n } = useTranslation("navigation");
   return (
-    <Card className="grid gap-2 p-2.5">
+    <Card className="grid gap-2 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <KindTag icon={Repeat} tint={KIND_TINT.neutral}>{t("aiIntake.standingOrders.tag")}</KindTag>
         <span className="text-xs text-muted-foreground">

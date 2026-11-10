@@ -56,7 +56,7 @@ export function RabbiCard({
     <div className="grid gap-2.5">
       {/* Why a rabbi: the halacha pages have no answer for this. */}
       <p className="text-sm">{t("aiIntake.rabbiIntro")}</p>
-      <Card className="grid gap-2 p-2.5">
+      <Card className="grid gap-2 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex min-w-0 items-center gap-2">
         <KindTag icon={MessageCircle} tint={KIND_TINT.knowledge}>{t("aiIntake.rabbiTag")}</KindTag>
         <span className="min-w-0 truncate text-xs text-muted-foreground">

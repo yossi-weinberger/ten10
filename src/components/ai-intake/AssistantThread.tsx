@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { ArrowDown, BookOpen, ChartColumn, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import {
   Attachment,
   AttachmentContent,
@@ -74,7 +75,7 @@ function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
           {turn.previewUrl ? <img src={turn.previewUrl} alt={turn.fileName} className="ph-no-capture" /> : <FileText aria-hidden />}
         </AttachmentMedia>
         <AttachmentContent>
-          <AttachmentTitle>{turn.fileName}</AttachmentTitle>
+          <AttachmentTitle className="ph-mask ph-sensitive" data-ph-mask="">{turn.fileName}</AttachmentTitle>
         </AttachmentContent>
         {scanning ? (
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1/4 bg-primary/20 animate-receipt-scan motion-reduce:hidden" />
@@ -84,7 +85,7 @@ function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
   }
   return (
     <Bubble align="end" variant="muted">
-      <BubbleContent>
+      <BubbleContent {...PH_SENSITIVE_PROPS}>
         {turn.kind === "voice" ? <Mic className="me-1 inline size-3.5" aria-hidden /> : null}
         {turn.text}
       </BubbleContent>
@@ -129,8 +130,8 @@ export function AssistantThread({
       <Empty className="h-full min-h-0 justify-start gap-4 overflow-y-auto border-0 p-4 md:p-6">
         {/* No mark here: the panel's header already shows it. */}
         <EmptyHeader className="mt-auto shrink-0">
-          <EmptyTitle>{greeting}</EmptyTitle>
-          <EmptyDescription>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
+          <EmptyTitle {...(opening?.name ? PH_SENSITIVE_PROPS : {})}>{greeting}</EmptyTitle>
+          <EmptyDescription {...(opening?.line ? PH_SENSITIVE_PROPS : {})}>{opening?.line ?? t("aiIntake.emptyDescription")}</EmptyDescription>
         </EmptyHeader>
         <input
           ref={fileRef}

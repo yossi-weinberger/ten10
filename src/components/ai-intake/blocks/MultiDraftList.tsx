@@ -39,7 +39,7 @@ export function MultiDraftList({
   const update = (key: string, change: Partial<SplitDraft>) =>
     onChange(cards.map((item) => item.key === key ? { ...item, ...change } : item));
   return (
-    <Card className="grid gap-2 p-2.5">
+    <Card className="grid gap-2 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <KindTag icon={List} tint={KIND_TINT.neutral}>{t("aiIntake.splitCount", { count: cards.length })}</KindTag>
         {dropped > 0 ? <span className="ms-auto text-xs text-muted-foreground">{t("aiIntake.splitUnsure", { count: dropped })}</span> : null}

@@ -115,7 +115,7 @@ function ScanSide({
 }) {
   const { t } = useTranslation("navigation");
   return (
-    <li className={cn("grid gap-1.5 rounded-md px-2 py-1.5", BASE_TYPE_SURFACE[baseTypeOf(side.type)])}>
+    <li className={cn("grid gap-1.5 rounded-md px-2 py-1.5 ph-mask ph-sensitive", BASE_TYPE_SURFACE[baseTypeOf(side.type)])} data-ph-mask="">
       <div className="flex min-w-0 items-center gap-2 text-sm">
         <span className="min-w-0 flex-1 break-words">
           <span className="font-medium">{side.description || dateLabel}</span>
