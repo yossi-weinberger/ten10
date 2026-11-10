@@ -155,6 +155,7 @@ export function useAssistantDrawerState() {
   }>({ history: [], active: null, reply: emptyReplyState() });
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaStream = useRef<MediaStream | null>(null);
   const audioFrame = useRef(0);
   const audioContext = useRef<AudioContext | null>(null);
   const levelTick = useRef(0);
@@ -569,6 +570,7 @@ export function useAssistantDrawerState() {
     conversationRef,
     discardRecording,
     recordTimer,
+    mediaStream,
     audioFrame,
     audioContext,
     levelTick,

@@ -51,7 +51,6 @@ export function useAssistantDrawerComposer(
     dataReply,
     duplicateScan,
     clarification,
-    level,
     elapsed,
     pendingPhase,
     checking,
@@ -63,6 +62,7 @@ export function useAssistantDrawerComposer(
     discardRecording,
     recorder,
     recordTimer,
+    mediaStream,
     audioFrame,
     audioContext,
     levelTick,
@@ -75,6 +75,7 @@ export function useAssistantDrawerComposer(
     audioFrame.current = 0;
     void audioContext.current?.close();
     audioContext.current = null;
+    mediaStream.current = null;
     setLevel(0);
   }
 
@@ -190,6 +191,7 @@ export function useAssistantDrawerComposer(
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStream.current = stream;
     } catch {
       setStatus("voiceDenied");
       return;
@@ -288,7 +290,6 @@ export function useAssistantDrawerComposer(
     saving: state.saving || state.undoing,
     clarification,
     recording,
-    level,
     elapsed,
   });
 

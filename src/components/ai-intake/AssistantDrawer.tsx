@@ -163,7 +163,7 @@ export function AssistantDrawer({
           textareaRef={state.textareaRef}
           busy={composer.wiring.busyKey !== undefined}
           recording={composer.wiring.recording}
-          level={composer.wiring.level}
+          mediaStream={state.mediaStream.current}
           elapsed={composer.wiring.elapsed}
           mode={composer.wiring.mode}
           onReceipt={(file) => {

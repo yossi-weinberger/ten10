@@ -7,6 +7,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { BarVisualizer } from "@/components/ui/bar-visualizer";
 
 interface AssistantComposerProps {
   value: string;
@@ -14,10 +15,9 @@ interface AssistantComposerProps {
   onSubmit: () => void;
   onReceipt: (file: File | undefined) => void;
   onToggleVoice: () => void;
-  /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
   recording: boolean;
-  level?: number;
+  mediaStream?: MediaStream | null;
   elapsed?: number;
   mode: "message" | "amount";
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -31,7 +31,7 @@ export function AssistantComposer({
   onToggleVoice,
   busy = false,
   recording,
-  level = 0,
+  mediaStream,
   elapsed = 0,
   mode,
   textareaRef,
@@ -64,7 +64,6 @@ export function AssistantComposer({
     onReceipt(file);
   }
 
-  const weights = [0.45, 0.7, 1, 0.7, 0.45];
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
   return (
@@ -97,13 +96,14 @@ export function AssistantComposer({
         {recording ? (
           <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
             <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
-            {weights.map((weight, index) => (
-              <span
-                key={index}
-                className="h-6 w-1 origin-bottom rounded-full bg-primary motion-reduce:!transform-none"
-                style={{ transform: `scaleY(${0.25 + level * weight})` }}
-              />
-            ))}
+            <BarVisualizer
+              mediaStream={mediaStream}
+              state="listening"
+              barCount={8}
+              minHeight={15}
+              maxHeight={90}
+              className="h-6 w-auto flex-1 bg-transparent p-0"
+            />
             <span className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
           </div>
         ) : null}
