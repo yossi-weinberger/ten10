@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef } from "react";
+import { useCallback, useMemo, useState, useRef, memo } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -68,6 +68,164 @@ const isSpecialType = (type: TransactionType): boolean => {
          type === "non_tithe_donation" || 
          type === "initial_balance";
 };
+
+interface TransactionCardProps {
+  transaction: TransactionForTable;
+  displayDate: { primary: string | null };
+  categoryText: string;
+  cardTitle: string;
+  surfaceClasses: string;
+  isSelected: boolean;
+  inSelectionMode: boolean;
+  onCardClick: (transaction: TransactionForTable) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  onToggleSelected?: (id: string) => void;
+  selectionDisabled: boolean;
+  longPressTriggeredRef: React.MutableRefObject<boolean>;
+  trackChomeshSeparately: boolean;
+  t: (key: string, defaultValue?: string) => string;
+}
+
+const TransactionCard = memo(function TransactionCard({
+  transaction,
+  displayDate,
+  categoryText,
+  cardTitle,
+  surfaceClasses,
+  isSelected,
+  inSelectionMode,
+  onCardClick,
+  onKeyDown,
+  onToggleSelected,
+  selectionDisabled,
+  longPressTriggeredRef,
+  trackChomeshSeparately,
+  t,
+}: TransactionCardProps) {
+  const longPressHandlers = useLongPress({
+    onLongPress: () => {
+      if (!selectionDisabled && onToggleSelected) {
+        longPressTriggeredRef.current = true;
+        onToggleSelected(transaction.id);
+      }
+    },
+    onCancel: () => {
+      longPressTriggeredRef.current = false;
+    },
+    threshold: 450,
+    movementThreshold: 10,
+  });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    longPressTriggeredRef.current = false;
+    longPressHandlers.onPointerDown(e);
+  };
+
+  const handlePointerCancel = () => {
+    longPressTriggeredRef.current = false;
+    longPressHandlers.onPointerCancel();
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
+      || window.matchMedia("(pointer: coarse)").matches;
+    if (isTouch) {
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <Card
+      role="button"
+      tabIndex={0}
+      aria-selected={inSelectionMode ? isSelected : undefined}
+      aria-pressed={inSelectionMode ? isSelected : undefined}
+      className={cn(
+        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
+        surfaceClasses,
+        isSelected && "ring-2 ring-primary ring-offset-2"
+      )}
+      onClick={() => onCardClick(transaction)}
+      onKeyDown={onKeyDown}
+      onContextMenu={handleContextMenu}
+      onPointerDown={handlePointerDown}
+      onPointerMove={longPressHandlers.onPointerMove}
+      onPointerUp={longPressHandlers.onPointerUp}
+      onPointerCancel={handlePointerCancel}
+    >
+      <div className="flex-1 overflow-hidden">
+        <div
+          className={cn(
+            "truncate font-medium",
+            !transaction.description && "text-muted-foreground",
+            PH_SENSITIVE_PROPS.className
+          )}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
+          {cardTitle}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{displayDate.primary}</span>
+          {categoryText && (
+            <>
+              <span>·</span>
+              <span
+                className={cn(
+                  "truncate",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {categoryText}
+              </span>
+            </>
+          )}
+          {transaction.recurring_info && (
+            <>
+              <span>·</span>
+              <Repeat className="h-3 w-3" aria-hidden="true" />
+            </>
+          )}
+          {isSpecialType(transaction.type) && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 border px-1.5 py-0 text-[10px]",
+                typeBadgeColors[transaction.type as TransactionType]
+              )}
+            >
+              {t(`types.${transaction.type}`, transaction.type)}
+            </Badge>
+          )}
+          {trackChomeshSeparately && transaction.is_chomesh && (
+            <span className="inline-flex items-center gap-0.5 text-[10px]">
+              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+              <span>{t("cards.chomesh")}</span>
+            </span>
+          )}
+        </div>
+      </div>
+      <div
+        className={cn(
+          "shrink-0 text-end font-bold",
+          PH_SENSITIVE_PROPS.className
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        <CurrencyConversionInfo
+          amount={transaction.amount}
+          currency={transaction.currency}
+          originalAmount={transaction.original_amount}
+          originalCurrency={transaction.original_currency}
+          conversionRate={transaction.conversion_rate}
+          conversionDate={transaction.conversion_date}
+          rateSource={transaction.rate_source}
+          mode="static"
+        />
+      </div>
+    </Card>
+  );
+});
 
 export function TransactionCardList({
   transactions,
@@ -260,7 +418,7 @@ export function TransactionCardList({
           disabled={selectionDisabled}
           editDisabled={bulkEditDisabled}
           dir={i18n.dir()}
-          className="mb-4 max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(12px+env(safe-area-inset-bottom))] max-md:z-40 max-md:rounded-2xl max-md:bg-background max-md:shadow-lg max-md:border max-md:border-border max-md:p-3"
+          className="md:mb-4 max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(12px+env(safe-area-inset-bottom))] max-md:z-40 max-md:rounded-2xl max-md:bg-background max-md:shadow-lg max-md:border max-md:border-border max-md:p-3"
           mobileLayout
         />
       )}
@@ -307,38 +465,6 @@ export function TransactionCardList({
 
           const isSelected = selectedIds.has(transaction.id);
 
-          const longPressHandlers = useLongPress({
-            onLongPress: () => {
-              if (!selectionDisabled && onToggleSelected) {
-                longPressTriggeredRef.current = true;
-                onToggleSelected(transaction.id);
-              }
-            },
-            onCancel: () => {
-              longPressTriggeredRef.current = false;
-            },
-            threshold: 450,
-            movementThreshold: 10,
-          });
-
-          const handlePointerDown = (e: React.PointerEvent) => {
-            longPressTriggeredRef.current = false;
-            longPressHandlers.onPointerDown(e);
-          };
-
-          const handlePointerCancel = () => {
-            longPressTriggeredRef.current = false;
-            longPressHandlers.onPointerCancel();
-          };
-
-          const handleContextMenu = (e: React.MouseEvent) => {
-            const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
-              || window.matchMedia("(pointer: coarse)").matches;
-            if (isTouch) {
-              e.preventDefault();
-            }
-          };
-
           const handleKeyDown = (e: React.KeyboardEvent) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -347,96 +473,23 @@ export function TransactionCardList({
           };
 
           return (
-            <Card
+            <TransactionCard
               key={transaction.id}
-              role="button"
-              tabIndex={0}
-              aria-selected={inSelectionMode ? isSelected : undefined}
-              aria-pressed={inSelectionMode ? isSelected : undefined}
-              className={cn(
-                "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
-                surfaceClasses,
-                isSelected && "ring-2 ring-primary ring-offset-2"
-              )}
-              onClick={() => handleCardClick(transaction)}
+              transaction={transaction}
+              displayDate={displayDate}
+              categoryText={categoryText}
+              cardTitle={cardTitle}
+              surfaceClasses={surfaceClasses}
+              isSelected={isSelected}
+              inSelectionMode={inSelectionMode}
+              onCardClick={handleCardClick}
               onKeyDown={handleKeyDown}
-              onContextMenu={handleContextMenu}
-              onPointerDown={handlePointerDown}
-              onPointerMove={longPressHandlers.onPointerMove}
-              onPointerUp={longPressHandlers.onPointerUp}
-              onPointerCancel={handlePointerCancel}
-            >
-              <div className="flex-1 overflow-hidden">
-                <div
-                  className={cn(
-                    "truncate font-medium",
-                    !hasDescription && "text-muted-foreground",
-                    PH_SENSITIVE_PROPS.className
-                  )}
-                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                >
-                  {cardTitle}
-                </div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  <span>{displayDate.primary}</span>
-                  {categoryText && (
-                    <>
-                      <span>·</span>
-                      <span
-                        className={cn(
-                          "truncate",
-                          PH_SENSITIVE_PROPS.className
-                        )}
-                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                      >
-                        {categoryText}
-                      </span>
-                    </>
-                  )}
-                  {transaction.recurring_info && (
-                    <>
-                      <span>·</span>
-                      <Repeat className="h-3 w-3" aria-hidden="true" />
-                    </>
-                  )}
-                  {isSpecialType(transaction.type) && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "h-5 border px-1.5 py-0 text-[10px]",
-                        typeBadgeColors[transaction.type as TransactionType]
-                      )}
-                    >
-                      {t(`types.${transaction.type}`, transaction.type)}
-                    </Badge>
-                  )}
-                  {trackChomeshSeparately && transaction.is_chomesh && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px]">
-                      <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-                      <span>{t("cards.chomesh")}</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "shrink-0 text-end font-bold",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                <CurrencyConversionInfo
-                  amount={transaction.amount}
-                  currency={transaction.currency}
-                  originalAmount={transaction.original_amount}
-                  originalCurrency={transaction.original_currency}
-                  conversionRate={transaction.conversion_rate}
-                  conversionDate={transaction.conversion_date}
-                  rateSource={transaction.rate_source}
-                  mode="static"
-                />
-              </div>
-            </Card>
+              onToggleSelected={onToggleSelected}
+              selectionDisabled={selectionDisabled}
+              longPressTriggeredRef={longPressTriggeredRef}
+              trackChomeshSeparately={trackChomeshSeparately}
+              t={t}
+            />
           );
         })}
       </div>
