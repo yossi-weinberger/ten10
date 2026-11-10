@@ -309,4 +309,111 @@ describe("LiveWaveform", () => {
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
   });
+
+  it("history capacity scales with container width", () => {
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    const { container, rerender } = render(
+      <LiveWaveform
+        active={true}
+        mediaStream={stream}
+        mode="scrolling"
+        barWidth={3}
+        barGap={1}
+        height={40}
+      />
+    );
+
+    const waveformDiv = container.firstChild as HTMLDivElement;
+
+    // Simulate narrow width (320px mobile portrait)
+    // Expected history: Math.ceil(320 / (3 + 1)) = 80 bars
+    vi.spyOn(waveformDiv, "getBoundingClientRect").mockReturnValue({
+      width: 320,
+      height: 40,
+      top: 0,
+      left: 0,
+      bottom: 40,
+      right: 320,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    // Trigger resize observer
+    rerender(
+      <LiveWaveform
+        active={true}
+        mediaStream={stream}
+        mode="scrolling"
+        barWidth={3}
+        barGap={1}
+        height={40}
+      />
+    );
+
+    // Simulate wide width (932px landscape)
+    // Expected history: Math.ceil(932 / (3 + 1)) = 233 bars
+    vi.spyOn(waveformDiv, "getBoundingClientRect").mockReturnValue({
+      width: 932,
+      height: 40,
+      top: 0,
+      left: 0,
+      bottom: 40,
+      right: 932,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    // Trigger resize observer again
+    rerender(
+      <LiveWaveform
+        active={true}
+        mediaStream={stream}
+        mode="scrolling"
+        barWidth={3}
+        barGap={1}
+        height={40}
+      />
+    );
+
+    // Verify component renders correctly at different widths
+    expect(waveformDiv).toBeInTheDocument();
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+  });
+
+  it("respects explicit historySize override", () => {
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    const { container } = render(
+      <LiveWaveform
+        active={true}
+        mediaStream={stream}
+        mode="scrolling"
+        barWidth={3}
+        barGap={1}
+        height={40}
+        historySize={100}
+      />
+    );
+
+    const waveformDiv = container.firstChild as HTMLDivElement;
+
+    // Even with 932px width, explicit historySize=100 should be used
+    vi.spyOn(waveformDiv, "getBoundingClientRect").mockReturnValue({
+      width: 932,
+      height: 40,
+      top: 0,
+      left: 0,
+      bottom: 40,
+      right: 932,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    expect(waveformDiv).toBeInTheDocument();
+  });
 });

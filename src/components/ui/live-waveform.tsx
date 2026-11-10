@@ -72,6 +72,7 @@ export const LiveWaveform = ({
   const lastWidthRef = useRef(0);
   const mountedRef = useRef(true);
   const colorProbeRef = useRef<HTMLSpanElement | null>(null);
+  const computedHistorySizeRef = useRef<number>(60);
 
   const heightStyle = typeof height === "number" ? `${height}px` : height;
 
@@ -95,6 +96,16 @@ export const LiveWaveform = ({
         ctx.scale(dpr, dpr);
       }
 
+      // Compute history size from width unless explicit override provided
+      const newHistorySize = historySize ?? Math.ceil(rect.width / (barWidth + barGap));
+      const oldHistorySize = computedHistorySizeRef.current;
+      computedHistorySizeRef.current = newHistorySize;
+
+      // Trim history from oldest side when size shrinks
+      if (mode === "scrolling" && newHistorySize < oldHistorySize && historyRef.current.length > newHistorySize) {
+        historyRef.current = historyRef.current.slice(-newHistorySize);
+      }
+
       gradientCacheRef.current = null;
       lastWidthRef.current = rect.width;
       needsRedrawRef.current = true;
@@ -102,7 +113,7 @@ export const LiveWaveform = ({
 
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [barWidth, barGap, historySize, mode]);
 
   // Processing animation
   useEffect(() => {
@@ -343,7 +354,7 @@ export const LiveWaveform = ({
             lastActiveDataRef.current = [...historyRef.current];
 
             // Maintain history size
-            if (historyRef.current.length > historySize) {
+            if (historyRef.current.length > computedHistorySizeRef.current) {
               historyRef.current.shift();
             }
           }
@@ -457,7 +468,6 @@ export const LiveWaveform = ({
     processing,
     sensitivity,
     updateRate,
-    historySize,
     barWidth,
     baseBarHeight,
     barGap,
