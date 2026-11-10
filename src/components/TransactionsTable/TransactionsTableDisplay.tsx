@@ -642,6 +642,32 @@ export function TransactionsTableDisplay() {
           onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
           isFetchingRec={isFetchingRec}
           loading={loading}
+          selectedIds={selection.selectedIds}
+          onToggleSelected={selection.toggle}
+          onClearSelection={clearSelection}
+          selectionDisabled={bulkPending || loading}
+          selectedCountLabel={t("bulkToolbar.selectedCount", {
+            count: selection.selectedCount,
+          })}
+          editLabel={
+            selectionActionMode === "single"
+              ? t("actions.edit")
+              : t("bulkToolbar.edit")
+          }
+          deleteLabel={
+            selectionActionMode === "single"
+              ? t("actions.delete")
+              : t("bulkToolbar.delete")
+          }
+          clearLabel={t("bulkToolbar.clear")}
+          bulkToolbarAriaLabel={t("bulkToolbar.ariaLabel")}
+          onSelectionEdit={handleSelectionEdit}
+          onSelectionDelete={handleSelectionDelete}
+          bulkPending={bulkPending}
+          bulkEditDisabled={
+            selectionActionMode === "bulk" &&
+            !Object.values(bulkFieldAvailability).some(Boolean)
+          }
         />
       ) : (
         <Card>

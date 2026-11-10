@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,8 @@ import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
+import { useLongPress } from "@/hooks/use-long-press";
+import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
   transactions: TransactionForTable[];
@@ -44,7 +46,137 @@ interface TransactionCardListProps {
   onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   loading?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelected?: (id: string) => void;
+  onClearSelection?: () => void;
+  selectionDisabled?: boolean;
+  selectedCountLabel?: string;
+  editLabel?: string;
+  deleteLabel?: string;
+  clearLabel?: string;
+  bulkToolbarAriaLabel?: string;
+  onSelectionEdit?: () => void;
+  onSelectionDelete?: () => void;
+  bulkPending?: boolean;
+  bulkEditDisabled?: boolean;
 }
+
+interface TransactionCardProps {
+  transaction: TransactionForTable;
+  displayDate: string;
+  categoryText: string;
+  hasDescription: boolean;
+  cardTitle: string;
+  surfaceClasses: string;
+  isSelected: boolean;
+  inSelectionMode: boolean;
+  onClick: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  onToggleSelected?: (id: string) => void;
+  selectionDisabled: boolean;
+  longPressTriggeredRef: React.MutableRefObject<boolean>;
+}
+
+const TransactionCard = memo(function TransactionCard({
+  transaction,
+  displayDate,
+  categoryText,
+  hasDescription,
+  cardTitle,
+  surfaceClasses,
+  isSelected,
+  inSelectionMode,
+  onClick,
+  onKeyDown,
+  onToggleSelected,
+  selectionDisabled,
+  longPressTriggeredRef,
+}: TransactionCardProps) {
+  const longPressHandlers = useLongPress({
+    onLongPress: () => {
+      if (!selectionDisabled && onToggleSelected) {
+        longPressTriggeredRef.current = true;
+        onToggleSelected(transaction.id);
+      }
+    },
+    threshold: 450,
+    movementThreshold: 10,
+  });
+
+  return (
+    <Card
+      role="button"
+      tabIndex={0}
+      aria-selected={inSelectionMode ? isSelected : undefined}
+      aria-pressed={inSelectionMode ? isSelected : undefined}
+      className={cn(
+        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99]",
+        surfaceClasses,
+        isSelected && "ring-2 ring-primary ring-offset-2"
+      )}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      onPointerDown={longPressHandlers.onPointerDown}
+      onPointerMove={longPressHandlers.onPointerMove}
+      onPointerUp={longPressHandlers.onPointerUp}
+      onPointerCancel={longPressHandlers.onPointerCancel}
+    >
+      <div className="flex-1 overflow-hidden">
+        <div
+          className={cn(
+            "truncate font-medium",
+            !hasDescription && "text-muted-foreground",
+            PH_SENSITIVE_PROPS.className
+          )}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
+          {cardTitle}
+        </div>
+        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{displayDate}</span>
+          {categoryText && (
+            <>
+              <span>·</span>
+              <span
+                className={cn(
+                  "truncate",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {categoryText}
+              </span>
+            </>
+          )}
+          {transaction.recurring_info && (
+            <>
+              <span>·</span>
+              <Repeat className="h-3 w-3" aria-hidden="true" />
+            </>
+          )}
+        </div>
+      </div>
+      <div
+        className={cn(
+          "shrink-0 text-end font-bold",
+          PH_SENSITIVE_PROPS.className
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        <CurrencyConversionInfo
+          amount={transaction.amount}
+          currency={transaction.currency}
+          originalAmount={transaction.original_amount}
+          originalCurrency={transaction.original_currency}
+          conversionRate={transaction.conversion_rate}
+          conversionDate={transaction.conversion_date}
+          rateSource={transaction.rate_source}
+          mode="static"
+        />
+      </div>
+    </Card>
+  );
+});
 
 export function TransactionCardList({
   transactions,
@@ -54,6 +186,19 @@ export function TransactionCardList({
   onUndoAi,
   isFetchingRec,
   loading = false,
+  selectedIds = new Set(),
+  onToggleSelected,
+  onClearSelection,
+  selectionDisabled = false,
+  selectedCountLabel = "",
+  editLabel = "",
+  deleteLabel = "",
+  clearLabel = "",
+  bulkToolbarAriaLabel = "",
+  onSelectionEdit,
+  onSelectionDelete,
+  bulkPending = false,
+  bulkEditDisabled = false,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
   const formatDisplayDate = useDisplayDate();
@@ -65,6 +210,7 @@ export function TransactionCardList({
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionForTable | null>(null);
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
+  const longPressTriggeredRef = useRef(false);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -110,9 +256,21 @@ export function TransactionCardList({
     return result;
   }, [transactions, i18n.language, calendarType]);
 
+  const inSelectionMode = selectedIds.size > 0;
+
   const handleCardClick = useCallback((transaction: TransactionForTable) => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+      return;
+    }
+
+    if (inSelectionMode && onToggleSelected) {
+      onToggleSelected(transaction.id);
+      return;
+    }
+
     setSelectedTransaction(transaction);
-  }, []);
+  }, [inSelectionMode, onToggleSelected]);
 
   const handleCloseDrawer = useCallback(() => {
     setSelectedTransaction(null);
@@ -184,6 +342,24 @@ export function TransactionCardList({
 
   return (
     <>
+      {inSelectionMode && onClearSelection && onSelectionEdit && onSelectionDelete && (
+        <BulkActionsToolbar
+          selectedCount={selectedIds.size}
+          selectedCountLabel={selectedCountLabel}
+          editLabel={editLabel}
+          deleteLabel={deleteLabel}
+          clearLabel={clearLabel}
+          onEdit={onSelectionEdit}
+          onDelete={onSelectionDelete}
+          onClear={onClearSelection}
+          ariaLabel={bulkToolbarAriaLabel}
+          pending={bulkPending}
+          disabled={selectionDisabled}
+          editDisabled={bulkEditDisabled}
+          dir={i18n.dir()}
+          className="mb-4"
+        />
+      )}
       <div className="space-y-2">
         {transactionsWithSeparators.map((item) => {
           if (item.type === "separator") {
@@ -225,6 +401,8 @@ export function TransactionCardList({
               )
             : "";
 
+          const isSelected = selectedIds.has(transaction.id);
+
           const handleKeyDown = (e: React.KeyboardEvent) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -233,71 +411,22 @@ export function TransactionCardList({
           };
 
           return (
-            <Card
+            <TransactionCard
               key={transaction.id}
-              role="button"
-              tabIndex={0}
-              className={cn(
-                "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99]",
-                surfaceClasses
-              )}
+              transaction={transaction}
+              displayDate={displayDate.primary}
+              categoryText={categoryText}
+              hasDescription={hasDescription}
+              cardTitle={cardTitle}
+              surfaceClasses={surfaceClasses}
+              isSelected={isSelected}
+              inSelectionMode={inSelectionMode}
               onClick={() => handleCardClick(transaction)}
               onKeyDown={handleKeyDown}
-            >
-              <div className="flex-1 overflow-hidden">
-                <div
-                  className={cn(
-                    "truncate font-medium",
-                    !hasDescription && "text-muted-foreground",
-                    PH_SENSITIVE_PROPS.className
-                  )}
-                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                >
-                  {cardTitle}
-                </div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span>{displayDate.primary}</span>
-                  {categoryText && (
-                    <>
-                      <span>·</span>
-                      <span
-                        className={cn(
-                          "truncate",
-                          PH_SENSITIVE_PROPS.className
-                        )}
-                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                      >
-                        {categoryText}
-                      </span>
-                    </>
-                  )}
-                  {transaction.recurring_info && (
-                    <>
-                      <span>·</span>
-                      <Repeat className="h-3 w-3" aria-hidden="true" />
-                    </>
-                  )}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "shrink-0 text-end font-bold",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                <CurrencyConversionInfo
-                  amount={transaction.amount}
-                  currency={transaction.currency}
-                  originalAmount={transaction.original_amount}
-                  originalCurrency={transaction.original_currency}
-                  conversionRate={transaction.conversion_rate}
-                  conversionDate={transaction.conversion_date}
-                  rateSource={transaction.rate_source}
-                  mode="static"
-                />
-              </div>
-            </Card>
+              onToggleSelected={onToggleSelected}
+              selectionDisabled={selectionDisabled}
+              longPressTriggeredRef={longPressTriggeredRef}
+            />
           );
         })}
       </div>
