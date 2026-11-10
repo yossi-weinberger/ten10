@@ -1,11 +1,16 @@
+// @vitest-environment jsdom
+
+import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
+import { createElement } from "react";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, params?: { date?: string }) => {
       if (key === "types.income") return "Income";
       if (key === "types.expense") return "Expense";
       if (key === "types.donation") return "Donation";
@@ -23,8 +28,12 @@ vi.mock("react-i18next", () => ({
       if (key === "actions.delete") return "Delete";
       if (key === "actions.cancel") return "Cancel";
       if (key === "actions.editRecurring") return "Edit Recurring";
+      if (key === "actions.viewReceipt") return "View Receipt";
+      if (key === "actions.receiptUntil") return `expires ${params?.date || ""}`;
+      if (key === "actions.undoAi") return "Undo AI";
       if (key === "messages.loading") return "Loading...";
       if (key === "modal.editDescription") return "Update transaction details";
+      if (key === "drawer.detailsDescription") return "Transaction details and actions";
       return key;
     },
     i18n: {
@@ -97,6 +106,12 @@ vi.mock("@/lib/ai/receipt-action", () => ({
   showReceiptAction: ({ expiresAt }: { platform: string; enabled: boolean; expiresAt?: string | null }) => 
     !!expiresAt,
   receiptExpiryDate: (expiresAt: string) => expiresAt,
+}));
+
+const mockUseDonationStore = vi.fn();
+vi.mock("@/lib/store", () => ({
+  useDonationStore: (selector: (state: { settings: { trackChomeshSeparately: boolean } }) => boolean) => 
+    mockUseDonationStore(selector),
 }));
 
 vi.mock("@/components/Currency/CurrencyConversionInfo", () => ({
@@ -173,6 +188,14 @@ const mockTransactions: TransactionForTable[] = [
 ];
 
 describe("TransactionCardList", () => {
+  beforeEach(() => {
+    mockUseDonationStore.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
   it("renders cards with correct type tint for income", () => {
     const markup = renderToStaticMarkup(
       <TransactionCardList
@@ -332,37 +355,31 @@ describe("TransactionCardList", () => {
     expect(markup).toContain('data-ph-mask=""');
   });
 
-  it("accepts onUndoAi prop for AI transaction actions", () => {
-    const aiTransaction: TransactionForTable = {
-      ...mockTransactions[0],
-      origin: "ai",
-    };
-    const onUndoAi = vi.fn();
-
-    renderToStaticMarkup(
+  it("cards have keyboard navigation attributes for Enter/Space handling", () => {
+    const markup = renderToStaticMarkup(
       <TransactionCardList
-        transactions={[aiTransaction]}
+        transactions={[mockTransactions[0]]}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         onEditRecurring={vi.fn()}
-        onUndoAi={onUndoAi}
         isFetchingRec={false}
         loading={false}
       />
     );
 
-    expect(onUndoAi).not.toHaveBeenCalled();
+    expect(markup).toContain('role="button"');
+    expect(markup).toContain('tabindex="0"');
   });
 
-  it("renders without errors when receipt_expires_at is present", () => {
-    const transactionWithReceipt: TransactionForTable = {
+  it("drawer structure omits recipient row when value is empty", () => {
+    const transactionWithoutRecipient: TransactionForTable = {
       ...mockTransactions[0],
-      receipt_expires_at: "2026-12-01T00:00:00Z",
+      recipient: null,
     };
 
     const markup = renderToStaticMarkup(
       <TransactionCardList
-        transactions={[transactionWithReceipt]}
+        transactions={[transactionWithoutRecipient]}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         onEditRecurring={vi.fn()}
@@ -371,28 +388,50 @@ describe("TransactionCardList", () => {
       />
     );
 
-    expect(markup).toContain("Salary");
+    const hasRecipientLabel = markup.includes(">Recipient<");
+    expect(hasRecipientLabel).toBe(false);
   });
 
-  it("renders without errors when origin is ai or ai_auto", () => {
-    const aiTransaction: TransactionForTable = {
+  it("drawer structure omits payment method row when value is empty", () => {
+    const transactionWithoutPaymentMethod: TransactionForTable = {
       ...mockTransactions[0],
-      origin: "ai_auto",
+      payment_method: null,
     };
 
     const markup = renderToStaticMarkup(
       <TransactionCardList
-        transactions={[aiTransaction]}
+        transactions={[transactionWithoutPaymentMethod]}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         onEditRecurring={vi.fn()}
-        onUndoAi={vi.fn()}
         isFetchingRec={false}
         loading={false}
       />
     );
 
-    expect(markup).toContain("Salary");
+    const hasPaymentMethodLabel = markup.includes(">Payment Method<");
+    expect(hasPaymentMethodLabel).toBe(false);
+  });
+
+  it("drawer structure omits category row when value is empty", () => {
+    const transactionWithoutCategory: TransactionForTable = {
+      ...mockTransactions[0],
+      category: null,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[transactionWithoutCategory]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const hasCategoryLabel = markup.includes(">Category<");
+    expect(hasCategoryLabel).toBe(false);
   });
 
   it("uses category as fallback title when description is empty", () => {
@@ -505,5 +544,310 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("active:scale-[0.99]");
+  });
+
+  it("pressing Enter on focused card opens drawer with transaction details", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    expect(card).toBeTruthy();
+
+    card?.focus();
+    fireEvent.keyDown(card!, { key: "Enter", code: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+  });
+
+  it("pressing Space on focused card opens drawer with transaction details", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    expect(card).toBeTruthy();
+
+    card?.focus();
+    fireEvent.keyDown(card!, { key: " ", code: "Space" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+  });
+
+  it("drawer hides detail rows whose value is empty without showing hyphen", async () => {
+    const transactionWithEmptyFields: TransactionForTable = {
+      ...mockTransactions[0],
+      recipient: null,
+      payment_method: null,
+      category: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transactionWithEmptyFields]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Recipient")).not.toBeInTheDocument();
+    expect(screen.queryByText("Payment Method")).not.toBeInTheDocument();
+    expect(screen.queryByText("Category")).not.toBeInTheDocument();
+    expect(screen.queryByText("-")).not.toBeInTheDocument();
+  });
+
+  it("drawer shows chomesh row only when trackChomeshSeparately is true", async () => {
+    mockUseDonationStore.mockReturnValue(true);
+
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Chomesh")).toBeInTheDocument();
+    });
+  });
+
+  it("drawer hides chomesh row when trackChomeshSeparately is false", async () => {
+    mockUseDonationStore.mockReturnValue(false);
+
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
+  });
+
+  it("shows View receipt button only when showReceiptAction returns true", async () => {
+    const transactionWithReceipt: TransactionForTable = {
+      ...mockTransactions[0],
+      receipt_expires_at: "2026-12-01T00:00:00Z",
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transactionWithReceipt]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/View Receipt/)).toBeInTheDocument();
+  });
+
+  it("hides View receipt button when showReceiptAction returns false", async () => {
+    const transactionWithoutReceipt: TransactionForTable = {
+      ...mockTransactions[0],
+      receipt_expires_at: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transactionWithoutReceipt]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("View Receipt")).not.toBeInTheDocument();
+  });
+
+  it("shows Undo AI button only for ai/ai_auto origin with onUndoAi passed and calls handler when clicked", async () => {
+    const aiTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: "ai",
+    };
+
+    const onUndoAiMock = vi.fn();
+
+    render(
+      <TransactionCardList
+        transactions={[aiTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        onUndoAi={onUndoAiMock}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Undo AI")).toBeInTheDocument();
+    });
+
+    const undoButton = screen.getByText("Undo AI");
+    fireEvent.click(undoButton);
+
+    expect(onUndoAiMock).toHaveBeenCalledWith(aiTransaction);
+  });
+
+  it("shows Undo AI button for ai_auto origin with onUndoAi passed", async () => {
+    const aiAutoTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: "ai_auto",
+    };
+
+    const onUndoAiMock = vi.fn();
+
+    render(
+      <TransactionCardList
+        transactions={[aiAutoTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        onUndoAi={onUndoAiMock}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Undo AI")).toBeInTheDocument();
+    });
+  });
+
+  it("hides Undo AI button when onUndoAi is not passed", async () => {
+    const aiTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: "ai",
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[aiTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
+  });
+
+  it("hides Undo AI button for non-ai origin even with onUndoAi passed", async () => {
+    const regularTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[regularTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        onUndoAi={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
   });
 });
