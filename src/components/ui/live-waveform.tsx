@@ -54,6 +54,7 @@ export const LiveWaveform = ({
   const staticBarsRef = useRef<number[]>([]);
   const needsRedrawRef = useRef(true);
   const mountedRef = useRef(true);
+  const colorProbeRef = useRef<HTMLSpanElement | null>(null);
 
   const heightStyle = typeof height === "number" ? `${height}px` : height;
 
@@ -200,12 +201,12 @@ export const LiveWaveform = ({
       needsRedrawRef.current = active;
       ctx.clearRect(0, 0, rect.width, rect.height);
 
+      // Read color from Ten10 design token (text-primary)
       const computedBarColor =
         barColor ||
-        (() => {
-          const style = getComputedStyle(canvas);
-          return style.color || "#000";
-        })();
+        (colorProbeRef.current
+          ? getComputedStyle(colorProbeRef.current).color
+          : "#000");
 
       const step = barWidth + barGap;
       const barCount = Math.floor(rect.width / step);
@@ -246,8 +247,9 @@ export const LiveWaveform = ({
   }, [active, sensitivity, updateRate, barWidth, baseBarHeight, barGap, barRadius, barColor]);
 
   return (
-    <div ref={containerRef} className={cn("relative w-full", className)} style={{ height: heightStyle }} {...props}>
+    <div ref={containerRef} className={cn("relative min-w-0 w-full", className)} style={{ height: heightStyle }} {...props}>
       <canvas ref={canvasRef} className="size-full" />
+      <span ref={colorProbeRef} className="text-primary absolute -left-[9999px]" aria-hidden="true" />
     </div>
   );
 };

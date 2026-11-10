@@ -126,7 +126,7 @@ export function AssistantComposer({
               barGap={1}
               barRadius={1.5}
               sensitivity={1.2}
-              className="flex-1"
+              className="min-w-0 flex-1"
             />
             <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
           </div>
