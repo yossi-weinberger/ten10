@@ -105,7 +105,17 @@ npx supabase functions deploy get-posthog-analytics
 | Rely on `maskAllInputs` for inputs | Block chart SVG containers |
 | Use `ph-no-capture` only for true blocks (e.g. PIN UI) | Send amounts in event properties |
 
-Applied on: `CurrencyConversionInfo`, import review amounts, dashboard StatCard values. Form inputs rely on `maskAllInputs`.
+Applied on:
+
+| Component | Masking | Why |
+|-----------|---------|-----|
+| `CurrencyConversionInfo` | `ph-mask` on amounts | Financial data |
+| Import review amounts | `ph-mask` | Financial data |
+| Dashboard StatCard values | `ph-mask` | Financial data |
+| **Assistant UI** | **Whole shell: `ph-mask`, `ph-sensitive`, `data-ph-mask`** | **User financial conversations** |
+| **Assistant receipt preview** | **`ph-no-capture` on `<img>`** | **Receipt content** |
+
+Form inputs rely on `maskAllInputs`.
 
 ---
 
