@@ -90,8 +90,6 @@ describe("AssistantThread suggestion chips", () => {
       { label: "הוצאה חדשה", text: "הוצאה חדשה" },
       { label: "תשלום חוזר", text: "תשלום חוזר" },
       { label: "שאלה", text: "שאלה" },
-      { label: "מאזן", text: "מאזן" },
-      { label: "השראה", text: "השראה" },
       { label: "הלכה", text: "הלכה" },
       { label: "כלל", text: "כלל" },
     ];
