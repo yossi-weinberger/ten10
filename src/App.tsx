@@ -395,7 +395,7 @@ function App() {
                 </SheetTrigger>
                 <SheetContent
                   side={i18n.dir() === "rtl" ? "right" : "left"}
-                  className="p-0 flex flex-col overflow-x-hidden min-w-[min(18rem,85vw)] w-auto"
+                  className="p-0 flex flex-col overflow-x-hidden min-w-[min(18rem,85vw)] max-w-[85vw] w-auto"
                 >
                   {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
                   <SheetHeader>
@@ -413,16 +413,22 @@ function App() {
                   </div>
                 </SheetContent>
               </Sheet>
-              <h1 className="flex-1 text-center text-base font-semibold truncate px-2">
-                {currentPath === "/" && t("menu.home", { ns: "navigation" })}
-                {currentPath === "/add-transaction" && t("menu.addTransaction", { ns: "navigation" })}
-                {currentPath === "/analytics" && t("menu.analytics", { ns: "navigation" })}
-                {currentPath === "/transactions-table" && t("menu.transactionsTable", { ns: "navigation" })}
-                {currentPath === "/halacha" && t("menu.halacha", { ns: "navigation" })}
-                {currentPath === "/settings" && t("menu.settings", { ns: "navigation" })}
-                {currentPath === "/about" && t("menu.about", { ns: "navigation" })}
-                {currentPath === "/profile" && t("menu.profile", { ns: "navigation" })}
-              </h1>
+              <span className="flex-1 text-center text-base font-semibold truncate px-2">
+                {(() => {
+                  const pathToKey: Record<string, string> = {
+                    "/": "home",
+                    "/add-transaction": "addTransaction",
+                    "/analytics": "analytics",
+                    "/transactions-table": "transactionsTable",
+                    "/halacha": "halacha",
+                    "/settings": "settings",
+                    "/about": "about",
+                    "/profile": "profile",
+                  };
+                  const key = pathToKey[currentPath];
+                  return key ? t(`menu.${key}`, { ns: "navigation" }) : "";
+                })()}
+              </span>
               <div className="size-11" />
             </div>
           </>
@@ -437,7 +443,7 @@ function App() {
             className={`flex-1 ${
               isFullScreenPage
                 ? "p-0"
-                : "container px-4 md:px-6 pt-16 md:pt-6 pb-24 md:pb-6"
+                : "container px-4 md:px-6 pt-16 md:pt-6 mobile-landscape:pt-16 pb-24 md:pb-6 mobile-landscape:pb-24"
             }`}
           >
             <div

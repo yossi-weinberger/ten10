@@ -139,7 +139,7 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 min-h-[112px] md:min-h-[170px] sm:md:min-h-[185px]`}
+      } transition-all duration-300 min-h-[112px] md:min-h-[185px]`}
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
@@ -167,8 +167,7 @@ export function StatCard({
               />
             ) : (
               <span
-                className={`ph-mask inline-block font-bold tabular-nums whitespace-nowrap ${styles.text}`}
-                style={{ fontSize: "clamp(20px, 6vw, 26px)" }}
+                className={`ph-mask inline-block text-2xl sm:text-3xl max-md:!text-[clamp(20px,6vw,26px)] font-bold tabular-nums whitespace-nowrap ${styles.text}`}
                 data-ph-mask
               >
                 <CountUp
@@ -209,9 +208,9 @@ export function StatCard({
                   size="sm"
                   onClick={onAddClick}
                   data-onboarding={addButtonOnboarding}
-                  className={`size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  className={`h-8 w-8 sm:h-10 sm:w-10 max-md:!size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
-                  <BadgePlus className="h-6 w-6" />
+                  <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 max-md:!h-6 max-md:!w-6 [&]:!size-5 sm:[&]:!size-6 max-md:[&]:!size-6" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
