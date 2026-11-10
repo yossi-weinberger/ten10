@@ -372,12 +372,11 @@ function App() {
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={() => {
-              // Don't expand sidebar when assistant panel is open to prevent
-              // accidental expansion when hovering inside the panel
-              if (!document.documentElement.dataset.assistantPanel) {
-                setIsSidebarExpanded(true);
-              }
+            onMouseEnter={(event) => {
+              // Ignore mouseenter from portaled children (e.g., assistant panel Sheet).
+              // React synthetic events propagate along the React tree, not the DOM tree.
+              if (!(event.currentTarget as Node).contains(event.target as Node)) return;
+              setIsSidebarExpanded(true);
             }}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
