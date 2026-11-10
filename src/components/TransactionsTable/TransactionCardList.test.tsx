@@ -27,6 +27,7 @@ vi.mock("react-i18next", () => ({
       if (key === "columns.paymentMethod") return "Payment Method";
       if (key === "columns.chomesh") return "Chomesh";
       if (key === "columns.recurring") return "Recurring";
+      if (key === "cards.chomesh") return "Chomesh";
       if (key === "actions.edit") return "Edit";
       if (key === "actions.delete") return "Delete";
       if (key === "actions.cancel") return "Cancel";
@@ -701,7 +702,8 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("Chomesh");
-    expect(markup).toContain("lucide-coins");
+    expect(markup).toContain("lucide-badge-check");
+    expect(markup).toContain("text-green-600");
   });
 
   it("does not show chomesh indicator on card when tracking disabled", () => {

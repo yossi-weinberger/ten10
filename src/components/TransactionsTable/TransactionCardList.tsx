@@ -11,7 +11,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Repeat, Trash2, Undo2, Receipt, Coins } from "lucide-react";
+import { Edit3, Repeat, Trash2, Undo2, Receipt, BadgeCheck } from "lucide-react";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -297,8 +297,8 @@ export function TransactionCardList({
                   )}
                   {trackChomeshSeparately && transaction.is_chomesh && (
                     <span className="inline-flex items-center gap-0.5 text-[10px]">
-                      <Coins className="h-3 w-3" aria-hidden="true" />
-                      <span>{t("columns.chomesh")}</span>
+                      <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+                      <span>{t("cards.chomesh")}</span>
                     </span>
                   )}
                 </div>

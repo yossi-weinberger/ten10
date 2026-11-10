@@ -76,6 +76,9 @@
     "non_tithe_donation": "Non-Tithe Donation",
     "initial_balance": "Opening Balance"
   },
+  "cards": {
+    "chomesh": "Chomesh"
+  },
   "actions": {
     "title": "Actions",
     "edit": "Edit",

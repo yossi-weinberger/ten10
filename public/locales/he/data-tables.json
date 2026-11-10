@@ -52,6 +52,9 @@
     "non_tithe_donation": "תרומה שאינה ממעשר",
     "initial_balance": "יתרת פתיחה"
   },
+  "cards": {
+    "chomesh": "חומש"
+  },
   "actions": {
     "title": "פעולות",
     "edit": "עריכה",
