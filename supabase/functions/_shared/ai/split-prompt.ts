@@ -72,6 +72,7 @@ export function splitPrompt(text: string, today: string, context: SplitPromptCon
     "A written calendar date is exact, with day, month and year.",
     "A date said once applies to every item, unless the message names another date.",
     "A purchase or a payment is expense. A donation is donation. Wages or money received for work are income. type is null only when the message does not say which.",
+    "Money that is given, sent, or transferred to צדקה, תרומה, מעשר (including forms לצדקה, לתרומה, למעשר, מכסף מעשר) is donation. The word חומש is donation only when it clearly refers to the fifth given as charity (e.g., לחומש, כסף חומש), not when it refers to a Chumash book. A standing order follows the same type rules as a one-time transaction.",
     "When the message explicitly names a special type (such as הוצאה מוכרת, הכנסה פטורה, or לא ממעשרות), set type to that special classification (recognized-expense, exempt-income, or non_tithe_donation). When a special type is not explicitly named by the user but suggested by context (gift, inheritance, refund), keep type as ordinary and set type_question.",
     "recurrence is null for an ordinary transaction. For a standing order set frequency, calendar, day, start and end. start and end dates use the same date object, or null.",
     "A day named on the Hebrew calendar, including the first day of a Hebrew month, uses calendar hebrew.",

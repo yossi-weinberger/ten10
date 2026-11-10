@@ -56,6 +56,7 @@ export interface ReplyHandlers {
   onDismissPair: (pair: DuplicatePair) => void;
   onRabbiSent: (ticket: string) => void;
   onRabbiDismiss: () => void;
+  onAskRabbiFromHalacha: (question: string) => void;
   onAnotherInspiration: () => void;
   saving: boolean;
   undoing: boolean;
@@ -157,7 +158,13 @@ export function ReplyBlockView({
         />
       );
     case "halacha":
-      return <HalachaCard namespace={block.namespace} />;
+      return (
+        <HalachaCard
+          namespace={block.namespace}
+          userQuestion={block.userQuestion}
+          onAskRabbi={block.userQuestion ? () => handlers.onAskRabbiFromHalacha(block.userQuestion!) : undefined}
+        />
+      );
     case "inspiration":
       return (
         <InspirationCard

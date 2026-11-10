@@ -39,6 +39,7 @@ export function useAssistantDrawerComposer(
     setParsedRule,
     setRuleChoice,
     setHalachaNamespace,
+    setHalachaUserQuestion,
     setChecking,
     setPendingPhase,
     setLevel,
@@ -144,6 +145,7 @@ export function useAssistantDrawerComposer(
     setParsedRule(null);
     setRuleChoice(null);
     setHalachaNamespace(null);
+    setHalachaUserQuestion(null);
     setReceiptArtifactId(result.artifactId);
     memoryRef.current = rememberDraft(turnStart.current, null, { ...result.fields, type: result.fields.ruledType }, "one receipt");
     if (result.fields.ruledType && result.fields.ruleName) {

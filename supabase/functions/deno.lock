@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@^1.0.11": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@supabase/supabase-js@2.116.0": "2.116.0",
