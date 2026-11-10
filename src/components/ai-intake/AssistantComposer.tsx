@@ -116,7 +116,7 @@ export function AssistantComposer({
           onPaste={onPaste}
         />
         {recording ? (
-          <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
+          <div className="flex min-h-12 w-full items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
             <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
             <LiveWaveform
               active={true}
