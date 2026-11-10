@@ -75,7 +75,7 @@ function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
           {turn.previewUrl ? <img src={turn.previewUrl} alt={turn.fileName} className="ph-no-capture" /> : <FileText aria-hidden />}
         </AttachmentMedia>
         <AttachmentContent>
-          <AttachmentTitle>{turn.fileName}</AttachmentTitle>
+          <AttachmentTitle className="ph-mask ph-sensitive" data-ph-mask="">{turn.fileName}</AttachmentTitle>
         </AttachmentContent>
         {scanning ? (
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1/4 bg-primary/20 animate-receipt-scan motion-reduce:hidden" />

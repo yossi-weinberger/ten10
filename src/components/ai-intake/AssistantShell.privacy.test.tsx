@@ -120,7 +120,7 @@ describe("AssistantShell privacy masking", () => {
     expect(title?.classList.contains("ph-mask")).toBe(false);
   });
 
-  it("should have ph-no-capture on receipt preview image", () => {
+  it("should have ph-no-capture on receipt preview image and mask filename", () => {
     const { container } = render(
       <AssistantThread
         history={[
@@ -140,9 +140,13 @@ describe("AssistantShell privacy masking", () => {
 
     // Find the receipt preview image
     const receiptImg = container.querySelector('img[alt="receipt.jpg"]');
-    
     expect(receiptImg).toBeTruthy();
     expect(receiptImg?.classList.contains("ph-no-capture")).toBe(true);
+
+    // Find the receipt filename (AttachmentTitle)
+    const filenameElement = container.querySelector(".ph-mask.ph-sensitive[data-ph-mask]");
+    expect(filenameElement).toBeTruthy();
+    expect(filenameElement?.textContent).toBe("receipt.jpg");
   });
 
   it("should have masking on user message bubble", () => {
