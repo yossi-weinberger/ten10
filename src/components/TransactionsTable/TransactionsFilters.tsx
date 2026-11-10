@@ -317,17 +317,24 @@ export function TransactionsFilters() {
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="h-9"
+                aria-label={tTables("filters.freeSearch")}
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setIsExpanded(true)}
               className="h-9 gap-2 shrink-0"
+              aria-expanded="false"
+              aria-label={
+                activeFiltersCount > 0
+                  ? `${tTables("filters.showFilters")} (${activeFiltersCount})`
+                  : tTables("filters.showFilters")
+              }
             >
               <ListFilter className="h-4 w-4" />
               {tTables("filters.showFilters")}
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1" aria-hidden="true">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -347,6 +354,7 @@ export function TransactionsFilters() {
               variant="ghost"
               onClick={() => setIsExpanded(false)}
               className="h-8 text-sm"
+              aria-expanded="true"
             >
               {tTables("filters.hideFilters")}
             </Button>
@@ -395,7 +403,7 @@ export function TransactionsFilters() {
               >
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                    <span className="truncate">
+                    <span className={isMobile ? "truncate" : ""}>
                       {localTypes.length === 0
                         ? tTables("filters.allTypes")
                         : localTypes.length === 1
@@ -404,7 +412,7 @@ export function TransactionsFilters() {
                             count: localTypes.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                    <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -444,7 +452,7 @@ export function TransactionsFilters() {
               >
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                    <span className="truncate">
+                    <span className={isMobile ? "truncate" : ""}>
                       {localPaymentMethods.length === 0
                         ? tTables("filters.paymentMethodPlaceholder")
                         : localPaymentMethods.length === 1
@@ -453,7 +461,7 @@ export function TransactionsFilters() {
                             count: localPaymentMethods.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                    <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -559,14 +567,14 @@ export function TransactionsFilters() {
                         className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}
                         disabled={localIsRecurring !== "recurring"}
                       >
-                        <span className="truncate">
+                        <span className={isMobile ? "truncate" : ""}>
                           {localRecurringStatuses.length === 0
                             ? tTables("filters.allStatuses")
                             : tTables("filters.statusesSelected", {
                                 count: localRecurringStatuses.length,
                               })}
                         </span>
-                        <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                        <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

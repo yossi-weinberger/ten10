@@ -101,17 +101,24 @@ export function RecurringTransactionsFilters() {
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="h-9"
+                aria-label={t("filters.freeSearch")}
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setIsExpanded(true)}
               className="h-9 gap-2 shrink-0"
+              aria-expanded="false"
+              aria-label={
+                activeFiltersCount > 0
+                  ? `${t("filters.showFilters")} (${activeFiltersCount})`
+                  : t("filters.showFilters")
+              }
             >
               <ListFilter className="h-4 w-4" />
               {t("filters.showFilters")}
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1" aria-hidden="true">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -132,6 +139,7 @@ export function RecurringTransactionsFilters() {
               variant="ghost"
               onClick={() => setIsExpanded(false)}
               className="h-8 text-sm"
+              aria-expanded="true"
             >
               {t("filters.hideFilters")}
             </Button>
@@ -163,7 +171,7 @@ export function RecurringTransactionsFilters() {
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className="truncate">
+                  <span className={isMobile ? "truncate" : ""}>
                     {localTypes.length === 0
                       ? t("filters.allTypes")
                       : localTypes.length === 1
@@ -172,7 +180,7 @@ export function RecurringTransactionsFilters() {
                           count: localTypes.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -211,7 +219,7 @@ export function RecurringTransactionsFilters() {
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className="truncate">
+                  <span className={isMobile ? "truncate" : ""}>
                     {filters.statuses.length === 0
                       ? t("filters.allStatuses")
                       : filters.statuses.length === 1
@@ -220,7 +228,7 @@ export function RecurringTransactionsFilters() {
                           count: filters.statuses.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -262,14 +270,14 @@ export function RecurringTransactionsFilters() {
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className="truncate">
+                  <span className={isMobile ? "truncate" : ""}>
                     {localFrequencies.length === 0
                       ? t("filters.allFrequencies")
                       : t("filters.frequenciesSelected", {
                           count: localFrequencies.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
