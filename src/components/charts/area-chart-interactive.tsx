@@ -56,7 +56,7 @@ export function AreaChartInteractive({
 
   React.useEffect(() => {
     const mql = window.matchMedia("(max-width: 767px)");
-    const landscapeMql = window.matchMedia("(max-width: 767px) and (pointer: coarse) and (max-height: 500px)");
+    const landscapeMql = window.matchMedia("(pointer: coarse) and (max-height: 500px)");
     
     const onChange = () => {
       setIsSmallScreen(mql.matches);
@@ -64,12 +64,12 @@ export function AreaChartInteractive({
     };
     
     onChange();
-    mql.addEventListener?.("change", onChange);
-    landscapeMql.addEventListener?.("change", onChange);
+    mql.addEventListener("change", onChange);
+    landscapeMql.addEventListener("change", onChange);
     
     return () => {
-      mql.removeEventListener?.("change", onChange);
-      landscapeMql.removeEventListener?.("change", onChange);
+      mql.removeEventListener("change", onChange);
+      landscapeMql.removeEventListener("change", onChange);
     };
   }, []);
 
@@ -96,11 +96,8 @@ export function AreaChartInteractive({
 
   const xAxisInterval = React.useMemo(() => {
     if (!isSmallScreen) return undefined;
-    const dataLength = chartData.length;
-    if (dataLength <= 3) return 0;
-    if (dataLength <= 6) return 1;
-    return 2;
-  }, [isSmallScreen, chartData.length]);
+    return "preserveStartEnd";
+  }, [isSmallScreen]);
 
   const seriesToDisplay = React.useMemo(() => {
     const availableSeries = (
@@ -146,16 +143,15 @@ export function AreaChartInteractive({
     );
   }
 
-  const mobileHeightOverride = isLandscape 
-    ? "max-md:!h-[180px]" 
-    : isSmallScreen 
-    ? "max-md:!h-[240px]" 
-    : "";
+  const landscapeHeightStyle = isLandscape ? {
+    height: "clamp(160px, calc(100svh - 170px), 200px)"
+  } : undefined;
 
   const chart = (
     <ChartContainer
       config={chartConfig}
-      className={cn("aspect-auto w-full", mobileHeightOverride, className)}
+      className={cn("aspect-auto w-full", className)}
+      style={landscapeHeightStyle}
     >
       <AreaChart
         accessibilityLayer
@@ -174,8 +170,10 @@ export function AreaChartInteractive({
           axisLine={false}
           tickMargin={isSmallScreen ? 4 : 8}
           interval={xAxisInterval}
+          minTickGap={isSmallScreen ? 24 : undefined}
+          padding={isSmallScreen ? { left: 12, right: 12 } : undefined}
           className="text-sm font-medium"
-          tick={{ fill: "currentColor" }}
+          tick={{ fill: "currentColor", fontSize: isSmallScreen ? 11 : undefined }}
         />
         <YAxis
           orientation="right"

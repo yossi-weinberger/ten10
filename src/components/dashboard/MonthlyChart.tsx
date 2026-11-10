@@ -311,14 +311,14 @@ export function MonthlyChart() {
               withCard={false}
               currencySymbol={currencySymbol}
               locale={locale}
-              className="min-h-[320px] h-[55vh] w-full"
+              className="max-md:h-[240px] md:min-h-[320px] md:h-[55vh] w-full"
             />
             <div className="flex flex-wrap justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (
                 <Button
                   onClick={() => loadData(true, false)}
                   disabled={isLoadingServerMonthlyChartData}
-                  className="max-md:min-h-[44px] max-md:min-w-[44px]"
+                  className="min-h-[44px] min-w-[44px]"
                 >
                   {isLoadingServerMonthlyChartData &&
                   serverMonthlyChartData.length > 0
@@ -331,7 +331,7 @@ export function MonthlyChart() {
                 onClick={handleResetChart}
                 disabled={isLoadingServerMonthlyChartData}
                 title={t("monthlyChart.reset")}
-                className="max-md:min-h-[44px] max-md:min-w-[44px]"
+                className="min-h-[44px] min-w-[44px]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span className="sr-only">{t("monthlyChart.reset")}</span>
