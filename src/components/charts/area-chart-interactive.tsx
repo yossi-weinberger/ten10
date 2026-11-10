@@ -79,11 +79,13 @@ export function AreaChartInteractive({
     "donations",
   ];
 
+  const isMobileOrLandscape = isSmallScreen || isLandscape;
+
   const formatYAxisTick = React.useCallback((value: number): string => {
     const num = Number(value);
     if (!Number.isFinite(num)) return "";
     
-    if (isSmallScreen) {
+    if (isMobileOrLandscape) {
       const compact = new Intl.NumberFormat(locale, {
         notation: "compact",
         maximumFractionDigits: 1,
@@ -92,12 +94,12 @@ export function AreaChartInteractive({
     }
     
     return `${currencySymbol}${num.toLocaleString(locale)}`;
-  }, [isSmallScreen, currencySymbol, locale]);
+  }, [isMobileOrLandscape, currencySymbol, locale]);
 
   const xAxisInterval = React.useMemo(() => {
-    if (!isSmallScreen) return undefined;
+    if (!isMobileOrLandscape) return undefined;
     return "preserveStartEnd";
-  }, [isSmallScreen]);
+  }, [isMobileOrLandscape]);
 
   const seriesToDisplay = React.useMemo(() => {
     const availableSeries = (
@@ -157,10 +159,10 @@ export function AreaChartInteractive({
         accessibilityLayer
         data={chartData}
         margin={{
-          left: isSmallScreen ? 4 : 12,
-          right: isSmallScreen ? 4 : 12,
-          top: isSmallScreen ? 8 : 20,
-          bottom: isSmallScreen ? (isLandscape ? 8 : 12) : 20,
+          left: isMobileOrLandscape ? 4 : 12,
+          right: isMobileOrLandscape ? 4 : 12,
+          top: isMobileOrLandscape ? 8 : 20,
+          bottom: isMobileOrLandscape ? (isLandscape ? 8 : 12) : 20,
         }}
       >
         <CartesianGrid vertical={false} className="stroke-muted" />
@@ -168,19 +170,19 @@ export function AreaChartInteractive({
           dataKey="month"
           tickLine={false}
           axisLine={false}
-          tickMargin={isSmallScreen ? 4 : 8}
+          tickMargin={isMobileOrLandscape ? 4 : 8}
           interval={xAxisInterval}
-          minTickGap={isSmallScreen ? 24 : undefined}
-          padding={isSmallScreen ? { left: 12, right: 12 } : undefined}
+          minTickGap={isMobileOrLandscape ? 24 : undefined}
+          padding={isMobileOrLandscape ? { left: 12, right: 12 } : undefined}
           className="text-sm font-medium"
-          tick={{ fill: "currentColor", fontSize: isSmallScreen ? 11 : undefined }}
+          tick={{ fill: "currentColor", fontSize: isMobileOrLandscape ? 11 : undefined }}
         />
         <YAxis
           orientation="right"
           tickLine={false}
           axisLine={false}
-          tickMargin={isSmallScreen ? 4 : 8}
-          width={isSmallScreen ? 50 : undefined}
+          tickMargin={isMobileOrLandscape ? 4 : 8}
+          width={isMobileOrLandscape ? 50 : undefined}
           tickFormatter={formatYAxisTick}
           className="text-sm font-medium"
           tick={{ fill: "currentColor" }}
@@ -188,15 +190,15 @@ export function AreaChartInteractive({
         <ChartTooltip
           cursor={true}
           content={<ChartTooltipContent indicator="dot" />}
-          wrapperStyle={isSmallScreen ? { zIndex: 1000 } : undefined}
-          allowEscapeViewBox={isSmallScreen ? { x: false, y: false } : undefined}
+          wrapperStyle={isMobileOrLandscape ? { zIndex: 1000 } : undefined}
+          allowEscapeViewBox={isMobileOrLandscape ? { x: false, y: false } : undefined}
         />
         <ChartLegend
           content={<ChartLegendContent />}
-          align={isSmallScreen ? "center" : undefined}
-          verticalAlign={isSmallScreen ? "bottom" : undefined}
-          layout={isSmallScreen ? "horizontal" : undefined}
-          wrapperStyle={{ paddingTop: isSmallScreen ? "4px" : "20px" }}
+          align={isMobileOrLandscape ? "center" : undefined}
+          verticalAlign={isMobileOrLandscape ? "bottom" : undefined}
+          layout={isMobileOrLandscape ? "horizontal" : undefined}
+          wrapperStyle={{ paddingTop: isMobileOrLandscape ? "4px" : "20px" }}
         />
         <defs>
           {seriesToDisplay.map((key) => {

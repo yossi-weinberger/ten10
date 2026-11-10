@@ -228,7 +228,7 @@ export function MonthlyChart() {
   const locale = language === "he" ? "he-IL" : "en-US";
 
   // Consistent container height to prevent CLS
-  const chartContainerHeight = "max-md:min-h-0 min-h-[400px] md:min-h-[500px]";
+  const chartContainerHeight = "max-md:min-h-0 [@media(pointer:coarse)_and_(max-height:500px)]:min-h-0 min-h-[400px] md:min-h-[500px]";
 
   if (
     !platformReady ||
@@ -311,7 +311,7 @@ export function MonthlyChart() {
               withCard={false}
               currencySymbol={currencySymbol}
               locale={locale}
-              className="max-md:min-h-0 max-md:h-[240px] md:min-h-[320px] md:h-[55vh] w-full"
+              className="max-md:min-h-0 [@media(pointer:coarse)_and_(max-height:500px)]:min-h-0 max-md:h-[240px] md:min-h-[320px] md:h-[55vh] w-full"
             />
             <div className="flex flex-wrap justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (
