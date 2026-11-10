@@ -370,13 +370,7 @@ function App() {
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={(event) => {
-              const target = event.target as HTMLElement;
-              const fromPanel = target.closest('[data-assistant-panel]');
-              if (!fromPanel) {
-                setIsSidebarExpanded(true);
-              }
-            }}
+            onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
             <Sidebar expanded={isSidebarExpanded} />
