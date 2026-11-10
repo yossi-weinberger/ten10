@@ -13,7 +13,7 @@ export function AssistantFab() {
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            className="size-14 rounded-full shadow-lg [&_svg]:size-7"
+            className="size-14 mobile-landscape:size-12 rounded-full shadow-lg [&_svg]:size-7 mobile-landscape:[&_svg]:size-6"
             aria-label={t("menu.assistant")}
             onClick={requestAssistantOpen}
           >

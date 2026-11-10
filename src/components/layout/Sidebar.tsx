@@ -266,9 +266,10 @@ export function Sidebar({
       <Button
         variant="ghost"
         className={cn(
-          "w-full h-12 z-10 overflow-hidden max-w-full",
+          "w-full z-10 overflow-hidden max-w-full",
           "transition-all duration-300",
           "justify-start px-4",
+          inSheet ? "min-h-11" : "h-12",
           isActive
             ? "text-secondary-foreground hover:bg-transparent"
             : "text-foreground",
