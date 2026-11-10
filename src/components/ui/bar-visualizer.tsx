@@ -117,13 +117,19 @@ function useMultibandVolume(
   const [frequencyBands, setFrequencyBands] = useState<number[]>(emptyBands);
   const bandsRef = useRef<number[]>(emptyBands);
   const frameId = useRef<number | undefined>(undefined);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
+
     if (!mediaStream) {
       bandsRef.current = emptyBands;
-      frameId.current = requestAnimationFrame(() => setFrequencyBands(emptyBands));
+      frameId.current = requestAnimationFrame(() => {
+        if (mountedRef.current) setFrequencyBands(emptyBands);
+      });
       return () => {
         if (frameId.current) cancelAnimationFrame(frameId.current);
+        mountedRef.current = false;
       };
     }
 
@@ -170,7 +176,7 @@ function useMultibandVolume(
           }
         }
 
-        if (hasChanged) {
+        if (hasChanged && mountedRef.current) {
           bandsRef.current = chunks;
           setFrequencyBands(chunks);
         }
@@ -178,16 +184,20 @@ function useMultibandVolume(
         lastUpdate = timestamp;
       }
 
-      frameId.current = requestAnimationFrame(updateVolume);
+      if (mountedRef.current) {
+        frameId.current = requestAnimationFrame(updateVolume);
+      }
     };
 
     frameId.current = requestAnimationFrame(updateVolume);
 
     return () => {
-      cleanup();
       if (frameId.current) {
         cancelAnimationFrame(frameId.current);
+        frameId.current = undefined;
       }
+      mountedRef.current = false;
+      cleanup();
     };
   }, [emptyBands, mediaStream, opts]);
 
