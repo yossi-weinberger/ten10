@@ -108,9 +108,11 @@ function useMultibandVolume(
   mediaStream?: MediaStream | null,
   options: MultiBandVolumeOptions = {},
 ) {
+  // Depend on primitive values, not object identity, to avoid recreating AudioContext on every render
+  // when the caller passes a new literal {} or inline object with the same values.
   const opts = useMemo(
     () => ({ ...multibandDefaults, ...options }),
-    [options],
+    [options.bands, options.loPass, options.hiPass, options.updateInterval, options.analyserOptions?.fftSize],
   );
 
   const emptyBands = useMemo(() => new Array(opts.bands).fill(0), [opts.bands]);
@@ -133,10 +135,14 @@ function useMultibandVolume(
       };
     }
 
-    const { analyser, cleanup } = createAudioAnalyser(
+    const { analyser, audioContext, cleanup } = createAudioAnalyser(
       mediaStream,
       opts.analyserOptions,
     );
+
+    if (audioContext.state === "suspended") {
+      void audioContext.resume();
+    }
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Float32Array(bufferLength);
