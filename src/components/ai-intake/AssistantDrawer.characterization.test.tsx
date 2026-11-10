@@ -978,9 +978,8 @@ describe("AssistantDrawer characterization", () => {
       value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
     });
     
-    let resolveTranscription: ((value: { ok: boolean; text: string }) => void) | null = null;
     ai.transcribeSpeech.mockImplementation(
-      () => new Promise((resolve) => { resolveTranscription = resolve as typeof resolveTranscription; })
+      () => new Promise(() => {}) // Never resolves - we only check skeleton appears
     );
 
     const user = setup();
