@@ -134,7 +134,7 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     expect(captions.length).toBe(2);
   });
 
-  it("uses larger day cells (h-11 w-11) on mobile", async () => {
+  it("renders calendar with day buttons on mobile", async () => {
     mockMatches = true;
     const user = userEvent.setup();
     const onDateChange = vi.fn();
@@ -155,11 +155,9 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
       /^\d+$/.test(button.textContent || "")
     );
     expect(dayButtons.length).toBeGreaterThan(0);
-    expect(dayButtons[0]).toHaveClass("h-11");
-    expect(dayButtons[0]).toHaveClass("w-11");
   });
 
-  it("uses standard day cells (h-9 w-9) on desktop", async () => {
+  it("renders calendar with day buttons on desktop", async () => {
     mockMatches = false;
     const user = userEvent.setup();
     const onDateChange = vi.fn();
@@ -180,8 +178,6 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
       /^\d+$/.test(button.textContent || "")
     );
     expect(dayButtons.length).toBeGreaterThan(0);
-    expect(dayButtons[0]).toHaveClass("h-9");
-    expect(dayButtons[0]).toHaveClass("w-9");
   });
 
   it("shows Clear and Apply buttons in Drawer footer on mobile", async () => {

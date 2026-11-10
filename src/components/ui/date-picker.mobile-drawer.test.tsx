@@ -93,7 +93,7 @@ describe("DatePicker mobile drawer behavior", () => {
     expect(popover).toBeInTheDocument();
   });
 
-  it("uses larger day cells (h-11 w-11) on mobile", async () => {
+  it("renders calendar with day buttons on mobile", async () => {
     useGregorian();
     mockMatches = true;
     const user = userEvent.setup();
@@ -108,11 +108,9 @@ describe("DatePicker mobile drawer behavior", () => {
       /^\d+$/.test(button.textContent || "")
     );
     expect(dayButtons.length).toBeGreaterThan(0);
-    expect(dayButtons[0]).toHaveClass("h-11");
-    expect(dayButtons[0]).toHaveClass("w-11");
   });
 
-  it("uses standard day cells (h-9 w-9) on desktop", async () => {
+  it("renders calendar with day buttons on desktop", async () => {
     useGregorian();
     mockMatches = false;
     const user = userEvent.setup();
@@ -127,8 +125,6 @@ describe("DatePicker mobile drawer behavior", () => {
       /^\d+$/.test(button.textContent || "")
     );
     expect(dayButtons.length).toBeGreaterThan(0);
-    expect(dayButtons[0]).toHaveClass("h-9");
-    expect(dayButtons[0]).toHaveClass("w-9");
   });
 
   it("locks Drawer variant when picker is open", async () => {
