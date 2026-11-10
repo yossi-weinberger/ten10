@@ -142,7 +142,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="touch-target relative h-auto px-0 text-xs"
+                className="touch-target relative h-auto min-h-11 px-0 py-2 text-xs"
                 title={t("aiIntake.receiptKept")}
                 onClick={footer.onOpenReceipt}
               >
@@ -155,7 +155,7 @@ export function DraftCard({
                 type="button"
                 variant="link"
                 size="sm"
-                className="touch-target relative ms-auto h-auto px-0 text-xs"
+                className="touch-target relative ms-auto h-auto min-h-11 px-0 py-2 text-xs"
                 disabled={footer.undoing}
                 onClick={footer.onUndo}
               >
@@ -272,11 +272,11 @@ export function DraftCard({
             />
           ) : null}
           {view.duplicates.length > 0 ? (
-            <Button type="button" size="sm" variant="outline" disabled={!canSave} onClick={() => onSave("same_event")}>
+            <Button type="button" size="sm" variant="outline" className="min-h-11 sm:min-h-0" disabled={!canSave} onClick={() => onSave("same_event")}>
               {t("aiIntake.sameEvent")}
             </Button>
           ) : null}
-          <Button type="submit" size="sm" className="flex-1" disabled={!canSave}>
+          <Button type="submit" size="sm" className="flex-1 min-h-11 sm:min-h-0" disabled={!canSave}>
             {saving ? <Spinner data-icon="inline-start" /> : null}
             {t(view.duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
           </Button>

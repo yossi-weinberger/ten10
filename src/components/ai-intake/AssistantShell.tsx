@@ -76,7 +76,7 @@ function Frame({
       </div>
       <Separator />
       <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
-      <div className="border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div>
+      <div className="border-t bg-background p-3" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>{footer}</div>
     </div>
   );
 }
@@ -110,7 +110,8 @@ export function AssistantShell({
     },
   });
   // A phone in landscape is wide but short: it gets the full-height drawer too.
-  const isSmallNow = useMediaQuery("(max-width: 767px), (max-height: 500px)");
+  // Also use the drawer for coarse pointer devices (touch screens) with small height.
+  const isSmallNow = useMediaQuery("(max-width: 767px), ((max-height: 500px) and (pointer: coarse))");
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export function AssistantShell({
   if (useDrawer) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent dir={i18n.dir()} className="flex h-[92dvh] max-h-[92dvh] flex-col p-0">
+        <DrawerContent dir={i18n.dir()} className="flex h-[92dvh] max-h-[92dvh] flex-col p-0" style={{ height: "92dvh", maxHeight: "92dvh" }}>
           <DrawerTitle className="sr-only">{title}</DrawerTitle>
           <DrawerDescription className="sr-only">{description}</DrawerDescription>
           {frame(false)}
