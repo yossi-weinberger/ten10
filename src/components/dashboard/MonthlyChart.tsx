@@ -318,7 +318,7 @@ export function MonthlyChart() {
                 <Button
                   onClick={() => loadData(true, false)}
                   disabled={isLoadingServerMonthlyChartData}
-                  className="min-h-[44px] min-w-[44px]"
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] [@media(pointer:coarse)_and_(max-height:500px)]:min-h-[44px] [@media(pointer:coarse)_and_(max-height:500px)]:min-w-[44px]"
                 >
                   {isLoadingServerMonthlyChartData &&
                   serverMonthlyChartData.length > 0
@@ -331,7 +331,7 @@ export function MonthlyChart() {
                 onClick={handleResetChart}
                 disabled={isLoadingServerMonthlyChartData}
                 title={t("monthlyChart.reset")}
-                className="min-h-[44px] min-w-[44px]"
+                className="max-md:min-h-[44px] max-md:min-w-[44px] [@media(pointer:coarse)_and_(max-height:500px)]:min-h-[44px] [@media(pointer:coarse)_and_(max-height:500px)]:min-w-[44px]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span className="sr-only">{t("monthlyChart.reset")}</span>
