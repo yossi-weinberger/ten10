@@ -88,18 +88,31 @@ export function AdminUserPlans() {
     setAddError(null);
     try {
       setSubmitting(true);
+      const isExisting = userPlans.some((up) => up.user_email.toLowerCase() === trimmedEmail.toLowerCase());
       await addUserPlan(trimmedEmail, addPlan, addExpiresAt || null, addNote.trim() || null, false);
       setShowAddDialog(false);
       setAddEmail("");
       setAddPlan("");
       setAddExpiresAt("");
       setAddNote("");
-      toast.success(t("ai.userPlans.addSuccess"));
+      setAddError(null);
+      toast.success(t(isExisting ? "ai.userPlans.updateSuccess" : "ai.userPlans.addSuccess"));
       await refreshData();
     } catch (err) {
       setAddError(mapError(err, t));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOpenAddDialog = (open: boolean) => {
+    setShowAddDialog(open);
+    if (!open) {
+      setAddEmail("");
+      setAddPlan("");
+      setAddExpiresAt("");
+      setAddNote("");
+      setAddError(null);
     }
   };
 
@@ -141,7 +154,7 @@ export function AdminUserPlans() {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">{t("ai.userPlans.title")}</h3>
-        <Button onClick={() => setShowAddDialog(true)} size="sm">
+        <Button onClick={() => handleOpenAddDialog(true)} size="sm">
           <Plus className="h-4 w-4" />
           <span className="ms-2">{t("ai.userPlans.addUser")}</span>
         </Button>
@@ -151,9 +164,7 @@ export function AdminUserPlans() {
         <Alert variant="destructive">
           <AlertDescription>{loadError}</AlertDescription>
         </Alert>
-      ) : null}
-
-      {loading ? (
+      ) : loading ? (
         <p className="text-sm text-muted-foreground">{t("common:labels.loading")}</p>
       ) : userPlans.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("ai.userPlans.noUsers")}</p>
@@ -183,6 +194,7 @@ export function AdminUserPlans() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setRemoveDialog({ email: row.user_email, source: row.source })}
+                      aria-label={t("ai.userPlans.removeAriaLabel", { email: row.user_email })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -194,7 +206,7 @@ export function AdminUserPlans() {
         </div>
       )}
 
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      <Dialog open={showAddDialog} onOpenChange={handleOpenAddDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("ai.userPlans.addUser")}</DialogTitle>
@@ -251,7 +263,7 @@ export function AdminUserPlans() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)} disabled={submitting}>
+            <Button variant="outline" onClick={() => handleOpenAddDialog(false)} disabled={submitting}>
               {t("common:actions.cancel")}
             </Button>
             <Button onClick={handleAddUser} disabled={!addEmail.trim() || !addPlan || submitting}>

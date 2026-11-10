@@ -167,7 +167,9 @@
       "genericError": "אירעה שגיאה",
       "expiryLabel": "תאריך תפוגה",
       "noteLabel": "הערה",
-      "emailLabel": "אימייל"
+      "emailLabel": "אימייל",
+      "updateSuccess": "תוכנית המשתמש עודכנה בהצלחה",
+      "removeAriaLabel": "הסר תוכנית עבור {{email}}"
     }
   },
   "posthog": {

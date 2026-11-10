@@ -26,7 +26,7 @@ beforeAll(async () => {
     $$;
     CREATE TABLE auth.users (
       id uuid PRIMARY KEY,
-      email text UNIQUE NOT NULL,
+      email varchar(255) UNIQUE NOT NULL,
       deleted_at timestamp with time zone
     );
   `);
@@ -87,6 +87,28 @@ describe("admin_list_user_plans", () => {
     expect(rows[0].user_email).toBe("test@example.com");
     expect(rows[0].plan).toBe("beta");
     expect(rows[0].note).toBe("test note");
+  });
+
+  it("returns text type for email column (not varchar)", async () => {
+    const userId = await createUser("typecheck@example.com");
+    await setAdmin(userId);
+    await seedPlans();
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan) VALUES ($1, 'beta')",
+      [userId],
+    );
+    // This test verifies the cast u.email::text works correctly
+    // Without the cast, this query would fail with "structure of query does not match function result type"
+    const { rows } = await db.query<{ user_email: string }>(
+      "SELECT user_email FROM public.admin_list_user_plans()",
+    );
+    expect(rows[0].user_email).toBe("typecheck@example.com");
+    // Verify it's actually text type by checking we can pass it to a function expecting text
+    const { rows: typeRows } = await db.query<{ len: number }>(
+      "SELECT length(user_email) as len FROM public.admin_list_user_plans() WHERE user_email = $1",
+      ["typecheck@example.com"],
+    );
+    expect(typeRows[0].len).toBe(21);
   });
 });
 
@@ -156,7 +178,7 @@ describe("admin_set_user_plan", () => {
     ).rejects.toThrow(/EXPIRY_IN_PAST/);
   });
 
-  it("stores winter date as 23:59:59 Asia/Jerusalem", async () => {
+  it("stores winter date as 23:59:59.999999 Asia/Jerusalem", async () => {
     const userId = await createUser("winter@example.com");
     await setAdmin(userId);
     await seedPlans();
@@ -166,14 +188,14 @@ describe("admin_set_user_plan", () => {
       "2027-03-27",
     ]);
     const { rows } = await db.query<{ expires_at: string }>(
-      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS.US') as expires_at FROM public.user_plans WHERE user_id = $1",
       [userId],
     );
-    // 2027-03-27 23:59:59 in Asia/Jerusalem (IST, UTC+2)
-    expect(rows[0].expires_at).toBe("2027-03-27 23:59:59");
+    // 2027-03-27 23:59:59.999999 in Asia/Jerusalem (IST, UTC+2)
+    expect(rows[0].expires_at).toBe("2027-03-27 23:59:59.999999");
   });
 
-  it("stores summer date as 23:59:59 Asia/Jerusalem (DST)", async () => {
+  it("stores summer date as 23:59:59.999999 Asia/Jerusalem (DST)", async () => {
     const userId = await createUser("summer@example.com");
     await setAdmin(userId);
     await seedPlans();
@@ -183,14 +205,14 @@ describe("admin_set_user_plan", () => {
       "2027-07-15",
     ]);
     const { rows } = await db.query<{ expires_at: string }>(
-      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS.US') as expires_at FROM public.user_plans WHERE user_id = $1",
       [userId],
     );
-    // 2027-07-15 23:59:59 in Asia/Jerusalem (IDT, UTC+3 during DST)
-    expect(rows[0].expires_at).toBe("2027-07-15 23:59:59");
+    // 2027-07-15 23:59:59.999999 in Asia/Jerusalem (IDT, UTC+3 during DST)
+    expect(rows[0].expires_at).toBe("2027-07-15 23:59:59.999999");
   });
 
-  it("stores fall date as 23:59:59 Asia/Jerusalem", async () => {
+  it("stores fall date as 23:59:59.999999 Asia/Jerusalem", async () => {
     const userId = await createUser("fall@example.com");
     await setAdmin(userId);
     await seedPlans();
@@ -200,11 +222,11 @@ describe("admin_set_user_plan", () => {
       "2027-10-24",
     ]);
     const { rows } = await db.query<{ expires_at: string }>(
-      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS') as expires_at FROM public.user_plans WHERE user_id = $1",
+      "SELECT to_char(expires_at AT TIME ZONE 'Asia/Jerusalem', 'YYYY-MM-DD HH24:MI:SS.US') as expires_at FROM public.user_plans WHERE user_id = $1",
       [userId],
     );
-    // 2027-10-24 23:59:59 in Asia/Jerusalem (back to IST, UTC+2)
-    expect(rows[0].expires_at).toBe("2027-10-24 23:59:59");
+    // 2027-10-24 23:59:59.999999 in Asia/Jerusalem (back to IST, UTC+2)
+    expect(rows[0].expires_at).toBe("2027-10-24 23:59:59.999999");
   });
 
   it("cannot overwrite billing source without force", async () => {

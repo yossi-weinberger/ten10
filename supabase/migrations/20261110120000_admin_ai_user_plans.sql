@@ -31,7 +31,7 @@ BEGIN
 
   RETURN QUERY
   SELECT
-    u.email,
+    u.email::text,
     up.user_id,
     up.plan,
     up.source,
@@ -100,9 +100,9 @@ BEGIN
       USING ERRCODE = 'P0001';
   END IF;
 
-  -- Compute expiry timestamp: 23:59:59 on the chosen day in Asia/Jerusalem
+  -- Compute expiry timestamp: 23:59:59.999999 on the chosen day in Asia/Jerusalem
   IF p_expires_on IS NOT NULL THEN
-    v_expires_at := ((p_expires_on + 1)::timestamp AT TIME ZONE 'Asia/Jerusalem') - interval '1 second';
+    v_expires_at := ((p_expires_on + 1)::timestamp AT TIME ZONE 'Asia/Jerusalem') - interval '1 microsecond';
   ELSE
     v_expires_at := NULL;
   END IF;

@@ -167,7 +167,9 @@
       "genericError": "An error occurred",
       "expiryLabel": "Expiry Date",
       "noteLabel": "Note",
-      "emailLabel": "Email"
+      "emailLabel": "Email",
+      "updateSuccess": "User plan updated successfully",
+      "removeAriaLabel": "Remove plan for {{email}}"
     }
   },
   "posthog": {
