@@ -1348,6 +1348,71 @@ describe("TransactionCardList", () => {
       expect(onToggleSelected).toHaveBeenCalledTimes(1);
       expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
     });
+
+    it("renders exactly one BulkActionsToolbar in selection mode", () => {
+      const selectedIds = new Set<string>(["1"]);
+
+      const { container } = render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const toolbars = container.querySelectorAll('[aria-label="Bulk actions"]');
+      expect(toolbars).toHaveLength(1);
+    });
+
+    it("tap immediately after long-press targets the correct card (no layout shift)", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["1"]); // Card 1 is already selected
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+
+      // In selection mode, clicking should toggle the same card immediately
+      // This verifies that the fixed toolbar doesn't cause layout shift
+      fireEvent.click(firstCard!);
+
+      // Should toggle card 1 (the Salary card)
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {

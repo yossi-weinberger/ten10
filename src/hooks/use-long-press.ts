@@ -60,6 +60,7 @@ export function useLongPress({
       timerRef.current = setTimeout(() => {
         longPressTriggeredRef.current = true;
         cleanup();
+        navigator.vibrate?.(10);
         onLongPress();
       }, threshold);
     },

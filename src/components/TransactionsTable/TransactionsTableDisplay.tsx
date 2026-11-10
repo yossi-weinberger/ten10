@@ -599,33 +599,35 @@ export function TransactionsTableDisplay() {
             </span>
           </Button>
         </div>
-        <BulkActionsToolbar
-          selectedCount={selection.selectedCount}
-          selectedCountLabel={t("bulkToolbar.selectedCount", {
-            count: selection.selectedCount,
-          })}
-          editLabel={
-            selectionActionMode === "single"
-              ? t("actions.edit")
-              : t("bulkToolbar.edit")
-          }
-          deleteLabel={
-            selectionActionMode === "single"
-              ? t("actions.delete")
-              : t("bulkToolbar.delete")
-          }
-          clearLabel={t("bulkToolbar.clear")}
-          onEdit={handleSelectionEdit}
-          onDelete={handleSelectionDelete}
-          onClear={clearSelection}
-          ariaLabel={t("bulkToolbar.ariaLabel")}
-          pending={bulkPending}
-          editDisabled={
-            selectionActionMode === "bulk" &&
-            !Object.values(bulkFieldAvailability).some(Boolean)
-          }
-          dir={i18n.dir()}
-        />
+        {!useMobileCards && (
+          <BulkActionsToolbar
+            selectedCount={selection.selectedCount}
+            selectedCountLabel={t("bulkToolbar.selectedCount", {
+              count: selection.selectedCount,
+            })}
+            editLabel={
+              selectionActionMode === "single"
+                ? t("actions.edit")
+                : t("bulkToolbar.edit")
+            }
+            deleteLabel={
+              selectionActionMode === "single"
+                ? t("actions.delete")
+                : t("bulkToolbar.delete")
+            }
+            clearLabel={t("bulkToolbar.clear")}
+            onEdit={handleSelectionEdit}
+            onDelete={handleSelectionDelete}
+            onClear={clearSelection}
+            ariaLabel={t("bulkToolbar.ariaLabel")}
+            pending={bulkPending}
+            editDisabled={
+              selectionActionMode === "bulk" &&
+              !Object.values(bulkFieldAvailability).some(Boolean)
+            }
+            dir={i18n.dir()}
+          />
+        )}
       </div>
 
       {error && (

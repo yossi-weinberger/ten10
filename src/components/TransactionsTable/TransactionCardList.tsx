@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState, memo } from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,14 @@ const TransactionCard = memo(function TransactionCard({
     movementThreshold: 10,
   });
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
+      || window.matchMedia("(pointer: coarse)").matches;
+    if (isTouch) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Card
       role="button"
@@ -121,12 +130,13 @@ const TransactionCard = memo(function TransactionCard({
       aria-selected={inSelectionMode ? isSelected : undefined}
       aria-pressed={inSelectionMode ? isSelected : undefined}
       className={cn(
-        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99]",
+        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
         surfaceClasses,
         isSelected && "ring-2 ring-primary ring-offset-2"
       )}
       onClick={onClick}
       onKeyDown={onKeyDown}
+      onContextMenu={handleContextMenu}
       onPointerDown={longPressHandlers.onPointerDown}
       onPointerMove={longPressHandlers.onPointerMove}
       onPointerUp={longPressHandlers.onPointerUp}
@@ -240,6 +250,19 @@ export function TransactionCardList({
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
 
+  const inSelectionMode = selectedIds.size > 0;
+
+  React.useEffect(() => {
+    if (inSelectionMode) {
+      document.body.dataset.mobileSelectionActive = "true";
+    } else {
+      delete document.body.dataset.mobileSelectionActive;
+    }
+    return () => {
+      delete document.body.dataset.mobileSelectionActive;
+    };
+  }, [inSelectionMode]);
+
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
       | { type: "transaction"; transaction: TransactionForTable }
@@ -283,8 +306,6 @@ export function TransactionCardList({
 
     return result;
   }, [transactions, i18n.language, calendarType]);
-
-  const inSelectionMode = selectedIds.size > 0;
 
   const handleCardClick = useCallback((transaction: TransactionForTable) => {
     if (longPressTriggeredRef.current) {
@@ -385,10 +406,11 @@ export function TransactionCardList({
           disabled={selectionDisabled}
           editDisabled={bulkEditDisabled}
           dir={i18n.dir()}
-          className="mb-4"
+          className="mb-4 max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(12px+env(safe-area-inset-bottom))] max-md:z-40 max-md:rounded-2xl max-md:bg-background max-md:shadow-lg max-md:border max-md:border-border max-md:p-3"
+          mobileLayout
         />
       )}
-      <div className="space-y-2">
+      <div className={cn("space-y-2", inSelectionMode && "max-md:pb-24")}>
         {transactionsWithSeparators.map((item) => {
           if (item.type === "separator") {
             return (
