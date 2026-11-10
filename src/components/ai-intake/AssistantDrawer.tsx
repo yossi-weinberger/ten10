@@ -117,6 +117,7 @@ export function AssistantDrawer({
           type="button"
           variant="ghost"
           size="sm"
+          className="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0"
           disabled={!hasConversation || state.saving || state.undoing}
           onClick={() => {
             composer.stopRecording();

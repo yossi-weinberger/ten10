@@ -343,10 +343,10 @@ export function RecurringDraftCard({
               onChange={(isChomesh) => onChange({ ...card, isChomesh })}
             />
           ) : null}
-          <Button type="button" size="sm" variant="outline" disabled={locked} onClick={() => setPicking(true)}>
+          <Button type="button" size="sm" variant="outline" className="min-h-11 sm:min-h-0" disabled={locked} onClick={() => setPicking(true)}>
             {t("aiIntake.recurring.changeDetail")}
           </Button>
-          <Button type="button" size="sm" className="flex-1" disabled={locked || !ready} onClick={onSave}>
+          <Button type="button" size="sm" className="flex-1 min-h-11 sm:min-h-0" disabled={locked || !ready} onClick={onSave}>
             {t("aiIntake.recurring.save")}
           </Button>
         </div>
