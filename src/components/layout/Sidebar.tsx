@@ -403,6 +403,11 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
+            {inSheet && platform === "web" && session?.user && (
+              <NavLink to="/profile" icon={User}>
+                {t("menu.profile")}
+              </NavLink>
+            )}
             {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
             {platform !== "loading" ? (
               <Button
@@ -444,15 +449,15 @@ export function Sidebar({
         </div>
 
         {/* Divider spans the padded width */}
-        <div className="my-2 h-px bg-border/20" />
+        {!inSheet && <div className="my-2 h-px bg-border/20" />}
 
         {/* Feedback (above profile) — web + PostHog only; hides after submit */}
-        {platform === "web" && session?.user && (
+        {!inSheet && platform === "web" && session?.user && (
           <HomeFeedbackCard variant="sidebar" expanded={expanded} />
         )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
-        {platform === "web" && session?.user && (
+        {!inSheet && platform === "web" && session?.user && (
           <Link
             to="/profile"
             onClick={onLinkClick}

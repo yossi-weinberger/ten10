@@ -143,7 +143,7 @@ export function StatCard({
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-2 mobile-landscape:pt-2">
           <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight max-md:leading-none">
             {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon}`} />}
             {title}
