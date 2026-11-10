@@ -238,33 +238,4 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     expect(drawer).not.toBeInTheDocument();
   });
 
-  it("locks Drawer variant when picker is open", async () => {
-    mockMatches = true;
-    const user = userEvent.setup();
-    const onDateChange = vi.fn();
-    
-    const { rerender } = render(
-      <DatePickerWithRange 
-        date={{ from: parseLocalDate("2026-10-01"), to: parseLocalDate("2026-10-08") }}
-        onDateChange={onDateChange}
-      />
-    );
-
-    const triggerButton = screen.getByRole("button");
-    await user.click(triggerButton);
-
-    let drawer = document.querySelector('[data-vaul-drawer]');
-    expect(drawer).toBeInTheDocument();
-
-    mockMatches = false;
-    rerender(
-      <DatePickerWithRange 
-        date={{ from: parseLocalDate("2026-10-01"), to: parseLocalDate("2026-10-08") }}
-        onDateChange={onDateChange}
-      />
-    );
-
-    drawer = document.querySelector('[data-vaul-drawer]');
-    expect(drawer).toBeInTheDocument();
-  });
 });

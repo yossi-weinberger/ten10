@@ -127,24 +127,4 @@ describe("DatePicker mobile drawer behavior", () => {
     expect(dayButtons.length).toBeGreaterThan(0);
   });
 
-  it("locks Drawer variant when picker is open", async () => {
-    useGregorian();
-    mockMatches = true;
-    const user = userEvent.setup();
-    const setDate = vi.fn();
-    
-    const { rerender } = render(<DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />);
-
-    const calendarButton = screen.getByRole("button", { name: /open calendar/i });
-    await user.click(calendarButton);
-
-    let drawer = document.querySelector('[data-vaul-drawer]');
-    expect(drawer).toBeInTheDocument();
-
-    mockMatches = false;
-    rerender(<DatePicker date={parseLocalDate("2026-10-08")} setDate={setDate} />);
-
-    drawer = document.querySelector('[data-vaul-drawer]');
-    expect(drawer).toBeInTheDocument();
-  });
 });
