@@ -122,15 +122,29 @@ const TooltipTrigger = React.forwardRef<
   const interactionContext = React.useContext(TooltipInteractionContext);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    onClick?.(event);
-    if (event.defaultPrevented) return;
     if (interactionContext?.isTouchLikeDevice) {
+      event.preventDefault();
       interactionContext.toggle();
     }
+    onClick?.(event);
   };
 
   return (
-    <TooltipPrimitive.Trigger ref={ref} {...props} onClick={handleClick} />
+    <TooltipPrimitive.Trigger
+      ref={ref}
+      {...props}
+      onClick={handleClick}
+      onPointerEnter={
+        interactionContext?.isTouchLikeDevice
+          ? (e) => e.preventDefault()
+          : props.onPointerEnter
+      }
+      onPointerLeave={
+        interactionContext?.isTouchLikeDevice
+          ? (e) => e.preventDefault()
+          : props.onPointerLeave
+      }
+    />
   );
 });
 TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName;
