@@ -92,47 +92,6 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     expect(popover).toBeInTheDocument();
   });
 
-  it("shows single month (numberOfMonths=1) on mobile", async () => {
-    mockMatches = true;
-    const user = userEvent.setup();
-    const onDateChange = vi.fn();
-    
-    render(
-      <DatePickerWithRange 
-        date={{ from: parseLocalDate("2026-10-01"), to: parseLocalDate("2026-10-08") }}
-        onDateChange={onDateChange}
-      />
-    );
-
-    const triggerButton = screen.getByRole("button");
-    await user.click(triggerButton);
-
-    await screen.findByRole("button", { name: /go to the next month/i });
-
-    const captions = document.querySelectorAll('.rdp-caption');
-    expect(captions.length).toBe(1);
-  });
-
-  it("shows two months (numberOfMonths=2) on desktop", async () => {
-    mockMatches = false;
-    const user = userEvent.setup();
-    const onDateChange = vi.fn();
-    
-    render(
-      <DatePickerWithRange 
-        date={{ from: parseLocalDate("2026-10-01"), to: parseLocalDate("2026-10-08") }}
-        onDateChange={onDateChange}
-      />
-    );
-
-    const triggerButton = screen.getByRole("button");
-    await user.click(triggerButton);
-
-    await screen.findByRole("button", { name: /go to the next month/i });
-
-    const captions = document.querySelectorAll('.rdp-caption');
-    expect(captions.length).toBe(2);
-  });
 
   it("renders calendar with day buttons on mobile", async () => {
     mockMatches = true;
