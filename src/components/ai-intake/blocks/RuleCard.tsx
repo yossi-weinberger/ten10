@@ -41,7 +41,7 @@ export function RuleCard({
 
   const type = choice ?? rule.action;
   return (
-    <Card className="grid gap-2 p-2.5">
+    <Card className="grid gap-2 p-2.5 ph-mask ph-sensitive" data-ph-mask="">
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <KindTag icon={ListChecks} tint={KIND_TINT.knowledge}>{t("aiIntake.ruleTag")}</KindTag>
         <span className="text-xs text-muted-foreground">{t("aiIntake.ruleNewOnly")}</span>

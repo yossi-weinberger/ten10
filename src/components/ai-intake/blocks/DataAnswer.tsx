@@ -126,7 +126,8 @@ export function NameMissing({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">
-        {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic })}
+        {t(nameKind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic: "" })}
+        <span className="ph-mask ph-sensitive" data-ph-mask="">{topic}</span>
       </p>
       {interactive ? (
         <div className="flex flex-wrap gap-2">

@@ -33,6 +33,9 @@ export function HalachaCard({
       )}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground">{t("aiIntake.halachaPersonal")}</span>
+        {showAskRabbiButton && userQuestion && (
+          <span className="ph-mask ph-sensitive" data-ph-mask="">{userQuestion}</span>
+        )}
         {showAskRabbiButton && (
           <Button variant="outline" size="sm" onClick={onAskRabbi}>
             <MessageCircle aria-hidden />
