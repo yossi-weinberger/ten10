@@ -100,9 +100,11 @@ export function useAudioVolume(
 
   useEffect(() => {
     if (!mediaStream) {
-      setVolume(0);
       volumeRef.current = 0;
-      return;
+      frameId.current = requestAnimationFrame(() => setVolume(0));
+      return () => {
+        if (frameId.current) cancelAnimationFrame(frameId.current);
+      };
     }
 
     const { analyser, cleanup } = createAudioAnalyser(
@@ -113,7 +115,7 @@ export function useAudioVolume(
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let lastUpdate = 0;
-    const updateInterval = 1000 / 30; // 30 FPS
+    const updateInterval = 1000 / 30;
 
     const updateVolume = (timestamp: number) => {
       if (timestamp - lastUpdate >= updateInterval) {
@@ -195,18 +197,18 @@ export function useMultibandVolume(
     ],
   );
 
-  const [frequencyBands, setFrequencyBands] = useState<number[]>(() =>
-    new Array(opts.bands).fill(0),
-  );
-  const bandsRef = useRef<number[]>(new Array(opts.bands).fill(0));
+  const emptyBands = useMemo(() => new Array(opts.bands).fill(0), [opts.bands]);
+  const [frequencyBands, setFrequencyBands] = useState<number[]>(emptyBands);
+  const bandsRef = useRef<number[]>(emptyBands);
   const frameId = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!mediaStream) {
-      const emptyBands = new Array(opts.bands).fill(0);
-      setFrequencyBands(emptyBands);
       bandsRef.current = emptyBands;
-      return;
+      frameId.current = requestAnimationFrame(() => setFrequencyBands(emptyBands));
+      return () => {
+        if (frameId.current) cancelAnimationFrame(frameId.current);
+      };
     }
 
     const { analyser, cleanup } = createAudioAnalyser(
@@ -290,7 +292,6 @@ export const useBarAnimator = (
   interval: number,
 ): number[] => {
   const indexRef = useRef(0);
-  const [currentFrame, setCurrentFrame] = useState<number[]>([]);
   const animationFrameId = useRef<number | null>(null);
 
   const sequence = useMemo(() => {
@@ -305,9 +306,12 @@ export const useBarAnimator = (
     }
   }, [state, columns]);
 
+  const [currentFrame, setCurrentFrame] = useState<number[]>(() => sequence[0] || []);
+
   useEffect(() => {
     indexRef.current = 0;
-    setCurrentFrame(sequence[0] || []);
+    const frameId = requestAnimationFrame(() => setCurrentFrame(sequence[0] || []));
+    return () => cancelAnimationFrame(frameId);
   }, [sequence]);
 
   useEffect(() => {
