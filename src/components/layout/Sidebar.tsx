@@ -448,16 +448,19 @@ export function Sidebar({
         </div>
 
         {/* Divider spans the padded width */}
-        <div className="my-2 h-px bg-border/20" />
+        <div className={cn("my-2 h-px bg-border/20", inSheet ? "shrink-0" : "")} />
 
         {/* Feedback (above profile) — web + PostHog only; hides after submit */}
         {platform === "web" && session?.user && (
-          <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          <div className={inSheet ? "shrink-0" : ""}>
+            <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          </div>
         )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
         {platform === "web" && session?.user && (
           <Link
+            className={inSheet ? "shrink-0" : ""}
             to="/profile"
             onClick={onLinkClick}
             data-active={currentPath.startsWith("/profile")}
@@ -546,7 +549,7 @@ export function Sidebar({
       </div>
 
       {/* Bottom area (separate): platform indicator & border */}
-      <div className="mt-auto pt-4 border-t border-border/20 px-1">
+      <div className={cn("mt-auto pt-4 border-t border-border/20 px-1", inSheet ? "shrink-0" : "")}>
         <PlatformIndicator expanded={expanded} />
       </div>
       {/* Only the persistent sidebar holds the drawer; the floating button opens it on every screen size. */}
