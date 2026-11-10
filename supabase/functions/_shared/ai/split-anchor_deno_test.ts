@@ -331,8 +331,8 @@ Deno.test("ל-prefix is stripped from payee when it's a preposition after giving
 });
 
 Deno.test("ל-prefix is NOT stripped when it's part of the name or no preposition context", () => {
-  // When the name genuinely starts with ל, and there's a preposition ל before it,
-  // we strip the preposition ל but keep the name's ל
+  // When the name genuinely starts with lamed, and there's a preposition lamed before it,
+  // we strip the preposition lamed but keep the name's lamed
   const genuineName = anchor("תרמתי ללב טוב", [
     item({ description: "ללב טוב", type: "donation" }),
   ]);

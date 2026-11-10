@@ -4,8 +4,8 @@ import { parseHebrewMonthPeriod } from "./hebrew-month-period.ts";
 const TODAY_GREGORIAN = "2026-11-09"; // Monday, Nov 9, 2026
 
 Deno.test("parseHebrewMonthPeriod: תשרי (Tishrei) - most recent occurrence", () => {
-  // תשרי תשפ"ז = Tishrei 5787 started September 12, 2026 and ended October 11, 2026
-  // Since today is Nov 9, the most recent תשרי that's not in the future is תשרי תשפ"ז
+  // Tishrei 5787 started September 12, 2026 and ended October 11, 2026
+  // Since today is Nov 9, the most recent Tishrei that's not in the future is Tishrei 5787
   const result = parseHebrewMonthPeriod("תשרי", TODAY_GREGORIAN);
   assert(result !== null, "should parse תשרי");
   assert(result.from === "2026-09-12", `from should be 2026-09-12, got ${result.from}`);
@@ -27,7 +27,7 @@ Deno.test("parseHebrewMonthPeriod: לתשרי with ל prefix", () => {
 });
 
 Deno.test("parseHebrewMonthPeriod: אדר in non-leap year (5786) → Adar", () => {
-  // 5786 is not a leap year, so אדר maps to month 6 (the single Adar)
+  // 5786 is not a leap year, so Adar maps to month 6 (the single Adar)
   // Testing with a date in Adar 5786: around Feb-Mar 2026
   const testDate = "2026-03-15"; // In the middle of Adar 5786
   const result = parseHebrewMonthPeriod("אדר", testDate);
@@ -38,7 +38,7 @@ Deno.test("parseHebrewMonthPeriod: אדר in non-leap year (5786) → Adar", () 
 });
 
 Deno.test("parseHebrewMonthPeriod: אדר א' in leap year (5787)", () => {
-  // 5787 is a leap year, so אדר א' is month 6, אדר ב' is month 7
+  // 5787 is a leap year, so Adar I is month 6, Adar II is month 7
   // Adar I 5787: approximately Feb-Mar 2027
   const testDate = "2027-03-15"; // After Adar I 5787
   const result = parseHebrewMonthPeriod("אדר א'", testDate);

@@ -30,7 +30,7 @@ const HEBREW_MONTH_PATTERNS = {
 /**
  * Parse a Hebrew month name from text and return the Gregorian date range.
  * 
- * @param text - The text containing a Hebrew month name (e.g. "תשרי", "בתשרי", "תשרי תשפ\"ז")
+ * @param text - The text containing a Hebrew month name (e.g. "תשרי", "בתשרי", "תשרי 5786")
  * @param today - Today's date in ISO format (YYYY-MM-DD)
  * @returns The Gregorian date range { from, to } or null if no match
  */
@@ -40,7 +40,7 @@ export function parseHebrewMonthPeriod(
 ): { from: string; to: string } | null {
   if (!text || !text.trim()) return null;
 
-  // Strip common prefixes (ב, ל)
+  // Strip common prefixes (bet, lamed)
   let normalized = text.trim();
   if (normalized.startsWith("ב")) {
     normalized = normalized.slice(1);

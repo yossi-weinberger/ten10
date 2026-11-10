@@ -222,20 +222,21 @@ function isLetter(char: string): boolean {
 }
 
 /**
- * Strip leading ל preposition from a description when it appears as "ל<name>" in the source
- * after giving verbs or "תרומה". Conservative: only strips when clearly a preposition.
+ * Strip leading lamed preposition from a description when it appears as "ל<name>" in the source
+ * after giving verbs or charity keywords. Conservative: only strips when clearly a preposition.
  */
 function stripPrepositionLamed(description: string, source: string): string {
-  // Check if description starts with ל or ל־ or ל-
+  // Check if description starts with lamed (ל) or lamed with hyphen (ל־ or ל-)
   const match = description.match(/^ל[־-]?(.+)$/);
   if (!match) return description;
   
   const remainder = match[1].trim();
   if (remainder.length < 2) return description;
   
-  // Check if the ל-prefixed form appears in source after giving verbs/contexts
-  // Common giving verbs: נתתי, נתן, תרמתי, תרם, העברתי, העבר, שילמתי, שילם
-  // Or after "תרומה" (donation)
+  // Check if the lamed-prefixed form appears in source after giving verbs/contexts
+  // Common giving verbs: נתתי (gave), נתן (give), תרמתי (donated), תרם (donate),
+  // העברתי (transferred), העבר (transfer), שילמתי (paid), שילם (pay)
+  // Or after תרומה (donation)
   // Allow for amounts and other text between the verb and the payee
   const prefixedForm = description.trim();
   const escapedForm = prefixedForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -361,7 +362,7 @@ export function anchorSplitItems(
       },
     });
   }
-  // When the model splits a special classification into an amountless item (e.g. "הוצאה מוכרת"),
+  // When the model splits a special classification into an amountless item (e.g. הוצאה מוכרת / recognized expense),
   // and exactly one real transaction item was kept without special classification, apply it to that item.
   if (kept.length === 1 && !kept[0].item.specialStated && !kept[0].item.typeQuestion && !kept[0].item.ruleId) {
     const droppedSpecial = items.find((item) => (
