@@ -54,6 +54,7 @@ import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import {
   assertBulkPatch,
   buildBulkPatch,
@@ -490,7 +491,10 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell
+                        className={cn("text-start", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         {rec.description || "-"}
                       </TableCell>
                       <TableCell className="text-start">
@@ -500,7 +504,10 @@ export function RecurringTransactionsTableDisplay() {
                           "-"
                         )}
                       </TableCell>
-                      <TableCell className="text-center font-medium whitespace-nowrap">
+                      <TableCell
+                        className={cn("text-center font-medium whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <CurrencyConversionInfo
                           amount={rec.amount}
                           currency={rec.currency}
