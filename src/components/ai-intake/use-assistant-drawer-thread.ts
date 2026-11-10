@@ -522,6 +522,11 @@ export function useAssistantDrawerThread(
     },
     onRabbiSent: state.setRabbiTicket,
     onRabbiDismiss: () => state.setRabbiText(null),
+    onAskRabbiFromHalacha: (question) => {
+      state.setRabbiText(question);
+      state.setHalachaNamespace(null);
+      state.setHalachaUserQuestion(null);
+    },
     onAnotherInspiration: intent.presentInspiration,
     saving,
     undoing,

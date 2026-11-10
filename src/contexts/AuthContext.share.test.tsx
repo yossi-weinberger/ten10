@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 type Listener = (event: string, session: { user: { id: string } } | null) => Promise<void> | void;
 const auth = vi.hoisted(() => ({ listener: null as Listener | null }));
 const clearSharedIntake = vi.hoisted(() => vi.fn(() => Promise.resolve()));
+const clearAiAccessCache = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/supabaseClient", () => ({
   supabase: {
@@ -21,6 +22,7 @@ vi.mock("@/lib/supabaseClient", () => ({
   invalidateSessionCache: () => {},
 }));
 vi.mock("@/lib/ai/share-target", () => ({ clearSharedIntake }));
+vi.mock("@/lib/ai/ai-access-cache", () => ({ clearAiAccessCache }));
 vi.mock("@/lib/store", () => ({ useDonationStore: () => false }));
 vi.mock("@/lib/i18n", () => ({ default: { language: "he", t: (key: string) => key } }));
 vi.mock("@/lib/logger", () => ({ logger: { log: () => {}, error: () => {}, warn: () => {} } }));
@@ -41,7 +43,10 @@ async function emit(event: string, userId: string | null) {
 }
 
 describe("AuthProvider and pending shares", () => {
-  afterEach(() => clearSharedIntake.mockClear());
+  afterEach(() => {
+    clearSharedIntake.mockClear();
+    clearAiAccessCache.mockClear();
+  });
 
   it("drops a pending share when the user signs out", async () => {
     render(<AuthProvider>{null}</AuthProvider>);
@@ -49,6 +54,7 @@ describe("AuthProvider and pending shares", () => {
     expect(clearSharedIntake).not.toHaveBeenCalled();
     await emit("SIGNED_OUT", null);
     expect(clearSharedIntake).toHaveBeenCalledTimes(1);
+    expect(clearAiAccessCache).toHaveBeenCalledTimes(1);
   });
 
   it("drops a pending share when another account takes over without a sign-out", async () => {
@@ -56,7 +62,9 @@ describe("AuthProvider and pending shares", () => {
     await emit("SIGNED_IN", "a");
     await emit("SIGNED_IN", "a");
     expect(clearSharedIntake).not.toHaveBeenCalled();
+    expect(clearAiAccessCache).not.toHaveBeenCalled();
     await emit("SIGNED_IN", "b");
     expect(clearSharedIntake).toHaveBeenCalledTimes(1);
+    expect(clearAiAccessCache).toHaveBeenCalledTimes(1);
   });
 });

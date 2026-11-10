@@ -117,7 +117,7 @@ export function AssistantComposer({
         />
         {recording ? (
           <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
-            <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:animate-none" />
+            <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
             {weights.map((weight, index) => (
               <span
                 key={index}
@@ -134,7 +134,7 @@ export function AssistantComposer({
               <InputGroupButton
                 size="icon-sm"
                 variant="outline"
-                className="size-10 rounded-full sm:size-8"
+                className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
                 aria-label={t("aiIntake.attach")}
                 disabled={busy || recording}
               >
@@ -155,7 +155,7 @@ export function AssistantComposer({
           <InputGroupButton
             size="icon-sm"
             variant={recording ? "destructive" : "outline"}
-            className={recording ? "size-10 animate-pulse rounded-full motion-reduce:animate-none sm:size-8" : "size-10 rounded-full sm:size-8"}
+            className={recording ? "size-11 min-h-11 min-w-11 animate-pulse rounded-full motion-reduce:animate-none sm:size-11" : "size-11 min-h-11 min-w-11 rounded-full sm:size-11"}
             aria-label={t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
             aria-pressed={recording}
             disabled={busy}
@@ -167,7 +167,7 @@ export function AssistantComposer({
             type="submit"
             size="icon-sm"
             variant="default"
-            className="ms-auto size-10 rounded-full sm:size-8"
+            className="ms-auto size-11 min-h-11 min-w-11 rounded-full sm:size-11"
             aria-label={t("aiIntake.send")}
             disabled={!canSend}
           >

@@ -23,6 +23,7 @@ import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
 import { AssistantFab } from "./components/ai-intake/AssistantFab";
+import { useMyAiAccess } from "./lib/ai/ai-access";
 import { useAiIntakeUi } from "./lib/ai/flags";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
@@ -113,6 +114,7 @@ function App() {
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
   // "Contact" is in the side menu on every platform, so the floating button is only the assistant's.
+  useMyAiAccess(Boolean(user), platform);
   const showAssistant = useAiIntakeUi(platform, Boolean(user));
 
   // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)

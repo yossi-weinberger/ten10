@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { clearAiAccessCache, setCachedAiAccessForTests } from "./ai-access-cache";
 import { AI_INTAKE_WEB_FLAG, aiCallsAllowed, isAiFeatureFlagEnabled, isAiIntakeEnabled, showAiIntakeUi } from "./flags";
 
 const isPostHogSupported = vi.fn();
@@ -24,9 +25,11 @@ beforeEach(() => {
   getPlatform.mockReset();
   isFeatureEnabled.mockReset();
   vi.stubEnv("VITE_AI_INTAKE_ENABLED", "true");
+  clearAiAccessCache();
 });
 
 afterEach(() => {
+  clearAiAccessCache();
   vi.unstubAllEnvs();
 });
 
@@ -70,10 +73,30 @@ describe("isAiIntakeEnabled and kill-switch audit", () => {
       expect(isFeatureEnabled).not.toHaveBeenCalled();
     });
 
-    it("turns on for web when the flag is exactly true", () => {
+    it("stays off until plan access arrives, even when the PostHog flag is on", () => {
       getPlatform.mockReturnValue("web");
       isPostHogSupported.mockReturnValue(true);
       isFeatureEnabled.mockReturnValue(true);
+      expect(isAiIntakeEnabled()).toBe(false);
+      expect(showAiIntakeUi("web", true)).toBe(false);
+      expect(aiCallsAllowed()).toBe(false);
+    });
+
+    it("stays off when the signed-in user has no plan", () => {
+      getPlatform.mockReturnValue("web");
+      isPostHogSupported.mockReturnValue(true);
+      isFeatureEnabled.mockReturnValue(true);
+      setCachedAiAccessForTests("user-1", false);
+      expect(isAiIntakeEnabled()).toBe(false);
+      expect(showAiIntakeUi("web", true)).toBe(false);
+      expect(aiCallsAllowed()).toBe(false);
+    });
+
+    it("turns on for web when the flag is exactly true and access is allowed", () => {
+      getPlatform.mockReturnValue("web");
+      isPostHogSupported.mockReturnValue(true);
+      isFeatureEnabled.mockReturnValue(true);
+      setCachedAiAccessForTests("user-1", true);
       expect(isAiIntakeEnabled()).toBe(true);
     });
 
@@ -87,12 +110,14 @@ describe("isAiIntakeEnabled and kill-switch audit", () => {
       expect(isFeatureEnabled).not.toHaveBeenCalled();
     });
 
-    it("does not call the network on desktop or while loading", () => {
+    it("does not call the network on desktop, while loading, or without a plan", () => {
       getPlatform.mockReturnValue("desktop");
       expect(aiCallsAllowed()).toBe(false);
       getPlatform.mockReturnValue("loading");
       expect(aiCallsAllowed()).toBe(false);
       getPlatform.mockReturnValue("web");
+      expect(aiCallsAllowed()).toBe(false);
+      setCachedAiAccessForTests("user-1", true);
       expect(aiCallsAllowed()).toBe(true);
     });
   });

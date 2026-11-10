@@ -138,6 +138,7 @@
     "ruleFailed": "The rule was not saved.",
     "ruleApplied": "According to your rule: {{name}}",
     "halachaLink": "Open the halacha page",
+    "askRabbi": "Ask the rabbi",
     "rabbiSubject": "A personal question",
     "rabbiReply": "The reply will come to {{email}}.",
     "rabbiYourEmail": "your email",

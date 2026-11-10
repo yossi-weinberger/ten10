@@ -6,6 +6,8 @@ vi.mock("@/lib/supabaseClient", () => ({
   supabase: { rpc },
 }));
 
+vi.mock("@/lib/ai/flags", () => ({ aiCallsAllowed: () => true }));
+
 import { readUndoPayload, undoAiTransaction } from "./undo-text-intake";
 
 describe("undoAiTransaction", () => {

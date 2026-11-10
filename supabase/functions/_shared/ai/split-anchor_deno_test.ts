@@ -307,3 +307,49 @@ Deno.test("a dropped amountless item carrying a special type transfers to a sing
   assert(result.items[0]?.amount === 200, "amount 200");
   assert(statedSpecialType(result.items[0]!) === "recognized-expense", "transferred special type");
 });
+
+Deno.test("ל-prefix is stripped from payee when it's a preposition after giving verbs", () => {
+  const gave = anchor("נתתי 100 לעזר מציון", [
+    item({ amount: 100, amount_text: "100", description: "לעזר מציון", type: "donation" }),
+  ]);
+  assert(gave.items[0]?.description === "עזר מציון", "ל stripped after נתתי");
+
+  const donation = anchor("תרומה 50 לקופת הרב", [
+    item({ amount: 50, amount_text: "50", description: "לקופת הרב", type: "donation" }),
+  ]);
+  assert(donation.items[0]?.description === "קופת הרב", "ל stripped after תרומה");
+
+  const transferred = anchor("העברתי לשכנים 200", [
+    item({ amount: 200, amount_text: "200", description: "לשכנים", type: "donation" }),
+  ]);
+  assert(transferred.items[0]?.description === "שכנים", "ל stripped after העברתי");
+
+  const hyphenated = anchor("תרומה ל-ארגון הצדקה", [
+    item({ description: "ל-ארגון הצדקה", type: "donation" }),
+  ]);
+  assert(hyphenated.items[0]?.description === "ארגון הצדקה", "ל- stripped with hyphen");
+});
+
+Deno.test("ל-prefix is NOT stripped when it's part of the name or no preposition context", () => {
+  // When the name genuinely starts with lamed, and there's a preposition lamed before it,
+  // we strip the preposition lamed but keep the name's lamed
+  const genuineName = anchor("תרמתי ללב טוב", [
+    item({ description: "ללב טוב", type: "donation" }),
+  ]);
+  assert(genuineName.items[0]?.description === "לב טוב", "לב טוב - strip preposition, keep name ל");
+
+  const noContext = anchor("50 לעזר מציון", [
+    item({ amount: 50, amount_text: "50", description: "לעזר מציון", type: "donation" }),
+  ]);
+  assert(noContext.items[0]?.description === "לעזר מציון", "no giving verb, no stripping");
+
+  const tooShort = anchor("נתתי לב", [
+    item({ description: "לב", type: "donation" }),
+  ]);
+  assert(tooShort.items[0]?.description === "לב", "remainder < 2 chars, no stripping");
+
+  const noPrefix = anchor("נתתי עזר מציון", [
+    item({ description: "עזר מציון", type: "donation" }),
+  ]);
+  assert(noPrefix.items[0]?.description === "עזר מציון", "no ל prefix, nothing to strip");
+});

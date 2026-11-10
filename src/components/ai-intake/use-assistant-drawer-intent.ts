@@ -65,6 +65,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setParsedRule,
     setRuleChoice,
     setHalachaNamespace,
+    setHalachaUserQuestion,
     setRabbiText,
     setRabbiTicket,
     setChecking,
@@ -135,6 +136,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setRabbiText(source);
     setRabbiTicket(null);
     setHalachaNamespace(null);
+    setHalachaUserQuestion(null);
     setReceiptFields(null);
     setClarification(null);
     setSpecialType(null);
@@ -373,6 +375,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       setParsedRule(null);
       setRuleChoice(null);
       setHalachaNamespace(null);
+      setHalachaUserQuestion(null);
       showDraft(null);
       setRecurring(null);
       savedRecurring.current = null;
@@ -396,6 +399,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setParsedRule(parsedRuleFromCard(decision.card));
     setRuleChoice(null);
     setHalachaNamespace(decision.publishedPage ? pageNamespace(decision.publishedPage) : null);
+    setHalachaUserQuestion(decision.publishedPage ? source : null);
     setRabbiText(null);
     setRabbiTicket(null);
     // Set before the card is drawn, so its duplicate check leaves out the transaction it replaces.

@@ -120,13 +120,13 @@ jobs:
       # Explicit file list: a bare `deno test <dir>` would also pick up Vitest *.test.ts files.
       - name: Run Deno parity tests
         run: |
-          mapfile -t deno_tests < <(find supabase/functions -name '*_deno_test.ts' | sort)
+          mapfile -t deno_tests < <(find supabase/functions scripts/ai-eval -name '*_deno_test.ts' | sort)
           if [ "${#deno_tests[@]}" -eq 0 ]; then
             echo "No *_deno_test.ts files found" >&2
             exit 1
           fi
           printf 'Deno test: %s\n' "${deno_tests[@]}"
-          deno test --allow-env=AI_INTAKE_ENABLED,AI_TRIAL_ONLY,ENVIRONMENT,DENO_ENV --config supabase/functions/deno.json "${deno_tests[@]}"
+          deno test --allow-env=AI_INTAKE_ENABLED,ENVIRONMENT,DENO_ENV --config supabase/functions/deno.json "${deno_tests[@]}"
 
   # The Rust tests cover only src-tauri, but their setup (Tauri's system packages) can take
   # many minutes, so pull requests run them only when they touch src-tauri or this workflow.

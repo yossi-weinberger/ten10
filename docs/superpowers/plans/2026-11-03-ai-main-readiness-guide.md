@@ -16,7 +16,7 @@
 - **מה עוד לא נבדק:**
   1. התיקונים של #656 לא נבדקו באפליקציה, ופונקציות ה־Edge ב־testing עדיין בגרסה שלפני #656.
   2. ~~הקובץ המאוחד לא רץ על Postgres מאוחסן, רק מקומית.~~ נבדק ב־2026-11-09 בענף staging משוכפל מפרודקשן. ראו "תוצאות החזרה" בסוף שלב ב.
-- **מתג הניסוי** הוא עכשיו רק `AI_TRIAL_ONLY` ב־Edge (`supabase/functions/_shared/ai/trial-users.ts`). ב־SQL אין רשימה. שבעת משתמשי הניסוי קיימים בפרודקשן.
+- **גישת AI** נקבעת ב־`public.user_plans` / `public.plans`. אין רשימת ניסוי ב־Edge. שבעת משתמשי הניסוי מתווספים ל־`user_plans` כ־`beta` אם הם קיימים ב־`auth.users`.
 
 ## 1. כללי ברזל
 
@@ -120,7 +120,7 @@
    ```bash
    npx supabase secrets set --remote=<STG> AI_INTAKE_ENABLED=true
    ```
-   `VERCEL_AI_GATEWAY_API_KEY` מגדיר יוסי. `AI_TRIAL_ONLY` לא מגדירים (ניסוי בלבד).
+   `VERCEL_AI_GATEWAY_API_KEY` מגדיר יוסי. משתמש ניסוי מתווסף ב־`public.user_plans` (ראו שלב ה).
 
 6. **בדיקת עשן בלי UI:**
    - קריאה ל־`ai-classify-intent` עם JWT של משתמש ניסוי מחזירה כוונה.
@@ -206,13 +206,29 @@
 
 ## 6. שלב ה: הדלקה הדרגתית בפרודקשן
 
-הסדר חשוב. כל שלב מוסיף שכבה אחת:
+הסדר חשוב. כל שלב מוסיף שכבה אחת. גישת AI היא שורה ב־`public.user_plans`, לא סוד ב־Edge.
 
-1. **שרת, ניסוי בלבד:** סוד בפרודקשן: `VERCEL_AI_GATEWAY_API_KEY`, ואז `AI_INTAKE_ENABLED=true`. הקוד קורא רק את שני אלה ואת `AI_TRIAL_ONLY` (בנוסף ל־`SUPABASE_*` המובנים). `AI_TRIAL_ONLY` נשאר לא מוגדר, כלומר רק שבעת משתמשי הניסוי.
-2. **לקוח:** `VITE_AI_INTAKE_ENABLED=true` ב־Vercel Production, ופריסה מחדש (זה משתנה build).
-3. **PostHog:** `ai_intake_web` רק לשבעת משתמשי הניסוי.
+**הוספת משתמש ניסוי לפי מייל:**
+```sql
+INSERT INTO public.user_plans (user_id, plan, note)
+SELECT id, 'beta', '<note>' FROM auth.users WHERE email = '<email>';
+```
+
+**הסרה:** למחוק את השורה ב־`public.user_plans`.
+
+**פתיחה לכולם:** להוסיף תוכנית `'free'` עם מכסות ו־`is_default = true`.
+
+**מנויים:** billing עושה upsert עם `source='billing'` ו־`expires_at`.
+
+**שינוי מכסות:** `UPDATE public.plans`.
+
+**מתגי כיבוי:** `AI_INTAKE_ENABLED` (שרת), `ai_intake_web` ב־PostHog (UI).
+
+1. **שרת, ניסוי בלבד:** סוד בפרודקשן: `VERCEL_AI_GATEWAY_API_KEY`, ואז `AI_INTAKE_ENABLED=true`. הקוד קורא את שני אלה (בנוסף ל־`SUPABASE_*` המובנים). רק למי שיש שורת `beta` ב־`user_plans` יש AI.
+2. **לקוח:** `VITE_AI_INTAKE_ENABLED=true` ב־Vercel Production, ופריסה מחדש (זה משתנה build). בלי זה ה־UI לא יופיע גם למשתמשי ניסוי.
+3. **PostHog:** `ai_intake_web` מופעל ל־100% ומשמש רק כמתג כיבוי UI. `user_plans` הוא המקור היחיד לבקרת גישה.
 4. **QA בפרודקשן** של משתמשי הניסוי (הטבלה בשלב א, בקיצור). לעקוב אחרי העלות בלשונית ה־AI באדמין.
-5. **פתיחה רחבה**, רק אחרי שלב ו: `AI_TRIAL_ONLY=false` ב־Edge (מתג אחד), ואז אחוזים ב־PostHog.
+5. **פתיחה רחבה**, רק אחרי שלב ו: תוכנית `'free'` עם `is_default = true`, ואז אחוזים ב־PostHog.
 
 **כיבוי חירום:**
 - הדגל ב־PostHog: מיידי, ה־UI נעלם.

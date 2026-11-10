@@ -303,7 +303,8 @@ describe("AssistantDrawer characterization", () => {
     });
     const user = setup();
     await send(user, "האם מעשרות משכורת הן מהברוטו או מהנטו?");
-    expect(await screen.findByText("introduction.body")).toBeInTheDocument();
+    expect(await screen.findByText("aiIntake.askRabbi")).toBeInTheDocument();
+    expect(screen.queryByText("introduction.body")).not.toBeInTheDocument();
     expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
   });
 

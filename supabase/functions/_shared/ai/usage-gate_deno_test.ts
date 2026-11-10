@@ -15,7 +15,7 @@ Deno.test("a call check is allowed without a usage id", () => {
 });
 
 Deno.test("each block reason is kept with its reset time", () => {
-  for (const reason of ["quota_exhausted", "rate_limited", "daily_limit"]) {
+  for (const reason of ["quota_exhausted", "rate_limited", "daily_limit", "not_allowed"]) {
     const decision = readUsageDecision({ allowed: false, reason, resets_at: "2026-11-01T00:00:00+00:00" }, null);
     assert(!decision.allowed && decision.reason === reason, reason);
     assert(!decision.allowed && decision.resetsAt === "2026-11-01T00:00:00+00:00", `${reason} reset`);

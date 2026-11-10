@@ -4,6 +4,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const sql = readFileSync("supabase/migrations/20261103100000_ai_intake.sql", "utf8");
+const plansSql = readFileSync("supabase/migrations/20261110100000_ai_plans.sql", "utf8");
 
 /** One statement of the AI migration, as it is in the file. */
 function statement(start: string, end: string): string {
@@ -15,6 +16,16 @@ function statement(start: string, end: string): string {
 type Decision = { allowed: boolean; reason: string | null; usage_id?: string };
 
 let db: PGlite;
+
+async function betaUser(): Promise<string> {
+  const user = randomUUID();
+  await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
+  await db.query(
+    "INSERT INTO public.user_plans (user_id, plan, source, note) VALUES ($1, 'beta', 'manual', 'test')",
+    [user],
+  );
+  return user;
+}
 
 async function consume(user: string, turn: string | null, op: string | null): Promise<Decision> {
   const { rows } = await db.query<{ r: Decision }>(
@@ -55,7 +66,22 @@ beforeAll(async () => {
   await db.exec(`
     CREATE SCHEMA ai;
     CREATE SCHEMA auth;
+    CREATE ROLE anon;
+    CREATE ROLE authenticated;
+    CREATE ROLE service_role;
     CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$ SELECT 'service_role' $$;
+    CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
+      SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid
+    $$;
+    CREATE TABLE auth.users (id uuid PRIMARY KEY);
+    CREATE FUNCTION public.handle_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      NEW.updated_at := now();
+      RETURN NEW;
+    END;
+    $$;
+    GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+    GRANT USAGE ON SCHEMA ai TO anon, authenticated, service_role;
     ${statement("CREATE TABLE ai.usage_counters (", "\n);")}
     ${statement("CREATE TABLE ai.usage_events (", "\n);")}
     ${statement("CREATE TABLE ai.usage_rate (", "\n);")}
@@ -70,11 +96,12 @@ beforeAll(async () => {
     ${statement("CREATE FUNCTION ai.consume_call(", "\n$$;")}
     ${statement("CREATE FUNCTION public.consume_ai_usage(", "\n$$;")}
   `);
+  await db.exec(plansSql);
 }, 60_000);
 
 describe("one text message is one charge", () => {
   it("charges classify and split of one message once, in either order, and still counts both calls", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     const first = randomUUID();
     expect(await consume(user, first, "intent")).toMatchObject({ allowed: true });
     expect(await consume(user, first, "split")).toMatchObject({ allowed: true });
@@ -90,14 +117,14 @@ describe("one text message is one charge", () => {
   });
 
   it("charges a split that brings no turn on its own", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     expect(await consume(user, null, null)).toMatchObject({ allowed: true });
     expect(await consume(user, null, null)).toMatchObject({ allowed: true });
     expect(await unitsUsed(user)).toBe(2);
   });
 
   it("charges a data question once: classify, split and the question read share the message's turn", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     const turn = randomUUID();
     for (const op of ["intent", "split", "question"]) {
       expect(await consume(user, turn, op)).toMatchObject({ allowed: true });
@@ -106,7 +133,7 @@ describe("one text message is one charge", () => {
   });
 
   it("charges a second use of an operation on the same turn on its own", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     const turn = randomUUID();
     await consume(user, turn, "split");
     expect(await consume(user, turn, "split")).toMatchObject({ allowed: true });
@@ -118,7 +145,7 @@ describe("one text message is one charge", () => {
   });
 
   it("refuses the split and the question read once the monthly allowance is used up, with or without a turn", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     await useUpMonth(user);
     const turn = randomUUID();
     expect(await consume(user, turn, "split")).toMatchObject({ allowed: false, reason: "quota_exhausted" });
@@ -129,11 +156,11 @@ describe("one text message is one charge", () => {
   });
 
   it("stops helper calls (duplicate ranking, the split's retry) once the month is used up", async () => {
-    const open = randomUUID();
+    const open = await betaUser();
     await useUpMonth(open, 999);
     expect(await helperCall(open)).toMatchObject({ allowed: true });
     expect(await unitsUsed(open)).toBe(999);
-    const spent = randomUUID();
+    const spent = await betaUser();
     await useUpMonth(spent);
     expect(await helperCall(spent)).toMatchObject({ allowed: false, reason: "quota_exhausted" });
     const { rows } = await db.query("SELECT 1 FROM ai.usage_rate WHERE user_id = $1", [spent]);
@@ -141,7 +168,7 @@ describe("one text message is one charge", () => {
   });
 
   it("makes a split pay on its own when the turn's charge was given back or is stale", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     const given = randomUUID();
     const charge = await consume(user, given, "intent");
     expect(await release(charge.usage_id)).toBe(true);
@@ -157,7 +184,7 @@ describe("one text message is one charge", () => {
   });
 
   it("keeps the unit when one call of a shared turn fails", async () => {
-    const user = randomUUID();
+    const user = await betaUser();
     const turn = randomUUID();
     const charge = await consume(user, turn, "intent");
     await consume(user, turn, "split");
@@ -169,14 +196,14 @@ describe("one text message is one charge", () => {
 describe("the Edge functions use the shared charge", () => {
   it("charges the split as the text message before its model call", () => {
     const split = readFileSync("supabase/functions/ai-split-items/index.ts", "utf8");
-    const gate = split.indexOf('usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" })');
+    const gate = split.indexOf('usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "split" })');
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(split.indexOf("const first = await ask("));
   });
 
   it("charges the question read on the same turn before its model calls", () => {
     const read = readFileSync("supabase/functions/ai-read-question/index.ts", "utf8");
-    const gate = read.indexOf('consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" })');
+    const gate = read.indexOf('consume(userId, "text", { id: readTurnId(body?.turn), op: "question" })');
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(read.indexOf("callModel({"));
     expect(read).not.toContain("consumeCall(");
@@ -185,6 +212,6 @@ describe("the Edge functions use the shared charge", () => {
 
   it("charges the classify call on the same turn", () => {
     const classify = readFileSync("supabase/functions/ai-classify-intent/index.ts", "utf8");
-    expect(classify).toContain('usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "intent" })');
+    expect(classify).toContain('usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "intent" })');
   });
 });

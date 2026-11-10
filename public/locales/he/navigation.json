@@ -148,6 +148,7 @@
     "ruleFailed": "הכלל לא נשמר.",
     "ruleApplied": "לפי הכלל שהגדרת: {{name}}",
     "halachaLink": "לדף ההלכה",
+    "askRabbi": "שאל את הרב",
     "rabbiSubject": "שאלה אישית",
     "rabbiReply": "התשובה תגיע אל {{email}}.",
     "rabbiYourEmail": "המייל שלך",
