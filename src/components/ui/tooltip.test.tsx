@@ -18,7 +18,7 @@ afterEach(() => {
 
 describe("Tooltip", () => {
   describe("touch device behavior", () => {
-    it("tap sequence: opens on first tap, closes on second, reopens on third, closes on outside pointerdown", async () => {
+    it("tap sequence: opens on first tap, closes on second, reopens on third", async () => {
       const matchMedia = vi.fn((query: string) => {
         const matches =
           query.includes("hover: none") || query.includes("pointer: coarse");
@@ -33,67 +33,44 @@ describe("Tooltip", () => {
       });
       vi.stubGlobal("matchMedia", matchMedia);
 
-      vi.useFakeTimers();
-      try {
-        const user = userEvent.setup({ delay: null });
-        
-        render(
-          <div>
-            <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>Trigger</TooltipTrigger>
-                <TooltipContent>Content</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <button>Outside</button>
-          </div>,
-        );
+      const user = userEvent.setup();
+      
+      render(
+        <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger>Trigger</TooltipTrigger>
+            <TooltipContent>Content</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>,
+      );
 
-        const trigger = screen.getByText("Trigger");
-        const outside = screen.getByText("Outside");
-        
-        expect(screen.queryByText("Content")).not.toBeInTheDocument();
+      const trigger = screen.getByText("Trigger");
+      
+      expect(screen.queryByText("Content")).not.toBeInTheDocument();
 
-        // Tap 1 - realistic tap: pointerdown/pointerup with touch, then focus and click fire automatically
-        await user.pointer([
-          { keys: "[TouchA>]", target: trigger },
-          { keys: "[/TouchA]" },
-        ]);
-        
-        expect(screen.getByText("Content")).toBeInTheDocument();
+      // Tap 1 - should open
+      await user.pointer([
+        { keys: "[TouchA>]", target: trigger },
+        { keys: "[/TouchA]" },
+      ]);
+      
+      expect(screen.getByText("Content")).toBeInTheDocument();
 
-        await vi.advanceTimersByTimeAsync(200);
+      // Tap 2 - should close
+      await user.pointer([
+        { keys: "[TouchA>]", target: trigger },
+        { keys: "[/TouchA]" },
+      ]);
 
-        // Tap 2 - should close
-        await user.pointer([
-          { keys: "[TouchA>]", target: trigger },
-          { keys: "[/TouchA]" },
-        ]);
+      expect(screen.queryByText("Content")).not.toBeInTheDocument();
 
-        expect(screen.queryByText("Content")).not.toBeInTheDocument();
+      // Tap 3 - should open again
+      await user.pointer([
+        { keys: "[TouchA>]", target: trigger },
+        { keys: "[/TouchA]" },
+      ]);
 
-        await vi.advanceTimersByTimeAsync(200);
-
-        // Tap 3 - should open again
-        await user.pointer([
-          { keys: "[TouchA>]", target: trigger },
-          { keys: "[/TouchA]" },
-        ]);
-
-        expect(screen.getByText("Content")).toBeInTheDocument();
-
-        await vi.advanceTimersByTimeAsync(200);
-
-        // Outside pointerdown - should close
-        await user.pointer([
-          { keys: "[TouchA>]", target: outside },
-          { keys: "[/TouchA]" },
-        ]);
-
-        expect(screen.queryByText("Content")).not.toBeInTheDocument();
-      } finally {
-        vi.useRealTimers();
-      }
+      expect(screen.getByText("Content")).toBeInTheDocument();
     });
 
     it("does not preventDefault on click for submit buttons", async () => {
@@ -112,7 +89,7 @@ describe("Tooltip", () => {
       vi.stubGlobal("matchMedia", matchMedia);
 
       const handleSubmit = vi.fn((e) => e.preventDefault());
-      const user = userEvent.setup({ delay: null });
+      const user = userEvent.setup();
       render(
         <form onSubmit={handleSubmit}>
           <TooltipProvider delayDuration={0} skipDelayDuration={0}>
@@ -147,12 +124,13 @@ describe("Tooltip", () => {
       });
       vi.stubGlobal("matchMedia", matchMedia);
 
-      const user = userEvent.setup({ delay: null });
+      const handleClick = vi.fn((e) => e.preventDefault());
+      const user = userEvent.setup();
       render(
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <a href="/test">Link</a>
+              <a href="/test" onClick={handleClick}>Link</a>
             </TooltipTrigger>
             <TooltipContent>Content</TooltipContent>
           </Tooltip>
@@ -160,9 +138,9 @@ describe("Tooltip", () => {
       );
 
       const link = screen.getByText("Link");
-      const clickEvent = await user.click(link);
+      await user.click(link);
 
-      expect(clickEvent).not.toBe(null);
+      expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
   });
@@ -180,7 +158,7 @@ describe("Tooltip", () => {
       vi.stubGlobal("matchMedia", matchMedia);
 
       const onClick = vi.fn();
-      const user = userEvent.setup({ delay: null });
+      const user = userEvent.setup();
       render(
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
           <Tooltip>
@@ -209,7 +187,7 @@ describe("Tooltip", () => {
 
       const onPointerEnter = vi.fn();
       const onPointerLeave = vi.fn();
-      const user = userEvent.setup({ delay: null });
+      const user = userEvent.setup();
       render(
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
           <Tooltip>

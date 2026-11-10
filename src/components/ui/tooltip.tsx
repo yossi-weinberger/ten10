@@ -17,7 +17,7 @@ type TooltipTriggerProps = React.ComponentPropsWithoutRef<
 type TooltipInteractionContextValue = {
   isTouchLikeDevice: boolean;
   toggle: () => void;
-  suppressUntilRef: React.MutableRefObject<number>;
+  markPointerDown: () => void;
 };
 
 const TooltipInteractionContext =
@@ -92,13 +92,17 @@ const Tooltip = ({
     suppressUntilRef.current = Date.now() + 50;
   }, [isTouchLikeDevice, resolvedOpen, isControlled, onOpenChange]);
 
+  const markPointerDown = React.useCallback(() => {
+    suppressUntilRef.current = Date.now() + 150;
+  }, []);
+
   const interactionContextValue = React.useMemo(
     () => ({
       isTouchLikeDevice,
       toggle: toggleTouchTooltip,
-      suppressUntilRef,
+      markPointerDown,
     }),
-    [isTouchLikeDevice, toggleTouchTooltip],
+    [isTouchLikeDevice, toggleTouchTooltip, markPointerDown],
   );
 
   const rootProps: TooltipRootProps = isTouchLikeDevice
@@ -136,7 +140,7 @@ const TooltipTrigger = React.forwardRef<
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     onPointerDown?.(event);
     if (event.pointerType === "touch" && interactionContext?.isTouchLikeDevice) {
-      interactionContext.suppressUntilRef.current = Date.now() + 150;
+      interactionContext.markPointerDown();
     }
   };
 
