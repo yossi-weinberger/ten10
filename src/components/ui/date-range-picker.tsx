@@ -275,16 +275,16 @@ export function DatePickerWithRange({
         </div>
         <Drawer open={open} onOpenChange={handleOpenChange}>
           <DrawerContent dir={i18n.dir()}>
-            <div className="px-4 pb-2 pt-4 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-2 pt-4">
               {calendarComponent}
             </div>
             <DrawerFooter className="pt-2">
               <div className="flex w-full justify-end gap-3">
                 <Button variant="outline" onClick={handleClear} type="button">
-                  {tCommon("clear")}
+                  {tCommon("actions.clear")}
                 </Button>
                 <Button onClick={handleApply} type="button">
-                  {tCommon("apply")}
+                  {tCommon("actions.apply")}
                 </Button>
               </div>
             </DrawerFooter>

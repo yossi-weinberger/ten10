@@ -584,7 +584,7 @@ export function OpeningBalanceModal({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="px-4 overflow-y-auto">{formContent}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4">{formContent}</div>
 
         <DrawerFooter className="pt-2">{footerContent}</DrawerFooter>
       </DrawerContent>

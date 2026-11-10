@@ -10,7 +10,13 @@ import { parseLocalDate } from "@/lib/utils/local-date";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "actions.clear": "Clear",
+        "actions.apply": "Apply",
+      };
+      return translations[key] || key;
+    },
     i18n: {
       language: "en",
       dir: () => "ltr",
@@ -154,9 +160,12 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     const triggerButton = screen.getByRole("button");
     await user.click(triggerButton);
 
+    await screen.findByText("Clear");
+    await screen.findByText("Apply");
+    
     const buttons = screen.getAllByRole("button");
-    const clearButton = buttons.find(btn => btn.textContent === "clear");
-    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    const clearButton = buttons.find(btn => btn.textContent === "Clear");
+    const applyButton = buttons.find(btn => btn.textContent === "Apply");
     
     expect(clearButton).toBeInTheDocument();
     expect(applyButton).toBeInTheDocument();
@@ -178,8 +187,8 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     await user.click(triggerButton);
 
     const buttons = screen.getAllByRole("button");
-    const clearButton = buttons.find(btn => btn.textContent === "clear");
-    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    const clearButton = buttons.find(btn => btn.textContent === "Clear");
+    const applyButton = buttons.find(btn => btn.textContent === "Apply");
     
     expect(clearButton).toBeUndefined();
     expect(applyButton).toBeUndefined();
@@ -201,7 +210,7 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     await user.click(triggerButton);
 
     const buttons = screen.getAllByRole("button");
-    const clearButton = buttons.find(btn => btn.textContent === "clear");
+    const clearButton = buttons.find(btn => btn.textContent === "Clear");
     await user.click(clearButton!);
 
     expect(onDateChange).toHaveBeenCalledWith(undefined);
@@ -226,7 +235,7 @@ describe("DatePickerWithRange mobile drawer behavior", () => {
     await user.click(triggerButton);
 
     const buttons = screen.getAllByRole("button");
-    const applyButton = buttons.find(btn => btn.textContent === "apply");
+    const applyButton = buttons.find(btn => btn.textContent === "Apply");
     await user.click(applyButton!);
 
     expect(onDateChange).toHaveBeenCalledWith({ 
