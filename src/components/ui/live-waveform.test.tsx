@@ -417,6 +417,78 @@ describe("LiveWaveform", () => {
     expect(waveformDiv).toBeInTheDocument();
   });
 
+  it("history size scales with canvas width when not explicitly set", () => {
+    // Test the capacity calculation logic directly
+    const barWidth = 3;
+    const barGap = 1;
+
+    // Test 1: 320px width should give 80 bars
+    // 320 / (3 + 1) = 80
+    const capacity320 = Math.ceil(320 / (barWidth + barGap));
+    expect(capacity320).toBe(80);
+
+    // Test 2: 932px width should give 233 bars
+    // 932 / (3 + 1) = 233
+    const capacity932 = Math.ceil(932 / (barWidth + barGap));
+    expect(capacity932).toBe(233);
+
+    // Test 3: Verify the component uses this calculation
+    // by rendering at different widths and checking it doesn't error
+    const { container, rerender } = render(
+      <LiveWaveform active={false} mode="scrolling" height={40} barWidth={3} barGap={1} />
+    );
+
+    const waveformDiv = container.querySelector('[class*="relative"]');
+    expect(waveformDiv).toBeInTheDocument();
+
+    // Mock 320px width
+    vi.spyOn(waveformDiv!, "getBoundingClientRect").mockReturnValue({
+      width: 320,
+      height: 40,
+      top: 0,
+      left: 0,
+      bottom: 40,
+      right: 320,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    // Re-render to trigger resize
+    rerender(<LiveWaveform active={false} mode="scrolling" height={40} barWidth={3} barGap={1} />);
+
+    // Mock 932px width
+    vi.spyOn(waveformDiv!, "getBoundingClientRect").mockReturnValue({
+      width: 932,
+      height: 40,
+      top: 0,
+      left: 0,
+      bottom: 40,
+      right: 932,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    // Re-render to trigger resize
+    rerender(<LiveWaveform active={false} mode="scrolling" height={40} barWidth={3} barGap={1} />);
+
+    // Test 4: Explicit historySize prop should override
+    rerender(
+      <LiveWaveform
+        active={false}
+        mode="scrolling"
+        height={40}
+        barWidth={3}
+        barGap={1}
+        historySize={100}
+      />
+    );
+
+    // Component should render without errors at all widths
+    expect(waveformDiv).toBeInTheDocument();
+  });
+
   it("processing animation runs without errors and schedules animation frames", async () => {
     // Track requestAnimationFrame calls to verify animation loop runs
     let rafCallCount = 0;

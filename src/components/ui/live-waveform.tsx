@@ -50,7 +50,7 @@ export const LiveWaveform = ({
   sensitivity = 1,
   smoothingTimeConstant = 0.8,
   fftSize = 256,
-  historySize = 60,
+  historySize,
   updateRate = 30,
   mode = "scrolling",
   className,
