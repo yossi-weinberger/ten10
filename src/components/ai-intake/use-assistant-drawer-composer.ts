@@ -6,7 +6,6 @@ import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { splitItems } from "@/lib/ai/split-items";
 import { openCardEvidence, rememberClosed, rememberDraft } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount } from "@/lib/ai/split-draft";
-import { levelFromSamples } from "./assistant-audio-level";
 import {
   isSingleReceipt,
   openReceiptFailureStatus,
@@ -42,7 +41,6 @@ export function useAssistantDrawerComposer(
     setHalachaUserQuestion,
     setChecking,
     setPendingPhase,
-    setLevel,
     setElapsed,
     recording,
     setRecording,
@@ -63,20 +61,15 @@ export function useAssistantDrawerComposer(
     recorder,
     recordTimer,
     mediaStream,
-    audioFrame,
-    audioContext,
-    levelTick,
+    elapsedTimer,
     showDraft,
     beginTurn,
   } = state;
 
   function stopMeter() {
-    if (audioFrame.current) cancelAnimationFrame(audioFrame.current);
-    audioFrame.current = 0;
-    void audioContext.current?.close();
-    audioContext.current = null;
+    if (elapsedTimer.current) clearInterval(elapsedTimer.current);
+    elapsedTimer.current = null;
     mediaStream.current = null;
-    setLevel(0);
   }
 
   function stopRecording() {
@@ -221,25 +214,10 @@ export function useAssistantDrawerComposer(
     setRecording(true);
     setStatus(null);
     const started = Date.now();
-    if (typeof AudioContext !== "undefined") {
-      const context = new AudioContext();
-      audioContext.current = context;
-      const analyser = context.createAnalyser();
-      analyser.fftSize = 256;
-      context.createMediaStreamSource(stream).connect(analyser);
-      const samples = new Uint8Array(analyser.fftSize);
-      const tick = () => {
-        const now = Date.now();
-        if (now - levelTick.current >= 66) {
-          levelTick.current = now;
-          analyser.getByteTimeDomainData(samples);
-          setLevel(levelFromSamples(samples));
-          setElapsed(Math.min(60, Math.floor((now - started) / 1000)));
-        }
-        audioFrame.current = requestAnimationFrame(tick);
-      };
-      audioFrame.current = requestAnimationFrame(tick);
-    }
+    setElapsed(0);
+    elapsedTimer.current = setInterval(() => {
+      setElapsed(Math.min(60, Math.floor((Date.now() - started) / 1000)));
+    }, 100);
     recordTimer.current = setTimeout(() => {
       if (media.state !== "inactive") media.stop();
     }, 60_000);

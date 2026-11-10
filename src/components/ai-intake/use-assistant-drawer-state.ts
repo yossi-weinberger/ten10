@@ -116,7 +116,6 @@ export function useAssistantDrawerState() {
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
   const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
-  const [level, setLevel] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [recording, setRecording] = useState(false);
   const [undoing, setUndoing] = useState(false);
@@ -156,9 +155,7 @@ export function useAssistantDrawerState() {
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mediaStream = useRef<MediaStream | null>(null);
-  const audioFrame = useRef(0);
-  const audioContext = useRef<AudioContext | null>(null);
-  const levelTick = useRef(0);
+  const elapsedTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const duplicateRequest = useRef(0);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -301,7 +298,6 @@ export function useAssistantDrawerState() {
     setHalachaUserQuestion(null);
     setChecking(false);
     setPendingPhase(null);
-    setLevel(0);
     setElapsed(0);
     setStatus(null);
     setSavedItemId(null);
@@ -377,6 +373,8 @@ export function useAssistantDrawerState() {
   function disposeAssistant() {
     discardRecording.current = true;
     if (recordTimer.current) clearTimeout(recordTimer.current);
+    if (elapsedTimer.current) clearInterval(elapsedTimer.current);
+    mediaStream.current = null;
     settleOpenMeasurement();
     const active = recorder.current;
     if (active && active.state !== "inactive") active.stop();
@@ -521,8 +519,6 @@ export function useAssistantDrawerState() {
     setChecking,
     pendingPhase,
     setPendingPhase,
-    level,
-    setLevel,
     elapsed,
     setElapsed,
     recording,
@@ -571,9 +567,7 @@ export function useAssistantDrawerState() {
     discardRecording,
     recordTimer,
     mediaStream,
-    audioFrame,
-    audioContext,
-    levelTick,
+    elapsedTimer,
     settleOpenMeasurement,
     followQuestion,
     holdMeasurement,

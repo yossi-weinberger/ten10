@@ -157,8 +157,8 @@ export interface MultiBandVolumeOptions {
 
 const multibandDefaults: MultiBandVolumeOptions = {
   bands: 5,
-  loPass: 100,
-  hiPass: 600,
+  loPass: 4,
+  hiPass: 171,
   updateInterval: 32,
   analyserOptions: { fftSize: 2048 },
 };
@@ -364,7 +364,6 @@ export interface BarVisualizerProps extends HTMLAttributes<HTMLDivElement> {
   mediaStream?: MediaStream | null;
   minHeight?: number;
   maxHeight?: number;
-  demo?: boolean;
   centerAlign?: boolean;
 }
 
@@ -376,7 +375,6 @@ const BarVisualizerComponent = forwardRef<HTMLDivElement, BarVisualizerProps>(
       mediaStream,
       minHeight = 20,
       maxHeight = 100,
-      demo = false,
       centerAlign = false,
       className,
       style,
@@ -384,76 +382,11 @@ const BarVisualizerComponent = forwardRef<HTMLDivElement, BarVisualizerProps>(
     },
     ref,
   ) => {
-    const realVolumeBands = useMultibandVolume(mediaStream, {
+    const volumeBands = useMultibandVolume(mediaStream, {
       bands: barCount,
-      loPass: 100,
-      hiPass: 200,
+      loPass: 4,
+      hiPass: 171,
     });
-
-    const fakeVolumeBandsRef = useRef<number[]>(new Array(barCount).fill(0.2));
-    const [fakeVolumeBands, setFakeVolumeBands] = useState<number[]>(() =>
-      new Array(barCount).fill(0.2),
-    );
-    const fakeAnimationRef = useRef<number | undefined>(undefined);
-
-    useEffect(() => {
-      if (!demo) return;
-
-      if (state !== "speaking" && state !== "listening") {
-        const bands = new Array(barCount).fill(0.2);
-        fakeVolumeBandsRef.current = bands;
-        setFakeVolumeBands(bands);
-        return;
-      }
-
-      let lastUpdate = 0;
-      const updateInterval = 50;
-      const startTime = Date.now() / 1000;
-
-      const updateFakeVolume = (timestamp: number) => {
-        if (timestamp - lastUpdate >= updateInterval) {
-          const time = Date.now() / 1000 - startTime;
-          const newBands = new Array(barCount);
-
-          for (let i = 0; i < barCount; i++) {
-            const waveOffset = i * 0.5;
-            const baseVolume = Math.sin(time * 2 + waveOffset) * 0.3 + 0.5;
-            const randomNoise = Math.random() * 0.2;
-            newBands[i] = Math.max(0.1, Math.min(1, baseVolume + randomNoise));
-          }
-
-          let hasChanged = false;
-          for (let i = 0; i < barCount; i++) {
-            if (Math.abs(newBands[i] - fakeVolumeBandsRef.current[i]) > 0.05) {
-              hasChanged = true;
-              break;
-            }
-          }
-
-          if (hasChanged) {
-            fakeVolumeBandsRef.current = newBands;
-            setFakeVolumeBands(newBands);
-          }
-
-          lastUpdate = timestamp;
-        }
-
-        fakeAnimationRef.current = requestAnimationFrame(updateFakeVolume);
-      };
-
-      fakeAnimationRef.current = requestAnimationFrame(updateFakeVolume);
-
-      return () => {
-        if (fakeAnimationRef.current) {
-          cancelAnimationFrame(fakeAnimationRef.current);
-        }
-      };
-    }, [demo, state, barCount]);
-
-    const volumeBands = useMemo(
-      () => (demo ? fakeVolumeBands : realVolumeBands),
-      [demo, fakeVolumeBands, realVolumeBands],
-    );
 
     const highlightedIndices = useBarAnimator(
       state,
@@ -532,7 +465,6 @@ const BarVisualizer = memo(BarVisualizerComponent, (prevProps, nextProps) => {
     prevProps.mediaStream === nextProps.mediaStream &&
     prevProps.minHeight === nextProps.minHeight &&
     prevProps.maxHeight === nextProps.maxHeight &&
-    prevProps.demo === nextProps.demo &&
     prevProps.centerAlign === nextProps.centerAlign &&
     prevProps.className === nextProps.className &&
     JSON.stringify(prevProps.style) === JSON.stringify(nextProps.style)
