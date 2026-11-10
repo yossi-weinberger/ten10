@@ -372,7 +372,13 @@ function App() {
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={() => setIsSidebarExpanded(true)}
+            onMouseEnter={() => {
+              // Don't expand sidebar when assistant panel is open to prevent
+              // accidental expansion when hovering inside the panel
+              if (!document.documentElement.dataset.assistantPanel) {
+                setIsSidebarExpanded(true);
+              }
+            }}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
             <Sidebar expanded={isSidebarExpanded} />
