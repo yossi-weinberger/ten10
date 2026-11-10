@@ -50,7 +50,7 @@ describe("Tooltip", () => {
       expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it("prevents pointer enter/leave events on touch devices", async () => {
+    it("calls consumer pointer handlers then prevents default on touch devices", async () => {
       const matchMedia = vi.fn((query: string) => {
         const matches =
           query.includes("hover: none") || query.includes("pointer: coarse");
@@ -86,8 +86,10 @@ describe("Tooltip", () => {
       await user.hover(trigger);
       await user.unhover(trigger);
 
-      expect(onPointerEnter).not.toHaveBeenCalled();
-      expect(onPointerLeave).not.toHaveBeenCalled();
+      expect(onPointerEnter).toHaveBeenCalledTimes(1);
+      expect(onPointerEnter.mock.calls[0][0].defaultPrevented).toBe(true);
+      expect(onPointerLeave).toHaveBeenCalledTimes(1);
+      expect(onPointerLeave.mock.calls[0][0].defaultPrevented).toBe(true);
     });
   });
 

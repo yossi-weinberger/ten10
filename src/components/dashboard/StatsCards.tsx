@@ -375,8 +375,8 @@ export function StatsCards({
 
   const containerClass =
     orientation === "horizontal"
-      ? "grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4"
-      : "grid grid-cols-2 md:grid-cols-1 gap-4";
+      ? "grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 max-md:overflow-x-clip"
+      : "grid grid-cols-2 md:grid-cols-1 gap-4 max-md:overflow-x-clip";
 
   const rootContainerClass = "space-y-4";
 

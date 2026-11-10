@@ -118,15 +118,32 @@ Tooltip.displayName = "Tooltip";
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   TooltipTriggerProps
->(({ onClick, ...props }, ref) => {
+>(({ onClick, onPointerEnter, onPointerLeave, ...props }, ref) => {
   const interactionContext = React.useContext(TooltipInteractionContext);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
     if (interactionContext?.isTouchLikeDevice) {
       event.preventDefault();
       interactionContext.toggle();
     }
-    onClick?.(event);
+  };
+
+  const handlePointerEnter = (event: React.PointerEvent<HTMLButtonElement>) => {
+    onPointerEnter?.(event);
+    if (event.defaultPrevented) return;
+    if (interactionContext?.isTouchLikeDevice) {
+      event.preventDefault();
+    }
+  };
+
+  const handlePointerLeave = (event: React.PointerEvent<HTMLButtonElement>) => {
+    onPointerLeave?.(event);
+    if (event.defaultPrevented) return;
+    if (interactionContext?.isTouchLikeDevice) {
+      event.preventDefault();
+    }
   };
 
   return (
@@ -134,16 +151,8 @@ const TooltipTrigger = React.forwardRef<
       ref={ref}
       {...props}
       onClick={handleClick}
-      onPointerEnter={
-        interactionContext?.isTouchLikeDevice
-          ? (e) => e.preventDefault()
-          : props.onPointerEnter
-      }
-      onPointerLeave={
-        interactionContext?.isTouchLikeDevice
-          ? (e) => e.preventDefault()
-          : props.onPointerLeave
-      }
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
     />
   );
 });
