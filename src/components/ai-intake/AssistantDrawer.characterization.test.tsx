@@ -1090,6 +1090,8 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
+    // Summary shows formatted amount, expand to edit
+    await user.click(screen.getByRole("button", { name: "aiIntake.edit" }));
     expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("200");
     expect(screen.queryByRole("combobox", { name: "aiIntake.recurring.type" })).not.toBeInTheDocument();
     expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
