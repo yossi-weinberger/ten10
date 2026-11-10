@@ -71,7 +71,7 @@ export function TransactionsTableDisplay() {
     (state) => state.settings.trackChomeshSeparately,
   );
   const calendarType = useEffectiveCalendarType();
-  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  const isSmallNow = useMediaQuery("(max-width: 767px), (pointer: coarse) and (max-height: 500px)");
   const [useMobileCards] = useState(isSmallNow);
 
   // sortableColumns definition with translations

@@ -34,6 +34,7 @@ import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
+import { useDonationStore } from "@/lib/store";
 
 interface TransactionCardListProps {
   transactions: TransactionForTable[];
@@ -58,6 +59,9 @@ export function TransactionCardList({
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
   const { platform } = usePlatform();
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately,
+  );
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionForTable | null>(null);
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
@@ -70,13 +74,14 @@ export function TransactionCardList({
 
     let previousMonthKey: string | null = null;
 
-    transactions.forEach((transaction) => {
+    transactions.forEach((transaction, index) => {
       const currentMonthKey = getCalendarMonthKey(
         transaction.date,
         calendarType,
       );
 
       if (
+        index === 0 ||
         isCalendarMonthTransition(
           previousMonthKey,
           transaction.date,
@@ -196,45 +201,76 @@ export function TransactionCardList({
           const baseType = baseTypeOf(transaction.type);
           const surfaceClasses = BASE_TYPE_SURFACE[baseType];
           const displayDate = formatDisplayDate(transaction.date, "numeric");
+          
+          const hasDescription = !!transaction.description;
+          const cardTitle = hasDescription
+            ? transaction.description
+            : formatCategory(
+                transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+                  : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+                  : undefined,
+                transaction.category,
+                i18n.language,
+                t(`types.${transaction.type}`, transaction.type)
+              );
+          
+          const categoryText = transaction.category
+            ? formatCategory(
+                transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+                  : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+                  : undefined,
+                transaction.category,
+                i18n.language,
+                ""
+              )
+            : "";
+
+          const handleKeyDown = (e: React.KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleCardClick(transaction);
+            }
+          };
 
           return (
             <Card
               key={transaction.id}
+              role="button"
+              tabIndex={0}
               className={cn(
-                "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-shadow hover:shadow-md",
+                "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99]",
                 surfaceClasses
               )}
               onClick={() => handleCardClick(transaction)}
+              onKeyDown={handleKeyDown}
             >
               <div className="flex-1 overflow-hidden">
                 <div
                   className={cn(
                     "truncate font-medium",
+                    !hasDescription && "text-muted-foreground",
                     PH_SENSITIVE_PROPS.className
                   )}
                   data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                 >
-                  {transaction.description || "-"}
+                  {cardTitle}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span>{displayDate.primary}</span>
-                  <span>·</span>
-                  <span
-                    className={cn(
-                      "truncate",
-                      PH_SENSITIVE_PROPS.className
-                    )}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {formatCategory(
-                      transaction.type === "income" || transaction.type === "exempt-income" ? "income"
-                        : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
-                        : undefined,
-                      transaction.category,
-                      i18n.language,
-                      "-"
-                    )}
-                  </span>
+                  {categoryText && (
+                    <>
+                      <span>·</span>
+                      <span
+                        className={cn(
+                          "truncate",
+                          PH_SENSITIVE_PROPS.className
+                        )}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {categoryText}
+                      </span>
+                    </>
+                  )}
                   {transaction.recurring_info && (
                     <>
                       <span>·</span>
@@ -275,8 +311,28 @@ export function TransactionCardList({
             >
               {selectedTransaction?.description || t("messages.defaultTransactionName")}
             </DrawerTitle>
+            {selectedTransaction && (
+              <div
+                className={cn(
+                  "mt-2 text-2xl font-bold",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <CurrencyConversionInfo
+                  amount={selectedTransaction.amount}
+                  currency={selectedTransaction.currency}
+                  originalAmount={selectedTransaction.original_amount}
+                  originalCurrency={selectedTransaction.original_currency}
+                  conversionRate={selectedTransaction.conversion_rate}
+                  conversionDate={selectedTransaction.conversion_date}
+                  rateSource={selectedTransaction.rate_source}
+                  mode="static"
+                />
+              </div>
+            )}
             <DrawerDescription className="sr-only">
-              {t("modal.editDescription")}
+              {t("drawer.detailsDescription")}
             </DrawerDescription>
           </DrawerHeader>
 
@@ -312,25 +368,6 @@ export function TransactionCardList({
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.amount")}</span>
-                  <span
-                    className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    <CurrencyConversionInfo
-                      amount={selectedTransaction.amount}
-                      currency={selectedTransaction.currency}
-                      originalAmount={selectedTransaction.original_amount}
-                      originalCurrency={selectedTransaction.original_currency}
-                      conversionRate={selectedTransaction.conversion_rate}
-                      conversionDate={selectedTransaction.conversion_date}
-                      rateSource={selectedTransaction.rate_source}
-                      mode="static"
-                    />
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("columns.type")}</span>
                   <Badge
                     variant="outline"
@@ -343,51 +380,59 @@ export function TransactionCardList({
                   </Badge>
                 </div>
 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.category")}</span>
-                  <span
-                    className={cn(PH_SENSITIVE_PROPS.className)}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {formatCategory(
-                      selectedTransaction.type === "income" || selectedTransaction.type === "exempt-income" ? "income"
-                        : selectedTransaction.type === "expense" || selectedTransaction.type === "recognized-expense" ? "expense"
-                        : undefined,
-                      selectedTransaction.category,
-                      i18n.language,
-                      "-"
-                    )}
-                  </span>
-                </div>
+                {selectedTransaction.category && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("columns.category")}</span>
+                    <span
+                      className={cn(PH_SENSITIVE_PROPS.className)}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {formatCategory(
+                        selectedTransaction.type === "income" || selectedTransaction.type === "exempt-income" ? "income"
+                          : selectedTransaction.type === "expense" || selectedTransaction.type === "recognized-expense" ? "expense"
+                          : undefined,
+                        selectedTransaction.category,
+                        i18n.language,
+                        ""
+                      )}
+                    </span>
+                  </div>
+                )}
 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.recipient")}</span>
-                  <span
-                    className={cn(PH_SENSITIVE_PROPS.className)}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {selectedTransaction.recipient || "-"}
-                  </span>
-                </div>
+                {selectedTransaction.recipient && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("columns.recipient")}</span>
+                    <span
+                      className={cn(PH_SENSITIVE_PROPS.className)}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {selectedTransaction.recipient}
+                    </span>
+                  </div>
+                )}
 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.paymentMethod")}</span>
-                  <span
-                    className={cn(PH_SENSITIVE_PROPS.className)}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {formatPaymentMethod(
-                      selectedTransaction.payment_method,
-                      i18n.language,
-                      "-"
-                    )}
-                  </span>
-                </div>
+                {selectedTransaction.payment_method && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("columns.paymentMethod")}</span>
+                    <span
+                      className={cn(PH_SENSITIVE_PROPS.className)}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {formatPaymentMethod(
+                        selectedTransaction.payment_method,
+                        i18n.language,
+                        ""
+                      )}
+                    </span>
+                  </div>
+                )}
 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.chomesh")}</span>
-                  <span>{formatBoolean(selectedTransaction.is_chomesh)}</span>
-                </div>
+                {trackChomeshSeparately && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("columns.chomesh")}</span>
+                    <span>{formatBoolean(selectedTransaction.is_chomesh)}</span>
+                  </div>
+                )}
 
                 {selectedTransaction.recurring_info && (
                   <div className="flex justify-between">
@@ -470,15 +515,15 @@ export function TransactionCardList({
             );
           })()}
 
-          <DrawerFooter className="gap-2">
-            <Button variant="default" onClick={handleEdit} className="w-full">
+          <DrawerFooter className="flex-row gap-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <Button variant="default" onClick={handleEdit} className="h-11 flex-1">
               <Edit3 className="me-2 h-4 w-4" />
               {t("actions.edit")}
             </Button>
             <Button
               variant="outline"
               onClick={handleDelete}
-              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="h-11 flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="me-2 h-4 w-4" />
               {t("actions.delete")}

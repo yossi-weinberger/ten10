@@ -394,4 +394,116 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("Salary");
   });
+
+  it("uses category as fallback title when description is empty", () => {
+    const transactionWithoutDescription: TransactionForTable = {
+      ...mockTransactions[0],
+      description: null,
+      category: "Groceries",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[transactionWithoutDescription]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Groceries");
+    expect(markup).toContain("text-muted-foreground");
+  });
+
+  it("uses type label as fallback title when both description and category are empty", () => {
+    const transactionWithoutDescriptionOrCategory: TransactionForTable = {
+      ...mockTransactions[0],
+      description: null,
+      category: null,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[transactionWithoutDescriptionOrCategory]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Income");
+    expect(markup).toContain("text-muted-foreground");
+  });
+
+  it("omits category separator when category is empty", () => {
+    const transactionWithoutCategory: TransactionForTable = {
+      ...mockTransactions[0],
+      category: null,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[transactionWithoutCategory]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("2026-11-01");
+    expect(markup).toContain("Salary");
+  });
+
+  it("renders month header before first card", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("2026-11");
+    expect(markup).toContain("sticky");
+  });
+
+  it("includes keyboard navigation attributes on cards", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain('role="button"');
+    expect(markup).toContain('tabindex="0"');
+  });
+
+  it("includes press feedback classes on cards", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("active:scale-[0.99]");
+  });
 });

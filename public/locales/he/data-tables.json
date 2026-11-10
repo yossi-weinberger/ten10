@@ -219,6 +219,9 @@
     "editRecurringDescription": "עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.",
     "noRecurringSelected": "לא נבחרה הוראה לעריכה."
   },
+  "drawer": {
+    "detailsDescription": "פרטי התנועה ופעולות זמינות"
+  },
   "accessibility": {
     "openMenu": "פתח תפריט"
   },

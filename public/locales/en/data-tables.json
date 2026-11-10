@@ -243,6 +243,9 @@
     "editRecurringDescription": "Update recurring transaction details. Changes will apply only to future transactions.",
     "noRecurringSelected": "No recurring transaction selected for editing."
   },
+  "drawer": {
+    "detailsDescription": "Transaction details and actions"
+  },
   "accessibility": {
     "openMenu": "Open menu"
   },
