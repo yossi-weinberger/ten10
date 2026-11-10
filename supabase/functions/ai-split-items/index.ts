@@ -1,8 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
-import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
-import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
@@ -21,6 +19,7 @@ import {
 } from "../_shared/ai/split-prompt.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
 import { isSupportedCurrencyCode } from "../_shared/transaction-domain/normalize-core.ts";
+import { requireAiUser } from "../_shared/ai/require-ai-user.ts";
 
 /** Real messages are a few hundred characters. A longer one is cut, not sent whole. */
 const MAX_TEXT_CHARS = 8000;
@@ -34,21 +33,14 @@ function json(origin: string | null, body: unknown, status: number): Response {
 
 
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get("origin");
-  if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
-  if (req.method !== "POST") return json(origin, { route: "unreadable" }, 405);
-  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
+  const setup = await requireAiUser(req, {
+    methodNotAllowedBody: { route: "unreadable" },
+    notAllowedBody: { reason: "unavailable" },
+  });
+  if (!setup.ok) return setup.response;
+  const { userId, origin, userClient } = setup;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: userData, error: userError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
-  if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { reason: "unavailable" }, 200);
 
   const body = await req.json().catch(() => null) as {
     text?: unknown;
@@ -82,13 +74,13 @@ Deno.serve(async (req: Request) => {
   const prepStarted = Date.now();
   const [lists, firstGate] = await Promise.all([
     admin
-      ? loadSplitLists(userClient, admin, userData.user.id).catch((error) => {
+      ? loadSplitLists(userClient, admin, userId).catch((error) => {
         logger.error(`split lists failed: ${error instanceof Error ? error.name : "unknown"}`);
         return { context: {}, rules: [] as SplitRuleRef[] };
       })
       : Promise.resolve({ context: {}, rules: [] as SplitRuleRef[] }),
     // The split is a paid model call, so it is charged as the text message itself, not as a free follow-up.
-    usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" }),
+    usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "split" }),
   ]);
   const prepMs = Date.now() - prepStarted;
   if (!firstGate.allowed) {
@@ -103,7 +95,7 @@ Deno.serve(async (req: Request) => {
   async function ask(usageId: string | null): Promise<{ payload: unknown; usageId: string | null } | null> {
     const started = Date.now();
     const result = await callModel({
-      userId: userData.user.id,
+      userId,
       operation: "split",
       model: SPLIT_MODEL,
       url: SPLIT_RESPONSES_URL,
@@ -134,7 +126,7 @@ Deno.serve(async (req: Request) => {
     let usageId = first.usageId;
     let retried = false;
     if (!parseSplitPayload(readModelText(payload))) {
-      const secondGate = await usage.consumeCall(userData.user.id);
+      const secondGate = await usage.consumeCall(userId);
       if (secondGate.allowed) {
         retried = true;
         const second = await ask(secondGate.usageId);

@@ -1,7 +1,7 @@
 import intentCases from "./fixtures/intent-eval-cases.json" with { type: "json" };
 import { writeEvalOut } from "./eval-out.ts";
-import { buildIntentBody, readIntentChoice } from "./jev-intent.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
+import { buildIntentBody, readIntentChoice } from "../../supabase/functions/_shared/ai/jev-intent.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
 
 function readGatewayKey(): string {
   const file = Deno.readTextFileSync(new URL("../../../../.env", import.meta.url));

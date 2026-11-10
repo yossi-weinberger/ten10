@@ -1,6 +1,6 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { buildQuestionSlotBody } from "./question-slots.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "./jev-duplicate-rank.ts";
+import { buildQuestionSlotBody } from "../../supabase/functions/_shared/ai/question-slots.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../../supabase/functions/_shared/ai/jev-duplicate-rank.ts";
 import { readSlotEvalFixture, scoreSlotEval, SLOT_EVAL_FIELDS } from "./question-slot-eval.ts";
 
 function readGatewayKey(): string {

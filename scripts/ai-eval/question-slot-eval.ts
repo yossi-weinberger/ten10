@@ -1,4 +1,4 @@
-import { INTENT_CONFIDENCE_MIN } from "./jev-intent.ts";
+import { INTENT_CONFIDENCE_MIN } from "../../supabase/functions/_shared/ai/jev-intent.ts";
 
 export const SLOT_EVAL_FIELDS = ["family", "measure", "recipient", "category", "payment_method"] as const;
 export type SlotEvalField = (typeof SLOT_EVAL_FIELDS)[number];

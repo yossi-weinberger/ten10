@@ -196,14 +196,14 @@ describe("one text message is one charge", () => {
 describe("the Edge functions use the shared charge", () => {
   it("charges the split as the text message before its model call", () => {
     const split = readFileSync("supabase/functions/ai-split-items/index.ts", "utf8");
-    const gate = split.indexOf('usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "split" })');
+    const gate = split.indexOf('usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "split" })');
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(split.indexOf("const first = await ask("));
   });
 
   it("charges the question read on the same turn before its model calls", () => {
     const read = readFileSync("supabase/functions/ai-read-question/index.ts", "utf8");
-    const gate = read.indexOf('consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "question" })');
+    const gate = read.indexOf('consume(userId, "text", { id: readTurnId(body?.turn), op: "question" })');
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(read.indexOf("callModel({"));
     expect(read).not.toContain("consumeCall(");
@@ -212,6 +212,6 @@ describe("the Edge functions use the shared charge", () => {
 
   it("charges the classify call on the same turn", () => {
     const classify = readFileSync("supabase/functions/ai-classify-intent/index.ts", "utf8");
-    expect(classify).toContain('usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "intent" })');
+    expect(classify).toContain('usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "intent" })');
   });
 });
