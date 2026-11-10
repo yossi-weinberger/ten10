@@ -44,8 +44,7 @@ export function DatePickerWithRange({
   const { t: tCommon } = useTranslation("common");
   const formatDisplayDate = useDisplayDate();
   const yearBounds = getCalendarNavigationBounds();
-  const isSmallNow = useMediaQuery("(max-width: 767px)");
-  const [useDrawer, setUseDrawer] = React.useState(isSmallNow);
+  const useDrawer = useMediaQuery("(max-width: 767px)");
   
   // Use local state to manage range selection
   const [localRange, setLocalRange] = React.useState<DateRange | undefined>(
@@ -57,11 +56,6 @@ export function DatePickerWithRange({
   // correct month when a range is already selected.
   const [month, setMonth] = React.useState<Date | undefined>(date?.from);
   const [open, setOpen] = React.useState(false);
-  
-  // Lock the variant (Drawer/Popover) while the picker is open.
-  React.useEffect(() => {
-    if (!open) setUseDrawer(isSmallNow);
-  }, [isSmallNow, open]);
 
   // Helper to check if two dates are the same day
   const isSameDay = (a?: Date, b?: Date) => {

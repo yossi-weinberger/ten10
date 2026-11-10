@@ -106,13 +106,7 @@ export function DatePicker({
   const caretPositionRef = React.useRef<number>(0);
   const needsCaretUpdate = React.useRef(false);
   const { i18n } = useTranslation(["dashboard", "transactions"]);
-  const isSmallNow = useMediaQuery("(max-width: 767px)");
-  const [useDrawer, setUseDrawer] = React.useState(isSmallNow);
-  
-  // Lock the variant (Drawer/Popover) while the picker is open.
-  React.useEffect(() => {
-    if (!open) setUseDrawer(isSmallNow);
-  }, [isSmallNow, open]);
+  const useDrawer = useMediaQuery("(max-width: 767px)");
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
