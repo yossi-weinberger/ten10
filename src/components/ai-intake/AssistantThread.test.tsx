@@ -58,6 +58,7 @@ const handlers = {
   onDismissPair: vi.fn(),
   onRabbiSent: vi.fn(),
   onRabbiDismiss: vi.fn(),
+  onAskRabbiFromHalacha: vi.fn(),
   onAnotherInspiration: vi.fn(),
   saving: false,
   undoing: false,
