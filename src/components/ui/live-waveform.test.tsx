@@ -555,7 +555,7 @@ describe("LiveWaveform", () => {
           scale: vi.fn(),
           clearRect: vi.fn(),
           fillRect: vi.fn(),
-          roundRect: vi.fn((x: number, y: number, width: number, height: number) => {
+          roundRect: vi.fn((_x: number, _y: number, _width: number, height: number) => {
             const currentFrame = roundRectCalls.find((c) => c.time === frameCount);
             if (currentFrame) {
               currentFrame.heights.push(height);
