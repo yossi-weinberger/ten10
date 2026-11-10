@@ -93,8 +93,8 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { ranked: false, scores: [] }, 200);
 
-  // ponytail: an automatic check while the user edits a card, so it is not charged per edit. It stops with
-  // the monthly allowance (consume_ai_call) and is bounded by the minute and day caps. Charge it if that is not enough.
+  // Duplicate ranking adds 0 units but is refused once the monthly allowance is exhausted and still counts
+  // toward day/minute rate limits. Model cost is logged. Bounded by MAX_CANDIDATES=20 (jev-duplicate-rank.ts:20).
   const allowed = await serviceUsageGate().consumeCall(userId);
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { ranked: false, scores: [] }, 200);
