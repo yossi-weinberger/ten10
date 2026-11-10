@@ -1414,7 +1414,7 @@ describe("TransactionCardList", () => {
       expect(onToggleSelected).toHaveBeenCalledTimes(1);
     });
 
-    it("long-press then tap on another card selects it", async () => {
+    it("realistic 700ms hold then tap another card selects it", async () => {
       const onToggleSelected = vi.fn();
       const selectedIds = new Set<string>(["1"]); // Card 1 already selected
 
@@ -1443,16 +1443,16 @@ describe("TransactionCardList", () => {
       const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
       const secondCard = cards.find((c) => c.textContent?.includes("Groceries"));
 
-      // Long-press the first card
+      // Realistic long-press: hold for 700ms
       act(() => {
         fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
       });
 
       act(() => {
-        vi.advanceTimersByTime(450);
+        vi.advanceTimersByTime(700);
       });
 
-      // The first call is from the long-press
+      // Long-press fired at 450ms
       expect(onToggleSelected).toHaveBeenCalledWith("1");
       expect(onToggleSelected).toHaveBeenCalledTimes(1);
 
@@ -1460,24 +1460,25 @@ describe("TransactionCardList", () => {
         fireEvent.pointerUp(firstCard!);
       });
 
-      // Wait for the timeout to clear the longPressTriggeredRef
-      act(() => {
-        vi.advanceTimersByTime(100);
-      });
+      // The trailing click should be swallowed
+      fireEvent.click(firstCard!);
+      expect(onToggleSelected).toHaveBeenCalledTimes(1); // Still 1, not 2
 
-      // Tap on a different card
+      // Next tap on a different card should work (new gesture)
+      fireEvent.pointerDown(secondCard!, { clientX: 200, clientY: 100 });
+      fireEvent.pointerUp(secondCard!);
       fireEvent.click(secondCard!);
 
-      // Should select card 2 (not be swallowed)
+      // Should select card 2
       expect(onToggleSelected).toHaveBeenCalledWith("2");
       expect(onToggleSelected).toHaveBeenCalledTimes(2);
     });
 
-    it("long-press then tap on same card deselects it after brief delay", async () => {
+    it("700ms hold swallows trailing click, keeps card selected", async () => {
       const onToggleSelected = vi.fn();
-      const selectedIds = new Set<string>(["1"]); // Card 1 already selected
+      const selectedIds = new Set<string>();
 
-      render(
+      const { rerender } = render(
         <TransactionCardList
           transactions={[mockTransactions[0], mockTransactions[1]]}
           onEdit={vi.fn()}
@@ -1490,7 +1491,7 @@ describe("TransactionCardList", () => {
           onClearSelection={vi.fn()}
           onSelectionEdit={vi.fn()}
           onSelectionDelete={vi.fn()}
-          selectedCountLabel="1 transaction selected"
+          selectedCountLabel="0 transactions selected"
           editLabel="Edit"
           deleteLabel="Delete"
           clearLabel="Clear selection"
@@ -1501,30 +1502,56 @@ describe("TransactionCardList", () => {
       const cards = screen.getAllByRole("button");
       const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
 
-      // Long-press the first card
+      // Hold for 700ms
       act(() => {
         fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
       });
 
       act(() => {
-        vi.advanceTimersByTime(450);
+        vi.advanceTimersByTime(700);
       });
 
+      // Selected at 450ms
       expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
 
       act(() => {
         fireEvent.pointerUp(firstCard!);
       });
 
-      // Wait for the timeout to clear the longPressTriggeredRef
-      act(() => {
-        vi.advanceTimersByTime(100);
-      });
+      // Trailing click should be swallowed
+      fireEvent.click(firstCard!);
+      expect(onToggleSelected).toHaveBeenCalledTimes(1); // Still only 1 call
 
-      // Tap the same card after the brief delay
+      // Simulate parent updating selectedIds after the first toggle
+      const updatedSelectedIds = new Set<string>(["1"]);
+      rerender(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={updatedSelectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      // Now in selection mode, a normal tap should toggle
+      fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      fireEvent.pointerUp(firstCard!);
       fireEvent.click(firstCard!);
 
-      // Should toggle card 1 again (deselect it)
+      // Should deselect (second toggle)
       expect(onToggleSelected).toHaveBeenCalledWith("1");
       expect(onToggleSelected).toHaveBeenCalledTimes(2);
     });
