@@ -498,7 +498,12 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const today = getCurrentLocalDate();
     if (!source.trim()) return;
     const request = ++requestRef.current;
-    beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
+    const existingVoiceTurn = kind === "voice" && state.activeUser?.kind === "voice" && state.activeUser.text === "";
+    if (existingVoiceTurn) {
+      state.setActiveUser({ kind: "voice", text: source });
+    } else {
+      beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
+    }
     state.setText("");
     setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);

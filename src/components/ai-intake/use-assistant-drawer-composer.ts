@@ -162,13 +162,13 @@ export function useAssistantDrawerComposer(
 
   async function finishVoice(blob: Blob) {
     const request = ++requestRef.current;
+    beginTurn({ kind: "voice", text: "" });
     setPendingPhase("voice");
     setChecking(true);
     const heard = await transcribeSpeech(blob);
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!heard.ok) {
-      beginTurn({ kind: "voice", text: "" });
       setStatus(voiceFailureStatus(heard.reason));
       return;
     }
