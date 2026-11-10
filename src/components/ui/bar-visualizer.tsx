@@ -74,81 +74,6 @@ function createAudioAnalyser(
   return { analyser, audioContext, cleanup };
 }
 
-/**
- * Hook for tracking the volume of an audio stream using the Web Audio API.
- * @param mediaStream - The MediaStream to analyze
- * @param options - Audio analyser options
- * @returns The current volume level (0-1)
- */
-export function useAudioVolume(
-  mediaStream?: MediaStream | null,
-  options: AudioAnalyserOptions = { fftSize: 32, smoothingTimeConstant: 0 },
-) {
-  const [volume, setVolume] = useState(0);
-  const volumeRef = useRef(0);
-  const frameId = useRef<number | undefined>(undefined);
-
-  const memoizedOptions = useMemo(
-    () => options,
-    [
-      options.fftSize,
-      options.smoothingTimeConstant,
-      options.minDecibels,
-      options.maxDecibels,
-    ],
-  );
-
-  useEffect(() => {
-    if (!mediaStream) {
-      volumeRef.current = 0;
-      frameId.current = requestAnimationFrame(() => setVolume(0));
-      return () => {
-        if (frameId.current) cancelAnimationFrame(frameId.current);
-      };
-    }
-
-    const { analyser, cleanup } = createAudioAnalyser(
-      mediaStream,
-      memoizedOptions,
-    );
-
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    let lastUpdate = 0;
-    const updateInterval = 1000 / 30;
-
-    const updateVolume = (timestamp: number) => {
-      if (timestamp - lastUpdate >= updateInterval) {
-        analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          const a = dataArray[i];
-          sum += a * a;
-        }
-        const newVolume = Math.sqrt(sum / dataArray.length) / 255;
-
-        if (Math.abs(newVolume - volumeRef.current) > 0.01) {
-          volumeRef.current = newVolume;
-          setVolume(newVolume);
-        }
-        lastUpdate = timestamp;
-      }
-      frameId.current = requestAnimationFrame(updateVolume);
-    };
-
-    frameId.current = requestAnimationFrame(updateVolume);
-
-    return () => {
-      cleanup();
-      if (frameId.current) {
-        cancelAnimationFrame(frameId.current);
-      }
-    };
-  }, [mediaStream, memoizedOptions]);
-
-  return volume;
-}
-
 export interface MultiBandVolumeOptions {
   bands?: number;
   loPass?: number;
@@ -179,22 +104,13 @@ const normalizeDb = (value: number) => {
  * @param options - Multiband options
  * @returns Array of volume levels for each frequency band
  */
-export function useMultibandVolume(
+function useMultibandVolume(
   mediaStream?: MediaStream | null,
   options: MultiBandVolumeOptions = {},
 ) {
   const opts = useMemo(
     () => ({ ...multibandDefaults, ...options }),
-    [
-      options.bands,
-      options.loPass,
-      options.hiPass,
-      options.updateInterval,
-      options.analyserOptions?.fftSize,
-      options.analyserOptions?.smoothingTimeConstant,
-      options.analyserOptions?.minDecibels,
-      options.analyserOptions?.maxDecibels,
-    ],
+    [options],
   );
 
   const emptyBands = useMemo(() => new Array(opts.bands).fill(0), [opts.bands]);
@@ -273,7 +189,7 @@ export function useMultibandVolume(
         cancelAnimationFrame(frameId.current);
       }
     };
-  }, [mediaStream, opts]);
+  }, [emptyBands, mediaStream, opts]);
 
   return frequencyBands;
 }
@@ -286,7 +202,7 @@ type AnimationState =
   | "thinking"
   | undefined;
 
-export const useBarAnimator = (
+const useBarAnimator = (
   state: AnimationState,
   columns: number,
   interval: number,
