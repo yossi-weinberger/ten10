@@ -108,11 +108,30 @@ function useMultibandVolume(
   mediaStream?: MediaStream | null,
   options: MultiBandVolumeOptions = {},
 ) {
-  // Depend on primitive values, not object identity, to avoid recreating AudioContext on every render
-  // when the caller passes a new literal {} or inline object with the same values.
+  // Destructure primitive fields so useMemo deps are stable and complete
+  const { bands, loPass, hiPass, updateInterval, analyserOptions } = options;
+  const fftSize = analyserOptions?.fftSize;
+  const smoothingTimeConstant = analyserOptions?.smoothingTimeConstant;
+  const minDecibels = analyserOptions?.minDecibels;
+  const maxDecibels = analyserOptions?.maxDecibels;
+
   const opts = useMemo(
-    () => ({ ...multibandDefaults, ...options }),
-    [options.bands, options.loPass, options.hiPass, options.updateInterval, options.analyserOptions?.fftSize],
+    () => ({
+      ...multibandDefaults,
+      ...(bands !== undefined && { bands }),
+      ...(loPass !== undefined && { loPass }),
+      ...(hiPass !== undefined && { hiPass }),
+      ...(updateInterval !== undefined && { updateInterval }),
+      ...(analyserOptions !== undefined && {
+        analyserOptions: {
+          ...(fftSize !== undefined && { fftSize }),
+          ...(smoothingTimeConstant !== undefined && { smoothingTimeConstant }),
+          ...(minDecibels !== undefined && { minDecibels }),
+          ...(maxDecibels !== undefined && { maxDecibels }),
+        },
+      }),
+    }),
+    [bands, loPass, hiPass, updateInterval, analyserOptions, fftSize, smoothingTimeConstant, minDecibels, maxDecibels],
   );
 
   const emptyBands = useMemo(() => new Array(opts.bands).fill(0), [opts.bands]);
