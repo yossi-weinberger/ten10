@@ -584,7 +584,7 @@ export function TransactionsTableDisplay() {
     <div className="space-y-4">
       <TransactionsFilters />
 
-      <div className="flex flex-wrap max-md:flex-col justify-between items-center max-md:items-start gap-3 mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <ExportButton />
           <Button
