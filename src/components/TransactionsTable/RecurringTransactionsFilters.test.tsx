@@ -5,6 +5,8 @@ import { render, screen } from "@testing-library/react";
 import { RecurringTransactionsFilters } from "./RecurringTransactionsFilters";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
+
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
