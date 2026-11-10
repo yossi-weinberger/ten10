@@ -3,7 +3,7 @@ import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { InspirationView } from "@/lib/ai/inspiration-pick";
+import { visibleSource, type InspirationView } from "@/lib/ai/inspiration-pick";
 import { KIND_TINT } from "./card-style";
 import { KindTag } from "./KindTag";
 
@@ -32,13 +32,12 @@ export function InspirationCard({
   }, [open, item?.body]);
 
   if (!item) return <p className="text-sm">{t("aiIntake.inspiration.empty")}</p>;
-  const source = item.source.trim();
-  const showSource = source && source !== "לא צוין במקור המיובא" && source !== "Not specified in imported source";
+  const source = visibleSource(item.source);
   return (
     <Card className="grid gap-2 p-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <KindTag icon={BotMessageSquare} tint={KIND_TINT.knowledge}>{t("aiIntake.inspiration.tag")}</KindTag>
-        {showSource ? <span className="min-w-0 truncate text-xs text-muted-foreground" title={source}>{source}</span> : null}
+        {source ? <span className="min-w-0 truncate text-xs text-muted-foreground" title={source}>{source}</span> : null}
       </div>
       <p className="text-sm font-medium">{item.title}</p>
       <blockquote ref={bodyRef} className={`whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-4"}`}>
