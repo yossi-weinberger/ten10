@@ -379,7 +379,7 @@ export function TransactionCardList({
           const displayDate = formatDisplayDate(transaction.date, "numeric");
           
           const hasDescription = !!transaction.description;
-          const cardTitle = hasDescription
+          const cardTitle = transaction.description
             ? transaction.description
             : formatCategory(
                 transaction.type === "income" || transaction.type === "exempt-income" ? "income"
@@ -414,7 +414,7 @@ export function TransactionCardList({
             <TransactionCard
               key={transaction.id}
               transaction={transaction}
-              displayDate={displayDate.primary}
+              displayDate={displayDate.primary ?? transaction.date}
               categoryText={categoryText}
               hasDescription={hasDescription}
               cardTitle={cardTitle}
