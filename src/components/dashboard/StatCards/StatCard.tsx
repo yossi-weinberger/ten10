@@ -143,10 +143,10 @@ export function StatCard({
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-2 mobile-landscape:pt-2">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight max-md:leading-none max-md:min-w-0 max-md:flex-1 mobile-landscape:min-w-0 mobile-landscape:flex-1 mobile-landscape:whitespace-nowrap mobile-landscape:truncate">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-2 mobile-landscape:pt-2 mobile-landscape:gap-1">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight max-md:leading-none max-md:min-w-0 max-md:flex-1 mobile-landscape:min-w-0 mobile-landscape:flex-1 mobile-landscape:text-[11px]">
             {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon} max-md:shrink-0 mobile-landscape:shrink-0`} />}
-            <span className="mobile-landscape:truncate">{title}</span>
+            {title}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
@@ -158,9 +158,9 @@ export function StatCard({
                     size="sm"
                     onClick={onAddClick}
                     data-onboarding={addButtonOnboarding}
-                    className={`md:hidden mobile-landscape:!inline-flex size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                    className={`md:hidden mobile-landscape:!inline-flex size-11 mobile-landscape:!size-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                   >
-                    <BadgePlus className="h-6 w-6" />
+                    <BadgePlus className="h-6 w-6 mobile-landscape:!h-5 mobile-landscape:!w-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top">
