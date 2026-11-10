@@ -12,7 +12,7 @@ export function StatusNote({ status, limitInfo }: { status: StatusKey; limitInfo
   const namespace = "ns" in message ? message.ns : undefined;
 
   const key = message.key;
-  const values: Record<string, string> = (() => {
+  const computeValues = (): Record<string, string> => {
     if (!limitInfo) return {};
     const resetDate = computeLimitReset(limitInfo.kind);
     if (status === "limitDailyLimit" && resetDate) {
@@ -24,7 +24,8 @@ export function StatusNote({ status, limitInfo }: { status: StatusKey; limitInfo
       return { date };
     }
     return {};
-  })();
+  };
+  const values = computeValues();
 
   return (
     <p className={`flex items-start gap-2 text-sm ${TONE_CLASS[message.tone]}`}>
