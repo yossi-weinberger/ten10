@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -12,7 +11,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Repeat, Trash2, X } from "lucide-react";
+import { Edit3, Repeat, Trash2, Undo2, Receipt } from "lucide-react";
 import { Transaction, TransactionForTable } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -30,12 +29,18 @@ import {
   getCalendarMonthKey,
   isCalendarMonthTransition,
 } from "@/lib/calendar/calendar-period";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
+import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 
 interface TransactionCardListProps {
   transactions: TransactionForTable[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
+  onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   loading?: boolean;
 }
@@ -45,13 +50,17 @@ export function TransactionCardList({
   onEdit,
   onDelete,
   onEditRecurring,
+  onUndoAi,
   isFetchingRec,
   loading = false,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
+  const { platform } = usePlatform();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionForTable | null>(null);
+  const [receiptNote, setReceiptNote] = useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = useState<string | null>(null);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -102,6 +111,8 @@ export function TransactionCardList({
 
   const handleCloseDrawer = useCallback(() => {
     setSelectedTransaction(null);
+    setReceiptNote(null);
+    setReceiptLink(null);
   }, []);
 
   const handleEdit = useCallback(() => {
@@ -124,6 +135,26 @@ export function TransactionCardList({
       handleCloseDrawer();
     }
   }, [selectedTransaction, onEditRecurring, handleCloseDrawer]);
+
+  const handleUndoAi = useCallback(() => {
+    if (selectedTransaction && onUndoAi) {
+      onUndoAi(selectedTransaction);
+      handleCloseDrawer();
+    }
+  }, [selectedTransaction, onUndoAi, handleCloseDrawer]);
+
+  const handleOpenReceipt = useCallback(async () => {
+    if (!selectedTransaction) return;
+    setReceiptNote(null);
+    setReceiptLink(null);
+    const result = await openAiReceipt({ transactionId: selectedTransaction.id });
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+  }, [selectedTransaction, t]);
 
   if (loading && transactions.length === 0) {
     return (
@@ -238,7 +269,10 @@ export function TransactionCardList({
       <Drawer open={!!selectedTransaction} onOpenChange={(open) => !open && handleCloseDrawer()}>
         <DrawerContent dir={i18n.dir()}>
           <DrawerHeader className="text-start">
-            <DrawerTitle>
+            <DrawerTitle
+              className={cn(PH_SENSITIVE_PROPS.className)}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
               {selectedTransaction?.description || t("messages.defaultTransactionName")}
             </DrawerTitle>
             <DrawerDescription className="sr-only">
@@ -246,7 +280,23 @@ export function TransactionCardList({
             </DrawerDescription>
           </DrawerHeader>
 
-          {selectedTransaction && (
+          {selectedTransaction && (() => {
+            const receiptVisible = showReceiptAction({
+              platform,
+              enabled: isAiIntakeEnabled(),
+              expiresAt: selectedTransaction.receipt_expires_at,
+            });
+            const receiptUntil = selectedTransaction.receipt_expires_at
+              ? formatDisplayDate(receiptExpiryDate(selectedTransaction.receipt_expires_at), "numeric").primary
+              : "";
+            const showUndoAi = 
+              platform === "web" &&
+              isAiIntakeEnabled() &&
+              onUndoAi &&
+              canUndoAiTransaction(selectedTransaction) &&
+              (selectedTransaction.origin === "ai" || selectedTransaction.origin === "ai_auto");
+
+            return (
             <div className="space-y-3 px-4 pb-4">
               <div className="grid gap-2 text-sm">
                 <div className="flex justify-between">
@@ -371,8 +421,54 @@ export function TransactionCardList({
                     : t("actions.editRecurring")}
                 </Button>
               )}
+
+              {receiptVisible && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => void handleOpenReceipt()}
+                  aria-label={receiptUntil
+                    ? `${t("actions.viewReceipt")}, ${t("actions.receiptUntil", { date: receiptUntil })}`
+                    : t("actions.viewReceipt")}
+                >
+                  <Receipt className="me-2 h-4 w-4" />
+                  <span>
+                    {t("actions.viewReceipt")}
+                    {receiptUntil ? ` · ${t("actions.receiptUntil", { date: receiptUntil })}` : ""}
+                  </span>
+                </Button>
+              )}
+
+              {receiptLink && (
+                <a
+                  className="block text-sm text-center underline"
+                  href={receiptLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("filters.receiptOpen")}
+                </a>
+              )}
+
+              {receiptNote && (
+                <span className="block text-sm text-center text-muted-foreground">
+                  {receiptNote}
+                </span>
+              )}
+
+              {showUndoAi && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleUndoAi}
+                >
+                  <Undo2 className="me-2 h-4 w-4" />
+                  {t("actions.undoAi")}
+                </Button>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           <DrawerFooter className="gap-2">
             <Button variant="default" onClick={handleEdit} className="w-full">
@@ -387,12 +483,6 @@ export function TransactionCardList({
               <Trash2 className="me-2 h-4 w-4" />
               {t("actions.delete")}
             </Button>
-            <DrawerClose asChild>
-              <Button variant="outline" className="w-full">
-                <X className="me-2 h-4 w-4" />
-                {t("actions.cancel")}
-              </Button>
-            </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>

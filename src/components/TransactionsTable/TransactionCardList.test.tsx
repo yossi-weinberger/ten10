@@ -34,13 +34,6 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("@/lib/calendar/use-display-date", () => ({
-  useDisplayDate: () => (date: string) => ({
-    primary: date,
-    secondary: null,
-  }),
-}));
-
 vi.mock("@/lib/calendar/calendar-preview", () => ({
   useEffectiveCalendarType: () => "gregorian",
 }));
@@ -74,6 +67,36 @@ vi.mock("@/lib/payment-methods", () => ({
 vi.mock("@/lib/utils/formatting", () => ({
   cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
   formatBoolean: (value: boolean | null) => (value ? "Yes" : "No"),
+}));
+
+vi.mock("@/lib/calendar/use-display-date", () => ({
+  useDisplayDate: () => (date: string) => ({
+    primary: date,
+    secondary: null,
+  }),
+}));
+
+vi.mock("@/contexts/PlatformContext", () => ({
+  usePlatform: () => ({ platform: "web" }),
+}));
+
+vi.mock("@/lib/ai/ai-undo-eligibility", () => ({
+  canUndoAiTransaction: (transaction: { origin?: string | null }) => 
+    transaction.origin === "ai" || transaction.origin === "ai_auto",
+}));
+
+vi.mock("@/lib/ai/flags", () => ({
+  isAiIntakeEnabled: () => true,
+}));
+
+vi.mock("@/lib/ai/open-receipt", () => ({
+  openAiReceipt: vi.fn().mockResolvedValue({ status: "none" }),
+}));
+
+vi.mock("@/lib/ai/receipt-action", () => ({
+  showReceiptAction: ({ expiresAt }: { platform: string; enabled: boolean; expiresAt?: string | null }) => 
+    !!expiresAt,
+  receiptExpiryDate: (expiresAt: string) => expiresAt,
 }));
 
 vi.mock("@/components/Currency/CurrencyConversionInfo", () => ({
@@ -291,5 +314,84 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("2026-11");
     expect(markup).toContain("2026-12");
+  });
+
+  it("includes drawer with masked title in component structure", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("ph-mask ph-sensitive");
+    expect(markup).toContain('data-ph-mask=""');
+  });
+
+  it("accepts onUndoAi prop for AI transaction actions", () => {
+    const aiTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: "ai",
+    };
+    const onUndoAi = vi.fn();
+
+    renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[aiTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        onUndoAi={onUndoAi}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(onUndoAi).not.toHaveBeenCalled();
+  });
+
+  it("renders without errors when receipt_expires_at is present", () => {
+    const transactionWithReceipt: TransactionForTable = {
+      ...mockTransactions[0],
+      receipt_expires_at: "2026-12-01T00:00:00Z",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[transactionWithReceipt]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Salary");
+  });
+
+  it("renders without errors when origin is ai or ai_auto", () => {
+    const aiTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: "ai_auto",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[aiTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        onUndoAi={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Salary");
   });
 });

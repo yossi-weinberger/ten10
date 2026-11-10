@@ -639,6 +639,7 @@ export function TransactionsTableDisplay() {
           onEdit={handleEditInitiate}
           onDelete={handleDeleteInitiate}
           onEditRecurring={handleEditRecurringInitiate}
+          onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
           isFetchingRec={isFetchingRec}
           loading={loading}
         />
