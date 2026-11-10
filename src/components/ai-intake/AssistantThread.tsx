@@ -99,6 +99,7 @@ export function AssistantThread({
   interactiveActive,
   onSuggestion,
   onReceipt,
+  onVoice,
   opening,
   handlers,
 }: {
@@ -108,6 +109,7 @@ export function AssistantThread({
   interactiveActive: boolean;
   onSuggestion: (text: string) => void;
   onReceipt?: (file: File) => void;
+  onVoice?: () => void;
   /** The greeting's first name and a line from the user's data. Missing parts fall back to the generic text. */
   opening?: { name: string | null; line?: string };
   handlers: ReplyHandlers;
@@ -152,7 +154,7 @@ export function AssistantThread({
                 className="inline-flex h-8 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => {
                   if (key === "receipt") fileRef.current?.click();
-                  else if (key === "voice") return;
+                  else if (key === "voice") onVoice?.();
                   else onSuggestion(t(`aiIntake.suggestions.${key}`));
                 }}
               >

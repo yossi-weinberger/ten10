@@ -24,6 +24,7 @@ describe("AssistantThread quick-start chips", () => {
     const user = userEvent.setup();
     const onSuggestion = vi.fn();
     const onReceipt = vi.fn();
+    const onVoice = vi.fn();
 
     render(
       <AssistantThread
@@ -33,6 +34,7 @@ describe("AssistantThread quick-start chips", () => {
         interactiveActive={false}
         onSuggestion={onSuggestion}
         onReceipt={onReceipt}
+        onVoice={onVoice}
         handlers={{
           onChooseIntent: vi.fn(),
           onChooseType: vi.fn(),
@@ -95,12 +97,8 @@ describe("AssistantThread quick-start chips", () => {
     await user.click(screen.getByRole("button", { name: /aiIntake.suggestions.rule/ }));
     expect(onSuggestion).toHaveBeenLastCalledWith("aiIntake.suggestions.rule");
 
-    // Voice chip does nothing (returns early)
-    onSuggestion.mockClear();
+    // Voice chip starts recording
     await user.click(screen.getByRole("button", { name: /aiIntake.suggestions.voice/ }));
-    expect(onSuggestion).not.toHaveBeenCalled();
-
-    // Verify each chip sent its own unique text (not the last chip's text)
-    expect(onSuggestion).toHaveBeenCalledTimes(0); // voice doesn't call
+    expect(onVoice).toHaveBeenCalledTimes(1);
   });
 });

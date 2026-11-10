@@ -199,6 +199,9 @@ export function AssistantDrawer({
           onReceipt={(file) => {
             void composer.handleReceipt(file);
           }}
+          onVoice={() => {
+            void composer.toggleRecording();
+          }}
           handlers={thread.handlers}
         />
       </div>

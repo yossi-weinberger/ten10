@@ -370,8 +370,10 @@ function App() {
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={() => {
-              if (!document.documentElement.dataset.assistantPanel) {
+            onMouseEnter={(event) => {
+              const target = event.target as HTMLElement;
+              const fromPanel = target.closest('[data-assistant-panel]');
+              if (!fromPanel) {
                 setIsSidebarExpanded(true);
               }
             }}
