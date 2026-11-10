@@ -382,7 +382,7 @@ function App() {
         {!isFullScreenPage && (
           <>
             {/* Mobile sticky top bar with hamburger and screen title */}
-            <div className="md:hidden mobile-landscape:!flex fixed top-0 inset-x-0 z-50 h-[52px] bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-2 safe-area-inset-top">
+            <div className="md:hidden mobile-landscape:!flex fixed top-0 inset-x-0 z-50 h-[calc(52px+env(safe-area-inset-top))] bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-2 pr-[max(.5rem,env(safe-area-inset-right))] pl-[max(.5rem,env(safe-area-inset-left))] safe-area-inset-top">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -443,7 +443,7 @@ function App() {
             className={`flex-1 ${
               isFullScreenPage
                 ? "p-0"
-                : "container px-4 md:px-6 pt-16 md:pt-6 mobile-landscape:pt-16 pb-24 md:pb-6 mobile-landscape:pb-24"
+                : "container px-4 md:px-6 max-md:pr-[max(1rem,env(safe-area-inset-right))] max-md:pl-[max(1rem,env(safe-area-inset-left))] mobile-landscape:pr-[max(1rem,env(safe-area-inset-right))] mobile-landscape:pl-[max(1rem,env(safe-area-inset-left))] pt-16 md:pt-6 mobile-landscape:pt-16 pb-24 md:pb-6 mobile-landscape:pb-32"
             }`}
           >
             <div

@@ -8,7 +8,7 @@ import { requestAssistantOpen } from "./assistant-open";
 export function AssistantFab() {
   const { t } = useTranslation("navigation");
   return (
-    <div className="fixed bottom-6 end-6 z-50">
+    <div className="fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

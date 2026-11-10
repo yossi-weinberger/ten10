@@ -139,7 +139,7 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 min-h-[112px] md:min-h-[185px]`}
+      } transition-all duration-300 min-h-[112px] md:min-h-[185px] mobile-landscape:!min-h-[96px]`}
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
@@ -148,7 +148,29 @@ export function StatCard({
             {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon}`} />}
             {title}
           </CardTitle>
-          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
+          <div className="flex items-center gap-2">
+            <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0 md:block max-md:hidden`} />
+            {showAddButton && onAddClick && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onAddClick}
+                    data-onboarding={addButtonOnboarding}
+                    className={`md:hidden size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  >
+                    <BadgePlus className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="max-w-xs text-sm" dir={i18n.dir()}>
+                    {addButtonTooltip}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-0">
           <div
@@ -167,7 +189,7 @@ export function StatCard({
               />
             ) : (
               <span
-                className={`ph-mask inline-block text-2xl sm:text-3xl max-md:!text-[clamp(20px,6vw,26px)] font-bold tabular-nums whitespace-nowrap ${styles.text}`}
+                className={`ph-mask inline-block text-2xl sm:text-3xl max-md:!text-[clamp(20px,6vw,26px)] mobile-landscape:!text-[clamp(16px,3.4vw,22px)] font-bold tabular-nums whitespace-nowrap ${styles.text}`}
                 data-ph-mask
               >
                 <CountUp
@@ -183,7 +205,7 @@ export function StatCard({
             )}
           </div>
           <div
-            className={`mt-auto text-xs text-muted-foreground ${
+            className={`mt-auto text-xs text-muted-foreground mobile-landscape:hidden ${
               i18n.dir() === "rtl" ? "text-right" : "text-left"
             }`}
             dir={i18n.dir()}
@@ -197,7 +219,7 @@ export function StatCard({
 
         {showAddButton && onAddClick && (
           <div
-            className={`absolute bottom-2 ${
+            className={`absolute bottom-2 max-md:hidden ${
               i18n.dir() === "rtl" ? "left-2" : "right-2"
             }`}
           >
@@ -208,9 +230,9 @@ export function StatCard({
                   size="sm"
                   onClick={onAddClick}
                   data-onboarding={addButtonOnboarding}
-                  className={`h-8 w-8 sm:h-10 sm:w-10 max-md:!size-11 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  className={`h-8 w-8 sm:h-10 sm:w-10 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
-                  <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 max-md:!h-6 max-md:!w-6 [&]:!size-5 sm:[&]:!size-6 max-md:[&]:!size-6" />
+                  <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 [&]:!size-5 sm:[&]:!size-6" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
