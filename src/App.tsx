@@ -14,6 +14,7 @@ import {
 } from "./components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
+import { SidebarHoverZone } from "./components/layout/SidebarHoverZone";
 import { usePlatform } from "./contexts/PlatformContext";
 import { useTWA } from "./contexts/TWAContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -365,23 +366,17 @@ function App() {
     <TooltipProvider>
       <div className="assistant-push h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
-          <div
+          <SidebarHoverZone
+            onExpandedChange={setIsSidebarExpanded}
             className={cn(
               "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
               isSidebarExpanded
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={(event) => {
-              // Ignore mouseenter from portaled children (e.g., assistant panel Sheet).
-              // React synthetic events propagate along the React tree, not the DOM tree.
-              if (!(event.currentTarget as Node).contains(event.target as Node)) return;
-              setIsSidebarExpanded(true);
-            }}
-            onMouseLeave={() => setIsSidebarExpanded(false)}
           >
             <Sidebar expanded={isSidebarExpanded} />
-          </div>
+          </SidebarHoverZone>
         )}
 
         {!isFullScreenPage && (
