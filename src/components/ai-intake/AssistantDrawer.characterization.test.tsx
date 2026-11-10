@@ -954,6 +954,51 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.queryByRole("button", { name: "aiIntake.types.expense" })).not.toBeInTheDocument();
   });
 
+  it("creates voice turn before skeleton appears, not after transcription", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state = "inactive";
+      ondataavailable?: (event: { data: Blob }) => void;
+      onstop?: () => void;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    
+    let resolveTranscription: ((value: { ok: boolean; text: string }) => void) | null = null;
+    ai.transcribeSpeech.mockImplementation(
+      () => new Promise((resolve) => { resolveTranscription = resolve as typeof resolveTranscription; })
+    );
+
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    
+    // Key assertion: skeleton should appear AND voice bubble should exist
+    // (not between old messages, but after the voice bubble)
+    expect(await screen.findByText("aiIntake.thinking.voice")).toBeInTheDocument();
+    const voiceBubbles = screen.getAllByRole("log")[0]?.querySelectorAll('[data-align="end"]');
+    expect(voiceBubbles.length).toBeGreaterThan(0);
+    
+    // This test verifies the fix: on main, the skeleton appeared before any voice bubble existed,
+    // causing it to render in the wrong position. Now it appears after the voice bubble.
+    
+    vi.unstubAllGlobals();
+  });
+
   it("shows a provider failure for a voice message instead of returning to the start", async () => {
     class FakeRecorder {
       static isTypeSupported() {

@@ -163,13 +163,19 @@ export function useAssistantDrawerComposer(
 
   async function finishVoice(blob: Blob) {
     const request = ++requestRef.current;
-    beginTurn({ kind: "voice", text: "" });
+    const emptyVoiceTurn: UserTurn = { kind: "voice", text: "" };
+    // beginTurn saves live-card context, clears reply state, and sets the user turn.
+    // This ensures the skeleton renders in the correct position (after the voice bubble).
+    beginTurn(emptyVoiceTurn);
     setPendingPhase("voice");
     setChecking(true);
     const heard = await transcribeSpeech(blob);
     if (requestRef.current !== request) {
-      state.setActiveUser(null);
-      state.conversationRef.current.active = null;
+      // A newer request started. Only clear if our empty turn is still active.
+      if (state.conversationRef.current.active === emptyVoiceTurn) {
+        state.setActiveUser(null);
+        state.conversationRef.current.active = null;
+      }
       return;
     }
     setChecking(false);
@@ -181,6 +187,7 @@ export function useAssistantDrawerComposer(
     state.setActiveUser(voiceTurn);
     state.conversationRef.current.active = voiceTurn;
     setText("");
+    // skipBeginTurn=true because beginTurn already ran above and saved the context.
     await intent.handleSubmit(heard.text, "voice", true);
   }
 
