@@ -1,5 +1,5 @@
 import intentCases from "./fixtures/intent-eval-cases.json" with { type: "json" };
-import { INTAKE_INTENTS } from "./intent.ts";
+import { INTAKE_INTENTS } from "../../supabase/functions/_shared/ai/intent.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);

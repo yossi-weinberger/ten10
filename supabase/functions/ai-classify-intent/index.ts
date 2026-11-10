@@ -1,4 +1,3 @@
-import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import {
@@ -8,12 +7,11 @@ import {
 } from "../_shared/ai/jev-duplicate-rank.ts";
 import { buildIntentBody, readChomeshChoice, readHalachaChoice, readIntentChoice } from "../_shared/ai/jev-intent.ts";
 import { readContextField } from "../_shared/ai/conversation-context.ts";
-import { aiUserAllowed } from "../_shared/ai/ai-user-allowed.ts";
-import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import { readTurnId } from "../_shared/ai/usage-gate.ts";
+import { requireAiUser } from "../_shared/ai/require-ai-user.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -23,24 +21,12 @@ function json(origin: string | null, body: unknown, status: number): Response {
 }
 
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get("origin");
-  if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
-  if (req.method !== "POST") return json(origin, { intent: null }, 405);
-  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
-
-  const userClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: authHeader } } },
-  );
-  const { data: userData, error: userError } = await userClient.auth.getUser(
-    authHeader.replace("Bearer ", ""),
-  );
-  if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
-  if (!(await aiUserAllowed(userData.user.id))) return json(origin, { intent: null }, 200);
+  const setup = await requireAiUser(req, {
+    methodNotAllowedBody: { intent: null },
+    notAllowedBody: { intent: null },
+  });
+  if (!setup.ok) return setup.response;
+  const { userId, origin } = setup;
 
   const body = await req.json().catch(() => null) as { text?: unknown; context?: unknown; turn?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
@@ -50,7 +36,7 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { intent: null, reason: "unavailable" }, 200);
 
   const usage = serviceUsageGate();
-  const allowed = await usage.consume(userData.user.id, "text", { id: readTurnId(body?.turn), op: "intent" });
+  const allowed = await usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "intent" });
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { intent: null }, 200);
     return json(origin, { intent: null, reason: allowed.reason }, 200);
@@ -58,7 +44,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const result = await callModel({
-      userId: userData.user.id,
+      userId,
       operation: "intent",
       model: JEV_DUPLICATE_MODEL,
       url: JEV_SYSTEMONE_URL,

@@ -1,4 +1,4 @@
-import { AI_DRAFT_ALLOWED_TYPES } from "../transaction-domain/transaction-types.ts";
+import { AI_DRAFT_ALLOWED_TYPES } from "../../supabase/functions/_shared/transaction-domain/transaction-types.ts";
 import type { DecisionFields } from "./decision.ts";
 import { runOfflineEval } from "./eval-runner.ts";
 import fixtureCases from "./fixtures/eval-cases.json" with { type: "json" };

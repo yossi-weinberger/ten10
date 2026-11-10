@@ -1,11 +1,11 @@
 import { receiptsEvalPath, writeEvalOut } from "./eval-out.ts";
-import { readModelText, receiptDraftFromItems, receiptFilePart, RECEIPT_COPY_PROMPT } from "./receipt-draft.ts";
-import { splitReadContext } from "./split-anchor.ts";
-import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "./split-prompt.ts";
-import { readModelUsage } from "./model-call.ts";
-import { parseSplitPayload, readSplitResponse } from "./split-response.ts";
-import { scoreSplitFields, type SplitExpected, type SplitFieldScore } from "./split-score.ts";
-import { gatewayProviderOptions } from "./gateway-tags.ts";
+import { readModelText, receiptDraftFromItems, receiptFilePart, RECEIPT_COPY_PROMPT } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { splitReadContext } from "../../supabase/functions/_shared/ai/split-anchor.ts";
+import { splitRequestBody, SPLIT_MODEL, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { readModelUsage } from "../../supabase/functions/_shared/ai/model-call.ts";
+import { parseSplitPayload, readSplitResponse } from "../../supabase/functions/_shared/ai/split-response.ts";
+import { scoreSplitFields, type SplitExpected, type SplitFieldScore } from "../../supabase/functions/_shared/ai/split-score.ts";
+import { gatewayProviderOptions } from "../../supabase/functions/_shared/ai/gateway-tags.ts";
 
 /**
  * Args: transcription model, env file, results json path.
