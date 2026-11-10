@@ -13,6 +13,10 @@ vi.mock("react-i18next", () => ({
       if (key === "types.income") return "Income";
       if (key === "types.expense") return "Expense";
       if (key === "types.donation") return "Donation";
+      if (key === "types.exempt-income") return "Exempt Income";
+      if (key === "types.recognized-expense") return "Recognized Expense";
+      if (key === "types.non_tithe_donation") return "Non-Tithe Donation";
+      if (key === "types.initial_balance") return "Opening Balance";
       if (key === "messages.noData") return "No transactions found";
       if (key === "messages.defaultTransactionName") return "this transaction";
       if (key === "columns.date") return "Date";
@@ -545,6 +549,207 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("active:scale-[0.99]");
   });
 
+  it("shows special type badge for exempt-income on card", () => {
+    const exemptIncomeTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      type: "exempt-income",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[exemptIncomeTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Exempt Income");
+    expect(markup).toContain("bg-blue-100");
+  });
+
+  it("shows special type badge for recognized-expense on card", () => {
+    const recognizedExpenseTransaction: TransactionForTable = {
+      ...mockTransactions[1],
+      type: "recognized-expense",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[recognizedExpenseTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Recognized Expense");
+    expect(markup).toContain("bg-rose-100");
+  });
+
+  it("shows special type badge for non_tithe_donation on card", () => {
+    const nonTitheDonationTransaction: TransactionForTable = {
+      ...mockTransactions[2],
+      type: "non_tithe_donation",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[nonTitheDonationTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Non-Tithe Donation");
+    expect(markup).toContain("bg-orange-100");
+  });
+
+  it("shows special type badge for initial_balance on card", () => {
+    const initialBalanceTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      type: "initial_balance",
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[initialBalanceTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Opening Balance");
+    expect(markup).toContain("bg-gray-100");
+  });
+
+  it("does not show badge for plain income type", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).not.toContain("Exempt Income");
+    expect(markup).not.toContain("bg-blue-100");
+  });
+
+  it("does not show badge for plain expense type", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[1]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).not.toContain("Recognized Expense");
+    expect(markup).not.toContain("bg-rose-100");
+  });
+
+  it("does not show badge for plain donation type", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[2]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).not.toContain("Non-Tithe Donation");
+    expect(markup).not.toContain("bg-orange-100");
+  });
+
+  it("shows chomesh indicator on card when is_chomesh is true and tracking enabled", () => {
+    mockUseDonationStore.mockReturnValue(true);
+    
+    const chomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: true,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[chomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    expect(markup).toContain("Chomesh");
+    expect(markup).toContain("lucide-coins");
+  });
+
+  it("does not show chomesh indicator on card when tracking disabled", () => {
+    mockUseDonationStore.mockReturnValue(false);
+    
+    const chomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: true,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[chomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cardContent = markup.split("Salary")[1]?.split("500 ILS")[0] || "";
+    expect(cardContent).not.toContain("Chomesh");
+  });
+
+  it("does not show chomesh indicator on card when is_chomesh is false", () => {
+    mockUseDonationStore.mockReturnValue(true);
+    
+    const nonChomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: false,
+    };
+
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[nonChomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cardContent = markup.split("Salary")[1]?.split("500 ILS")[0] || "";
+    expect(cardContent).not.toContain("Chomesh");
+  });
+
   it("pressing Enter on focused card opens drawer with transaction details", async () => {
     render(
       <TransactionCardList
@@ -626,12 +831,17 @@ describe("TransactionCardList", () => {
     expect(screen.queryByText("-")).not.toBeInTheDocument();
   });
 
-  it("drawer shows chomesh row only when trackChomeshSeparately is true", async () => {
+  it("drawer shows chomesh row when trackChomeshSeparately is true and is_chomesh is true", async () => {
     mockUseDonationStore.mockReturnValue(true);
+
+    const chomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: true,
+    };
 
     render(
       <TransactionCardList
-        transactions={[mockTransactions[0]]}
+        transactions={[chomeshTransaction]}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         onEditRecurring={vi.fn()}
@@ -645,8 +855,11 @@ describe("TransactionCardList", () => {
     fireEvent.click(card!);
 
     await waitFor(() => {
-      expect(screen.getByText("Chomesh")).toBeInTheDocument();
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
     });
+
+    const chomeshElements = screen.getAllByText("Chomesh");
+    expect(chomeshElements.length).toBeGreaterThan(0);
   });
 
   it("drawer hides chomesh row when trackChomeshSeparately is false", async () => {
@@ -848,5 +1061,35 @@ describe("TransactionCardList", () => {
     });
 
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
+  });
+
+  it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {
+    mockUseDonationStore.mockReturnValue(true);
+
+    const nonChomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: false,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[nonChomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
   });
 });

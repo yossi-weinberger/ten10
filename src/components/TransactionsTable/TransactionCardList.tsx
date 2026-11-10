@@ -11,8 +11,8 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Repeat, Trash2, Undo2, Receipt } from "lucide-react";
-import { Transaction, TransactionForTable } from "@/types/transaction";
+import { Edit3, Repeat, Trash2, Undo2, Receipt, Coins } from "lucide-react";
+import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
@@ -45,6 +45,13 @@ interface TransactionCardListProps {
   isFetchingRec: boolean;
   loading?: boolean;
 }
+
+const isSpecialType = (type: TransactionType): boolean => {
+  return type === "exempt-income" || 
+         type === "recognized-expense" || 
+         type === "non_tithe_donation" || 
+         type === "initial_balance";
+};
 
 export function TransactionCardList({
   transactions,
@@ -255,7 +262,7 @@ export function TransactionCardList({
                 >
                   {cardTitle}
                 </div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                   <span>{displayDate.primary}</span>
                   {categoryText && (
                     <>
@@ -276,6 +283,23 @@ export function TransactionCardList({
                       <span>·</span>
                       <Repeat className="h-3 w-3" aria-hidden="true" />
                     </>
+                  )}
+                  {isSpecialType(transaction.type) && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-5 border px-1.5 py-0 text-[10px]",
+                        typeBadgeColors[transaction.type as TransactionType]
+                      )}
+                    >
+                      {t(`types.${transaction.type}`, transaction.type)}
+                    </Badge>
+                  )}
+                  {trackChomeshSeparately && transaction.is_chomesh && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px]">
+                      <Coins className="h-3 w-3" aria-hidden="true" />
+                      <span>{t("columns.chomesh")}</span>
+                    </span>
                   )}
                 </div>
               </div>
@@ -427,7 +451,7 @@ export function TransactionCardList({
                   </div>
                 )}
 
-                {trackChomeshSeparately && (
+                {trackChomeshSeparately && selectedTransaction.is_chomesh && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t("columns.chomesh")}</span>
                     <span>{formatBoolean(selectedTransaction.is_chomesh)}</span>
