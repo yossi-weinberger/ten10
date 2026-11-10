@@ -86,6 +86,23 @@ export function useAssistantDrawerComposer(
     if (active && active.state !== "inactive") active.stop();
   }
 
+  function cancelRecording() {
+    if (!recording) return;
+    const active = recorder.current;
+    if (!active || active.state === "inactive") return;
+    discardRecording.current = true;
+    stopMeter();
+    if (recordTimer.current) {
+      clearTimeout(recordTimer.current);
+      recordTimer.current = null;
+    }
+    const stream = active.stream;
+    active.stop();
+    stream.getTracks().forEach((track) => track.stop());
+    recorder.current = null;
+    setRecording(false);
+  }
+
   async function openReceiptFile(artifactId = receiptArtifactId) {
     if (!artifactId) return;
     setReceiptLink(null);
@@ -299,6 +316,7 @@ export function useAssistantDrawerComposer(
   return {
     stopMeter,
     stopRecording,
+    cancelRecording,
     openReceiptFile,
     handleReceipt,
     finishVoice,

@@ -67,6 +67,7 @@
     "receiptUnreadable": "לא הצלחתי לקרוא את הקבלה. לא נשמר.",
     "voice": "דבר",
     "voiceStop": "סיים הקלטה",
+    "voiceCancel": "בטל הקלטה",
     "voiceDenied": "אין גישה למיקרופון. לא נשמר.",
     "voiceTooLong": "ההקלטה ארוכה מדי. לא נשמר.",
     "voiceUnheard": "לא הצלחתי לשמוע. לא נשמר.",

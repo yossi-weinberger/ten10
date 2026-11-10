@@ -1,5 +1,5 @@
 import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
-import { ArrowUp, Camera, Image, Mic, Plus, Square } from "lucide-react";
+import { ArrowUp, Camera, Image, Mic, Plus, Square, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ interface AssistantComposerProps {
   onSubmit: () => void;
   onReceipt: (file: File | undefined) => void;
   onToggleVoice: () => void;
+  onCancelRecording?: () => void;
   /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
   recording: boolean;
@@ -38,6 +39,7 @@ export function AssistantComposer({
   onSubmit,
   onReceipt,
   onToggleVoice,
+  onCancelRecording,
   busy = false,
   recording,
   transcribing,
@@ -163,6 +165,17 @@ export function AssistantComposer({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {recording && onCancelRecording ? (
+            <InputGroupButton
+              size="icon-sm"
+              variant="outline"
+              className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              aria-label={t("aiIntake.voiceCancel")}
+              onClick={onCancelRecording}
+            >
+              <X aria-hidden />
+            </InputGroupButton>
+          ) : null}
           <InputGroupButton
             size="icon-sm"
             variant={recording ? "destructive" : "outline"}

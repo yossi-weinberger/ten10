@@ -174,6 +174,9 @@ export function AssistantDrawer({
           onToggleVoice={() => {
             void composer.toggleRecording();
           }}
+          onCancelRecording={() => {
+            composer.cancelRecording();
+          }}
           onSubmit={() => {
             if (state.clarification === "amount") composer.handleAmountReply(state.text);
             else void intent.handleSubmit();
