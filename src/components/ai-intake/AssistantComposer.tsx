@@ -25,6 +25,7 @@ interface AssistantComposerProps {
   /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
   recording: boolean;
+  transcribing: boolean;
   mediaStream?: MediaStream | null;
   elapsed?: number;
   mode: "message" | "amount";
@@ -39,6 +40,7 @@ export function AssistantComposer({
   onToggleVoice,
   busy = false,
   recording,
+  transcribing,
   mediaStream,
   elapsed = 0,
   mode,
@@ -115,12 +117,16 @@ export function AssistantComposer({
           onKeyDown={onKeyDown}
           onPaste={onPaste}
         />
-        {recording ? (
-          <div className="flex min-h-12 w-full items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
-            <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
+        {recording || transcribing ? (
+          <div className="flex min-h-12 w-full items-center gap-2 px-3" role="status" aria-label={t(transcribing ? "aiIntake.transcribing" : "aiIntake.recording")}>
+            {recording ? (
+              <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:bg-destructive/70 motion-reduce:animate-none" />
+            ) : null}
             <LiveWaveform
-              active={true}
+              active={recording}
+              processing={transcribing}
               mediaStream={mediaStream}
+              mode="scrolling"
               height={40}
               barWidth={3}
               barGap={1}
@@ -128,7 +134,9 @@ export function AssistantComposer({
               sensitivity={1.2}
               className="min-w-0 flex-1"
             />
-            <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+            {recording ? (
+              <span dir="ltr" className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+            ) : null}
           </div>
         ) : null}
         <InputGroupAddon align="block-end">

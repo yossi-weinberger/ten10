@@ -164,6 +164,7 @@ export function AssistantDrawer({
           textareaRef={state.textareaRef}
           busy={composer.wiring.busyKey !== undefined}
           recording={composer.wiring.recording}
+          transcribing={composer.wiring.transcribing}
           mediaStream={state.mediaStream.current}
           elapsed={composer.wiring.elapsed}
           mode={composer.wiring.mode}

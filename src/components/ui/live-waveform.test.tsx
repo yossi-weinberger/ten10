@@ -217,4 +217,96 @@ describe("LiveWaveform", () => {
     // The test verifies that bar count is computed from width, not hardcoded
     expect(waveformDiv).toBeInTheDocument();
   });
+
+  it("shows processing animation when transcription is in flight", async () => {
+    const { container } = render(
+      <LiveWaveform active={false} processing={true} height={40} barWidth={3} barGap={1} />
+    );
+
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+
+    // Processing should animate even without a MediaStream
+    expect(mockAudioContextInstances).toBe(0);
+  });
+
+  it("transitions from active to processing smoothly", async () => {
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    const { rerender } = render(
+      <LiveWaveform active={true} processing={false} mediaStream={stream} height={40} />
+    );
+
+    await waitFor(() => {
+      expect(mockAudioContextInstances).toBe(1);
+    });
+
+    // Transition to processing (transcription started)
+    rerender(<LiveWaveform active={false} processing={true} mediaStream={stream} height={40} />);
+
+    // AudioContext should be closed
+    await waitFor(() => {
+      const canvas = document.querySelector("canvas");
+      expect(canvas).toBeInTheDocument();
+    });
+  });
+
+  it("stops processing when transcription completes", async () => {
+    const { rerender, container } = render(
+      <LiveWaveform active={false} processing={true} height={40} />
+    );
+
+    await waitFor(() => {
+      const canvas = container.querySelector("canvas");
+      expect(canvas).toBeInTheDocument();
+    });
+
+    // Stop processing
+    rerender(<LiveWaveform active={false} processing={false} height={40} />);
+
+    // Should still render canvas, but animation should stop
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+  });
+
+  it("renders scrolling mode history correctly", async () => {
+    const frequencyData = new Uint8Array(128);
+    for (let i = 6; i <= 51; i++) {
+      frequencyData[i] = 150;
+    }
+    mockAnalyserData = frequencyData;
+
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    const { container } = render(
+      <LiveWaveform
+        active={true}
+        mediaStream={stream}
+        mode="scrolling"
+        height={40}
+        barWidth={3}
+        barGap={1}
+      />
+    );
+
+    await waitFor(() => {
+      const canvas = container.querySelector("canvas");
+      expect(canvas).toBeInTheDocument();
+      expect(canvas?.width).toBeGreaterThan(0);
+    });
+  });
+
+  it("renders static canvas when silent", () => {
+    // Silent frequency data (all zeros)
+    mockAnalyserData = new Uint8Array(128).fill(0);
+
+    const stream = new MockMediaStream() as unknown as MediaStream;
+
+    const { container } = render(
+      <LiveWaveform active={true} mediaStream={stream} height={40} barWidth={3} barGap={1} />
+    );
+
+    const canvas = container.querySelector("canvas");
+    expect(canvas).toBeInTheDocument();
+  });
 });

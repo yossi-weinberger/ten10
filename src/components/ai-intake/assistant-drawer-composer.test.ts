@@ -20,6 +20,7 @@ describe("composerWiring", () => {
     duplicateScan: null,
     clarification: null,
     recording: false,
+    transcribing: false,
     elapsed: 0,
   } as const;
 
@@ -28,6 +29,7 @@ describe("composerWiring", () => {
       value: "שלום",
       busyKey: undefined,
       recording: false,
+      transcribing: false,
       elapsed: 0,
       mode: "message",
     });
@@ -45,6 +47,7 @@ describe("composerWiring", () => {
       value: "שלום",
       busyKey: "aiIntake.thinking.receipt",
       recording: true,
+      transcribing: false,
       elapsed: 3,
       mode: "amount",
     });

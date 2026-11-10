@@ -44,6 +44,8 @@ export function useAssistantDrawerComposer(
     setElapsed,
     recording,
     setRecording,
+    transcribing,
+    setTranscribing,
     setStatus,
     askIntent,
     dataReply,
@@ -158,8 +160,10 @@ export function useAssistantDrawerComposer(
     const request = ++requestRef.current;
     setPendingPhase("voice");
     setChecking(true);
+    setTranscribing(true);
     const heard = await transcribeSpeech(blob);
     if (requestRef.current !== request) return;
+    setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
       beginTurn({ kind: "voice", text: "" });
@@ -204,7 +208,10 @@ export function useAssistantDrawerComposer(
       if (recordTimer.current) clearTimeout(recordTimer.current);
       recorder.current = null;
       setRecording(false);
-      if (discardRecording.current) return;
+      if (discardRecording.current) {
+        setTranscribing(false);
+        return;
+      }
       void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
     };
     // A close or "new chat" set this for the recording it stopped; this one is new.
@@ -268,6 +275,7 @@ export function useAssistantDrawerComposer(
     saving: state.saving || state.undoing,
     clarification,
     recording,
+    transcribing,
     elapsed,
   });
 

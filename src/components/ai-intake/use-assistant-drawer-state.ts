@@ -118,6 +118,7 @@ export function useAssistantDrawerState() {
   const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusKey | null>(null);
@@ -523,6 +524,8 @@ export function useAssistantDrawerState() {
     setElapsed,
     recording,
     setRecording,
+    transcribing,
+    setTranscribing,
     undoing,
     setUndoing,
     savedItemId,
