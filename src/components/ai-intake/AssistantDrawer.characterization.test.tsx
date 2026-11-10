@@ -1354,4 +1354,73 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.frequencyUnsupported")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.recurring.save" })).not.toBeInTheDocument();
   });
+
+  it("shows the daily limit message instead of askIntent when classifyIntent returns daily_limit", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+  });
+
+  it("shows the quota exhausted message instead of askIntent when classifyIntent returns quota_exhausted", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "quota_exhausted", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitQuotaExhausted")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+  });
+
+  it("shows the rate limited message instead of askIntent when classifyIntent returns rate_limited", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "rate_limited", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitRateLimited")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+  });
+
+  it("shows the daily limit message for voice transcription failure", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.providerFailed")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("shows the daily limit message for receipt read failure", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.providerFailed")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+  });
 });

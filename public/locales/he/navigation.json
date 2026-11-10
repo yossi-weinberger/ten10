@@ -90,9 +90,9 @@
       "non_tithe_donation": "זו מתנה שלא ממעשר?"
     },
     "askIntent": "לא בטוח מה התכוונת. מה זו ההודעה?",
-    "limitDailyLimit": "הגעת למכסת ה־AI היומית. אפשר להמשיך מחר.",
-    "limitQuotaExhausted": "המכסה החודשית הסתיימה. המכסה מתחדשת בתחילת החודש.",
-    "limitRateLimited": "יותר מדי בקשות ברגע. נסו שוב בעוד דקה.",
+    "limitDailyLimit": "הגעת למכסת ה־AI היומית. אפשר להמשיך ב־{{time}}.",
+    "limitQuotaExhausted": "מכסת ה־AI החודשית הסתיימה. היא מתחדשת ב־{{date}}.",
+    "limitRateLimited": "יותר מדי בקשות ברגע. אפשר לנסות שוב בעוד דקה.",
     "dataAnswer_one": "{{year}} נשמרה {{type}} אחת{{recipientClause}} בסך {{amount}}.",
     "dataAnswer_two": "{{year}} נשמרו שתי {{typePlural}}{{recipientClause}} בסך {{amount}}.",
     "dataAnswer_many": "{{year}} נשמרו {{count}} {{typePlural}}{{recipientClause}} בסך {{amount}}.",

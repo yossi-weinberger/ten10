@@ -101,8 +101,10 @@ export function AssistantThread({
   onReceipt,
   opening,
   handlers,
+  limitInfo,
 }: {
   history: AssistantTurn[];
+  limitInfo?: import("@/lib/ai/limit-reason").LimitInfo | null;
   active: UserTurn | null;
   activeBlocks: ReplyBlock[];
   interactiveActive: boolean;
@@ -227,8 +229,9 @@ export function AssistantThread({
                                     interactive={turn.interactive}
                                     handlers={handlers}
                                     footer={index === saved.at ? saved.footer : undefined}
+                                    limitInfo={limitInfo}
                                   />
-                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} /> : null}
+                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} limitInfo={limitInfo} /> : null}
                                 </motion.div>
                               );
                             })}

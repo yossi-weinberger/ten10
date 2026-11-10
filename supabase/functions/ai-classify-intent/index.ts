@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
   const allowed = await usage.consume(userId, "text", { id: readTurnId(body?.turn), op: "intent" });
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { intent: null }, 200);
-    return json(origin, { intent: null, reason: allowed.reason, resets_at: allowed.resetsAt }, 200);
+    return json(origin, { intent: null, reason: allowed.reason }, 200);
   }
 
   try {

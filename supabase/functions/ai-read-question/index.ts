@@ -84,7 +84,7 @@ Deno.serve(async (req: Request) => {
   const prepMs = Date.now() - prepStarted;
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { reason: "unavailable" }, 200);
-    return json(origin, { reason: allowed.reason, resets_at: allowed.resetsAt, prep_ms: prepMs }, 200);
+    return json(origin, { reason: allowed.reason, prep_ms: prepMs }, 200);
   }
   const lists = {
     recipients: namesFrom(recipientCall.data),

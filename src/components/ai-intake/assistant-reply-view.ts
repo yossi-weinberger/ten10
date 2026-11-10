@@ -12,6 +12,7 @@ import type {
 import type { SplitDraft } from "@/lib/ai/split-cards";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import type { InspirationView } from "@/lib/ai/inspiration-pick";
+import type { LimitInfo } from "@/lib/ai/limit-reason";
 
 export type StatusTone = "success" | "error" | "info";
 
@@ -167,6 +168,7 @@ export interface ReplyState {
   splitDrafts: SplitDraft[] | null;
   splitDropped: number;
   status: StatusKey | null;
+  limitInfo: LimitInfo | null;
   savedItemId: string | null;
 }
 
@@ -197,6 +199,7 @@ export function emptyReplyState(): ReplyState {
     splitDrafts: null,
     splitDropped: 0,
     status: null,
+    limitInfo: null,
     savedItemId: null,
   };
 }

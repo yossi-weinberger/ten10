@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
   const allowed = await usage.consume(userId, "speech");
   if (!allowed.allowed) {
     if (allowed.reason === "not_allowed") return json(origin, { text: null }, 200);
-    return json(origin, { text: null, reason: allowed.reason, resets_at: allowed.resetsAt }, 200);
+    return json(origin, { text: null, reason: allowed.reason }, 200);
   }
 
   try {

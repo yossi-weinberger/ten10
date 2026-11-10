@@ -243,6 +243,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       });
       if (read && "limit" in read) {
         setStatus(limitStatus(read.limit));
+        state.setLimitInfo(read.limit);
         return;
       }
       if (read) {
@@ -524,12 +525,14 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setChecking(false);
     if (!decided.ok && decided.reason === "LIMIT") {
       setStatus(limitStatus(decided.limit));
+      state.setLimitInfo(decided.limit);
       setIntent(null);
       setAskIntent(false);
       return;
     }
     if (!read.ok && read.reason === "LIMIT") {
       setStatus(limitStatus(read.limit));
+      state.setLimitInfo(read.limit);
       setIntent(null);
       setAskIntent(false);
       return;

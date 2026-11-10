@@ -70,12 +70,14 @@ export function ReplyBlockView({
   interactive,
   handlers,
   footer,
+  limitInfo,
 }: {
   block: ReplyBlock;
   interactive: boolean;
   handlers: ReplyHandlers;
   /** A saved draft or standing order: its last line, filled by the thread. */
   footer?: SavedFooter;
+  limitInfo?: import("@/lib/ai/limit-reason").LimitInfo | null;
 }) {
   const { t } = useTranslation("navigation");
 
@@ -254,7 +256,7 @@ export function ReplyBlockView({
     case "status":
       return (
         <div className="grid gap-2">
-          <StatusNote status={block.status} />
+          <StatusNote status={block.status} limitInfo={limitInfo} />
           {block.status === "bankStatement" || block.status === "splitList" || block.status === "couldNotRead" ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link to={block.status === "couldNotRead" ? "/add-transaction" : "/transactions-table/import"}>

@@ -122,6 +122,7 @@ export function useAssistantDrawerState() {
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusKey | null>(null);
+  const [limitInfo, setLimitInfo] = useState<import("@/lib/ai/limit-reason").LimitInfo | null>(null);
   const [splitDrafts, setSplitDrafts] = useState<SplitDraft[] | null>(null);
   const [splitDropped, setSplitDropped] = useState(0);
   const [askIntent, setAskIntent] = useState(false);
@@ -303,6 +304,7 @@ export function useAssistantDrawerState() {
     setLevel(0);
     setElapsed(0);
     setStatus(null);
+    setLimitInfo(null);
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
@@ -357,6 +359,7 @@ export function useAssistantDrawerState() {
         })
         : null,
       status,
+      limitInfo,
       savedItemId,
     });
   }
@@ -434,6 +437,7 @@ export function useAssistantDrawerState() {
     setConfirmDeleteId(null);
     setDuplicateActionFailed(false);
     setStatus(null);
+    setLimitInfo(null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
@@ -532,6 +536,8 @@ export function useAssistantDrawerState() {
     setSavedItemId,
     status,
     setStatus,
+    limitInfo,
+    setLimitInfo,
     splitDrafts,
     setSplitDrafts,
     splitDropped,

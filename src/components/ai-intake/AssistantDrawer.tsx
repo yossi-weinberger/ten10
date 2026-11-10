@@ -200,6 +200,7 @@ export function AssistantDrawer({
             void composer.handleReceipt(file);
           }}
           handlers={thread.handlers}
+          limitInfo={state.limitInfo}
         />
       </div>
     </AssistantShell>
