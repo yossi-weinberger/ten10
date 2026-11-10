@@ -1557,6 +1557,73 @@ describe("TransactionCardList", () => {
       expect(onToggleSelected).toHaveBeenCalledWith("1");
       expect(onToggleSelected).toHaveBeenCalledTimes(2);
     });
+
+    it("re-rendering with different number of transactions does not cause hook errors", () => {
+      const onToggleSelected = vi.fn();
+      
+      // First render with 2 transactions
+      const { rerender } = render(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 2)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 2 cards rendered
+      const cards1 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards1).toHaveLength(2);
+
+      // Re-render with 3 transactions
+      rerender(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 3)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 3 cards rendered without errors
+      const cards2 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards2).toHaveLength(3);
+
+      // Re-render back to 2 transactions
+      rerender(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 2)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 2 cards rendered without errors
+      const cards3 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards3).toHaveLength(2);
+    });
   });
 
   it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {

@@ -440,8 +440,7 @@ export function TransactionCardList({
           const surfaceClasses = BASE_TYPE_SURFACE[baseType];
           const displayDate = formatDisplayDate(transaction.date, "numeric");
           
-          const hasDescription = !!transaction.description;
-          const cardTitle = hasDescription
+          const cardTitle = transaction.description
             ? transaction.description
             : formatCategory(
                 transaction.type === "income" || transaction.type === "exempt-income" ? "income"
