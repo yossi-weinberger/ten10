@@ -36,12 +36,12 @@ afterEach(() => {
 });
 
 describe("AssistantComposer cancel recording", () => {
-  it("does not show cancel button when not recording", () => {
+  it("idle state renders attach, voice, and send buttons in order", () => {
     const onCancelRecording = vi.fn();
     render(
       <I18nextProvider i18n={i18n}>
         <AssistantComposer
-          value=""
+          value="test"
           onChange={vi.fn()}
           onSubmit={vi.fn()}
           onReceipt={vi.fn()}
@@ -56,14 +56,27 @@ describe("AssistantComposer cancel recording", () => {
     );
 
     const buttons = screen.getAllByRole("button");
+    const attachButton = buttons.find((btn) => btn.getAttribute("aria-label")?.includes("Attach") || btn.getAttribute("aria-label")?.includes("צרף"));
+    const voiceButton = buttons.find((btn) => btn.getAttribute("aria-label") === "Speak" || btn.getAttribute("aria-label") === "דבר");
+    const sendButton = buttons.find((btn) => btn.getAttribute("aria-label") === "Send" || btn.getAttribute("aria-label") === "שלח");
+    
+    expect(attachButton).toBeDefined();
+    expect(voiceButton).toBeDefined();
+    expect(sendButton).toBeDefined();
+
     const cancelButton = buttons.find((btn) => {
       const label = btn.getAttribute("aria-label");
       return label === "Cancel recording" || label === "בטל הקלטה";
     });
+    const stopButton = buttons.find((btn) => {
+      const label = btn.getAttribute("aria-label");
+      return label === "Stop recording" || label === "סיים הקלטה";
+    });
     expect(cancelButton).toBeUndefined();
+    expect(stopButton).toBeUndefined();
   });
 
-  it("shows cancel button when recording", () => {
+  it("recording state renders cancel first and stop last, hides attach and send", () => {
     const onCancelRecording = vi.fn();
     render(
       <I18nextProvider i18n={i18n}>
@@ -88,7 +101,21 @@ describe("AssistantComposer cancel recording", () => {
       const label = btn.getAttribute("aria-label");
       return label === "Cancel recording" || label === "בטל הקלטה";
     });
+    const stopButton = buttons.find((btn) => {
+      const label = btn.getAttribute("aria-label");
+      return label === "Stop recording" || label === "סיים הקלטה";
+    });
+    const attachButton = buttons.find((btn) => btn.getAttribute("aria-label")?.includes("Attach") || btn.getAttribute("aria-label")?.includes("צרף"));
+    const sendButton = buttons.find((btn) => btn.getAttribute("aria-label") === "Send" || btn.getAttribute("aria-label") === "שלח");
+
     expect(cancelButton).toBeDefined();
+    expect(stopButton).toBeDefined();
+    expect(attachButton).toBeUndefined();
+    expect(sendButton).toBeUndefined();
+
+    const cancelIndex = buttons.indexOf(cancelButton!);
+    const stopIndex = buttons.indexOf(stopButton!);
+    expect(cancelIndex).toBeLessThan(stopIndex);
   });
 
   it("calls onCancelRecording when cancel button is clicked", async () => {

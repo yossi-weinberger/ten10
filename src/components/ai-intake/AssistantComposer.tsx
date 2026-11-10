@@ -1,5 +1,5 @@
 import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
-import { ArrowUp, Camera, Image, Mic, Plus, Square, X } from "lucide-react";
+import { ArrowUp, Camera, Check, Image, Mic, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
@@ -142,29 +142,6 @@ export function AssistantComposer({
           </div>
         ) : null}
         <InputGroupAddon align="block-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <InputGroupButton
-                size="icon-sm"
-                variant="outline"
-                className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
-                aria-label={t("aiIntake.attach")}
-                disabled={busy || recording}
-              >
-                <Plus aria-hidden />
-              </InputGroupButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => cameraRef.current?.click()}>
-                <Camera className="me-2 size-4" aria-hidden />
-                {t("aiIntake.attachCamera")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => fileRef.current?.click()}>
-                <Image className="me-2 size-4" aria-hidden />
-                {t("aiIntake.attachImage")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           {recording && onCancelRecording ? (
             <InputGroupButton
               size="icon-sm"
@@ -175,28 +152,65 @@ export function AssistantComposer({
             >
               <X aria-hidden />
             </InputGroupButton>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <InputGroupButton
+                  size="icon-sm"
+                  variant="outline"
+                  className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+                  aria-label={t("aiIntake.attach")}
+                  disabled={busy}
+                >
+                  <Plus aria-hidden />
+                </InputGroupButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => cameraRef.current?.click()}>
+                  <Camera className="me-2 size-4" aria-hidden />
+                  {t("aiIntake.attachCamera")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                  <Image className="me-2 size-4" aria-hidden />
+                  {t("aiIntake.attachImage")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {!recording ? (
+            <InputGroupButton
+              size="icon-sm"
+              variant="outline"
+              className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              aria-label={t("aiIntake.voice")}
+              disabled={busy}
+              onClick={onToggleVoice}
+            >
+              <Mic aria-hidden />
+            </InputGroupButton>
           ) : null}
-          <InputGroupButton
-            size="icon-sm"
-            variant={recording ? "destructive" : "outline"}
-            className={recording ? "size-11 min-h-11 min-w-11 animate-pulse rounded-full motion-reduce:animate-none sm:size-11" : "size-11 min-h-11 min-w-11 rounded-full sm:size-11"}
-            aria-label={t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
-            aria-pressed={recording}
-            disabled={busy}
-            onClick={onToggleVoice}
-          >
-            {recording ? <Square aria-hidden /> : <Mic aria-hidden />}
-          </InputGroupButton>
-          <InputGroupButton
-            type="submit"
-            size="icon-sm"
-            variant="default"
-            className="ms-auto size-11 min-h-11 min-w-11 rounded-full sm:size-11"
-            aria-label={t("aiIntake.send")}
-            disabled={!canSend}
-          >
-            <ArrowUp aria-hidden />
-          </InputGroupButton>
+          {recording ? (
+            <InputGroupButton
+              size="icon-sm"
+              variant="outline"
+              className="ms-auto size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              aria-label={t("aiIntake.voiceStop")}
+              onClick={onToggleVoice}
+            >
+              <Check aria-hidden />
+            </InputGroupButton>
+          ) : (
+            <InputGroupButton
+              type="submit"
+              size="icon-sm"
+              variant="default"
+              className="ms-auto size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              aria-label={t("aiIntake.send")}
+              disabled={!canSend}
+            >
+              <ArrowUp aria-hidden />
+            </InputGroupButton>
+          )}
         </InputGroupAddon>
       </InputGroup>
     </form>
