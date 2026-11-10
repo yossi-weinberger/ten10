@@ -3,6 +3,7 @@ import { aiCallsAllowed } from "@/lib/ai/flags";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import type { SplitRuleInput } from "../../../supabase/functions/_shared/ai/split-schema.ts";
+import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
 /** continues and discards are about the card on screen, on every route. */
 type CardFlags = { continues?: boolean; discards?: boolean };
@@ -20,6 +21,7 @@ export type SplitItemsResult =
     question: ResolvedQuestion | null;
     usageId: string | null;
   } & CardFlags)
+  | { ok: false; reason: "LIMIT"; limit: LimitInfo }
   | { ok: false; reason: "UNAVAILABLE" };
 
 export interface SplitCallOptions {
@@ -59,6 +61,8 @@ export async function splitItems(
     },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
+  const limit = readLimitInfo(data);
+  if (limit) return { ok: false, reason: "LIMIT", limit };
   const body = data as {
     route?: unknown;
     reason?: unknown;
@@ -71,7 +75,7 @@ export async function splitItems(
     continues?: unknown;
     discards?: unknown;
   };
-  if (body.reason === "unavailable" || body.reason === "quota_exhausted" || body.reason === "rate_limited" || body.reason === "daily_limit" || body.reason === "not_allowed") {
+  if (body.reason === "unavailable" || body.reason === "not_allowed") {
     return { ok: false, reason: "UNAVAILABLE" };
   }
   const usageId = usageIdOf(body);

@@ -6,6 +6,7 @@ import type { TranscribeSpeechResult } from "@/lib/ai/transcribe-speech";
 import type { QuestionFilter } from "@/lib/ai/sum-year-type";
 import type { TurnCard } from "@/lib/ai/assistant-turn";
 import type { ReadyDataReply, StatusKey } from "./assistant-reply-view";
+import type { LimitInfo } from "@/lib/ai/limit-reason";
 
 export function isSingleReceipt(
   result: ReadReceiptResult,
@@ -29,12 +30,28 @@ export function parsedRuleFromCard(card: TurnCard): ParsedUserRule | null {
   };
 }
 
+export function limitStatus(limit: LimitInfo): StatusKey {
+  switch (limit.kind) {
+    case "daily_limit":
+      return "limitDailyLimit";
+    case "quota_exhausted":
+      return "limitQuotaExhausted";
+    case "rate_limited":
+      return "limitRateLimited";
+    default: {
+      const unreachable: never = limit.kind;
+      return unreachable;
+    }
+  }
+}
+
 export function receiptFailureStatus(
-  reason: Extract<ReadReceiptResult, { ok: false }>["reason"],
+  result: Extract<ReadReceiptResult, { ok: false }>,
 ): StatusKey {
-  return reason === "TOO_LARGE"
+  if (result.reason === "LIMIT") return limitStatus(result.limit);
+  return result.reason === "TOO_LARGE"
     ? "receiptTooLarge"
-    : reason === "UNAVAILABLE"
+    : result.reason === "UNAVAILABLE"
       ? "providerFailed"
       : "receiptUnreadable";
 }
@@ -55,19 +72,21 @@ export function receiptRouteStatus(
 }
 
 export function voiceFailureStatus(
-  reason: Extract<TranscribeSpeechResult, { ok: false }>["reason"],
+  result: Extract<TranscribeSpeechResult, { ok: false }>,
 ): StatusKey {
-  return reason === "TOO_LONG"
+  if (result.reason === "LIMIT") return limitStatus(result.limit);
+  return result.reason === "TOO_LONG"
     ? "voiceTooLong"
-    : reason === "UNAVAILABLE"
+    : result.reason === "UNAVAILABLE"
       ? "providerFailed"
       : "voiceUnheard";
 }
 
 export function openReceiptFailureStatus(
-  status: Extract<OpenReceiptResult, { status: "none" | "unavailable" }>["status"],
+  result: Extract<OpenReceiptResult, { status: "none" | "unavailable" | "limit" }>,
 ): StatusKey {
-  return status === "none" ? "receiptMissing" : "receiptUnavailable";
+  if (result.status === "limit") return limitStatus(result.limit);
+  return result.status === "none" ? "receiptMissing" : "receiptUnavailable";
 }
 
 export function readyDataReply(

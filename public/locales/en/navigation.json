@@ -95,6 +95,9 @@
       "non_tithe_donation": "Is this a gift that is not from tithe?"
     },
     "askIntent": "Not sure what you meant. What is this message?",
+    "limitDailyLimit": "You have reached the daily AI limit. You can continue at {{time}}.",
+    "limitQuotaExhausted": "You have reached the monthly AI limit. It renews on {{date}}.",
+    "limitRateLimited": "Too many requests right now. You can try again in a minute.",
     "dataAnswer_one": "In {{year}}, 1 saved {{type}} transaction{{recipientClause}} totals {{amount}}.",
     "dataAnswer_other": "In {{year}}, {{count}} saved {{type}} transactions{{recipientClause}} total {{amount}}.",
     "dataCount_one": "In {{year}}, 1 {{type}} transaction{{recipientClause}} was saved.",

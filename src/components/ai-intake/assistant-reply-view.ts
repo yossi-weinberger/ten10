@@ -12,6 +12,7 @@ import type {
 import type { SplitDraft } from "@/lib/ai/split-cards";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import type { InspirationView } from "@/lib/ai/inspiration-pick";
+import type { LimitInfo } from "@/lib/ai/limit-reason";
 
 export type StatusTone = "success" | "error" | "info";
 
@@ -59,6 +60,9 @@ export const STATUS_MESSAGES = {
   duplicateScanFailed: { key: "aiIntake.duplicateScanFailed", tone: "error" },
   duplicateScanEmpty: { key: "aiIntake.duplicateScanEmpty", tone: "success" },
   duplicateActionFailed: { key: "aiIntake.duplicateActionFailed", tone: "error" },
+  limitDailyLimit: { key: "aiIntake.limitDailyLimit", tone: "error" },
+  limitQuotaExhausted: { key: "aiIntake.limitQuotaExhausted", tone: "error" },
+  limitRateLimited: { key: "aiIntake.limitRateLimited", tone: "error" },
 } as const satisfies Record<string, { key: string; ns?: string; tone: StatusTone }>;
 
 export type StatusKey = keyof typeof STATUS_MESSAGES;
@@ -164,6 +168,7 @@ export interface ReplyState {
   splitDrafts: SplitDraft[] | null;
   splitDropped: number;
   status: StatusKey | null;
+  limitInfo: LimitInfo | null;
   savedItemId: string | null;
 }
 
@@ -194,6 +199,7 @@ export function emptyReplyState(): ReplyState {
     splitDrafts: null,
     splitDropped: 0,
     status: null,
+    limitInfo: null,
     savedItemId: null,
   };
 }

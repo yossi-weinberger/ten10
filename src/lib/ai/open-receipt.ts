@@ -1,11 +1,13 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import { isReceiptUrl } from "@/lib/ai/receipt-url";
+import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
 export type OpenReceiptResult =
   | { status: "opened" }
   | { status: "blocked"; url: string }
   | { status: "none" }
+  | { status: "limit"; limit: LimitInfo }
   | { status: "unavailable" };
 
 type ReceiptWindow = {
@@ -39,6 +41,11 @@ export async function openAiReceipt(
   if (error || !data || typeof data !== "object") {
     win?.close();
     return { status: "unavailable" };
+  }
+  const limit = readLimitInfo(data);
+  if (limit) {
+    win?.close();
+    return { status: "limit", limit };
   }
   const url = (data as { url?: unknown }).url;
   const projectUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "");

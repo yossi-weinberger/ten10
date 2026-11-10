@@ -99,7 +99,7 @@ export function useAssistantDrawerComposer(
       setReceiptLink(result.url);
       return;
     }
-    setStatus(openReceiptFailureStatus(result.status));
+    setStatus(openReceiptFailureStatus(result));
   }
 
   async function handleReceipt(file: File | undefined) {
@@ -120,7 +120,7 @@ export function useAssistantDrawerComposer(
       state.setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setStatus(receiptFailureStatus(result.reason));
+      setStatus(receiptFailureStatus(result));
       return;
     }
     if (!isSingleReceipt(result)) {
@@ -180,7 +180,8 @@ export function useAssistantDrawerComposer(
     }
     setChecking(false);
     if (!heard.ok) {
-      setStatus(voiceFailureStatus(heard.reason));
+      setStatus(voiceFailureStatus(heard));
+      state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
       return;
     }
     const voiceTurn: UserTurn = { kind: "voice", text: heard.text };

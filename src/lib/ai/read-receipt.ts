@@ -9,6 +9,7 @@ import {
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_MAX_BYTES,
 } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -17,6 +18,7 @@ const RECEIPT_LONG_SIDE = 2000;
 export type ReadReceiptResult =
   | { ok: true; route: "receipt"; fields: ReceiptFields; artifactId: string | null }
   | { ok: true; route: "several_receipts" | "statement" }
+  | { ok: false; reason: "LIMIT"; limit: LimitInfo }
   | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" };
 
 async function shrinkReceiptImage(file: File): Promise<File | null> {
@@ -74,6 +76,8 @@ export async function readReceiptImage(file: File, defaultCurrency?: string): Pr
     },
   });
   if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNAVAILABLE" };
+  const limit = readLimitInfo(payload);
+  if (limit) return { ok: false, reason: "LIMIT", limit };
   const reason = (payload as { reason?: unknown }).reason;
   if (reason === "too_large") return { ok: false, reason: "TOO_LARGE" };
   if (reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };

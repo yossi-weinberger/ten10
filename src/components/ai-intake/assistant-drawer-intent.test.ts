@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { YearTypeSum } from "@/lib/ai/classify-intake";
 import {
   isSingleReceipt,
+  limitStatus,
   namedQuestionAnswer,
   openReceiptFailureStatus,
   parsedRuleFromCard,
@@ -45,6 +46,7 @@ describe("isSingleReceipt", () => {
     })).toBe(true);
     expect(isSingleReceipt({ ok: true, route: "statement" })).toBe(false);
     expect(isSingleReceipt({ ok: false, reason: "UNREADABLE" })).toBe(false);
+    expect(isSingleReceipt({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } })).toBe(false);
   });
 });
 
@@ -73,18 +75,29 @@ describe("parsedRuleFromCard", () => {
 
 describe("status mapping", () => {
   it("maps a failed receipt, voice clip, and opened receipt", () => {
-    expect(receiptFailureStatus("TOO_LARGE")).toBe("receiptTooLarge");
-    expect(receiptFailureStatus("UNAVAILABLE")).toBe("providerFailed");
-    expect(receiptFailureStatus("UNREADABLE")).toBe("receiptUnreadable");
+    expect(receiptFailureStatus({ ok: false, reason: "TOO_LARGE" })).toBe("receiptTooLarge");
+    expect(receiptFailureStatus({ ok: false, reason: "UNAVAILABLE" })).toBe("providerFailed");
+    expect(receiptFailureStatus({ ok: false, reason: "UNREADABLE" })).toBe("receiptUnreadable");
+    expect(receiptFailureStatus({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } })).toBe("limitDailyLimit");
     expect(receiptRouteStatus("several_receipts")).toBe("severalReceipts");
     expect(receiptRouteStatus("statement")).toBe("bankStatement");
-    expect(voiceFailureStatus("TOO_LONG")).toBe("voiceTooLong");
-    expect(voiceFailureStatus("UNAVAILABLE")).toBe("providerFailed");
-    expect(voiceFailureStatus("UNHEARD")).toBe("voiceUnheard");
-    expect(openReceiptFailureStatus("none")).toBe("receiptMissing");
-    expect(openReceiptFailureStatus("unavailable")).toBe("receiptUnavailable");
+    expect(voiceFailureStatus({ ok: false, reason: "TOO_LONG" })).toBe("voiceTooLong");
+    expect(voiceFailureStatus({ ok: false, reason: "UNAVAILABLE" })).toBe("providerFailed");
+    expect(voiceFailureStatus({ ok: false, reason: "UNHEARD" })).toBe("voiceUnheard");
+    expect(voiceFailureStatus({ ok: false, reason: "LIMIT", limit: { kind: "rate_limited", resetsAt: null } })).toBe("limitRateLimited");
+    expect(openReceiptFailureStatus({ status: "none" })).toBe("receiptMissing");
+    expect(openReceiptFailureStatus({ status: "unavailable" })).toBe("receiptUnavailable");
+    expect(openReceiptFailureStatus({ status: "limit", limit: { kind: "quota_exhausted", resetsAt: null } })).toBe("limitQuotaExhausted");
     expect(sumFailureStatus("MIXED")).toBe("mixed");
     expect(sumFailureStatus("FAILED")).toBe("failed");
+  });
+});
+
+describe("limitStatus", () => {
+  it("maps limit kinds to status keys", () => {
+    expect(limitStatus({ kind: "daily_limit", resetsAt: null })).toBe("limitDailyLimit");
+    expect(limitStatus({ kind: "quota_exhausted", resetsAt: "2026-12-01T00:00:00Z" })).toBe("limitQuotaExhausted");
+    expect(limitStatus({ kind: "rate_limited", resetsAt: "2026-11-10T10:31:00Z" })).toBe("limitRateLimited");
   });
 });
 

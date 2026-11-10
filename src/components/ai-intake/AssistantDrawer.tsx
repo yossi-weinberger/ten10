@@ -204,6 +204,7 @@ export function AssistantDrawer({
             void composer.toggleRecording();
           }}
           handlers={thread.handlers}
+          limitInfo={state.limitInfo}
         />
       </div>
     </AssistantShell>
