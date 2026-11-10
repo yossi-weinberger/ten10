@@ -460,14 +460,14 @@ export function Sidebar({
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
         {platform === "web" && session?.user && (
           <Link
-            className={inSheet ? "shrink-0" : ""}
             to="/profile"
             onClick={onLinkClick}
             data-active={currentPath.startsWith("/profile")}
             aria-label={t("menu.profile")}
             className={cn(
               "flex items-center rounded-md transition-all duration-300 relative z-10 min-w-0 overflow-hidden",
-              "hover:bg-muted/50 justify-start px-3 h-14"
+              "hover:bg-muted/50 justify-start px-3 h-14",
+              inSheet ? "shrink-0" : ""
             )}
           >
             {authLoading || profileLoading ? (
