@@ -110,14 +110,12 @@ describe("formatMonthlyResetDate in TZ=UTC", () => {
 });
 
 describe("formatDailyResetTime in TZ=Asia/Jerusalem", () => {
-  const originalTZ = process.env.TZ;
-
   beforeEach(() => {
-    process.env.TZ = "Asia/Jerusalem";
+    vi.stubEnv("TZ", "Asia/Jerusalem");
   });
 
   afterEach(() => {
-    process.env.TZ = originalTZ;
+    vi.unstubAllEnvs();
   });
 
   it("formats time correctly in Israel timezone", () => {
@@ -134,14 +132,12 @@ describe("formatDailyResetTime in TZ=Asia/Jerusalem", () => {
 });
 
 describe("formatMonthlyResetDate in TZ=Asia/Jerusalem", () => {
-  const originalTZ = process.env.TZ;
-
   beforeEach(() => {
-    process.env.TZ = "Asia/Jerusalem";
+    vi.stubEnv("TZ", "Asia/Jerusalem");
   });
 
   afterEach(() => {
-    process.env.TZ = originalTZ;
+    vi.unstubAllEnvs();
   });
 
   it("formats date correctly in Israel timezone", () => {

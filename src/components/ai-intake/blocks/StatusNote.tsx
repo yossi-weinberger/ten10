@@ -11,19 +11,20 @@ export function StatusNote({ status, limitInfo }: { status: StatusKey; limitInfo
   const Icon: LucideIcon = TONE_ICON[message.tone];
   const namespace = "ns" in message ? message.ns : undefined;
 
-  let key = message.key;
-  let values: Record<string, string> = {};
-
-  if (limitInfo) {
+  const key = message.key;
+  const values: Record<string, string> = (() => {
+    if (!limitInfo) return {};
     const resetDate = computeLimitReset(limitInfo.kind);
     if (status === "limitDailyLimit" && resetDate) {
       const time = formatDailyResetTime(resetDate, i18n.language);
-      values = { time };
-    } else if (status === "limitQuotaExhausted" && resetDate) {
-      const date = formatMonthlyResetDate(resetDate, i18n.language);
-      values = { date };
+      return { time };
     }
-  }
+    if (status === "limitQuotaExhausted" && resetDate) {
+      const date = formatMonthlyResetDate(resetDate, i18n.language);
+      return { date };
+    }
+    return {};
+  })();
 
   return (
     <p className={`flex items-start gap-2 text-sm ${TONE_CLASS[message.tone]}`}>
