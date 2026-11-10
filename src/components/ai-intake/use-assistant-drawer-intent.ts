@@ -493,15 +493,12 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     }));
   }
 
-  async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text") {
+  async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text", skipBeginTurn = false) {
     const source = spoken ?? state.text;
     const today = getCurrentLocalDate();
     if (!source.trim()) return;
     const request = ++requestRef.current;
-    const existingVoiceTurn = kind === "voice" && state.activeUser?.kind === "voice" && state.activeUser.text === "";
-    if (existingVoiceTurn) {
-      state.setActiveUser({ kind: "voice", text: source });
-    } else {
+    if (!skipBeginTurn) {
       beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
     }
     state.setText("");

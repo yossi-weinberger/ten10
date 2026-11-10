@@ -109,16 +109,17 @@ describe("AssistantThread", () => {
     expect(oldTurnMessages[0]?.textContent).toContain("כמה תרמתי השנה?");
 
     const newTurnMessages = Array.from(turns[1]?.querySelectorAll('[data-slot="message"]') ?? []);
-    expect(newTurnMessages.length).toBeGreaterThanOrEqual(1);
+    expect(newTurnMessages.length).toBe(2);
     
     const userMessage = newTurnMessages[0];
     const assistantMessage = newTurnMessages[1];
     
+    expect(userMessage).toBeDefined();
     expect(userMessage?.getAttribute('data-align')).toBe('end');
-    if (assistantMessage) {
-      const skeleton = assistantMessage.querySelector('[role="status"]');
-      expect(skeleton).not.toBeNull();
-    }
+    
+    expect(assistantMessage).toBeDefined();
+    const skeleton = assistantMessage?.querySelector('[role="status"]');
+    expect(skeleton).not.toBeNull();
   });
 
   it("clicking each non-receipt chip sends its own text", async () => {

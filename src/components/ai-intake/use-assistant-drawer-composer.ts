@@ -17,6 +17,7 @@ import {
 import { amountReplySource, composerWiring } from "./assistant-drawer-composer";
 import type { AssistantDrawerState } from "./use-assistant-drawer-state";
 import type { AssistantDrawerIntent } from "./use-assistant-drawer-intent";
+import type { UserTurn } from "./assistant-reply-view";
 
 export function useAssistantDrawerComposer(
   state: AssistantDrawerState,
@@ -166,14 +167,21 @@ export function useAssistantDrawerComposer(
     setPendingPhase("voice");
     setChecking(true);
     const heard = await transcribeSpeech(blob);
-    if (requestRef.current !== request) return;
+    if (requestRef.current !== request) {
+      state.setActiveUser(null);
+      state.conversationRef.current.active = null;
+      return;
+    }
     setChecking(false);
     if (!heard.ok) {
       setStatus(voiceFailureStatus(heard.reason));
       return;
     }
+    const voiceTurn: UserTurn = { kind: "voice", text: heard.text };
+    state.setActiveUser(voiceTurn);
+    state.conversationRef.current.active = voiceTurn;
     setText("");
-    await intent.handleSubmit(heard.text, "voice");
+    await intent.handleSubmit(heard.text, "voice", true);
   }
 
   async function toggleRecording() {
