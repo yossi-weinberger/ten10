@@ -8,14 +8,15 @@ import {
   trimQuestionSlotName,
   type QuestionSlots,
 } from "../../../supabase/functions/_shared/ai/question-slots.ts";
+import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
-export type ReadQuestionSlotsResult = QuestionSlots & {
+export type ReadQuestionSlotsResult = (QuestionSlots & {
   measurementId: string | null;
   period: { kind: "all" } | { kind: "span"; from: string; to: string } | null;
   nameText: string | null;
-};
+}) | { limit: LimitInfo };
 
-/** Null when the question reader service is unavailable or did not return slots. */
+/** Null when the question reader service is unavailable or did not return slots. Returns limit info when a usage limit was hit. */
 export async function readQuestionSlots(
   text: string,
   /** `turn` is the asking message's, so the question rides on that message's charge. */
@@ -32,6 +33,8 @@ export async function readQuestionSlots(
     },
   });
   if (error || !data || typeof data !== "object") return null;
+  const limit = readLimitInfo(data);
+  if (limit) return { limit };
   const record = data as {
     reason?: unknown;
     family?: unknown;

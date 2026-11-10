@@ -85,7 +85,7 @@ Deno.serve(async (req: Request) => {
   const prepMs = Date.now() - prepStarted;
   if (!firstGate.allowed) {
     if (firstGate.reason === "not_allowed") return json(origin, { reason: "unavailable" }, 200);
-    return json(origin, { reason: "unavailable", prep_ms: prepMs }, 200);
+    return json(origin, { reason: firstGate.reason, resets_at: firstGate.resetsAt, prep_ms: prepMs }, 200);
   }
   const calendar = body?.calendar === "hebrew" ? "hebrew" : "gregorian";
   const conversation = readContextField(body?.context);

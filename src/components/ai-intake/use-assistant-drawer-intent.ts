@@ -30,6 +30,7 @@ import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import type { IntakeIntent, QuestionSlots, TextTransactionDraft, YearTypeSum } from "@/lib/ai/classify-intake";
 import { namedHalachaPage } from "./assistant-shown-intent";
 import {
+  limitStatus,
   namedQuestionAnswer,
   parsedRuleFromCard,
   publishedPageNamespace,
@@ -240,6 +241,10 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         context: contextRef.current,
         turn,
       });
+      if (read && "limit" in read) {
+        setStatus(limitStatus(read.limit));
+        return;
+      }
       if (read) {
         periodHold.current = read.period;
         nameHold.current = read.nameText;
@@ -516,6 +521,19 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const decided = await classifyIntentFallback(source, contextRef.current, turn);
     const read = await splitPromise;
     if (requestRef.current !== request) return;
+    setChecking(false);
+    if (!decided.ok && decided.reason === "LIMIT") {
+      setStatus(limitStatus(decided.limit));
+      setIntent(null);
+      setAskIntent(false);
+      return;
+    }
+    if (!read.ok && read.reason === "LIMIT") {
+      setStatus(limitStatus(read.limit));
+      setIntent(null);
+      setAskIntent(false);
+      return;
+    }
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
       ? { ...read, items: withChomesh(read.items, true) }
       : read;
@@ -524,7 +542,6 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     halachaRef.current = namedPage === "personal" ? null : namedPage;
     preferRabbi.current = false;
     setIntentConfidence(decided.ok ? decided.confidence : null);
-    setChecking(false);
     const decision = decideTurn({
       message: source,
       jev: decided.ok

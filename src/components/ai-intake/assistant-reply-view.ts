@@ -59,6 +59,9 @@ export const STATUS_MESSAGES = {
   duplicateScanFailed: { key: "aiIntake.duplicateScanFailed", tone: "error" },
   duplicateScanEmpty: { key: "aiIntake.duplicateScanEmpty", tone: "success" },
   duplicateActionFailed: { key: "aiIntake.duplicateActionFailed", tone: "error" },
+  limitDailyLimit: { key: "aiIntake.limitDailyLimit", tone: "error" },
+  limitQuotaExhausted: { key: "aiIntake.limitQuotaExhausted", tone: "error" },
+  limitRateLimited: { key: "aiIntake.limitRateLimited", tone: "error" },
 } as const satisfies Record<string, { key: string; ns?: string; tone: StatusTone }>;
 
 export type StatusKey = keyof typeof STATUS_MESSAGES;
