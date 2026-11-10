@@ -1,7 +1,7 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "./question-period.ts";
-import { SPLIT_MODEL } from "./split-prompt.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { boundsFromPeriod, periodRequestBody, readPeriodPayload, SPLIT_RESPONSES_URL } from "../../supabase/functions/_shared/ai/question-period.ts";
+import { SPLIT_MODEL } from "../../supabase/functions/_shared/ai/split-prompt.ts";
 
 /** Args: env file, results json path, optional fixture path. Period bounds against the labels. */
 

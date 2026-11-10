@@ -1,8 +1,8 @@
 import { writeEvalOut } from "./eval-out.ts";
-import { readModelText } from "./receipt-draft.ts";
-import { splitReadContext } from "./split-anchor.ts";
-import { splitPrompt, splitRequestBody, SPLIT_RESPONSES_URL, type SplitPromptContext } from "./split-prompt.ts";
-import { readSplitResponse } from "./split-response.ts";
+import { readModelText } from "../../supabase/functions/_shared/ai/receipt-draft.ts";
+import { splitReadContext } from "../../supabase/functions/_shared/ai/split-anchor.ts";
+import { splitPrompt, splitRequestBody, SPLIT_RESPONSES_URL, type SplitPromptContext } from "../../supabase/functions/_shared/ai/split-prompt.ts";
+import { readSplitResponse } from "../../supabase/functions/_shared/ai/split-response.ts";
 
 /** Args: env file, results json path. Eight rule sentences, separate from the 264. */
 

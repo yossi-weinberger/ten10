@@ -102,7 +102,7 @@ Jev בוחר אחת מהתוויות: `add_transaction`, `create_rule`, `create_
    - הוספת אינדקס `usage_events_user_id_idx` על `ai.usage_events (user_id)` לביצועים תחת עומס.
    - נעילת כל 16 פונקציות ה-RPC הציבוריות עם `REVOKE` מ-PUBLIC/anon ו-`GRANT` ל-`authenticated` בלבד.
    - שחרור מכסות ב-`catch` בכל פונקציות ה-Edge במידה וקריאת המודל נכשלה.
-   - הקשחת Allowlist Safe-by-default (`trial-users.ts` דורש `AI_TRIAL_ONLY=false` מפורש).
+   - בקרת גישה מבוססת תוכניות: `public.plans` ו-`public.user_plans` שולטים בגישה, דרך `ai.effective_plan` ו-`public.get_my_ai_access`.
 
 5. **ממשק משתמש, שפות ו-RTL (גל 5, PR #652):**
    - 100% סימטריה בעברית ובאנגלית בכל קובצי ה-JSON ב-`public/locales/`.

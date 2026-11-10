@@ -40,6 +40,7 @@ const HANDLERS: ReplyHandlers = {
   onDismissPair: noop,
   onRabbiSent: noop,
   onRabbiDismiss: noop,
+  onAskRabbiFromHalacha: noop,
   onAnotherInspiration: noop,
   saving: false,
   undoing: false,

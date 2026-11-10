@@ -110,6 +110,7 @@ export function useAssistantDrawerState() {
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
+  const [halachaUserQuestion, setHalachaUserQuestion] = useState<string | null>(null);
   const [rabbiText, setRabbiText] = useState<string | null>(null);
   const [rabbiTicket, setRabbiTicket] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -296,6 +297,7 @@ export function useAssistantDrawerState() {
     setRuleChoice(null);
     setAppliedRuleName(null);
     setHalachaNamespace(null);
+    setHalachaUserQuestion(null);
     setChecking(false);
     setPendingPhase(null);
     setLevel(0);
@@ -330,6 +332,7 @@ export function useAssistantDrawerState() {
       confirmDeleteId,
       duplicateActionFailed,
       halachaNamespace,
+      halachaUserQuestion,
       inspiration,
       rabbiText,
       rabbiTicket,
@@ -421,6 +424,7 @@ export function useAssistantDrawerState() {
     setRuleChoice(null);
     setAppliedRuleName(null);
     setHalachaNamespace(null);
+    setHalachaUserQuestion(null);
     preferRabbi.current = false;
     setRabbiText(null);
     setRabbiTicket(null);
@@ -504,6 +508,8 @@ export function useAssistantDrawerState() {
     setAppliedRuleName,
     halachaNamespace,
     setHalachaNamespace,
+    halachaUserQuestion,
+    setHalachaUserQuestion,
     rabbiText,
     setRabbiText,
     rabbiTicket,

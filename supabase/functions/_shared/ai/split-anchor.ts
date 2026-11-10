@@ -221,6 +221,38 @@ function isLetter(char: string): boolean {
   return /\p{L}|\p{N}/u.test(char);
 }
 
+/**
+ * Strip leading lamed preposition from a description when it appears as "lamed + <name>" in the source
+ * after giving verbs or charity keywords. Conservative: only strips when clearly a preposition.
+ */
+function stripPrepositionLamed(description: string, source: string): string {
+  // Check if description starts with lamed, optionally followed by maqaf or hyphen
+  const match = description.match(/^ל[־-]?(.+)$/);
+  if (!match) return description;
+  
+  const remainder = match[1].trim();
+  if (remainder.length < 2) return description;
+  
+  // Check if the lamed-prefixed form appears in source after giving verbs/contexts
+  // Common giving verbs: natati (gave), natan (give), taramti (donated), taram (donate),
+  // he'evarti (transferred), he'evar (transfer), shilamti (paid), shilam (pay)
+  // Or after trumah (donation)
+  // Allow for amounts and other text between the verb and the payee
+  const prefixedForm = description.trim();
+  const escapedForm = prefixedForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `(נתתי|נתן|תרמתי|תרם|העברתי|העבר|שילמתי|שילם|תרומה).*${escapedForm}`,
+    'i'
+  );
+  
+  if (pattern.test(source)) {
+    // It's a preposition, strip it
+    return remainder;
+  }
+  
+  return description;
+}
+
 /** The rule name is a whole word in the item text, or that word with one prefix letter. */
 export function nameStands(text: string, name: string): boolean {
   const source = text.replace(/־/g, " ");
@@ -311,7 +343,7 @@ export function anchorSplitItems(
     kept.push({
       total: item.is_total,
       item: {
-        description: item.description.trim(),
+        description: stripPrepositionLamed(item.description.trim(), source),
         amount: amount.amount,
         currency: item.currency ?? context.defaultCurrency,
         date: dated.date,
@@ -330,7 +362,7 @@ export function anchorSplitItems(
       },
     });
   }
-  // When the model splits a special classification into an amountless item (e.g. "הוצאה מוכרת"),
+  // When the model splits a special classification into an amountless item (e.g. recognized expense),
   // and exactly one real transaction item was kept without special classification, apply it to that item.
   if (kept.length === 1 && !kept[0].item.specialStated && !kept[0].item.typeQuestion && !kept[0].item.ruleId) {
     const droppedSpecial = items.find((item) => (

@@ -11,6 +11,7 @@ import { AdminAiCharts } from "@/components/admin/AdminAiCharts";
 import { AdminAiFunnel } from "@/components/admin/AdminAiFunnel";
 import { AdminAiSourceSplit, AdminAiSpendCards } from "@/components/admin/AdminAiSpendCards";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { AdminUserPlans } from "@/components/admin/AdminUserPlans";
 import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateControls";
 import { intakeFunnel } from "@/lib/admin/ai-intake-funnel";
@@ -280,6 +281,7 @@ export function AdminAiSection() {
           ) : null}
         </div>
       ) : null}
+      <AdminUserPlans />
       {countsCurrent && counts ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

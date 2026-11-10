@@ -72,6 +72,25 @@ export type AdminAiCalls = {
   users: Array<{ email: string; calls: number; failed: number; cost_usd: number }>;
 };
 
+export type AdminUserPlan = {
+  user_email: string;
+  user_id: string;
+  plan: string;
+  source: "manual" | "billing";
+  expires_at: string | null;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AdminPlan = {
+  plan: string;
+  ai_monthly_units: number;
+  ai_daily_calls: number;
+  ai_minute_calls: number;
+  is_default: boolean;
+};
+
 /** The gateway bills every report query, so a range is fetched once per page load. */
 const spendCache = new Map<string, AdminAiSpend>();
 
@@ -125,5 +144,54 @@ export async function fetchAdminAiSpend(from: string, to: string): Promise<Admin
   } catch (error) {
     logger.error("Admin AI spend failed", error);
     return null;
+  }
+}
+
+export async function fetchUserPlans(): Promise<AdminUserPlan[]> {
+  const { data, error } = await supabase.rpc("admin_list_user_plans");
+  if (error) {
+    logger.error("Fetch user plans failed", error);
+    throw error;
+  }
+  return (data || []) as AdminUserPlan[];
+}
+
+export async function fetchPlans(): Promise<AdminPlan[]> {
+  const { data, error } = await supabase.from("plans").select("*").order("plan");
+  if (error) {
+    logger.error("Fetch plans failed", error);
+    throw error;
+  }
+  return (data || []) as AdminPlan[];
+}
+
+export async function addUserPlan(
+  email: string,
+  plan: string,
+  expiresOn: string | null,
+  note: string | null,
+  force: boolean,
+): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_user_plan", {
+    p_email: email,
+    p_plan: plan,
+    p_expires_on: expiresOn || null,
+    p_note: note || null,
+    p_force: force,
+  });
+  if (error) {
+    logger.error("Add user plan failed", error);
+    throw error;
+  }
+}
+
+export async function removeUserPlan(email: string, force: boolean): Promise<void> {
+  const { error } = await supabase.rpc("admin_remove_user_plan", {
+    p_email: email,
+    p_force: force,
+  });
+  if (error) {
+    logger.error("Remove user plan failed", error);
+    throw error;
   }
 }
