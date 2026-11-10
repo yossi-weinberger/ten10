@@ -71,7 +71,7 @@ function UserBubble({ turn, scanning }: { turn: UserTurn; scanning: boolean }) {
     return (
       <Attachment orientation="vertical" className="relative overflow-hidden">
         <AttachmentMedia variant={turn.previewUrl ? "image" : "icon"}>
-          {turn.previewUrl ? <img src={turn.previewUrl} alt={turn.fileName} /> : <FileText aria-hidden />}
+          {turn.previewUrl ? <img src={turn.previewUrl} alt={turn.fileName} className="ph-no-capture" /> : <FileText aria-hidden />}
         </AttachmentMedia>
         <AttachmentContent>
           <AttachmentTitle>{turn.fileName}</AttachmentTitle>
