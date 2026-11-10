@@ -6,7 +6,6 @@ import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/re
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
-import { createElement } from "react";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
