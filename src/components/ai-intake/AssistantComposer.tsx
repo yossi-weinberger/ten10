@@ -1,12 +1,19 @@
 import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
-import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
+import { ArrowUp, Camera, Image, Mic, Plus, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface AssistantComposerProps {
   value: string;
@@ -38,6 +45,8 @@ export function AssistantComposer({
 }: AssistantComposerProps) {
   const { t } = useTranslation("navigation");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const cameraRef = useRef<HTMLInputElement | null>(null);
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const label = t(mode === "amount" ? "aiIntake.askAmount" : "aiIntake.placeholder");
   const canSend = value.trim().length > 0 && !busy && !recording;
 
@@ -80,6 +89,18 @@ export function AssistantComposer({
           event.target.value = "";
         }}
       />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture={isMobile ? "environment" : undefined}
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(event) => {
+          onReceipt(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
       <InputGroup>
         <InputGroupTextarea
           ref={textareaRef}
@@ -108,16 +129,29 @@ export function AssistantComposer({
           </div>
         ) : null}
         <InputGroupAddon align="block-end">
-          <InputGroupButton
-            size="icon-sm"
-            variant="outline"
-            className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
-            aria-label={t("aiIntake.receipt")}
-            disabled={busy || recording}
-            onClick={() => fileRef.current?.click()}
-          >
-            <Paperclip aria-hidden />
-          </InputGroupButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <InputGroupButton
+                size="icon-sm"
+                variant="outline"
+                className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+                aria-label={t("aiIntake.attach")}
+                disabled={busy || recording}
+              >
+                <Plus aria-hidden />
+              </InputGroupButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => cameraRef.current?.click()}>
+                <Camera className="me-2 size-4" aria-hidden />
+                {t("aiIntake.attachCamera")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                <Image className="me-2 size-4" aria-hidden />
+                {t("aiIntake.attachImage")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <InputGroupButton
             size="icon-sm"
             variant={recording ? "destructive" : "outline"}

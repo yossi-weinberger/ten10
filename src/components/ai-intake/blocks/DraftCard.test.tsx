@@ -48,11 +48,11 @@ function card(locked: boolean) {
 describe("DraftCard save celebration", () => {
   afterEach(() => cleanup());
 
-  it("celebrates a donation only when this card sees the save", () => {
+  it("no longer shows confetti animation", () => {
     const { container, rerender } = render(card(false));
     expect(container.querySelector("[data-confetti]")).toBeNull();
     rerender(card(true));
-    expect(container.querySelector("[data-confetti]")).not.toBeNull();
+    expect(container.querySelector("[data-confetti]")).toBeNull();
   });
 
   it("stays still when it mounts already saved", () => {

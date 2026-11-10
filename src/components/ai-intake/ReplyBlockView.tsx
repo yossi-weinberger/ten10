@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { Shimmer } from "@/components/ui/shimmer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TypeChoice } from "./blocks/TypeChoice";
 import type { IntakeIntent, RuleActionType, TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
@@ -82,9 +83,15 @@ export function ReplyBlockView({
   switch (block.kind) {
     case "thinking":
       return (
-        <p role="status" className="text-sm">
-          <Shimmer>{t(`aiIntake.thinking.${block.phase}`)}</Shimmer>
-        </p>
+        <div role="status" className="grid gap-2.5">
+          <p className="text-sm">
+            <Shimmer>{t(`aiIntake.thinking.${block.phase}`)}</Shimmer>
+          </p>
+          <div className="grid gap-2">
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
       );
     case "askIntent":
       return (

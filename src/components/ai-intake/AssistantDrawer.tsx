@@ -123,9 +123,10 @@ export function AssistantDrawer({
             composer.stopRecording();
             state.clearConversation();
           }}
+          title={state.t("aiIntake.newChat")}
+          aria-label={state.t("aiIntake.newChat")}
         >
           <SquarePen aria-hidden />
-          {state.t("aiIntake.newChat")}
         </Button>
       )}
       onReceipt={(file) => {
@@ -198,6 +199,9 @@ export function AssistantDrawer({
           }}
           onReceipt={(file) => {
             void composer.handleReceipt(file);
+          }}
+          onVoice={() => {
+            void composer.toggleRecording();
           }}
           handlers={thread.handlers}
         />

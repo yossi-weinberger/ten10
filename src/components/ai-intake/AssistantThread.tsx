@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ArrowDown, BookOpen, BotMessageSquare, ChartColumn, CreditCard, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
+import { ArrowDown, BookOpen, ChartColumn, FileText, Mic, Receipt, Repeat, Scale } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,13 +29,13 @@ import { ReplyBlockView, type ReplyHandlers } from "./ReplyBlockView";
 
 /** One chip per capability, its icon tinted like the cards it leads to. "receipt" opens the file picker; the others send their text. */
 const SUGGESTIONS = [
-  { key: "transaction", icon: CreditCard, tint: BASE_TYPE_TINT.expense },
-  { key: "recurring", icon: Repeat, tint: BASE_TYPE_TINT.donation },
+  { key: "transaction", icon: FileText, tint: BASE_TYPE_TINT.expense },
   { key: "receipt", icon: Receipt, tint: KIND_TINT.neutral },
+  { key: "voice", icon: Mic, tint: KIND_TINT.neutral },
   { key: "question", icon: ChartColumn, tint: KIND_TINT.knowledge },
-  { key: "balance", icon: Scale, tint: BASE_TYPE_TINT.donation },
-  { key: "inspiration", icon: BotMessageSquare, tint: KIND_TINT.knowledge },
   { key: "halacha", icon: BookOpen, tint: KIND_TINT.knowledge },
+  { key: "recurring", icon: Repeat, tint: BASE_TYPE_TINT.donation },
+  { key: "rule", icon: Scale, tint: KIND_TINT.knowledge },
 ] as const;
 
 /**
@@ -99,6 +99,7 @@ export function AssistantThread({
   interactiveActive,
   onSuggestion,
   onReceipt,
+  onVoice,
   opening,
   handlers,
 }: {
@@ -108,6 +109,7 @@ export function AssistantThread({
   interactiveActive: boolean;
   onSuggestion: (text: string) => void;
   onReceipt?: (file: File) => void;
+  onVoice?: () => void;
   /** The greeting's first name and a line from the user's data. Missing parts fall back to the generic text. */
   opening?: { name: string | null; line?: string };
   handlers: ReplyHandlers;
@@ -152,6 +154,7 @@ export function AssistantThread({
                 className="inline-flex h-11 min-h-11 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => {
                   if (key === "receipt") fileRef.current?.click();
+                  else if (key === "voice") onVoice?.();
                   else onSuggestion(t(`aiIntake.suggestions.${key}`));
                 }}
               >

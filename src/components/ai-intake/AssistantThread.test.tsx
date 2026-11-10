@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AssistantThread } from "./AssistantThread";
@@ -18,6 +18,8 @@ vi.mock("react-i18next", () => ({
         "aiIntake.suggestions.balance": "מאזן",
         "aiIntake.suggestions.inspiration": "השראה",
         "aiIntake.suggestions.halacha": "הלכה",
+        "aiIntake.suggestions.voice": "הקלטה",
+        "aiIntake.suggestions.rule": "כלל",
         "aiIntake.greeting.morning": "בוקר טוב",
         "aiIntake.emptyDescription": "איך אוכל לעזור?",
       };
@@ -88,9 +90,8 @@ describe("AssistantThread suggestion chips", () => {
       { label: "הוצאה חדשה", text: "הוצאה חדשה" },
       { label: "תשלום חוזר", text: "תשלום חוזר" },
       { label: "שאלה", text: "שאלה" },
-      { label: "מאזן", text: "מאזן" },
-      { label: "השראה", text: "השראה" },
       { label: "הלכה", text: "הלכה" },
+      { label: "כלל", text: "כלל" },
     ];
 
     for (const chip of chips) {
@@ -120,6 +121,29 @@ describe("AssistantThread suggestion chips", () => {
 
     const receiptButton = getByText("קבלה");
     await user.click(receiptButton);
+    expect(onSuggestion).not.toHaveBeenCalled();
+  });
+
+  it("clicking the voice chip triggers recording", async () => {
+    const user = userEvent.setup();
+    const onSuggestion = vi.fn();
+    const onVoice = vi.fn();
+    
+    render(
+      <AssistantThread
+        history={[]}
+        active={null}
+        activeBlocks={[]}
+        interactiveActive={false}
+        onSuggestion={onSuggestion}
+        onVoice={onVoice}
+        handlers={handlers}
+      />
+    );
+
+    // Click voice chip and verify it calls onVoice
+    await user.click(screen.getByRole("button", { name: /הקלטה/ }));
+    expect(onVoice).toHaveBeenCalledTimes(1);
     expect(onSuggestion).not.toHaveBeenCalled();
   });
 });
