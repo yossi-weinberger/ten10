@@ -65,9 +65,13 @@ const Tooltip = ({
     defaultOpen ?? false,
   );
   const resolvedOpen = isControlled ? openProp : uncontrolledOpen;
+  const ignoreCloseUntilRef = React.useRef<number>(0);
 
   const handleTouchOpenChange = React.useCallback(
     (nextOpen: boolean) => {
+      if (!nextOpen && Date.now() < ignoreCloseUntilRef.current) {
+        return;
+      }
       if (!isControlled) {
         setUncontrolledOpen(nextOpen);
       }
@@ -78,8 +82,12 @@ const Tooltip = ({
 
   const toggleTouchTooltip = React.useCallback(() => {
     if (!isTouchLikeDevice) return;
-    handleTouchOpenChange(!resolvedOpen);
-  }, [isTouchLikeDevice, handleTouchOpenChange, resolvedOpen]);
+    const newOpen = !resolvedOpen;
+    if (newOpen) {
+      ignoreCloseUntilRef.current = Date.now() + 100;
+    }
+    handleTouchOpenChange(newOpen);
+  }, [isTouchLikeDevice, resolvedOpen, handleTouchOpenChange]);
 
   const interactionContextValue = React.useMemo(
     () => ({
@@ -118,30 +126,22 @@ Tooltip.displayName = "Tooltip";
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   TooltipTriggerProps
->(({ onClick, onPointerEnter, onPointerLeave, ...props }, ref) => {
+>(({ onClick, onPointerLeave, ...props }, ref) => {
   const interactionContext = React.useContext(TooltipInteractionContext);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
     if (event.defaultPrevented) return;
     if (interactionContext?.isTouchLikeDevice) {
-      event.preventDefault();
       interactionContext.toggle();
-    }
-  };
-
-  const handlePointerEnter = (event: React.PointerEvent<HTMLButtonElement>) => {
-    onPointerEnter?.(event);
-    if (event.defaultPrevented) return;
-    if (interactionContext?.isTouchLikeDevice) {
-      event.preventDefault();
     }
   };
 
   const handlePointerLeave = (event: React.PointerEvent<HTMLButtonElement>) => {
     onPointerLeave?.(event);
     if (event.defaultPrevented) return;
-    if (interactionContext?.isTouchLikeDevice) {
+    // On touch devices, prevent hover-triggered close after a tap opened the tooltip
+    if (event.pointerType === "touch") {
       event.preventDefault();
     }
   };
@@ -151,7 +151,6 @@ const TooltipTrigger = React.forwardRef<
       ref={ref}
       {...props}
       onClick={handleClick}
-      onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     />
   );
