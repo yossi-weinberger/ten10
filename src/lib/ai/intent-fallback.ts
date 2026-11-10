@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
 import { INTAKE_INTENTS, type IntakeIntent } from "@/lib/ai/classify-intake";
+import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
 export type IntentFallbackResult =
   | {
@@ -12,6 +13,7 @@ export type IntentFallbackResult =
     /** The message asked for chomesh on its income. */
     chomesh?: boolean;
   }
+  | { ok: false; reason: "LIMIT"; limit: LimitInfo }
   | { ok: false; reason: "UNAVAILABLE" };
 
 function readConfidence(value: unknown): number | null {
@@ -25,6 +27,8 @@ export async function classifyIntentFallback(text: string, context = "", turn?: 
     body: { text, ...(context ? { context } : {}), ...(turn ? { turn } : {}) },
   });
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
+  const limit = readLimitInfo(data);
+  if (limit) return { ok: false, reason: "LIMIT", limit };
   const record = data as {
     intent?: unknown;
     reason?: unknown;

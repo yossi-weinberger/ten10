@@ -954,6 +954,50 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.queryByRole("button", { name: "aiIntake.types.expense" })).not.toBeInTheDocument();
   });
 
+  it("creates voice turn before skeleton appears, not after transcription", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state = "inactive";
+      ondataavailable?: (event: { data: Blob }) => void;
+      onstop?: () => void;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    
+    ai.transcribeSpeech.mockImplementation(
+      () => new Promise(() => {}) // Never resolves - we only check skeleton appears
+    );
+
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    
+    // Key assertion: skeleton should appear AND voice bubble should exist
+    // (not between old messages, but after the voice bubble)
+    expect(await screen.findByText("aiIntake.thinking.voice")).toBeInTheDocument();
+    const voiceBubbles = screen.getAllByRole("log")[0]?.querySelectorAll('[data-align="end"]');
+    expect(voiceBubbles.length).toBeGreaterThan(0);
+    
+    // This test verifies the fix: on main, the skeleton appeared before any voice bubble existed,
+    // causing it to render in the wrong position. Now it appears after the voice bubble.
+    
+    vi.unstubAllGlobals();
+  });
+
   it("shows a provider failure for a voice message instead of returning to the start", async () => {
     class FakeRecorder {
       static isTypeSupported() {
@@ -1355,5 +1399,74 @@ describe("AssistantDrawer characterization", () => {
     await send(user, "Pay 40 dollars bimonthly for the gym");
     expect(await screen.findByText("aiIntake.frequencyUnsupported")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.recurring.save" })).not.toBeInTheDocument();
+  });
+
+  it("shows the daily limit message instead of askIntent when classifyIntent returns daily_limit", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+  });
+
+  it("shows the quota exhausted message instead of askIntent when classifyIntent returns quota_exhausted", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "quota_exhausted", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitQuotaExhausted")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+  });
+
+  it("shows the rate limited message instead of askIntent when classifyIntent returns rate_limited", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "rate_limited", resetsAt: null } });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByText("aiIntake.limitRateLimited")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
+  });
+
+  it("shows the daily limit message for voice transcription failure", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.providerFailed")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("shows the daily limit message for receipt read failure", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
+    const user = setup();
+    await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.providerFailed")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
   });
 });

@@ -68,8 +68,61 @@ const handlers = {
   questionCalendar: "hebrew" as const,
 };
 
-describe("AssistantThread suggestion chips", () => {
+describe("AssistantThread", () => {
   afterEach(() => cleanup());
+
+  it("renders transcribing skeleton after user voice bubble", () => {
+    const { container } = render(
+      <AssistantThread
+        history={[
+          {
+            id: "old-turn",
+            user: { kind: "text", text: "כמה תרמתי השנה?" },
+            blocks: [{ kind: "dataAnswer", reply: {
+              status: "ready",
+              year: 2024,
+              month: null,
+              measure: "sum",
+              type: "donation",
+              paymentMethod: null,
+              recipient: null,
+              category: null,
+              from: "2024-01-01",
+              to: "2024-12-31",
+              total: 20496.8,
+              count: 5,
+              currency: "ILS",
+            }}],
+          },
+        ]}
+        active={{ kind: "voice", text: "" }}
+        activeBlocks={[{ kind: "thinking", phase: "voice" }]}
+        interactiveActive={false}
+        onSuggestion={vi.fn()}
+        handlers={handlers}
+      />
+    );
+
+    const turns = container.querySelectorAll('[role="log"] > div');
+    expect(turns.length).toBeGreaterThanOrEqual(2);
+
+    const oldTurnMessages = Array.from(turns[0]?.querySelectorAll('[data-slot="message"]') ?? []);
+    expect(oldTurnMessages.length).toBe(2);
+    expect(oldTurnMessages[0]?.textContent).toContain("כמה תרמתי השנה?");
+
+    const newTurnMessages = Array.from(turns[1]?.querySelectorAll('[data-slot="message"]') ?? []);
+    expect(newTurnMessages.length).toBe(2);
+    
+    const userMessage = newTurnMessages[0];
+    const assistantMessage = newTurnMessages[1];
+    
+    expect(userMessage).toBeDefined();
+    expect(userMessage?.getAttribute('data-align')).toBe('end');
+    
+    expect(assistantMessage).toBeDefined();
+    const skeleton = assistantMessage?.querySelector('[role="status"]');
+    expect(skeleton).not.toBeNull();
+  });
 
   it("clicking each non-receipt chip sends its own text", async () => {
     const user = userEvent.setup();

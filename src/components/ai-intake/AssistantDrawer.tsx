@@ -194,6 +194,7 @@ export function AssistantDrawer({
           active={thread.active}
           activeBlocks={thread.blocks}
           interactiveActive
+          transcribing={composer.wiring.transcribing}
           opening={{ name: firstName, line: openingLine }}
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);
@@ -205,6 +206,7 @@ export function AssistantDrawer({
             void composer.toggleRecording();
           }}
           handlers={thread.handlers}
+          limitInfo={state.limitInfo}
         />
       </div>
     </AssistantShell>

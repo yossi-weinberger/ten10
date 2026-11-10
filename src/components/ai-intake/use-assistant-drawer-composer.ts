@@ -16,6 +16,7 @@ import {
 import { amountReplySource, composerWiring } from "./assistant-drawer-composer";
 import type { AssistantDrawerState } from "./use-assistant-drawer-state";
 import type { AssistantDrawerIntent } from "./use-assistant-drawer-intent";
+import type { UserTurn } from "./assistant-reply-view";
 
 export function useAssistantDrawerComposer(
   state: AssistantDrawerState,
@@ -94,7 +95,7 @@ export function useAssistantDrawerComposer(
       setReceiptLink(result.url);
       return;
     }
-    setStatus(openReceiptFailureStatus(result.status));
+    setStatus(openReceiptFailureStatus(result));
   }
 
   async function handleReceipt(file: File | undefined) {
@@ -115,7 +116,7 @@ export function useAssistantDrawerComposer(
       state.setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setStatus(receiptFailureStatus(result.reason));
+      setStatus(receiptFailureStatus(result));
       return;
     }
     if (!isSingleReceipt(result)) {
@@ -158,20 +159,36 @@ export function useAssistantDrawerComposer(
 
   async function finishVoice(blob: Blob) {
     const request = ++requestRef.current;
+    const emptyVoiceTurn: UserTurn = { kind: "voice", text: "" };
+    // beginTurn saves live-card context, clears reply state, and sets the user turn.
+    // This ensures the skeleton renders in the correct position (after the voice bubble).
+    beginTurn(emptyVoiceTurn);
     setPendingPhase("voice");
     setChecking(true);
     setTranscribing(true);
     const heard = await transcribeSpeech(blob);
-    if (requestRef.current !== request) return;
+    if (requestRef.current !== request) {
+      // A newer request started. Only clear if our empty turn is still active.
+      if (state.conversationRef.current.active === emptyVoiceTurn) {
+        state.setActiveUser(null);
+        state.conversationRef.current.active = null;
+      }
+      setTranscribing(false);
+      return;
+    }
     setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
-      beginTurn({ kind: "voice", text: "" });
-      setStatus(voiceFailureStatus(heard.reason));
+      setStatus(voiceFailureStatus(heard));
+      state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
       return;
     }
+    const voiceTurn: UserTurn = { kind: "voice", text: heard.text };
+    state.setActiveUser(voiceTurn);
+    state.conversationRef.current.active = voiceTurn;
     setText("");
-    await intent.handleSubmit(heard.text, "voice");
+    // skipBeginTurn=true because beginTurn already ran above and saved the context.
+    await intent.handleSubmit(heard.text, "voice", true);
   }
 
   async function toggleRecording() {

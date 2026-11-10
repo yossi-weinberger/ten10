@@ -97,16 +97,20 @@ export function AssistantThread({
   active,
   activeBlocks,
   interactiveActive,
+  transcribing = false,
   onSuggestion,
   onReceipt,
   onVoice,
   opening,
   handlers,
+  limitInfo,
 }: {
   history: AssistantTurn[];
+  limitInfo?: import("@/lib/ai/limit-reason").LimitInfo | null;
   active: UserTurn | null;
   activeBlocks: ReplyBlock[];
   interactiveActive: boolean;
+  transcribing?: boolean;
   onSuggestion: (text: string) => void;
   onReceipt?: (file: File) => void;
   onVoice?: () => void;
@@ -217,6 +221,8 @@ export function AssistantThread({
                               if (saved.at >= 0 && (block.kind === "receipt" || (index > saved.at && (block.kind === "status" || block.kind === "undo")))) return null;
                               // Elsewhere, "Saved" and its undo share one row.
                               if (block.kind === "undo" && turn.blocks[index - 1]?.kind === "status") return null;
+                              // Hide voice transcription skeleton when composer shows processing animation
+                              if (block.kind === "thinking" && block.phase === "voice" && transcribing) return null;
                               const next = turn.blocks[index + 1];
                               const undo = block.kind === "status" && next?.kind === "undo" && turn.interactive ? next : null;
                               return (
@@ -230,8 +236,9 @@ export function AssistantThread({
                                     interactive={turn.interactive}
                                     handlers={handlers}
                                     footer={index === saved.at ? saved.footer : undefined}
+                                    limitInfo={limitInfo}
                                   />
-                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} /> : null}
+                                  {undo ? <ReplyBlockView block={undo} interactive={turn.interactive} handlers={handlers} limitInfo={limitInfo} /> : null}
                                 </motion.div>
                               );
                             })}
