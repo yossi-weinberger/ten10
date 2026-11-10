@@ -67,17 +67,23 @@ function renderCard(value: RecurringCard, onChange = vi.fn(), onSave = vi.fn()) 
 describe("recurring draft card", () => {
   afterEach(() => cleanup());
 
-  it("shows the order's own fields when it is complete, like a draft", () => {
+  it("shows collapsed summary when complete, expandable to full form", async () => {
+    const user = userEvent.setup();
     renderCard(card());
     expect(screen.getByText("aiIntake.recurring.monthlyTag")).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("100");
-    expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("כולל");
+    // Collapsed summary shows formatted amount and description
+    expect(screen.getByText(/100/)).toBeInTheDocument();
+    expect(screen.getByText(/כולל/)).toBeInTheDocument();
     expect(screen.getByText("2026-11-10")).toBeInTheDocument();
     expect(screen.getByText("2026-12-10")).toBeInTheDocument();
     expect(screen.queryByText("2027-01-10")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "aiIntake.edit" })).toBeEnabled();
+    // Expand to show full form
+    await user.click(screen.getByRole("button", { name: "aiIntake.edit" }));
+    expect(screen.getByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("100");
+    expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("כולל");
     expect(screen.getByRole("button", { name: "aiIntake.recurring.changeDetail" })).toBeEnabled();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
   it("sends a typed amount as a number", async () => {
@@ -101,6 +107,8 @@ describe("recurring draft card", () => {
       );
     }
     render(<Harness />);
+    // Expand to show input fields
+    await user.click(screen.getByRole("button", { name: "aiIntake.edit" }));
     const amount = screen.getByRole("textbox", { name: "aiIntake.editAmount" });
     await user.clear(amount);
     await user.type(amount, "1,500");
@@ -110,6 +118,8 @@ describe("recurring draft card", () => {
   it("opens only the chosen field", async () => {
     const user = userEvent.setup();
     renderCard(card());
+    // Expand first
+    await user.click(screen.getByRole("button", { name: "aiIntake.edit" }));
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.changeDetail" }));
     expect(screen.queryByRole("button", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.day" }));

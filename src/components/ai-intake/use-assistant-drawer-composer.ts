@@ -17,6 +17,7 @@ import {
 import { amountReplySource, composerWiring } from "./assistant-drawer-composer";
 import type { AssistantDrawerState } from "./use-assistant-drawer-state";
 import type { AssistantDrawerIntent } from "./use-assistant-drawer-intent";
+import type { UserTurn } from "./assistant-reply-view";
 
 export function useAssistantDrawerComposer(
   state: AssistantDrawerState,
@@ -162,18 +163,33 @@ export function useAssistantDrawerComposer(
 
   async function finishVoice(blob: Blob) {
     const request = ++requestRef.current;
+    const emptyVoiceTurn: UserTurn = { kind: "voice", text: "" };
+    // beginTurn saves live-card context, clears reply state, and sets the user turn.
+    // This ensures the skeleton renders in the correct position (after the voice bubble).
+    beginTurn(emptyVoiceTurn);
     setPendingPhase("voice");
     setChecking(true);
     const heard = await transcribeSpeech(blob);
-    if (requestRef.current !== request) return;
-    setChecking(false);
-    if (!heard.ok) {
-      beginTurn({ kind: "voice", text: "" });
-      setStatus(voiceFailureStatus(heard));
+    if (requestRef.current !== request) {
+      // A newer request started. Only clear if our empty turn is still active.
+      if (state.conversationRef.current.active === emptyVoiceTurn) {
+        state.setActiveUser(null);
+        state.conversationRef.current.active = null;
+      }
       return;
     }
+    setChecking(false);
+    if (!heard.ok) {
+      setStatus(voiceFailureStatus(heard));
+      state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
+      return;
+    }
+    const voiceTurn: UserTurn = { kind: "voice", text: heard.text };
+    state.setActiveUser(voiceTurn);
+    state.conversationRef.current.active = voiceTurn;
     setText("");
-    await intent.handleSubmit(heard.text, "voice");
+    // skipBeginTurn=true because beginTurn already ran above and saved the context.
+    await intent.handleSubmit(heard.text, "voice", true);
   }
 
   async function toggleRecording() {

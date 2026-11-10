@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AssistantThread } from "./AssistantThread";
@@ -18,6 +18,8 @@ vi.mock("react-i18next", () => ({
         "aiIntake.suggestions.balance": "מאזן",
         "aiIntake.suggestions.inspiration": "השראה",
         "aiIntake.suggestions.halacha": "הלכה",
+        "aiIntake.suggestions.voice": "הקלטה",
+        "aiIntake.suggestions.rule": "כלל",
         "aiIntake.greeting.morning": "בוקר טוב",
         "aiIntake.emptyDescription": "איך אוכל לעזור?",
       };
@@ -66,8 +68,61 @@ const handlers = {
   questionCalendar: "hebrew" as const,
 };
 
-describe("AssistantThread suggestion chips", () => {
+describe("AssistantThread", () => {
   afterEach(() => cleanup());
+
+  it("renders transcribing skeleton after user voice bubble", () => {
+    const { container } = render(
+      <AssistantThread
+        history={[
+          {
+            id: "old-turn",
+            user: { kind: "text", text: "כמה תרמתי השנה?" },
+            blocks: [{ kind: "dataAnswer", reply: {
+              status: "ready",
+              year: 2024,
+              month: null,
+              measure: "sum",
+              type: "donation",
+              paymentMethod: null,
+              recipient: null,
+              category: null,
+              from: "2024-01-01",
+              to: "2024-12-31",
+              total: 20496.8,
+              count: 5,
+              currency: "ILS",
+            }}],
+          },
+        ]}
+        active={{ kind: "voice", text: "" }}
+        activeBlocks={[{ kind: "thinking", phase: "voice" }]}
+        interactiveActive={false}
+        onSuggestion={vi.fn()}
+        handlers={handlers}
+      />
+    );
+
+    const turns = container.querySelectorAll('[role="log"] > div');
+    expect(turns.length).toBeGreaterThanOrEqual(2);
+
+    const oldTurnMessages = Array.from(turns[0]?.querySelectorAll('[data-slot="message"]') ?? []);
+    expect(oldTurnMessages.length).toBe(2);
+    expect(oldTurnMessages[0]?.textContent).toContain("כמה תרמתי השנה?");
+
+    const newTurnMessages = Array.from(turns[1]?.querySelectorAll('[data-slot="message"]') ?? []);
+    expect(newTurnMessages.length).toBe(2);
+    
+    const userMessage = newTurnMessages[0];
+    const assistantMessage = newTurnMessages[1];
+    
+    expect(userMessage).toBeDefined();
+    expect(userMessage?.getAttribute('data-align')).toBe('end');
+    
+    expect(assistantMessage).toBeDefined();
+    const skeleton = assistantMessage?.querySelector('[role="status"]');
+    expect(skeleton).not.toBeNull();
+  });
 
   it("clicking each non-receipt chip sends its own text", async () => {
     const user = userEvent.setup();
@@ -88,9 +143,8 @@ describe("AssistantThread suggestion chips", () => {
       { label: "הוצאה חדשה", text: "הוצאה חדשה" },
       { label: "תשלום חוזר", text: "תשלום חוזר" },
       { label: "שאלה", text: "שאלה" },
-      { label: "מאזן", text: "מאזן" },
-      { label: "השראה", text: "השראה" },
       { label: "הלכה", text: "הלכה" },
+      { label: "כלל", text: "כלל" },
     ];
 
     for (const chip of chips) {
@@ -120,6 +174,29 @@ describe("AssistantThread suggestion chips", () => {
 
     const receiptButton = getByText("קבלה");
     await user.click(receiptButton);
+    expect(onSuggestion).not.toHaveBeenCalled();
+  });
+
+  it("clicking the voice chip triggers recording", async () => {
+    const user = userEvent.setup();
+    const onSuggestion = vi.fn();
+    const onVoice = vi.fn();
+    
+    render(
+      <AssistantThread
+        history={[]}
+        active={null}
+        activeBlocks={[]}
+        interactiveActive={false}
+        onSuggestion={onSuggestion}
+        onVoice={onVoice}
+        handlers={handlers}
+      />
+    );
+
+    // Click voice chip and verify it calls onVoice
+    await user.click(screen.getByRole("button", { name: /הקלטה/ }));
+    expect(onVoice).toHaveBeenCalledTimes(1);
     expect(onSuggestion).not.toHaveBeenCalled();
   });
 });

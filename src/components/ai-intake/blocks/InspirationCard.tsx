@@ -3,7 +3,7 @@ import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { InspirationView } from "@/lib/ai/inspiration-pick";
+import { visibleSource, type InspirationView } from "@/lib/ai/inspiration-pick";
 import { KIND_TINT } from "./card-style";
 import { KindTag } from "./KindTag";
 
@@ -32,7 +32,7 @@ export function InspirationCard({
   }, [open, item?.body]);
 
   if (!item) return <p className="text-sm">{t("aiIntake.inspiration.empty")}</p>;
-  const source = item.source.trim();
+  const source = visibleSource(item.source);
   return (
     <Card className="grid gap-2 p-2.5">
       <div className="flex min-w-0 items-center gap-2">
@@ -43,14 +43,14 @@ export function InspirationCard({
       <blockquote ref={bodyRef} className={`whitespace-pre-wrap text-sm leading-relaxed ${open ? "" : "line-clamp-4"}`}>
         {item.body}
       </blockquote>
-      {onAnother || clipped || open ? (
+      {onAnother || clipped ? (
         <div className="flex items-center gap-2">
           {onAnother ? (
             <Button type="button" variant="outline" size="sm" onClick={onAnother}>
               {t("aiIntake.inspiration.another")}
             </Button>
           ) : null}
-          {clipped || open ? (
+          {clipped ? (
             <Button type="button" variant="link" size="sm" className="touch-target relative ms-auto h-auto px-0 text-xs" onClick={() => setOpen((value) => !value)}>
               {t(open ? "aiIntake.inspiration.less" : "aiIntake.inspiration.more")}
             </Button>
