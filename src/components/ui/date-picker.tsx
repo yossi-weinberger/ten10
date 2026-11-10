@@ -315,6 +315,10 @@ export function DatePicker({
         formatYearDropdown,
       }}
       classNames={{
+        root: useDrawer ? "w-full max-w-full !p-0" : undefined,
+        months: useDrawer ? "w-full" : undefined,
+        month: useDrawer ? "w-full" : undefined,
+        month_grid: useDrawer ? "w-full" : undefined,
         caption: "text-right font-bold",
         nav_button_previous: useDrawer ? "!right-auto !left-1 h-11 w-11" : "!right-auto !left-1",
         nav_button_next: useDrawer ? "!left-auto !right-1 h-11 w-11" : "!left-auto !right-1",
@@ -372,7 +376,7 @@ export function DatePicker({
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent dir={i18n.dir()}>
             <DrawerTitle className="sr-only">{t("datePicker.selectDate")}</DrawerTitle>
-            <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-6 pt-4">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-6 pt-4">
               {calendarComponent}
             </div>
           </DrawerContent>

@@ -254,6 +254,10 @@ export function DatePickerWithRange({
         formatYearDropdown,
       }}
       classNames={{
+        root: useDrawer ? "w-full max-w-full !p-0" : undefined,
+        months: useDrawer ? "w-full" : undefined,
+        month: useDrawer ? "w-full" : undefined,
+        month_grid: useDrawer ? "w-full" : undefined,
         caption: "text-right font-bold",
         nav_button_previous: useDrawer ? "!right-auto !left-1 h-11 w-11" : "!right-auto !left-1",
         nav_button_next: useDrawer ? "!left-auto !right-1 h-11 w-11" : "!left-auto !right-1",
@@ -280,7 +284,7 @@ export function DatePickerWithRange({
         </div>
         <Drawer open={open} onOpenChange={handleOpenChange}>
           <DrawerContent dir={i18n.dir()}>
-            <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-2 pt-4">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-2 pt-4">
               {calendarComponent}
             </div>
             <DrawerFooter className="grid grid-cols-2 gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
