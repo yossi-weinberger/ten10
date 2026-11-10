@@ -12,6 +12,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Drawer,
+  DrawerContent,
+} from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
 import { useDonationStore } from "@/lib/store";
 import {
@@ -101,6 +106,13 @@ export function DatePicker({
   const caretPositionRef = React.useRef<number>(0);
   const needsCaretUpdate = React.useRef(false);
   const { i18n } = useTranslation(["dashboard", "transactions"]);
+  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  const [useDrawer, setUseDrawer] = React.useState(isSmallNow);
+  
+  // Lock the variant (Drawer/Popover) while the picker is open.
+  React.useEffect(() => {
+    if (!open) setUseDrawer(isSmallNow);
+  }, [isSmallNow, open]);
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
@@ -285,6 +297,89 @@ export function DatePicker({
   // Export last input method for telemetry
   // Removed - now using onInputStatusChange callback instead
 
+  const calendarComponent = (
+    <Calendar
+      mode="single"
+      required
+      selected={date}
+      onSelect={handleSelectDate}
+      month={month}
+      onMonthChange={setMonth}
+      initialFocus
+      captionLayout="dropdown"
+      startMonth={calendarStartMonth}
+      endMonth={yearBounds.endMonth}
+      disabled={minDate ? { before: minDate } : undefined}
+      dir={i18n.dir()}
+      locale={i18n.language === "he" ? he : enUS}
+      formatters={{
+        formatCaption,
+        formatDay,
+        formatWeekdayName: formatWeekday,
+        formatMonthDropdown,
+        formatYearDropdown,
+      }}
+      classNames={{
+        caption: "text-right font-bold",
+        nav_button_previous: "!right-auto !left-1",
+        nav_button_next: "!left-auto !right-1",
+        head_cell: "text-right font-normal text-muted-foreground",
+        cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
+        day: useDrawer ? "h-11 w-11 p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+        day_selected:
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+      }}
+    />
+  );
+
+  if (useDrawer) {
+    return (
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={() => {
+            commitInput(inputValueRef.current);
+          }}
+          readOnly={calendarType === "hebrew"}
+          className={cn("bg-background pr-10", compact && "h-8 pr-9")}
+          data-ph-unmask-date="true"
+          inputMode={calendarType === "hebrew" ? undefined : "numeric"}
+          enterKeyHint={calendarType === "hebrew" ? undefined : "next"}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setOpen(true);
+            }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitInput(inputValueRef.current);
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          className={cn("absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0", compact && "touch-target right-1 size-6")}
+          onClick={() => setOpen(true)}
+        >
+          <CalendarIcon className="size-4 text-muted-foreground" />
+          <span className="sr-only">Open calendar</span>
+        </Button>
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerContent dir={i18n.dir()}>
+            <div className="px-4 pb-6 pt-4">
+              {calendarComponent}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <Input
@@ -328,39 +423,7 @@ export function DatePicker({
           alignOffset={-8}
           sideOffset={10}
         >
-          <Calendar
-            mode="single"
-            required
-            selected={date}
-            onSelect={handleSelectDate}
-            month={month}
-            onMonthChange={setMonth}
-            initialFocus
-            captionLayout="dropdown"
-            startMonth={calendarStartMonth}
-            endMonth={yearBounds.endMonth}
-            disabled={minDate ? { before: minDate } : undefined}
-            dir={i18n.dir()}
-            locale={i18n.language === "he" ? he : enUS}
-            formatters={{
-              formatCaption,
-              formatDay,
-              formatWeekdayName: formatWeekday,
-              formatMonthDropdown,
-              formatYearDropdown,
-            }}
-            classNames={{
-              caption: "text-right font-bold",
-              nav_button_previous: "!right-auto !left-1",
-              nav_button_next: "!left-auto !right-1",
-              head_cell: "text-right font-normal text-muted-foreground",
-              cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
-              day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-              day_selected:
-                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-            }}
-          />
+          {calendarComponent}
         </PopoverContent>
       </Popover>
     </div>
