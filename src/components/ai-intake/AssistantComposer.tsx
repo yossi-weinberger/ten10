@@ -146,7 +146,7 @@ export function AssistantComposer({
             <InputGroupButton
               size="icon-sm"
               variant="outline"
-              className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              className="size-11 min-h-11 min-w-11 rounded-full border-destructive text-destructive hover:bg-destructive/10 sm:size-11"
               aria-label={t("aiIntake.voiceCancel")}
               onClick={onCancelRecording}
             >
@@ -193,7 +193,7 @@ export function AssistantComposer({
             <InputGroupButton
               size="icon-sm"
               variant="outline"
-              className="ms-auto size-11 min-h-11 min-w-11 rounded-full sm:size-11"
+              className="ms-auto size-11 min-h-11 min-w-11 rounded-full border-success text-success hover:bg-success/10 sm:size-11"
               aria-label={t("aiIntake.voiceStop")}
               onClick={onToggleVoice}
             >
