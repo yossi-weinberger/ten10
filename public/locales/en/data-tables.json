@@ -42,7 +42,9 @@
     "allFrequencies": "All Frequencies",
     "frequenciesSelected": "{{count}} selected",
     "filterByFrequency": "Filter by frequency",
-    "resetFilters": "Reset Filters"
+    "resetFilters": "Reset Filters",
+    "showFilters": "Filters",
+    "hideFilters": "Hide Filters"
   },
   "columns": {
     "select": "Select",
