@@ -13,11 +13,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import {
   formatLocalDate,
   getCalendarNavigationBounds,
 } from "@/lib/utils/local-date";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface DatePickerWithRangeProps {
   className?: string;
@@ -35,8 +41,11 @@ export function DatePickerWithRange({
   align,
 }: DatePickerWithRangeProps) {
   const { i18n, t } = useTranslation("dashboard");
+  const { t: tCommon } = useTranslation("common");
   const formatDisplayDate = useDisplayDate();
   const yearBounds = getCalendarNavigationBounds();
+  const useDrawer = useMediaQuery("(max-width: 767px), ((pointer: coarse) and (max-height: 500px))");
+  
   // Use local state to manage range selection
   const [localRange, setLocalRange] = React.useState<DateRange | undefined>(
     date
@@ -191,67 +200,118 @@ export function DatePickerWithRange({
     }
   };
 
+  const handleClear = () => {
+    setLocalRange(undefined);
+    onDateChange(undefined);
+    setOpen(false);
+  };
+
+  const handleApply = () => {
+    onDateChange(localRange);
+    setOpen(false);
+  };
+
+  const triggerButtonContent = triggerButton || (
+    <Button
+      id="date"
+      variant={"outline"}
+      className={cn(
+        "w-full sm:w-[300px] min-w-0 justify-start text-right font-normal overflow-hidden",
+        !date && "text-muted-foreground"
+      )}
+    >
+      <CalendarIcon className="ml-2 h-4 w-4 shrink-0" />
+      <span className="flex-1 min-w-0 truncate text-right">
+        {date?.from
+          ? date.to
+            ? `${formatDate(date.from)} - ${formatDate(date.to)}`
+            : formatDate(date.from)
+          : t("datePicker.selectDateRange")}
+      </span>
+    </Button>
+  );
+
+  const calendarComponent = (
+    <Calendar
+      initialFocus
+      mode="range"
+      month={month}
+      onMonthChange={setMonth}
+      selected={
+        shouldResetOnNextClickRef.current ? undefined : localRange
+      }
+      onSelect={handleDateChange}
+      numberOfMonths={useDrawer ? 1 : 2}
+      locale={i18n.language === "he" ? he : enUS}
+      captionLayout="dropdown"
+      startMonth={yearBounds.startMonth}
+      endMonth={yearBounds.endMonth}
+      formatters={{
+        formatCaption,
+        formatDay,
+        formatWeekdayName: formatWeekday,
+        formatMonthDropdown,
+        formatYearDropdown,
+      }}
+      classNames={{
+        root: useDrawer ? "w-full max-w-full !p-0" : undefined,
+        months: useDrawer ? "w-full" : undefined,
+        month: useDrawer ? "w-full" : undefined,
+        month_grid: useDrawer ? "w-full" : undefined,
+        caption: "text-right font-bold",
+        nav_button_previous: useDrawer ? "!right-auto !left-1 h-11 w-11" : "!right-auto !left-1",
+        nav_button_next: useDrawer ? "!left-auto !right-1 h-11 w-11" : "!left-auto !right-1",
+        head_cell: "text-right font-normal text-muted-foreground",
+        cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
+        day: useDrawer ? "p-0 font-normal aria-selected:opacity-100" : "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+        day_selected:
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+        months_dropdown: useDrawer ? "h-11" : undefined,
+        years_dropdown: useDrawer ? "h-11" : undefined,
+      }}
+      style={useDrawer ? {
+        "--cell-size": "min(44px, calc((100vw - 32px) / 7))"
+      } as React.CSSProperties : undefined}
+    />
+  );
+
+  if (useDrawer) {
+    return (
+      <div className={cn("grid gap-2", className)}>
+        <div onClick={() => setOpen(true)}>
+          {triggerButtonContent}
+        </div>
+        <Drawer open={open} onOpenChange={handleOpenChange}>
+          <DrawerContent dir={i18n.dir()}>
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-2 pt-4">
+              {calendarComponent}
+            </div>
+            <DrawerFooter className="grid grid-cols-2 gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <Button onClick={handleApply} type="button" className="h-11 w-full">
+                {tCommon("actions.apply")}
+              </Button>
+              <Button variant="outline" onClick={handleClear} type="button" className="h-11 w-full">
+                {tCommon("actions.clear")}
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
-          {triggerButton || (
-            <Button
-              id="date"
-              variant={"outline"}
-              className={cn(
-                "w-full sm:w-[300px] min-w-0 justify-start text-right font-normal overflow-hidden",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="ml-2 h-4 w-4 shrink-0" />
-              <span className="flex-1 min-w-0 truncate text-right">
-                {date?.from
-                  ? date.to
-                    ? `${formatDate(date.from)} - ${formatDate(date.to)}`
-                    : formatDate(date.from)
-                  : t("datePicker.selectDateRange")}
-              </span>
-            </Button>
-          )}
+          {triggerButtonContent}
         </PopoverTrigger>
         <PopoverContent
           className="w-auto p-0"
           align={align ?? (i18n.dir() === "rtl" ? "end" : "start")}
         >
-          <Calendar
-            initialFocus
-            mode="range"
-            month={month}
-            onMonthChange={setMonth}
-            selected={
-              shouldResetOnNextClickRef.current ? undefined : localRange
-            }
-            onSelect={handleDateChange}
-            numberOfMonths={2}
-            locale={i18n.language === "he" ? he : enUS}
-            captionLayout="dropdown"
-            startMonth={yearBounds.startMonth}
-            endMonth={yearBounds.endMonth}
-            formatters={{
-              formatCaption,
-              formatDay,
-              formatWeekdayName: formatWeekday,
-              formatMonthDropdown,
-              formatYearDropdown,
-            }}
-            classNames={{
-              caption: "text-right font-bold",
-              nav_button_previous: "!right-auto !left-1",
-              nav_button_next: "!left-auto !right-1",
-              head_cell: "text-right font-normal text-muted-foreground",
-              cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
-              day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-              day_selected:
-                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-            }}
-          />
+          {calendarComponent}
         </PopoverContent>
       </Popover>
     </div>
