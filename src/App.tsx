@@ -34,6 +34,7 @@ import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
 import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
+import { APP_MAIN_SHELL_CLASS } from "./components/layout/appMainShellClass";
 import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
@@ -442,9 +443,7 @@ function App() {
         >
           <main
             className={`flex-1 ${
-              isFullScreenPage
-                ? "p-0"
-                : "container px-4 md:px-6 max-md:pr-[max(1rem,env(safe-area-inset-right))] max-md:pl-[max(1rem,env(safe-area-inset-left))] mobile-landscape:pr-[max(1rem,env(safe-area-inset-right))] mobile-landscape:pl-[max(1rem,env(safe-area-inset-left))] pt-16 md:pt-6 mobile-landscape:pt-16 pb-24 md:pb-6 mobile-landscape:pb-32"
+              isFullScreenPage ? "p-0" : APP_MAIN_SHELL_CLASS
             }`}
           >
             <div

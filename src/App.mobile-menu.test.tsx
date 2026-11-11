@@ -5,6 +5,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { Menu } from "lucide-react";
 import { afterEach, describe, expect, it } from "vitest";
 import { useTranslation } from "react-i18next";
+import { APP_MAIN_SHELL_CLASS } from "./components/layout/appMainShellClass";
 import { Button } from "./components/ui/button";
 import {
   Sheet,
@@ -95,5 +96,28 @@ describe("App mobile menu accessibility translations", () => {
       expect(enNavigation.sheet.title).not.toBe("");
       expect(enNavigation.sheet.description).not.toBe("");
     });
+  });
+});
+
+describe("main content offset under the mobile top bar", () => {
+  it("includes safe-area-inset-top in the mobile top padding", () => {
+    expect(APP_MAIN_SHELL_CLASS).toContain(
+      "pt-[calc(4rem+env(safe-area-inset-top))]",
+    );
+    expect(APP_MAIN_SHELL_CLASS).toContain(
+      "mobile-landscape:pt-[calc(4rem+env(safe-area-inset-top))]",
+    );
+    expect(APP_MAIN_SHELL_CLASS).toContain("safe-area-inset-top");
+  });
+
+  it("keeps md:pt-6 for the wide layout and the inset padding under mobile-landscape", () => {
+    expect(APP_MAIN_SHELL_CLASS).not.toMatch(/(^|\s)pt-16(\s|$)/);
+    expect(APP_MAIN_SHELL_CLASS).not.toContain("mobile-landscape:pt-16");
+    const mdIndex = APP_MAIN_SHELL_CLASS.indexOf("md:pt-6");
+    const landscapeIndex = APP_MAIN_SHELL_CLASS.indexOf(
+      "mobile-landscape:pt-[calc(4rem+env(safe-area-inset-top))]",
+    );
+    expect(mdIndex).toBeGreaterThan(-1);
+    expect(landscapeIndex).toBeGreaterThan(mdIndex);
   });
 });
