@@ -563,13 +563,9 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       return;
     }
     
-    if (!decided.ok) {
-      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(decided.reason));
-      return;
-    }
-    if (!read.ok) {
+    const bothFailed = !decided.ok && !read.ok;
+    if (bothFailed) {
       trackAiTurnFailed(kind, "split", mapErrorToFailureReason(read.reason));
-      return;
     }
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
       ? { ...read, items: withChomesh(read.items, true) }
