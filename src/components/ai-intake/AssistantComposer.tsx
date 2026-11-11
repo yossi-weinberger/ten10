@@ -26,6 +26,8 @@ interface AssistantComposerProps {
   onCancelRecording?: () => void;
   /** Busy reading, saving or answering. The thread shows what; the composer only waits. */
   busy?: boolean;
+  /** Disabled when consent is not granted. Disables all interactive controls. */
+  disabled?: boolean;
   recording: boolean;
   transcribing: boolean;
   mediaStream?: MediaStream | null;
@@ -42,6 +44,7 @@ export function AssistantComposer({
   onToggleVoice,
   onCancelRecording,
   busy = false,
+  disabled = false,
   recording,
   transcribing,
   mediaStream,
@@ -54,7 +57,7 @@ export function AssistantComposer({
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const label = t(mode === "amount" ? "aiIntake.askAmount" : "aiIntake.placeholder");
-  const canSend = value.trim().length > 0 && !busy && !recording;
+  const canSend = value.trim().length > 0 && !busy && !recording && !disabled;
 
   function submit(event?: FormEvent) {
     event?.preventDefault();
@@ -115,6 +118,7 @@ export function AssistantComposer({
           enterKeyHint="send"
           placeholder={label}
           aria-label={label}
+          disabled={disabled}
           className={cn(recording ? "sr-only" : "max-h-40 min-h-12 text-base [field-sizing:content]", "ph-mask ph-sensitive")}
           data-ph-mask=""
           onChange={(event) => onChange(event.target.value)}
@@ -162,17 +166,17 @@ export function AssistantComposer({
                   variant="outline"
                   className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
                   aria-label={t("aiIntake.attach")}
-                  disabled={busy}
+                  disabled={busy || disabled}
                 >
                   <Plus aria-hidden />
                 </InputGroupButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => cameraRef.current?.click()}>
+                <DropdownMenuItem onClick={() => cameraRef.current?.click()} disabled={disabled}>
                   <Camera className="me-2 size-4" aria-hidden />
                   {t("aiIntake.attachCamera")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                <DropdownMenuItem onClick={() => fileRef.current?.click()} disabled={disabled}>
                   <Image className="me-2 size-4" aria-hidden />
                   {t("aiIntake.attachImage")}
                 </DropdownMenuItem>
@@ -185,7 +189,7 @@ export function AssistantComposer({
               variant="outline"
               className="size-11 min-h-11 min-w-11 rounded-full sm:size-11"
               aria-label={t("aiIntake.voice")}
-              disabled={busy}
+              disabled={busy || disabled}
               onClick={onToggleVoice}
             >
               <Mic aria-hidden />
