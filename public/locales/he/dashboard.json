@@ -13,7 +13,9 @@
     "calendarGregorian": "לועזי"
   },
   "datePicker": {
-    "selectDateRange": "בחר טווח תאריכים"
+    "selectDateRange": "בחר טווח תאריכים",
+    "selectDate": "בחירת תאריך",
+    "openCalendar": "פתיחת לוח שנה"
   },
   "statsCards": {
     "income": {
