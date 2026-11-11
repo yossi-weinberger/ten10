@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useDonationStore } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackAiDraftCancelled } from "@/lib/analytics/aiOutcomeEvents";
 import {
   type ClarificationField,
   type IntakeIntent,
@@ -277,6 +278,12 @@ export function useAssistantDrawerState() {
   function clearConversation() {
     settleOpenMeasurement();
     requestRef.current += 1;
+    const currentDraft = conversationRef.current.reply.draft;
+    const currentActive = conversationRef.current.active;
+    if (currentDraft && !conversationRef.current.reply.savedItemId) {
+      const inputKind = currentActive?.kind === "voice" ? "voice" : currentActive?.kind === "receipt" ? "receipt" : "text";
+      trackAiDraftCancelled(inputKind, "draft");
+    }
     conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
     memoryRef.current = emptyConversation();
     turnStart.current = emptyConversation();

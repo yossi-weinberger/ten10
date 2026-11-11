@@ -6,6 +6,7 @@ import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { splitItems } from "@/lib/ai/split-items";
 import { openCardEvidence, rememberClosed, rememberDraft } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount } from "@/lib/ai/split-draft";
+import { trackAiTurnFailed, trackAiDraftCancelled, mapErrorToFailureReason } from "@/lib/analytics/aiOutcomeEvents";
 import {
   isSingleReceipt,
   openReceiptFailureStatus,
@@ -90,6 +91,7 @@ export function useAssistantDrawerComposer(
     if (!recording) return;
     const active = recorder.current;
     if (!active || active.state === "inactive") return;
+    trackAiDraftCancelled("voice", "recording");
     discardRecording.current = true;
     stopMeter();
     if (recordTimer.current) {
@@ -128,6 +130,7 @@ export function useAssistantDrawerComposer(
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!result.ok) {
+      trackAiTurnFailed("receipt", "receipt", mapErrorToFailureReason(undefined, result.reason));
       memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
       state.setIntent(null);
@@ -196,6 +199,7 @@ export function useAssistantDrawerComposer(
     setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
+      trackAiTurnFailed("voice", "speech", mapErrorToFailureReason(undefined, heard.reason));
       setStatus(voiceFailureStatus(heard));
       state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
       return;
