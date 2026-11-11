@@ -73,8 +73,14 @@
   "bulkToolbar": {
     "ariaLabel": "פעולות מרובות לתנועות שנבחרו",
     "recurringAriaLabel": "פעולות מרובות להוראות קבע שנבחרו",
-    "selectedCount": "{{count}} תנועות נבחרו",
-    "selectedRecurringCount": "{{count}} הוראות קבע נבחרו",
+    "selectedCount_one": "תנועה {{count}} נבחרה",
+    "selectedCount_two": "{{count}} תנועות נבחרו",
+    "selectedCount_many": "{{count}} תנועות נבחרו",
+    "selectedCount_other": "{{count}} תנועות נבחרו",
+    "selectedRecurringCount_one": "הוראת קבע {{count}} נבחרה",
+    "selectedRecurringCount_two": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_many": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_other": "{{count}} הוראות קבע נבחרו",
     "edit": "עריכה מרובה",
     "delete": "מחיקה מרובה",
     "clear": "בטל בחירה"
