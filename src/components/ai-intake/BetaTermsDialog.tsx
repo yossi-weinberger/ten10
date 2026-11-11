@@ -35,7 +35,7 @@ export function BetaTermsDialog({
   onAccept: onAcceptCallback,
   onDecline,
 }: BetaTermsDialogProps) {
-  const { t, i18n } = useTranslation(["aiIntake", "navigation"]);
+  const { t, i18n } = useTranslation("navigation");
   const { platform } = usePlatform();
   const [isLoading, setIsLoading] = useState(false);
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
@@ -65,11 +65,12 @@ export function BetaTermsDialog({
         throw error;
       }
 
-      toast.success(t("betaTerms.acceptSuccess"));
+      toast.success(t("aiIntake.betaTerms.acceptSuccess"));
       onAcceptCallback();
     } catch (error) {
       console.error("Failed to accept AI beta terms:", error);
-      toast.error(t("betaTerms.acceptError"));
+      toast.error(t("aiIntake.betaTerms.acceptError"));
+      // Keep dialog open and button usable for retry (fail closed)
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +81,7 @@ export function BetaTermsDialog({
   const termsContent = (
     <div className="flex flex-col gap-3 py-2 text-start">
       <p className="text-sm text-muted-foreground">
-        {t("betaTerms.shortDescription")}
+        {t("aiIntake.betaTerms.shortDescription")}
       </p>
       <p className="text-sm">
         <Link
@@ -88,7 +89,7 @@ export function BetaTermsDialog({
           target={platform === "web" ? "_blank" : undefined}
           className="text-primary hover:underline font-medium"
         >
-          {t("betaTerms.readFullTerms")}
+          {t("aiIntake.betaTerms.readFullTerms")}
         </Link>
       </p>
     </div>
@@ -104,8 +105,8 @@ export function BetaTermsDialog({
           dir={i18n.dir()}
         >
           <DialogHeader>
-            <DialogTitle>{t("betaTerms.title")}</DialogTitle>
-            <DialogDescription>{t("betaTerms.description")}</DialogDescription>
+            <DialogTitle>{t("aiIntake.betaTerms.title")}</DialogTitle>
+            <DialogDescription>{t("aiIntake.betaTerms.description")}</DialogDescription>
           </DialogHeader>
           {termsContent}
           <DialogFooter className="gap-2 sm:gap-2">
@@ -116,7 +117,7 @@ export function BetaTermsDialog({
               disabled={isLoading}
               className="w-full sm:w-auto min-w-[120px]"
             >
-              {t("betaTerms.declineButton")}
+              {t("aiIntake.betaTerms.declineButton")}
             </Button>
             <Button
               type="button"
@@ -125,8 +126,8 @@ export function BetaTermsDialog({
               className="w-full sm:w-auto min-w-[120px]"
             >
               {isLoading
-                ? t("betaTerms.accepting")
-                : t("betaTerms.acceptButton")}
+                ? t("aiIntake.betaTerms.accepting")
+                : t("aiIntake.betaTerms.acceptButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -138,8 +139,8 @@ export function BetaTermsDialog({
     <Drawer open={open} onOpenChange={() => {}} dismissible={false}>
       <DrawerContent className="max-h-[90vh]" dir={i18n.dir()}>
         <DrawerHeader className="text-start rtl:text-right ltr:text-left">
-          <DrawerTitle>{t("betaTerms.title")}</DrawerTitle>
-          <DrawerDescription>{t("betaTerms.description")}</DrawerDescription>
+          <DrawerTitle>{t("aiIntake.betaTerms.title")}</DrawerTitle>
+          <DrawerDescription>{t("aiIntake.betaTerms.description")}</DrawerDescription>
         </DrawerHeader>
         <div className="px-4 pb-4 overflow-y-auto">{termsContent}</div>
         <DrawerFooter className="pt-2 gap-2">
@@ -150,7 +151,7 @@ export function BetaTermsDialog({
             disabled={isLoading}
             className="min-h-11 w-full"
           >
-            {t("betaTerms.declineButton")}
+            {t("aiIntake.betaTerms.declineButton")}
           </Button>
           <Button
             type="button"
@@ -159,8 +160,8 @@ export function BetaTermsDialog({
             className="min-h-11 w-full"
           >
             {isLoading
-              ? t("betaTerms.accepting")
-              : t("betaTerms.acceptButton")}
+              ? t("aiIntake.betaTerms.accepting")
+              : t("aiIntake.betaTerms.acceptButton")}
           </Button>
         </DrawerFooter>
       </DrawerContent>

@@ -158,7 +158,7 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
     });
   });
 
@@ -187,7 +187,7 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
     });
   });
 
@@ -241,7 +241,7 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
     });
   });
 
@@ -266,7 +266,7 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
     });
   });
 

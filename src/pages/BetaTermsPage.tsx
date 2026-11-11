@@ -152,13 +152,9 @@ export function BetaTermsPage() {
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                     {t("yourRights.title")}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300">
                     {t("yourRights.description")}
                   </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
-                    <li>{t("yourRights.item1")}</li>
-                    <li>{t("yourRights.item2")}</li>
-                  </ul>
                 </div>
               </div>
             </CardContent>

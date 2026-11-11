@@ -64,10 +64,10 @@ describe("BetaTermsDialog", () => {
       />
     );
 
-    expect(screen.getByText("betaTerms.title")).toBeInTheDocument();
-    expect(screen.getByText("betaTerms.readFullTerms")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "betaTerms.acceptButton" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "betaTerms.declineButton" })).toBeInTheDocument();
+    expect(screen.getByText("aiIntake.betaTerms.title")).toBeInTheDocument();
+    expect(screen.getByText("aiIntake.betaTerms.readFullTerms")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" })).toBeInTheDocument();
   });
 
   it("does not render when closed", () => {
@@ -95,7 +95,7 @@ describe("BetaTermsDialog", () => {
       />
     );
 
-    const acceptButton = screen.getByRole("button", { name: "betaTerms.acceptButton" });
+    const acceptButton = screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
     await user.click(acceptButton);
 
     await waitFor(() => {
@@ -132,16 +132,16 @@ describe("BetaTermsDialog", () => {
       />
     );
 
-    const acceptButton = screen.getByRole("button", { name: "betaTerms.acceptButton" });
+    const acceptButton = screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
     await user.click(acceptButton);
 
-    expect(screen.getByRole("button", { name: "betaTerms.accepting" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "betaTerms.accepting" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.accepting" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.accepting" })).toBeDisabled();
 
     resolveRpc!();
 
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "betaTerms.accepting" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "aiIntake.betaTerms.accepting" })).not.toBeInTheDocument();
     });
   });
 
@@ -158,7 +158,7 @@ describe("BetaTermsDialog", () => {
       />
     );
 
-    const declineButton = screen.getByRole("button", { name: "betaTerms.declineButton" });
+    const declineButton = screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" });
     await user.click(declineButton);
 
     expect(mockRpc).not.toHaveBeenCalled();
@@ -181,7 +181,7 @@ describe("BetaTermsDialog", () => {
       />
     );
 
-    const acceptButton = screen.getByRole("button", { name: "betaTerms.acceptButton" });
+    const acceptButton = screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
     await user.click(acceptButton);
 
     await waitFor(() => {
