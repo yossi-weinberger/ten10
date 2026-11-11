@@ -6,6 +6,7 @@ import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { splitItems } from "@/lib/ai/split-items";
 import { openCardEvidence, rememberClosed, rememberDraft } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount } from "@/lib/ai/split-draft";
+import { trackAiTurnFailed, trackAiTurnStarted, trackAiDraftCancelled, mapErrorToFailureReason } from "@/lib/analytics/aiOutcomeEvents";
 import {
   isSingleReceipt,
   openReceiptFailureStatus,
@@ -90,6 +91,7 @@ export function useAssistantDrawerComposer(
     if (!recording) return;
     const active = recorder.current;
     if (!active || active.state === "inactive") return;
+    trackAiDraftCancelled("voice", "recording");
     discardRecording.current = true;
     stopMeter();
     if (recordTimer.current) {
@@ -121,6 +123,7 @@ export function useAssistantDrawerComposer(
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
     if (previewUrl) previewUrls.current.push(previewUrl);
     beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type, previewUrl });
+    trackAiTurnStarted("receipt");
     setPendingPhase("receipt");
     setChecking(true);
     setStatus(null);
@@ -128,6 +131,7 @@ export function useAssistantDrawerComposer(
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!result.ok) {
+      trackAiTurnFailed("receipt", "receipt", mapErrorToFailureReason(result.reason));
       memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
       state.setIntent(null);
@@ -180,6 +184,7 @@ export function useAssistantDrawerComposer(
     // beginTurn saves live-card context, clears reply state, and sets the user turn.
     // This ensures the skeleton renders in the correct position (after the voice bubble).
     beginTurn(emptyVoiceTurn);
+    trackAiTurnStarted("voice");
     setPendingPhase("voice");
     setChecking(true);
     setTranscribing(true);
@@ -196,6 +201,7 @@ export function useAssistantDrawerComposer(
     setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
+      trackAiTurnFailed("voice", "speech", mapErrorToFailureReason(heard.reason));
       setStatus(voiceFailureStatus(heard));
       state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
       return;
@@ -204,8 +210,8 @@ export function useAssistantDrawerComposer(
     state.setActiveUser(voiceTurn);
     state.conversationRef.current.active = voiceTurn;
     setText("");
-    // skipBeginTurn=true because beginTurn already ran above and saved the context.
-    await intent.handleSubmit(heard.text, "voice", true);
+    // skipBeginTurn=true and skipTracking=true because beginTurn and trackAiTurnStarted already ran above.
+    await intent.handleSubmit(heard.text, "voice", true, true);
   }
 
   async function toggleRecording() {

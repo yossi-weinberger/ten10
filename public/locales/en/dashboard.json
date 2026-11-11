@@ -16,7 +16,9 @@
     "calendarGregorian": "Gregorian"
   },
   "datePicker": {
-    "selectDateRange": "Select date range"
+    "selectDateRange": "Select date range",
+    "selectDate": "Select date",
+    "openCalendar": "Open calendar"
   },
   "statsCards": {
     "income": {
