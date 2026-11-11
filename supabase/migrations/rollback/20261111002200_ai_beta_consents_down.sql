@@ -79,6 +79,11 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.admin_list_user_plans()
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_list_user_plans()
+  TO authenticated;
+
 -- ---------------------------------------------------------------------------
 -- Restore original admin_set_user_plan (without is_active=true logic)
 -- ---------------------------------------------------------------------------

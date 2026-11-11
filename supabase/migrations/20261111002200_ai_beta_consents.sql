@@ -286,6 +286,11 @@ $$;
 COMMENT ON FUNCTION public.admin_list_user_plans() IS 
   'Admin-only. Lists all user plan assignments with is_active column.';
 
+REVOKE ALL ON FUNCTION public.admin_list_user_plans()
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_list_user_plans()
+  TO authenticated;
+
 -- ---------------------------------------------------------------------------
 -- RPC: Accept AI beta terms (authenticated users only)
 -- ---------------------------------------------------------------------------

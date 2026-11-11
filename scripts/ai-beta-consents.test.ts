@@ -489,4 +489,19 @@ describe("RLS and grants", () => {
     await setAnon();
     await expect(db.query("SELECT public.ai_beta_consent_status()")).rejects.toThrow(/AUTH_REQUIRED/);
   });
+
+  it("anon has no EXECUTE on admin_list_user_plans", async () => {
+    await setAnon();
+    const { rows } = await db.query<{ has_privilege: boolean }>(
+      "SELECT has_function_privilege('anon', 'public.admin_list_user_plans()', 'EXECUTE') as has_privilege",
+    );
+    expect(rows[0].has_privilege).toBe(false);
+  });
+
+  it("authenticated role has EXECUTE on admin_list_user_plans", async () => {
+    const { rows } = await db.query<{ has_privilege: boolean }>(
+      "SELECT has_function_privilege('authenticated', 'public.admin_list_user_plans()', 'EXECUTE') as has_privilege",
+    );
+    expect(rows[0].has_privilege).toBe(true);
+  });
 });
