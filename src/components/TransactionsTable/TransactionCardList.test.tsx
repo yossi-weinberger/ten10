@@ -1065,7 +1065,7 @@ describe("TransactionCardList", () => {
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
   });
 
-  it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {
+  it("drawer shows a stable chomesh row for non-chomesh transactions when tracking is enabled", async () => {
     mockUseDonationStore.mockReturnValue(true);
 
     const nonChomeshTransaction: TransactionForTable = {
@@ -1092,7 +1092,10 @@ describe("TransactionCardList", () => {
       expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
     });
 
-    expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
+    const value = screen.getByText("No");
+    expect(value).toHaveAttribute("data-ph-mask", "");
+    expect(value.className).toContain("ph-mask");
+    expect(screen.getByText("Chomesh").closest(".ph-no-capture")).toBeTruthy();
   });
 
   it("masks card date with PostHog masking attributes", () => {
@@ -1391,5 +1394,59 @@ describe("TransactionCardList PostHog masking", () => {
 
     const recurringBadge = screen.getByText("Recurring Badge");
     expectPostHogMask(recurringBadge.closest("[data-ph-mask]"));
+  });
+
+  it("blocks the card meta row with ph-no-capture for both chomesh states", () => {
+    const base = { ...mockTransactions[1], is_chomesh: false as const };
+    const { container: withoutChomesh } = renderList([base], true);
+    const withoutRow = withoutChomesh
+      .querySelector('[role="button"]')
+      ?.querySelector(".ph-no-capture");
+    const withoutClass = withoutRow?.className ?? "";
+    cleanup();
+
+    const { container: withChomesh } = renderList(
+      [{ ...base, is_chomesh: true }],
+      true,
+    );
+    const withRow = withChomesh
+      .querySelector('[role="button"]')
+      ?.querySelector(".ph-no-capture");
+    const icon = withChomesh.querySelector(".lucide-badge-check");
+
+    expect(withoutClass).not.toBe("");
+    expect(withRow?.className).toBe(withoutClass);
+    expect(withRow?.classList.contains("ph-no-capture")).toBe(true);
+    expect(withRow?.classList.contains("min-h-5")).toBe(true);
+    expect(withoutRow?.classList.contains("min-h-5")).toBe(true);
+    expect(icon?.classList.contains("h-5")).toBe(true);
+    expect(icon?.closest(".ph-no-capture")).toBe(withRow);
+    expect(withRow?.classList.contains("h-5")).toBe(false);
+    expect(withoutClass.split(" ").includes("h-5")).toBe(false);
+  });
+
+  it("blocks the drawer details list with the same ph-no-capture structure for both chomesh states", async () => {
+    const base = { ...mockTransactions[1], is_chomesh: false as const };
+
+    const openDetails = async (transaction: TransactionForTable) => {
+      cleanup();
+      renderList([transaction], true);
+      await openCard("Groceries");
+      const value = screen.getByText(transaction.is_chomesh ? "Yes" : "No");
+      const row = value.parentElement;
+      const list = value.closest(".ph-no-capture");
+      return { rowClass: row?.className ?? "", listClass: list?.className ?? "" };
+    };
+
+    const withoutChomesh = await openDetails(base);
+    const withChomesh = await openDetails({ ...base, is_chomesh: true });
+
+    expect(withoutChomesh.listClass).toContain("ph-no-capture");
+    expect(withChomesh.listClass).toBe(withoutChomesh.listClass);
+    expect(withChomesh.rowClass).toBe(withoutChomesh.rowClass);
+    expect(withChomesh.rowClass).toContain("flex");
+    expect(withChomesh.rowClass).toContain("justify-between");
+    expect(withChomesh.listClass).not.toContain("min-h-");
+    expect(withChomesh.rowClass).not.toContain("h-5");
   });
 });

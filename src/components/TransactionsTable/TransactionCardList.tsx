@@ -267,7 +267,7 @@ export function TransactionCardList({
                 >
                   {cardTitle}
                 </div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                <div className="ph-no-capture mt-0.5 flex min-h-5 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                   <span
                     className={cn(PH_SENSITIVE_PROPS.className)}
                     data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -404,7 +404,7 @@ export function TransactionCardList({
 
             return (
             <div className="space-y-3 px-4 pb-4">
-              <div className="grid gap-2 text-sm">
+              <div className="ph-no-capture grid gap-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("columns.date")}</span>
                   <span
@@ -480,7 +480,7 @@ export function TransactionCardList({
                   </div>
                 )}
 
-                {trackChomeshSeparately && selectedTransaction.is_chomesh && (
+                {trackChomeshSeparately && (
                   <div className="flex justify-between">
                     <span
                       className={cn(
