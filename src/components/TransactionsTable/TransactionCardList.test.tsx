@@ -1847,5 +1847,26 @@ describe("TransactionCardList", () => {
       // This is direction-agnostic: marginInlineEnd automatically applies to
       // the correct side (right in LTR, left in RTL)
     });
+
+    it("card has positioned stacking context to stay above actions at rest", () => {
+      // Card must be positioned with z-index to create stacking context
+      // This prevents absolutely-positioned actions (rendered before Card) from painting above it
+      const markup = renderToStaticMarkup(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      // Card has relative positioning and z-index on mobile touch only
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:relative");
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[1]");
+      // Actions are invisible at rest (effectiveSwipeOffset === 0)
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:invisible");
+    });
   });
 });

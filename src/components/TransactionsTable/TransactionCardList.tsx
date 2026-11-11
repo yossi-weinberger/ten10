@@ -259,7 +259,10 @@ const TransactionCard = memo(function TransactionCard({
     <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
       <div
         ref={actionsRef}
-        className="max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden"
+        className={cn(
+          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden",
+          effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible"
+        )}
         aria-hidden={!isSwipeOpen}
       >
         <Button
@@ -289,7 +292,7 @@ const TransactionCard = memo(function TransactionCard({
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y max-md:[@media(pointer:coarse)]:relative max-md:[@media(pointer:coarse)]:z-[1]",
           surfaceClasses,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
