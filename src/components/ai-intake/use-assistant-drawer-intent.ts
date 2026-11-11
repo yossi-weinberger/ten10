@@ -7,6 +7,7 @@ import {
   rememberInspiration,
 } from "@/lib/ai/inspiration-pick";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { trackAiTurnFailed, trackAiQuestionReasked, mapErrorToFailureReason, compareQuestions } from "@/lib/analytics/aiOutcomeEvents";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readQuestionSlots } from "@/lib/ai/read-question";
 import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
@@ -98,6 +99,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     beginTurn,
     savedTransaction,
     replacing,
+    lastQuestion,
   } = state;
   const { pairActionBusy } = state;
 
@@ -216,6 +218,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const result = await sumYearType(question, filter);
     if (requestRef.current !== request) return;
     if (!result.ok) {
+      trackAiTurnFailed("text", "question", result.reason === "MIXED" ? "unreadable" : "unknown");
       setDataReply({ status: sumFailureStatus(result.reason) });
       return;
     }
@@ -233,6 +236,18 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const request = requestRef.current;
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
+    
+    if (turn) {
+      const now = Date.now();
+      const current = { text: source, family: family || "", search: searchDescriptions };
+      
+      if (compareQuestions(current, lastQuestion.current, 60000, now, lastQuestion.current?.at ?? null)) {
+        trackAiQuestionReasked(60);
+      }
+      
+      lastQuestion.current = { ...current, at: now };
+    }
+    
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const read = family && slotHold ? null : await readQuestionSlots(source, {
@@ -242,6 +257,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         turn,
       });
       if (read && "limit" in read) {
+        trackAiTurnFailed("text", "question", "limit");
         setStatus(limitStatus(read.limit));
         state.setLimitInfo(read.limit);
         return;
@@ -526,18 +542,26 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!decided.ok && decided.reason === "LIMIT") {
+      trackAiTurnFailed(kind, "intent", "limit");
       setStatus(limitStatus(decided.limit));
       state.setLimitInfo(decided.limit);
       setIntent(null);
       setAskIntent(false);
       return;
     }
+    if (!decided.ok) {
+      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(undefined, decided.reason));
+    }
     if (!read.ok && read.reason === "LIMIT") {
+      trackAiTurnFailed(kind, "split", "limit");
       setStatus(limitStatus(read.limit));
       state.setLimitInfo(read.limit);
       setIntent(null);
       setAskIntent(false);
       return;
+    }
+    if (!read.ok) {
+      trackAiTurnFailed(kind, "split", mapErrorToFailureReason(undefined, read.reason));
     }
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
       ? { ...read, items: withChomesh(read.items, true) }
