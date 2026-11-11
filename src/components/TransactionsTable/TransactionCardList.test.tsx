@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { render, screen, fireEvent, waitFor, cleanup, within } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
 import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
@@ -1067,6 +1067,567 @@ describe("TransactionCardList", () => {
     });
 
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
+  });
+
+  describe("selection mode and long-press", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+    });
+
+    it("long-press enters selection mode by toggling the card", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+    });
+
+    it("movement beyond threshold cancels long-press", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        fireEvent.pointerMove(card!, { clientX: 120, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+    });
+
+    it("tap does not toggle selection when not in selection mode", () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+    });
+
+    it("tap toggles selection when in selection mode", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["2"]);
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("selected card shows aria-selected and aria-pressed attributes", () => {
+      const selectedIds = new Set<string>(["1"]);
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      expect(card).toHaveAttribute("aria-selected", "true");
+      expect(card).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("selected card shows visual selection state", () => {
+      const selectedIds = new Set<string>(["1"]);
+
+      const markup = renderToStaticMarkup(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      expect(markup).toContain("ring-2 ring-primary ring-offset-2");
+    });
+
+    it("shows BulkActionsToolbar when items are selected", () => {
+      const selectedIds = new Set<string>(["1"]);
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          selectedCountLabel="1 selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear"
+          bulkToolbarAriaLabel="Bulk actions"
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      expect(screen.getByText("1 selected")).toBeInTheDocument();
+      expect(screen.getByText("Edit")).toBeInTheDocument();
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+      expect(screen.getByText("Clear")).toBeInTheDocument();
+    });
+
+    it("hides BulkActionsToolbar when no items are selected", () => {
+      const selectedIds = new Set<string>();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          selectedCountLabel="0 selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear"
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByText("0 selected")).not.toBeInTheDocument();
+      expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+      expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+      expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+    });
+
+    it("long-press does not open drawer after successful trigger", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      act(() => {
+        fireEvent.pointerUp(card!);
+      });
+
+      fireEvent.click(card!);
+
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("renders exactly one BulkActionsToolbar in selection mode", () => {
+      const selectedIds = new Set<string>(["1"]);
+
+      const { container } = render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const toolbars = container.querySelectorAll('[aria-label="Bulk actions"]');
+      expect(toolbars).toHaveLength(1);
+    });
+
+    it("tap immediately after long-press targets the correct card (no layout shift)", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["1"]); // Card 1 is already selected
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+
+      // In selection mode, clicking should toggle the same card immediately
+      // This verifies that the fixed toolbar doesn't cause layout shift
+      fireEvent.click(firstCard!);
+
+      // Should toggle card 1 (the Salary card)
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+    });
+
+    it("realistic 700ms hold then tap another card selects it", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>(["1"]); // Card 1 already selected
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+      const secondCard = cards.find((c) => c.textContent?.includes("Groceries"));
+
+      // Realistic long-press: hold for 700ms
+      act(() => {
+        fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(700);
+      });
+
+      // Long-press fired at 450ms
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        fireEvent.pointerUp(firstCard!);
+      });
+
+      // The trailing click should be swallowed
+      fireEvent.click(firstCard!);
+      expect(onToggleSelected).toHaveBeenCalledTimes(1); // Still 1, not 2
+
+      // Next tap on a different card should work (new gesture)
+      fireEvent.pointerDown(secondCard!, { clientX: 200, clientY: 100 });
+      fireEvent.pointerUp(secondCard!);
+      fireEvent.click(secondCard!);
+
+      // Should select card 2
+      expect(onToggleSelected).toHaveBeenCalledWith("2");
+      expect(onToggleSelected).toHaveBeenCalledTimes(2);
+    });
+
+    it("700ms hold swallows trailing click, keeps card selected", async () => {
+      const onToggleSelected = vi.fn();
+      const selectedIds = new Set<string>();
+
+      const { rerender } = render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="0 transactions selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const firstCard = cards.find((c) => c.textContent?.includes("Salary"));
+
+      // Hold for 700ms
+      act(() => {
+        fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(700);
+      });
+
+      // Selected at 450ms
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        fireEvent.pointerUp(firstCard!);
+      });
+
+      // Trailing click should be swallowed
+      fireEvent.click(firstCard!);
+      expect(onToggleSelected).toHaveBeenCalledTimes(1); // Still only 1 call
+
+      // Simulate parent updating selectedIds after the first toggle
+      const updatedSelectedIds = new Set<string>(["1"]);
+      rerender(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={updatedSelectedIds}
+          onToggleSelected={onToggleSelected}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+          selectedCountLabel="1 transaction selected"
+          editLabel="Edit"
+          deleteLabel="Delete"
+          clearLabel="Clear selection"
+          bulkToolbarAriaLabel="Bulk actions"
+        />
+      );
+
+      // Now in selection mode, a normal tap should toggle
+      fireEvent.pointerDown(firstCard!, { clientX: 100, clientY: 100 });
+      fireEvent.pointerUp(firstCard!);
+      fireEvent.click(firstCard!);
+
+      // Should deselect (second toggle)
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+      expect(onToggleSelected).toHaveBeenCalledTimes(2);
+    });
+
+    it("re-rendering with different number of transactions does not cause hook errors", () => {
+      const onToggleSelected = vi.fn();
+      
+      // First render with 2 transactions
+      const { rerender } = render(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 2)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 2 cards rendered
+      const cards1 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards1).toHaveLength(2);
+
+      // Re-render with 3 transactions
+      rerender(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 3)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 3 cards rendered without errors
+      const cards2 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards2).toHaveLength(3);
+
+      // Re-render back to 2 transactions
+      rerender(
+        <TransactionCardList
+          transactions={mockTransactions.slice(0, 2)}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled={false}
+        />
+      );
+
+      // Verify 2 cards rendered without errors
+      const cards3 = screen.getAllByRole("button").filter((el) => 
+        el.className.includes("cursor-pointer")
+      );
+      expect(cards3).toHaveLength(2);
+    });
   });
 
   it("drawer hides chomesh row when is_chomesh is false even with tracking enabled", async () => {
