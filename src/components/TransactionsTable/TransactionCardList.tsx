@@ -123,6 +123,9 @@ const TransactionCard = memo(function TransactionCard({
   const ACTION_BUTTONS_WIDTH = 160;
   const SWIPE_THRESHOLD = 50;
 
+  const isMobileSwipeEnabled = typeof window !== "undefined" 
+    && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+
   const longPressHandlers = useLongPress({
     onLongPress: () => {
       if (!selectionDisabled && onToggleSelected) {
@@ -163,10 +166,10 @@ const TransactionCard = memo(function TransactionCard({
     threshold: SWIPE_THRESHOLD,
     movementThreshold: 10,
     isRTL,
-    disabled: inSelectionMode,
+    disabled: inSelectionMode || !isMobileSwipeEnabled,
   });
 
-  const effectiveSwipeOffset = isSwipeOpen ? swipeOffset : 0;
+  const effectiveSwipeOffset = (isSwipeOpen && isMobileSwipeEnabled) ? swipeOffset : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
@@ -181,15 +184,30 @@ const TransactionCard = memo(function TransactionCard({
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    const wasSwipeActive = swipeTriggeredRef.current;
     longPressHandlers.onPointerUp();
     swipeHandlers.onPointerUp(e);
+    
+    if (wasSwipeActive && inSelectionMode) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   const handlePointerCancel = () => {
     longPressTriggeredRef.current = false;
+    const wasSwipeActive = swipeTriggeredRef.current;
     swipeTriggeredRef.current = false;
     longPressHandlers.onPointerCancel();
     swipeHandlers.onPointerCancel();
+    
+    if (wasSwipeActive) {
+      setSwipeOffset(0);
+      setIsAnimating(true);
+      if (isSwipeOpen) {
+        onSwipeClose();
+      }
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -202,6 +220,11 @@ const TransactionCard = memo(function TransactionCard({
 
   const handleCardClick = () => {
     if (swipeTriggeredRef.current || longPressTriggeredRef.current) {
+      swipeTriggeredRef.current = false;
+      longPressTriggeredRef.current = false;
+      return;
+    }
+    if (inSelectionMode && swipeOffset > 0) {
       return;
     }
     onCardClick(transaction);
@@ -223,14 +246,14 @@ const TransactionCard = memo(function TransactionCard({
     <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
       <div
         className="max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden"
-        aria-hidden="true"
+        aria-hidden={!isSwipeOpen}
       >
         <Button
           variant="default"
           size="icon"
           className="h-11 w-11 min-w-[44px] min-h-[44px]"
           onClick={handleEditClick}
-          tabIndex={-1}
+          tabIndex={isSwipeOpen ? 0 : -1}
           aria-label={t("actions.edit")}
         >
           <Edit3 className="h-5 w-5" />
@@ -240,7 +263,7 @@ const TransactionCard = memo(function TransactionCard({
           size="icon"
           className="h-11 w-11 min-w-[44px] min-h-[44px] text-destructive hover:bg-destructive/10 hover:text-destructive"
           onClick={handleDeleteClick}
-          tabIndex={-1}
+          tabIndex={isSwipeOpen ? 0 : -1}
           aria-label={t("actions.delete")}
         >
           <Trash2 className="h-5 w-5" />
@@ -252,12 +275,12 @@ const TransactionCard = memo(function TransactionCard({
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
           surfaceClasses,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
         style={{
-          transform: `translateX(${isRTL ? -effectiveSwipeOffset : effectiveSwipeOffset}px)`,
+          transform: `translateX(${isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset}px)`,
           transition: isAnimating || !isSwipeOpen ? "transform 0.3s ease-out" : "none",
         }}
         onClick={handleCardClick}
