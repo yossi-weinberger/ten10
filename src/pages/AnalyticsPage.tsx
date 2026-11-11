@@ -36,6 +36,7 @@ import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewTog
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");

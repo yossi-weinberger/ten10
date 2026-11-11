@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 
 interface CurrencyConversionInfoProps {
   amount: number;
@@ -118,9 +119,9 @@ export function CurrencyConversionInfo({
             <TooltipContent
               className={cn(
                 "text-xs bg-popover text-popover-foreground border shadow-md p-3",
-                "ph-mask ph-sensitive"
+                PH_SENSITIVE_PROPS.className
               )}
-              data-ph-mask=""
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
               <div className="grid gap-1 text-start">
                 <div className="font-semibold text-foreground border-b pb-1 mb-1">
@@ -204,9 +205,9 @@ export function CurrencyConversionInfo({
             <TooltipContent
               className={cn(
                 "text-xs bg-popover text-popover-foreground border shadow-md p-3",
-                "ph-mask ph-sensitive"
+                PH_SENSITIVE_PROPS.className
               )}
-              data-ph-mask=""
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
               <div className="grid gap-1 text-start">
                 <div className="font-semibold text-foreground border-b pb-1 mb-1">

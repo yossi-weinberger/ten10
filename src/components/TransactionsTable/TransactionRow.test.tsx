@@ -272,6 +272,10 @@ describe("TransactionRow PostHog masking", () => {
         total_occurrences: 12,
         frequency: "monthly",
         day_of_month: 10,
+        start_date: "2026-01-01",
+        next_due_date: "2026-12-10",
+        calendar_type: "gregorian",
+        anchor_month_code: null,
       },
     };
 

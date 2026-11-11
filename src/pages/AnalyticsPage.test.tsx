@@ -1,8 +1,22 @@
 // @vitest-environment jsdom
 
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, beforeAll } from "vitest";
 import { AnalyticsPage } from "./AnalyticsPage";
+
+beforeAll(() => {
+  Object.defineProperty(window, "localStorage", {
+    value: {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      length: 0,
+      key: vi.fn(() => null),
+    },
+    writable: true,
+  });
+});
 
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => undefined },
@@ -46,6 +60,30 @@ vi.mock("@/hooks/useInsights", () => ({
     incomeCategories: [],
     isLoading: false,
     error: null,
+    categoryData: [],
+    paymentMethodData: [],
+    recipientsData: [],
+    heatmapData: [],
+    activeRecurring: [],
+    recurringVsOnetimeData: [],
+    categoryType: "expense",
+    setCategoryType: vi.fn(),
+    heatmapTypeGroup: "all",
+    setHeatmapTypeGroup: vi.fn(),
+    isLoadingCategory: false,
+    categoryError: null,
+    isLoadingPaymentMethod: false,
+    paymentMethodError: null,
+    isLoadingRecipients: false,
+    recipientsError: null,
+    isLoadingHeatmap: false,
+    heatmapError: null,
+    isLoadingRecurring: false,
+    recurringError: null,
+    isLoadingRecurringRatio: false,
+    recurringRatioError: null,
+    expenseCategoryTop: null,
+    incomeCategoryTop: null,
   }),
 }));
 
@@ -68,14 +106,54 @@ vi.mock("@/hooks/usePeriodComparison", () => ({
 }));
 
 vi.mock("@/hooks/useMaaserYearSummary", () => ({
-  useMaaserYearSummary: () => ({
+  useMaaserYearSummary: vi.fn(() => ({
+    summary: null,
     isLoading: false,
     error: null,
-  }),
+    canGoNext: false,
+    goToPreviousYear: vi.fn(),
+    goToNextYear: vi.fn(),
+  })),
+}));
+
+vi.mock("@/components/analytics/MaaserYearSummaryCard", () => ({
+  MaaserYearSummaryCard: () => null,
+}));
+
+vi.mock("@/components/analytics/CategoryBreakdownChart", () => ({
+  CategoryBreakdownChart: () => null,
+}));
+
+vi.mock("@/components/analytics/RecurringForecastInsight", () => ({
+  RecurringForecastInsight: () => null,
+}));
+
+vi.mock("@/components/analytics/PaymentMethodInsight", () => ({
+  PaymentMethodInsight: () => null,
+}));
+
+vi.mock("@/components/analytics/RecurringRatioInsight", () => ({
+  RecurringRatioInsight: () => null,
+}));
+
+vi.mock("@/components/analytics/DonationRecipientsInsight", () => ({
+  DonationRecipientsInsight: () => null,
+}));
+
+vi.mock("@/components/analytics/InsightsSummaryRow", () => ({
+  InsightsSummaryRow: () => null,
+}));
+
+vi.mock("@/components/analytics/TextInsightsCard", () => ({
+  TextInsightsCard: () => null,
+}));
+
+vi.mock("@/components/analytics/TransactionHeatmap", () => ({
+  TransactionHeatmap: () => null,
 }));
 
 vi.mock("@/lib/store", () => ({
-  useDonationStore: (selector: (state: any) => any) =>
+  useDonationStore: <T,>(selector: (state: { settings: { defaultCurrency: string; showSecondaryDate: boolean } }) => T): T =>
     selector({
       settings: {
         defaultCurrency: "ILS",
@@ -86,14 +164,38 @@ vi.mock("@/lib/store", () => ({
 
 vi.mock("@/lib/calendar/calendar-preview", () => ({
   useEffectiveCalendarType: () => "gregorian",
+  useCalendarPreview: (selector: (state: { preview: string | null; setPreview: (preview: string | null) => void; clearPreview: () => void }) => unknown) =>
+    selector({
+      preview: null,
+      setPreview: vi.fn(),
+      clearPreview: vi.fn(),
+    }),
 }));
 
 vi.mock("@/lib/analytics/productAnalytics", () => ({
   trackProductEvent: vi.fn(),
 }));
 
-vi.mock("@/fonts/Rubik-Regular.ttf?url", () => ({ default: "" }));
-vi.mock("@/fonts/Rubik-Bold.ttf?url", () => ({ default: "" }));
+vi.mock("@/lib/analytics/export-pdf", () => ({
+  generateAnalyticsPdf: vi.fn(),
+  computeRecurringTotals: vi.fn(() => ({ expenses: 0, income: 0, donations: 0 })),
+}));
+
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => children,
+  PieChart: () => null,
+  Pie: () => null,
+  Cell: () => null,
+  BarChart: () => null,
+  Bar: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  Tooltip: () => null,
+  Legend: () => null,
+  LineChart: () => null,
+  Line: () => null,
+}));
 
 describe("AnalyticsPage PostHog masking", () => {
   beforeEach(() => {
@@ -103,9 +205,10 @@ describe("AnalyticsPage PostHog masking", () => {
   it("applies ph-mask and data-ph-mask to page content root", () => {
     const { container } = render(<AnalyticsPage />);
 
-    const maskedRoot = container.querySelector('[data-ph-mask]');
+    const maskedRoot = container.querySelector('div[data-ph-mask].ph-mask.ph-sensitive');
     expect(maskedRoot).toBeTruthy();
     expect(maskedRoot?.classList.contains("ph-mask")).toBe(true);
     expect(maskedRoot?.classList.contains("ph-sensitive")).toBe(true);
+    expect(maskedRoot?.hasAttribute("data-ph-mask")).toBe(true);
   });
 });

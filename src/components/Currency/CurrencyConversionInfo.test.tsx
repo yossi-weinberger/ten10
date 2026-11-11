@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, expect, it, vi, beforeAll } from "vitest";
-import userEvent from "@testing-library/user-event";
 import { CurrencyConversionInfo } from "./CurrencyConversionInfo";
 
 beforeAll(() => {
