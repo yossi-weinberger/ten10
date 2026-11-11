@@ -99,8 +99,10 @@
   "bulkToolbar": {
     "ariaLabel": "Bulk actions for selected transactions",
     "recurringAriaLabel": "Bulk actions for selected recurring transactions",
-    "selectedCount": "{{count}} transactions selected",
-    "selectedRecurringCount": "{{count}} recurring transactions selected",
+    "selectedCount_one": "{{count}} transaction selected",
+    "selectedCount_other": "{{count}} transactions selected",
+    "selectedRecurringCount_one": "{{count}} recurring transaction selected",
+    "selectedRecurringCount_other": "{{count}} recurring transactions selected",
     "edit": "Bulk edit",
     "delete": "Bulk delete",
     "clear": "Clear selection"
