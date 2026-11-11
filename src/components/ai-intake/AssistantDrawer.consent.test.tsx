@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { AssistantDrawer, type AssistantDrawerHandle } from "./AssistantDrawer";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
@@ -134,6 +135,7 @@ describe("AssistantDrawer consent gate", () => {
   const receiveRef = createRef<AssistantDrawerHandle>();
 
   beforeEach(() => {
+    cleanup();
     vi.clearAllMocks();
     // Reset mockRpc to default (no consent) with a proper implementation
     mockRpc.mockReset().mockResolvedValue({
@@ -405,6 +407,62 @@ describe("AssistantDrawer consent gate", () => {
 
       // Consent check completed successfully (may be called multiple times for other RPCs)
       expect(supabase.rpc).toHaveBeenCalled();
+    });
+
+    it("disables suggestion chips until consent is accepted, and a click sends nothing", async () => {
+      const user = userEvent.setup();
+      let resolveConsent: (value: {
+        data: { accepted: boolean; version: string; current: string };
+        error: null;
+      }) => void = () => {};
+      (supabase.rpc as unknown) = vi.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveConsent = resolve;
+          }),
+      );
+
+      render(
+        <AssistantDrawer
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          receiveRef={receiveRef}
+          onNavigate={mockOnNavigate}
+          userName="Test User"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(supabase.rpc).toHaveBeenCalledWith("ai_beta_consent_status");
+      });
+
+      const chipKeys = ["transaction", "receipt", "voice", "question", "halacha", "recurring", "rule"];
+      const chips = chipKeys.map((key) =>
+        screen.getByRole("button", { name: `aiIntake.suggestions.${key}` }),
+      );
+      for (const chip of chips) {
+        expect(chip).toBeDisabled();
+      }
+
+      await user.click(chips[0]);
+      expect(mockHandleSubmit).not.toHaveBeenCalled();
+      expect(mockHandleReceipt).not.toHaveBeenCalled();
+      expect(mockToggleRecording).not.toHaveBeenCalled();
+
+      resolveConsent({
+        data: {
+          accepted: true,
+          version: AI_BETA_TERMS_VERSION,
+          current: AI_BETA_TERMS_VERSION,
+        },
+        error: null,
+      });
+
+      await waitFor(() => {
+        for (const key of chipKeys) {
+          expect(screen.getByRole("button", { name: `aiIntake.suggestions.${key}` })).toBeEnabled();
+        }
+      });
     });
   });
 });

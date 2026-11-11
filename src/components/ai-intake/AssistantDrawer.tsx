@@ -276,6 +276,7 @@ export function AssistantDrawer({
           active={thread.active}
           activeBlocks={thread.blocks}
           interactiveActive={consentOk}
+          disabled={!consentOk}
           transcribing={composer.wiring.transcribing}
           opening={consentOk ? { name: firstName, line: openingLine } : undefined}
           onSuggestion={(suggestion) => {
