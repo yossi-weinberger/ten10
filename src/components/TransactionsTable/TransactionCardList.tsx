@@ -124,6 +124,7 @@ const TransactionCard = memo(function TransactionCard({
   const SWIPE_THRESHOLD = 50;
 
   const isMobileSwipeEnabled = typeof window !== "undefined" 
+    && typeof window.matchMedia === "function"
     && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
 
   const longPressHandlers = useLongPress({
