@@ -5,6 +5,8 @@ import {
   trackAiDraftCorrected,
   trackAiQuestionReasked,
   mapErrorToFailureReason,
+  normalizeQuestionText,
+  compareQuestions,
 } from "./aiOutcomeEvents";
 import * as productAnalytics from "./productAnalytics";
 
@@ -159,6 +161,139 @@ describe("aiOutcomeEvents", () => {
 
     it("maps missing reason to unknown", () => {
       expect(mapErrorToFailureReason(undefined, undefined)).toBe("unknown");
+    });
+  });
+
+  describe("normalizeQuestionText", () => {
+    it("trims whitespace", () => {
+      expect(normalizeQuestionText("  hello world  ")).toBe("hello world");
+    });
+
+    it("collapses multiple spaces", () => {
+      expect(normalizeQuestionText("hello    world")).toBe("hello world");
+    });
+
+    it("converts to lowercase", () => {
+      expect(normalizeQuestionText("Hello World")).toBe("hello world");
+    });
+
+    it("strips trailing punctuation", () => {
+      expect(normalizeQuestionText("hello world?")).toBe("hello world");
+      expect(normalizeQuestionText("hello world!")).toBe("hello world");
+      expect(normalizeQuestionText("hello world.")).toBe("hello world");
+      expect(normalizeQuestionText("hello world?!")).toBe("hello world");
+    });
+
+    it("combines all normalizations", () => {
+      expect(normalizeQuestionText("  How Much  Did I Spend?!  ")).toBe("how much did i spend");
+    });
+  });
+
+  describe("compareQuestions", () => {
+    it("returns false when last is null", () => {
+      const result = compareQuestions(
+        { text: "hello", family: "", search: false },
+        null,
+        60000,
+        Date.now(),
+        null
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns false when timestampLast is null", () => {
+      const result = compareQuestions(
+        { text: "hello", family: "", search: false },
+        { text: "hello", family: "", search: false },
+        60000,
+        Date.now(),
+        null
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns false when time difference exceeds maxAgeMs", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "hello", family: "", search: false },
+        { text: "hello", family: "", search: false },
+        60000,
+        now,
+        now - 61000
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns true for same normalized question within time window", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "How much did I spend?", family: "", search: false },
+        { text: "how much did i spend", family: "", search: false },
+        60000,
+        now,
+        now - 30000
+      );
+      expect(result).toBe(true);
+    });
+
+    it("returns false for different questions", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "How much did I spend?", family: "", search: false },
+        { text: "How much did I earn?", family: "", search: false },
+        60000,
+        now,
+        now - 30000
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns false for different family", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "hello", family: "expense", search: false },
+        { text: "hello", family: "income", search: false },
+        60000,
+        now,
+        now - 30000
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns false for different search flag", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "hello", family: "", search: true },
+        { text: "hello", family: "", search: false },
+        60000,
+        now,
+        now - 30000
+      );
+      expect(result).toBe(false);
+    });
+
+    it("returns true exactly at 60 seconds", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "hello", family: "", search: false },
+        { text: "hello", family: "", search: false },
+        60000,
+        now,
+        now - 60000
+      );
+      expect(result).toBe(true);
+    });
+
+    it("returns false at 60001 milliseconds", () => {
+      const now = Date.now();
+      const result = compareQuestions(
+        { text: "hello", family: "", search: false },
+        { text: "hello", family: "", search: false },
+        60000,
+        now,
+        now - 60001
+      );
+      expect(result).toBe(false);
     });
   });
 });

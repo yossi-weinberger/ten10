@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { INSPIRATION_LIBRARY } from "@/lib/ai/inspiration-library";
 import {
   browserIdStorage,
@@ -8,7 +7,7 @@ import {
   rememberInspiration,
 } from "@/lib/ai/inspiration-pick";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { trackAiTurnFailed, trackAiQuestionReasked, mapErrorToFailureReason } from "@/lib/analytics/aiOutcomeEvents";
+import { trackAiTurnFailed, trackAiQuestionReasked, mapErrorToFailureReason, compareQuestions } from "@/lib/analytics/aiOutcomeEvents";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readQuestionSlots } from "@/lib/ai/read-question";
 import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
@@ -102,11 +101,8 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     replacing,
   } = state;
   const { pairActionBusy } = state;
-  const lastQuestionRef = useRef<{ normalizedText: string; family: string; search: boolean; at: number } | null>(null);
 
-  function normalizeQuestionText(text: string): string {
-    return text.trim().replace(/\s+/g, " ").toLowerCase().replace(/[.!?]+$/, "");
-  }
+  let lastQuestion: { text: string; family: string; search: boolean; at: number } | null = null;
 
   function showHeld(next: HeldDraft) {
     held.current = next;
@@ -243,24 +239,14 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     setDataReply(null);
     
     if (turn) {
-      const normalizedText = normalizeQuestionText(source);
       const now = Date.now();
-      const last = lastQuestionRef.current;
-      if (
-        last &&
-        last.normalizedText === normalizedText &&
-        last.family === (family || "") &&
-        last.search === searchDescriptions &&
-        now - last.at <= 60000
-      ) {
+      const current = { text: source, family: family || "", search: searchDescriptions };
+      
+      if (compareQuestions(current, lastQuestion, 60000, now, lastQuestion?.at ?? null)) {
         trackAiQuestionReasked(60);
       }
-      lastQuestionRef.current = {
-        normalizedText,
-        family: family || "",
-        search: searchDescriptions,
-        at: now,
-      };
+      
+      lastQuestion = { ...current, at: now };
     }
     
     let question = searchDescriptions ? askedQuestion : null;

@@ -43,6 +43,30 @@ export function trackAiQuestionReasked(within_seconds: number) {
   trackProductEvent("ai_question_reasked", { within_seconds });
 }
 
+export function normalizeQuestionText(text: string): string {
+  return text.trim().replace(/\s+/g, " ").toLowerCase().replace(/[.?!,;:'"]+$/, "");
+}
+
+export function compareQuestions(
+  current: { text: string; family: string; search: boolean },
+  last: { text: string; family: string; search: boolean } | null,
+  maxAgeMs: number,
+  timestampNow: number,
+  timestampLast: number | null
+): boolean {
+  if (!last || timestampLast === null) return false;
+  if (timestampNow - timestampLast > maxAgeMs) return false;
+  
+  const normalizedCurrent = normalizeQuestionText(current.text);
+  const normalizedLast = normalizeQuestionText(last.text);
+  
+  return (
+    normalizedCurrent === normalizedLast &&
+    current.family === last.family &&
+    current.search === last.search
+  );
+}
+
 export function mapErrorToFailureReason(
   errorCode?: string | null,
   reason?: string,

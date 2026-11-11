@@ -5,6 +5,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import * as aiOutcomeEvents from "@/lib/analytics/aiOutcomeEvents";
+import type { ReplyState } from "@/lib/ai/assistant-turn";
+
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 
 vi.mock("@/lib/analytics/aiOutcomeEvents", () => ({
   trackAiDraftCancelled: vi.fn(),
@@ -67,7 +70,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as any,
+        } as Partial<ReplyState>,
       };
 
       result.current.clearConversation();
@@ -101,7 +104,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as any,
+        } as Partial<ReplyState>,
       };
 
       result.current.clearConversation();
@@ -135,7 +138,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as any,
+        } as Partial<ReplyState>,
       };
 
       result.current.clearConversation();
@@ -169,7 +172,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: "saved-123",
-        } as any,
+        } as Partial<ReplyState>,
       };
 
       result.current.clearConversation();
@@ -186,7 +189,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
         reply: {
           draft: null,
           savedItemId: null,
-        } as any,
+        } as Partial<ReplyState>,
       };
 
       result.current.clearConversation();
