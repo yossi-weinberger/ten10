@@ -189,8 +189,8 @@ export function AdminUserPlans() {
                   <td>{row.plan}</td>
                   <td>{t(`ai.userPlans.${row.source}`)}</td>
                   <td>
-                    <span className={row.is_active ? "text-green-600" : "text-red-600"}>
-                      {t(`ai.userPlans.${row.is_active ? "active" : "inactive"}`)}
+                    <span className={row.is_active !== false ? "text-green-600" : "text-red-600"}>
+                      {t(`ai.userPlans.${row.is_active !== false ? "active" : "inactive"}`)}
                     </span>
                   </td>
                   <td>{formatDate(row.expires_at)}</td>
