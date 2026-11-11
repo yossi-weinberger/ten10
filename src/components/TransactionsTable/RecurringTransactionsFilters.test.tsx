@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { RecurringTransactionsFilters } from "./RecurringTransactionsFilters";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 
@@ -21,6 +23,10 @@ vi.mock("@/hooks/use-media-query", () => ({
 }));
 
 describe("RecurringTransactionsFilters", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -63,7 +69,48 @@ describe("RecurringTransactionsFilters", () => {
 
     render(<RecurringTransactionsFilters />);
 
+    expect(useMediaQuery).toHaveBeenCalledWith(MOBILE_COMPACT_QUERY);
     expect(screen.getByText("recurringFilters.title")).toBeInTheDocument();
     expect(screen.getByText("filters.freeSearch")).toBeInTheDocument();
+    expect(screen.queryByText("filters.showFilters")).not.toBeInTheDocument();
+    expect(screen.queryByText("filters.hideFilters")).not.toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText("recurringFilters.searchPlaceholder");
+    expect(searchInput).toHaveClass("w-full");
+    expect(searchInput).not.toHaveClass("h-9");
+    expect(searchInput).not.toHaveClass("max-md:h-11");
+    expect(searchInput).not.toHaveClass("[@media(pointer:coarse)_and_(max-height:500px)]:h-11");
+  });
+
+  describe("landscape compact bar", () => {
+    it("uses the shared compact query and 44px targets", async () => {
+      const { useMediaQuery } = await import("@/hooks/use-media-query");
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+
+      const user = userEvent.setup();
+      render(<RecurringTransactionsFilters />);
+
+      expect(useMediaQuery).toHaveBeenCalledWith(MOBILE_COMPACT_QUERY);
+      expect(screen.getByPlaceholderText("recurringFilters.searchPlaceholder")).toBeInTheDocument();
+      expect(screen.getByText("filters.showFilters")).toBeInTheDocument();
+      expect(screen.queryByText("recurringFilters.title")).not.toBeInTheDocument();
+
+      const searchInput = screen.getByPlaceholderText("recurringFilters.searchPlaceholder");
+      expect(searchInput).toHaveClass("h-9");
+      expect(searchInput).toHaveClass("max-md:h-11");
+      expect(searchInput).toHaveClass("[@media(pointer:coarse)_and_(max-height:500px)]:h-11");
+
+      const showButton = screen.getByText("filters.showFilters");
+      expect(showButton).toHaveClass("h-9");
+      expect(showButton).toHaveClass("max-md:h-11");
+      expect(showButton).toHaveClass("[@media(pointer:coarse)_and_(max-height:500px)]:h-11");
+
+      await user.click(showButton);
+
+      const hideButton = screen.getByText("filters.hideFilters");
+      expect(hideButton).toHaveClass("h-8");
+      expect(hideButton).toHaveClass("max-md:h-11");
+      expect(hideButton).toHaveClass("[@media(pointer:coarse)_and_(max-height:500px)]:h-11");
+    });
   });
 });

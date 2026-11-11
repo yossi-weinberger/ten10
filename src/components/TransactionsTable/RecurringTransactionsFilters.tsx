@@ -17,12 +17,13 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
 import { transactionTypes } from "@/types/transaction";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 
 // Moved to translation files - no longer needed
 
 export function RecurringTransactionsFilters() {
   const { t, i18n } = useTranslation("data-tables");
-  const isMobile = useMediaQuery("(max-width: 767px)");
+  const isMobile = useMediaQuery(MOBILE_COMPACT_QUERY);
   const [isExpanded, setIsExpanded] = useState(false);
   const { filters, setFilters, resetFilters } = useRecurringTableStore();
   const [localSearch, setLocalSearch] = useState(filters.search);
@@ -100,14 +101,14 @@ export function RecurringTransactionsFilters() {
                 placeholder={t("recurringFilters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="h-9"
+                className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11"
                 aria-label={t("filters.freeSearch")}
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setIsExpanded(true)}
-              className="h-9 gap-2 shrink-0"
+              className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 gap-2 shrink-0"
               aria-expanded="false"
               aria-label={
                 activeFiltersCount > 0
@@ -138,7 +139,7 @@ export function RecurringTransactionsFilters() {
             <Button
               variant="ghost"
               onClick={() => setIsExpanded(false)}
-              className="h-8 text-sm"
+              className="h-8 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 text-sm"
               aria-expanded="true"
             >
               {t("filters.hideFilters")}
