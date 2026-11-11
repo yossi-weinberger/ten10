@@ -264,4 +264,62 @@ describe("TransactionsFilters", () => {
       expect(badge).not.toBeInTheDocument();
     });
   });
+
+  describe("Landscape mobile behavior", () => {
+    beforeEach(async () => {
+      vi.clearAllMocks();
+      const { useMediaQuery } = await import("@/hooks/use-media-query");
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+
+      vi.mocked(usePlatform).mockReturnValue({
+        platform: "web" as const,
+      });
+
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: defaultFilters,
+            setFilters: vi.fn(),
+            resetFiltersState: vi.fn(),
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        }
+      );
+    });
+
+    it("renders compact bar on landscape mobile (matching PR #698 query)", () => {
+      render(<TransactionsFilters />);
+
+      expect(screen.getByPlaceholderText("filters.searchPlaceholder")).toBeInTheDocument();
+      expect(screen.getByText("filters.showFilters")).toBeInTheDocument();
+    });
+
+    it("collapsed search input has minimum 44px height on mobile", () => {
+      render(<TransactionsFilters />);
+
+      const searchInput = screen.getByPlaceholderText("filters.searchPlaceholder");
+      expect(searchInput).toHaveClass("h-9");
+      expect(searchInput).toHaveClass("max-md:h-11");
+    });
+
+    it("show filters toggle has minimum 44px height on mobile", () => {
+      render(<TransactionsFilters />);
+
+      const showButton = screen.getByText("filters.showFilters");
+      expect(showButton).toHaveClass("h-9");
+      expect(showButton).toHaveClass("max-md:h-11");
+    });
+
+    it("collapse button has minimum 44px height on mobile when expanded", async () => {
+      const user = userEvent.setup();
+      render(<TransactionsFilters />);
+
+      await user.click(screen.getByText("filters.showFilters"));
+
+      const hideButton = screen.getByText("filters.hideFilters");
+      expect(hideButton).toHaveClass("h-8");
+      expect(hideButton).toHaveClass("max-md:h-11");
+    });
+  });
 });

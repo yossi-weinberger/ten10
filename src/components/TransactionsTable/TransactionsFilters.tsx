@@ -34,6 +34,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 import {
   getPaymentMethodCacheVersion,
   getUserPaymentMethods,
@@ -64,7 +65,7 @@ const availableTransactionTypes: TransactionType[] = [
 export function TransactionsFilters() {
   const { t: tTables, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
-  const isMobile = useMediaQuery("(max-width: 767px)");
+  const isMobile = useMediaQuery(MOBILE_COMPACT_QUERY);
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     storeFilters,
@@ -316,14 +317,14 @@ export function TransactionsFilters() {
                 placeholder={tTables("filters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="h-9"
+                className="h-9 max-md:h-11"
                 aria-label={tTables("filters.freeSearch")}
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setIsExpanded(true)}
-              className="h-9 gap-2 shrink-0"
+              className="h-9 max-md:h-11 gap-2 shrink-0"
               aria-expanded="false"
               aria-label={
                 activeFiltersCount > 0
@@ -353,7 +354,7 @@ export function TransactionsFilters() {
             <Button
               variant="ghost"
               onClick={() => setIsExpanded(false)}
-              className="h-8 text-sm"
+              className="h-8 max-md:h-11 text-sm"
               aria-expanded="true"
             >
               {tTables("filters.hideFilters")}
