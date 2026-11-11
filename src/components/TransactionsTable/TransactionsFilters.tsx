@@ -317,14 +317,14 @@ export function TransactionsFilters() {
                 placeholder={tTables("filters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="h-9 max-md:h-11"
+                className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11"
                 aria-label={tTables("filters.freeSearch")}
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setIsExpanded(true)}
-              className="h-9 max-md:h-11 gap-2 shrink-0"
+              className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 gap-2 shrink-0"
               aria-expanded="false"
               aria-label={
                 activeFiltersCount > 0
@@ -354,7 +354,7 @@ export function TransactionsFilters() {
             <Button
               variant="ghost"
               onClick={() => setIsExpanded(false)}
-              className="h-8 max-md:h-11 text-sm"
+              className="h-8 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 text-sm"
               aria-expanded="true"
             >
               {tTables("filters.hideFilters")}
