@@ -1094,4 +1094,135 @@ describe("TransactionCardList", () => {
 
     expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
   });
+
+  it("masks card date with PostHog masking attributes", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    // Find the card date section
+    const dateSection = markup.match(/2026-11-01[^<]*</);
+    expect(dateSection).toBeTruthy();
+    
+    // Verify that the date is wrapped in a span with ph-mask classes and data-ph-mask attribute
+    const dateMaskPattern = /<span[^>]*ph-mask[^>]*data-ph-mask=""[^>]*>2026-11-01<\/span>/;
+    expect(markup).toMatch(dateMaskPattern);
+  });
+
+  it("masks month separator label with PostHog masking attributes", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    // Verify month separator has masking
+    const separatorMaskPattern = /<span[^>]*ph-mask[^>]*data-ph-mask=""[^>]*>2026-11<\/span>/;
+    expect(markup).toMatch(separatorMaskPattern);
+  });
+
+  it("masks drawer date row with PostHog masking attributes", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    // Check that the date label is present
+    expect(screen.getByText("Date")).toBeInTheDocument();
+    
+    // There are two date elements: one in the card, one in the drawer
+    const dateElements = screen.getAllByText("2026-11-01");
+    expect(dateElements.length).toBeGreaterThanOrEqual(2);
+    
+    // Check that both have data-ph-mask attribute
+    dateElements.forEach((dateElement) => {
+      expect(dateElement).toHaveAttribute("data-ph-mask", "");
+      expect(dateElement.className).toContain("ph-mask");
+    });
+  });
+
+  it("masks chomesh info in drawer when visible", async () => {
+    mockUseDonationStore.mockReturnValue(true);
+
+    const chomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: true,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[chomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    const yesElement = screen.getByText("Yes");
+    expect(yesElement).toHaveAttribute("data-ph-mask", "");
+    expect(yesElement.className).toContain("ph-mask");
+  });
+
+  it("masks recurring info in drawer when visible", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[2]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Charity"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    // The recurring badge wrapper should have masking
+    const recurringBadge = screen.getByText("Recurring Badge");
+    const parent = recurringBadge.parentElement;
+    expect(parent).toHaveAttribute("data-ph-mask", "");
+    expect(parent?.className).toContain("ph-mask");
+  });
 });
