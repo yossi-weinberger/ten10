@@ -39,6 +39,8 @@ interface AreaChartInteractiveProps {
   // e.g., chartConfig.income = { label: "הכנסות", color: "hsl(var(--chart-1))" }
   withCard?: boolean;
   className?: string;
+  currencySymbol?: string;
+  locale?: string;
 }
 
 export function AreaChartInteractive({
@@ -46,16 +48,29 @@ export function AreaChartInteractive({
   chartConfig,
   withCard = true,
   className,
+  currencySymbol = "₪",
+  locale = "he-IL",
 }: AreaChartInteractiveProps) {
   const [isSmallScreen, setIsSmallScreen] = React.useState(false);
+  const [isLandscape, setIsLandscape] = React.useState(false);
 
   React.useEffect(() => {
-    // Keep chart readable on mobile by tightening margins and ticks.
-    const mql = window.matchMedia("(max-width: 640px)");
-    const onChange = () => setIsSmallScreen(mql.matches);
+    const mql = window.matchMedia("(max-width: 767px)");
+    const landscapeMql = window.matchMedia("(pointer: coarse) and (max-height: 500px)");
+    
+    const onChange = () => {
+      setIsSmallScreen(mql.matches);
+      setIsLandscape(landscapeMql.matches);
+    };
+    
     onChange();
-    mql.addEventListener?.("change", onChange);
-    return () => mql.removeEventListener?.("change", onChange);
+    mql.addEventListener("change", onChange);
+    landscapeMql.addEventListener("change", onChange);
+    
+    return () => {
+      mql.removeEventListener("change", onChange);
+      landscapeMql.removeEventListener("change", onChange);
+    };
   }, []);
 
   const DESIRED_SERIES_ORDER: MonthlyDataSeriesKey[] = [
@@ -63,6 +78,28 @@ export function AreaChartInteractive({
     "expenses",
     "donations",
   ];
+
+  const isMobileOrLandscape = isSmallScreen || isLandscape;
+
+  const formatYAxisTick = React.useCallback((value: number): string => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "";
+    
+    if (isMobileOrLandscape) {
+      const compact = new Intl.NumberFormat(locale, {
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(num);
+      return `${currencySymbol}${compact}`;
+    }
+    
+    return `${currencySymbol}${num.toLocaleString(locale)}`;
+  }, [isMobileOrLandscape, currencySymbol, locale]);
+
+  const xAxisInterval = React.useMemo(() => {
+    if (!isMobileOrLandscape) return undefined;
+    return "preserveStartEnd";
+  }, [isMobileOrLandscape]);
 
   const seriesToDisplay = React.useMemo(() => {
     const availableSeries = (
@@ -108,19 +145,24 @@ export function AreaChartInteractive({
     );
   }
 
+  const landscapeHeightStyle = isLandscape ? {
+    height: "clamp(160px, calc(100svh - 170px), 200px)"
+  } : undefined;
+
   const chart = (
     <ChartContainer
       config={chartConfig}
       className={cn("aspect-auto w-full", className)}
+      style={landscapeHeightStyle}
     >
       <AreaChart
         accessibilityLayer
         data={chartData}
         margin={{
-          left: isSmallScreen ? 6 : 12,
-          right: isSmallScreen ? 6 : 12,
-          top: isSmallScreen ? 10 : 20,
-          bottom: isSmallScreen ? 10 : 20,
+          left: isMobileOrLandscape ? 4 : 12,
+          right: isMobileOrLandscape ? 4 : 12,
+          top: isMobileOrLandscape ? 8 : 20,
+          bottom: isMobileOrLandscape ? (isLandscape ? 8 : 12) : 20,
         }}
       >
         <CartesianGrid vertical={false} className="stroke-muted" />
@@ -128,38 +170,35 @@ export function AreaChartInteractive({
           dataKey="month"
           tickLine={false}
           axisLine={false}
-          tickMargin={isSmallScreen ? 4 : 8}
+          tickMargin={isMobileOrLandscape ? 4 : 8}
+          interval={xAxisInterval}
+          minTickGap={isMobileOrLandscape ? 24 : undefined}
+          padding={isMobileOrLandscape ? { left: 12, right: 12 } : undefined}
           className="text-sm font-medium"
-          tick={{ fill: "currentColor" }}
+          tick={{ fill: "currentColor", fontSize: isMobileOrLandscape ? 11 : undefined }}
         />
         <YAxis
           orientation="right"
           tickLine={false}
           axisLine={false}
-          tickMargin={isSmallScreen ? 4 : 8}
-          width={isSmallScreen ? 42 : undefined}
-          tickFormatter={(value) => {
-            const num = Number(value);
-            if (!Number.isFinite(num)) return "";
-            if (isSmallScreen) {
-              const compact = new Intl.NumberFormat("he-IL", {
-                notation: "compact",
-                maximumFractionDigits: 1,
-              }).format(num);
-              return `₪${compact}`;
-            }
-            return `₪${num.toLocaleString("he-IL")}`;
-          }}
+          tickMargin={isMobileOrLandscape ? 4 : 8}
+          width={isMobileOrLandscape ? 50 : undefined}
+          tickFormatter={formatYAxisTick}
           className="text-sm font-medium"
           tick={{ fill: "currentColor" }}
         />
         <ChartTooltip
           cursor={true}
           content={<ChartTooltipContent indicator="dot" />}
+          wrapperStyle={isMobileOrLandscape ? { zIndex: 1000 } : undefined}
+          allowEscapeViewBox={isMobileOrLandscape ? { x: false, y: false } : undefined}
         />
         <ChartLegend
           content={<ChartLegendContent />}
-          wrapperStyle={{ paddingTop: isSmallScreen ? "8px" : "20px" }}
+          align={isMobileOrLandscape ? "center" : undefined}
+          verticalAlign={isMobileOrLandscape ? "bottom" : undefined}
+          layout={isMobileOrLandscape ? "horizontal" : undefined}
+          wrapperStyle={{ paddingTop: isMobileOrLandscape ? "4px" : "20px" }}
         />
         <defs>
           {seriesToDisplay.map((key) => {
