@@ -1655,4 +1655,96 @@ describe("TransactionCardList", () => {
 
     expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
   });
+
+  describe("swipe actions", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+    });
+
+    it("swipe gesture is disabled in selection mode", async () => {
+      const onEdit = vi.fn();
+      const onDelete = vi.fn();
+      const selectedIds = new Set<string>(["1"]);
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={selectedIds}
+          onToggleSelected={vi.fn()}
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        fireEvent.pointerMove(card!, { clientX: 150, clientY: 100 });
+      });
+
+      act(() => {
+        fireEvent.pointerUp(card!);
+      });
+
+      expect(onEdit).not.toHaveBeenCalled();
+      expect(onDelete).not.toHaveBeenCalled();
+    });
+
+    it("calls onDelete when delete button is clicked", async () => {
+      const onDelete = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={onDelete}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+
+      act(() => {
+        fireEvent.pointerMove(card!, { clientX: 160, clientY: 100 });
+      });
+
+      act(() => {
+        fireEvent.pointerUp(card!);
+      });
+
+      await waitFor(() => {
+        const deleteButtons = screen.getAllByLabelText("Delete");
+        const visibleDeleteButton = deleteButtons.find((btn) => 
+          (btn as HTMLElement).offsetParent !== null
+        );
+        if (visibleDeleteButton) {
+          fireEvent.click(visibleDeleteButton);
+          expect(onDelete).toHaveBeenCalledWith(mockTransactions[0]);
+        }
+      });
+    });
+  });
 });

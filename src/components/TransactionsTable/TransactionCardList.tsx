@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef, memo } from "react";
+import { useCallback, useMemo, useState, useRef, memo, useEffect } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -37,6 +37,7 @@ import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useSwipe } from "@/hooks/use-swipe";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
@@ -84,6 +85,12 @@ interface TransactionCardProps {
   longPressTriggeredRef: React.MutableRefObject<boolean>;
   trackChomeshSeparately: boolean;
   t: (key: string, defaultValue?: string) => string;
+  isRTL: boolean;
+  onEdit: (transaction: TransactionForTable) => void;
+  onDelete: (transaction: TransactionForTable) => void;
+  swipeOpenId: string | null;
+  onSwipeOpen: (id: string) => void;
+  onSwipeClose: () => void;
 }
 
 const TransactionCard = memo(function TransactionCard({
@@ -101,7 +108,20 @@ const TransactionCard = memo(function TransactionCard({
   longPressTriggeredRef,
   trackChomeshSeparately,
   t,
+  isRTL,
+  onEdit,
+  onDelete,
+  swipeOpenId,
+  onSwipeOpen,
+  onSwipeClose,
 }: TransactionCardProps) {
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeTriggeredRef = useRef(false);
+  const isSwipeOpen = swipeOpenId === transaction.id;
+
+  const ACTION_BUTTONS_WIDTH = 160;
+  const SWIPE_THRESHOLD = 50;
+
   const longPressHandlers = useLongPress({
     onLongPress: () => {
       if (!selectionDisabled && onToggleSelected) {
@@ -116,14 +136,61 @@ const TransactionCard = memo(function TransactionCard({
     movementThreshold: 10,
   });
 
+  const swipeHandlers = useSwipe({
+    onSwipeStart: () => {
+      swipeTriggeredRef.current = true;
+    },
+    onSwipeMove: (offset) => {
+      setSwipeOffset(Math.min(offset, ACTION_BUTTONS_WIDTH));
+    },
+    onSwipeEnd: (offset) => {
+      if (offset >= SWIPE_THRESHOLD) {
+        setSwipeOffset(ACTION_BUTTONS_WIDTH);
+        onSwipeOpen(transaction.id);
+      } else {
+        setSwipeOffset(0);
+        if (isSwipeOpen) {
+          onSwipeClose();
+        }
+      }
+      setTimeout(() => {
+        swipeTriggeredRef.current = false;
+      }, 100);
+    },
+    threshold: SWIPE_THRESHOLD,
+    movementThreshold: 10,
+    isRTL,
+    disabled: inSelectionMode,
+  });
+
+  useEffect(() => {
+    if (!isSwipeOpen && swipeOffset > 0) {
+      setSwipeOffset(0);
+    }
+  }, [isSwipeOpen, swipeOffset]);
+
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
+    swipeTriggeredRef.current = false;
     longPressHandlers.onPointerDown(e);
+    swipeHandlers.onPointerDown(e);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    longPressHandlers.onPointerMove(e);
+    swipeHandlers.onPointerMove(e);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    longPressHandlers.onPointerUp();
+    swipeHandlers.onPointerUp(e);
   };
 
   const handlePointerCancel = () => {
     longPressTriggeredRef.current = false;
+    swipeTriggeredRef.current = false;
     longPressHandlers.onPointerCancel();
+    swipeHandlers.onPointerCancel();
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -134,96 +201,146 @@ const TransactionCard = memo(function TransactionCard({
     }
   };
 
+  const handleCardClick = () => {
+    if (swipeTriggeredRef.current || longPressTriggeredRef.current) {
+      return;
+    }
+    onCardClick(transaction);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(transaction);
+    onSwipeClose();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(transaction);
+    onSwipeClose();
+  };
+
   return (
-    <Card
-      role="button"
-      tabIndex={0}
-      aria-selected={inSelectionMode ? isSelected : undefined}
-      aria-pressed={inSelectionMode ? isSelected : undefined}
-      className={cn(
-        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
-        surfaceClasses,
-        isSelected && "ring-2 ring-primary ring-offset-2"
-      )}
-      onClick={() => onCardClick(transaction)}
-      onKeyDown={onKeyDown}
-      onContextMenu={handleContextMenu}
-      onPointerDown={handlePointerDown}
-      onPointerMove={longPressHandlers.onPointerMove}
-      onPointerUp={longPressHandlers.onPointerUp}
-      onPointerCancel={handlePointerCancel}
-    >
-      <div className="flex-1 overflow-hidden">
+    <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
+      <div
+        className="max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden"
+        aria-hidden="true"
+      >
+        <Button
+          variant="default"
+          size="icon"
+          className="h-11 w-11 min-w-[44px] min-h-[44px]"
+          onClick={handleEditClick}
+          tabIndex={-1}
+          aria-label={t("actions.edit")}
+        >
+          <Edit3 className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 min-w-[44px] min-h-[44px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={handleDeleteClick}
+          tabIndex={-1}
+          aria-label={t("actions.delete")}
+        >
+          <Trash2 className="h-5 w-5" />
+        </Button>
+      </div>
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-selected={inSelectionMode ? isSelected : undefined}
+        aria-pressed={inSelectionMode ? isSelected : undefined}
+        className={cn(
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
+          surfaceClasses,
+          isSelected && "ring-2 ring-primary ring-offset-2"
+        )}
+        style={{
+          transform: `translateX(${isRTL ? -swipeOffset : swipeOffset}px)`,
+          transition: swipeTriggeredRef.current ? "none" : "transform 0.3s ease-out",
+        }}
+        onClick={handleCardClick}
+        onKeyDown={onKeyDown}
+        onContextMenu={handleContextMenu}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <div className="flex-1 overflow-hidden">
+          <div
+            className={cn(
+              "truncate font-medium",
+              !transaction.description && "text-muted-foreground",
+              PH_SENSITIVE_PROPS.className
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            {cardTitle}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{displayDate.primary}</span>
+            {categoryText && (
+              <>
+                <span>·</span>
+                <span
+                  className={cn(
+                    "truncate",
+                    PH_SENSITIVE_PROPS.className
+                  )}
+                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                >
+                  {categoryText}
+                </span>
+              </>
+            )}
+            {transaction.recurring_info && (
+              <>
+                <span>·</span>
+                <Repeat className="h-3 w-3" aria-hidden="true" />
+              </>
+            )}
+            {isSpecialType(transaction.type) && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-5 border px-1.5 py-0 text-[10px]",
+                  typeBadgeColors[transaction.type as TransactionType]
+                )}
+              >
+                {t(`types.${transaction.type}`, transaction.type)}
+              </Badge>
+            )}
+            {trackChomeshSeparately && transaction.is_chomesh && (
+              <span className="inline-flex items-center gap-0.5 text-[10px]">
+                <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+                <span>{t("cards.chomesh")}</span>
+              </span>
+            )}
+          </div>
+        </div>
         <div
           className={cn(
-            "truncate font-medium",
-            !transaction.description && "text-muted-foreground",
+            "shrink-0 text-end font-bold",
             PH_SENSITIVE_PROPS.className
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          {cardTitle}
+          <CurrencyConversionInfo
+            amount={transaction.amount}
+            currency={transaction.currency}
+            originalAmount={transaction.original_amount}
+            originalCurrency={transaction.original_currency}
+            conversionRate={transaction.conversion_rate}
+            conversionDate={transaction.conversion_date}
+            rateSource={transaction.rate_source}
+            mode="static"
+          />
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span>{displayDate.primary}</span>
-          {categoryText && (
-            <>
-              <span>·</span>
-              <span
-                className={cn(
-                  "truncate",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                {categoryText}
-              </span>
-            </>
-          )}
-          {transaction.recurring_info && (
-            <>
-              <span>·</span>
-              <Repeat className="h-3 w-3" aria-hidden="true" />
-            </>
-          )}
-          {isSpecialType(transaction.type) && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 border px-1.5 py-0 text-[10px]",
-                typeBadgeColors[transaction.type as TransactionType]
-              )}
-            >
-              {t(`types.${transaction.type}`, transaction.type)}
-            </Badge>
-          )}
-          {trackChomeshSeparately && transaction.is_chomesh && (
-            <span className="inline-flex items-center gap-0.5 text-[10px]">
-              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-              <span>{t("cards.chomesh")}</span>
-            </span>
-          )}
-        </div>
-      </div>
-      <div
-        className={cn(
-          "shrink-0 text-end font-bold",
-          PH_SENSITIVE_PROPS.className
-        )}
-        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-      >
-        <CurrencyConversionInfo
-          amount={transaction.amount}
-          currency={transaction.currency}
-          originalAmount={transaction.original_amount}
-          originalCurrency={transaction.original_currency}
-          conversionRate={transaction.conversion_rate}
-          conversionDate={transaction.conversion_date}
-          rateSource={transaction.rate_source}
-          mode="static"
-        />
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 });
 
@@ -260,12 +377,14 @@ export function TransactionCardList({
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
 
   const inSelectionMode = selectedIds.size > 0;
 
   React.useEffect(() => {
     if (inSelectionMode) {
       document.body.dataset.mobileSelectionActive = "true";
+      setSwipeOpenId(null);
     } else {
       delete document.body.dataset.mobileSelectionActive;
     }
@@ -273,6 +392,30 @@ export function TransactionCardList({
       delete document.body.dataset.mobileSelectionActive;
     };
   }, [inSelectionMode]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (swipeOpenId && !(e.target as Element).closest('[role="button"]')) {
+        setSwipeOpenId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      if (swipeOpenId) {
+        setSwipeOpenId(null);
+      }
+    };
+
+    if (swipeOpenId) {
+      document.addEventListener("click", handleClickOutside, true);
+      window.addEventListener("scroll", handleScroll, true);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside, true);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [swipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -378,6 +521,14 @@ export function TransactionCardList({
     }
     setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }, [selectedTransaction, t]);
+
+  const handleSwipeOpen = useCallback((id: string) => {
+    setSwipeOpenId(id);
+  }, []);
+
+  const handleSwipeClose = useCallback(() => {
+    setSwipeOpenId(null);
+  }, []);
 
   if (loading && transactions.length === 0) {
     return (
@@ -488,6 +639,12 @@ export function TransactionCardList({
               longPressTriggeredRef={longPressTriggeredRef}
               trackChomeshSeparately={trackChomeshSeparately}
               t={t}
+              isRTL={i18n.dir() === "rtl"}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              swipeOpenId={swipeOpenId}
+              onSwipeOpen={handleSwipeOpen}
+              onSwipeClose={handleSwipeClose}
             />
           );
         })}
