@@ -1276,8 +1276,12 @@ describe("TransactionCardList", () => {
       );
 
       expect(screen.getByText("1 selected")).toBeInTheDocument();
-      expect(screen.getByText("Edit")).toBeInTheDocument();
-      expect(screen.getByText("Delete")).toBeInTheDocument();
+      expect(screen.getByRole("region", { name: "Bulk actions" })).toBeInTheDocument();
+      const editButtons = screen.getAllByText("Edit");
+      const deleteButtons = screen.getAllByText("Delete");
+      // One from toolbar, one from swipe action label
+      expect(editButtons.length).toBeGreaterThanOrEqual(1);
+      expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("Clear")).toBeInTheDocument();
     });
 
@@ -1305,9 +1309,9 @@ describe("TransactionCardList", () => {
       );
 
       expect(screen.queryByText("0 selected")).not.toBeInTheDocument();
-      expect(screen.queryByText("Edit")).not.toBeInTheDocument();
-      expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+      expect(screen.queryByRole("region", { name: "Bulk actions" })).not.toBeInTheDocument();
       expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+      // Swipe action labels are still present (invisible), so don't check for Edit/Delete text absence
     });
 
     it("long-press does not open drawer after successful trigger", async () => {
@@ -1721,9 +1725,10 @@ describe("TransactionCardList", () => {
       // Verify Edit and Delete buttons are rendered in markup
       expect(markup).toContain('aria-label="Edit"');
       expect(markup).toContain('aria-label="Delete"');
-      // Verify buttons have proper size classes for touch targets
-      expect(markup).toContain("h-11 w-11");
-      expect(markup).toContain("min-w-[44px] min-h-[44px]");
+      // Verify buttons stretch full height and have proper width for touch targets
+      expect(markup).toContain("h-full");
+      expect(markup).toContain("w-14");
+      expect(markup).toContain("min-w-[44px]");
     });
 
     it("translate direction matches anchor side for RTL", () => {
@@ -1768,10 +1773,9 @@ describe("TransactionCardList", () => {
       // So in LTR with positive offset, translateX is negative (moves left, reveals buttons on right)
     });
 
-    it("clamps live drag offset to max allowed offset", () => {
-      // The component should clamp swipeOffset to getMaxSwipeOffset()
-      // which is the minimum of measured actions width and viewport-based limit
-      // This is done in onSwipeMove: setSwipeOffset(Math.min(offset, maxOffset))
+    it("clamps live drag offset to measured actions width", () => {
+      // The component clamps swipeOffset to measured actionButtonsWidth
+      // This is done in onSwipeMove: setSwipeOffset(Math.min(offset, actionButtonsWidth))
       const markup = renderToStaticMarkup(
         <TransactionCardList
           transactions={[mockTransactions[0]]}
@@ -1784,11 +1788,10 @@ describe("TransactionCardList", () => {
       );
 
       // Verify the actions wrapper has the expected structure:
-      // 44px (button) + 8px (gap-2) + 44px (button) + 12px (pe-3) = 108px measured
-      // At narrow viewports, max offset is limited to 40% of viewport width
+      // 8px (ps-2) + 56px (w-14 button) + 8px (gap-2) + 56px (w-14 button) = 128px measured
       expect(markup).toContain("gap-2");
-      expect(markup).toContain("pe-3");
-      expect(markup).toContain("h-11 w-11");
+      expect(markup).toContain("ps-2");
+      expect(markup).toContain("w-14");
     });
 
     it("uses marginInlineEnd instead of transform to reveal actions", () => {

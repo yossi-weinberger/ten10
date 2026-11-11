@@ -119,7 +119,7 @@ const TransactionCard = memo(function TransactionCard({
   const [isAnimating, setIsAnimating] = useState(false);
   const swipeTriggeredRef = useRef(false);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const [actionButtonsWidth, setActionButtonsWidth] = useState(108);
+  const [actionButtonsWidth, setActionButtonsWidth] = useState(128);
   const isSwipeOpen = swipeOpenId === transaction.id;
 
   const SWIPE_THRESHOLD = 50;
@@ -260,7 +260,7 @@ const TransactionCard = memo(function TransactionCard({
       <div
         ref={actionsRef}
         className={cn(
-          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden",
+          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2 hidden",
           effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible"
         )}
         aria-hidden={!isSwipeOpen}
@@ -268,22 +268,24 @@ const TransactionCard = memo(function TransactionCard({
         <Button
           variant="default"
           size="icon"
-          className="h-11 w-11 min-w-[44px] min-h-[44px]"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
           onClick={handleEditClick}
           tabIndex={isSwipeOpen ? 0 : -1}
           aria-label={t("actions.edit")}
         >
           <Edit3 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.edit")}</span>
         </Button>
         <Button
-          variant="outline"
+          variant="destructive"
           size="icon"
-          className="h-11 w-11 min-w-[44px] min-h-[44px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
           onClick={handleDeleteClick}
           tabIndex={isSwipeOpen ? 0 : -1}
           aria-label={t("actions.delete")}
         >
           <Trash2 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.delete")}</span>
         </Button>
       </div>
       <Card
