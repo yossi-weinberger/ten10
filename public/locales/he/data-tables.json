@@ -52,6 +52,9 @@
     "non_tithe_donation": "תרומה שאינה ממעשר",
     "initial_balance": "יתרת פתיחה"
   },
+  "cards": {
+    "chomesh": "חומש"
+  },
   "actions": {
     "title": "פעולות",
     "edit": "עריכה",
@@ -218,6 +221,9 @@
     "editRecurringTitle": "עריכת הוראת קבע",
     "editRecurringDescription": "עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.",
     "noRecurringSelected": "לא נבחרה הוראה לעריכה."
+  },
+  "drawer": {
+    "detailsDescription": "פרטי התנועה ופעולות זמינות"
   },
   "accessibility": {
     "openMenu": "פתח תפריט"

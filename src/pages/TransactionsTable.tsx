@@ -28,8 +28,8 @@ export function TransactionsTable() {
   }
 
   return (
-    <div className="container mx-auto py-4">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="container mx-auto py-4 max-md:px-0">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between max-md:px-4">
         <h1 className="text-2xl font-bold text-foreground max-md:sr-only mobile-landscape:sr-only">
           {t("transactionsTable.pageTitle")}
         </h1>

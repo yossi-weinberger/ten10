@@ -78,6 +78,9 @@
     "non_tithe_donation": "Non-Tithe Donation",
     "initial_balance": "Opening Balance"
   },
+  "cards": {
+    "chomesh": "Chomesh"
+  },
   "actions": {
     "title": "Actions",
     "edit": "Edit",
@@ -244,6 +247,9 @@
     "editRecurringTitle": "Edit Recurring Transaction",
     "editRecurringDescription": "Update recurring transaction details. Changes will apply only to future transactions.",
     "noRecurringSelected": "No recurring transaction selected for editing."
+  },
+  "drawer": {
+    "detailsDescription": "Transaction details and actions"
   },
   "accessibility": {
     "openMenu": "Open menu"
