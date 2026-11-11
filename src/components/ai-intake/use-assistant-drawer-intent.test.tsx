@@ -1,182 +1,253 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import * as aiOutcomeEvents from "@/lib/analytics/aiOutcomeEvents";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
+import { useAssistantDrawerState } from "./use-assistant-drawer-state";
+import { trackAiTurnFailed, trackAiTurnStarted } from "@/lib/analytics/aiOutcomeEvents";
 
-const mocks = vi.hoisted(() => ({
-  trackAiTurnStarted: vi.fn(),
-  trackAiTurnFailed: vi.fn(),
-  trackAiQuestionReasked: vi.fn(),
+const ai = vi.hoisted(() => ({
   classifyIntentFallback: vi.fn(),
   splitItems: vi.fn(),
 }));
 
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
+
 vi.mock("@/lib/ai/intent-fallback", () => ({
-  classifyIntentFallback: mocks.classifyIntentFallback,
+  classifyIntentFallback: ai.classifyIntentFallback,
 }));
 
 vi.mock("@/lib/ai/split-items", () => ({
-  splitItems: mocks.splitItems,
+  splitItems: ai.splitItems,
 }));
 
-vi.mock("@/lib/analytics/aiOutcomeEvents", () => ({
-  trackAiTurnStarted: mocks.trackAiTurnStarted,
-  trackAiTurnFailed: mocks.trackAiTurnFailed,
-  trackAiQuestionReasked: mocks.trackAiQuestionReasked,
-  mapErrorToFailureReason: (reason?: string) => {
-    if (reason === "LIMIT") return "limit";
-    if (reason === "UNAVAILABLE") return "unavailable";
-    if (
-      reason === "TOO_LARGE" || reason === "TOO_LONG" ||
-      reason === "UNREADABLE" || reason === "UNHEARD" || reason === "MIXED"
-    ) return "unreadable";
-    return "unknown";
-  },
-  compareQuestions: () => false,
+vi.mock("@/lib/ai/duplicate-candidates", () => ({
+  listDuplicateCandidates: vi.fn(async () => []),
 }));
 
-// Unit tests for turn flow event tracking logic
-describe("handleSubmit turn flow - event tracking", () => {
+vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
+  useTableTransactionsStore: { getState: () => ({ deleteTransaction: vi.fn() }) },
+}));
+
+vi.mock("@/lib/analytics/aiOutcomeEvents", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/analytics/aiOutcomeEvents")>();
+  return {
+    ...actual,
+    trackAiTurnStarted: vi.fn(),
+    trackAiTurnFailed: vi.fn(),
+  };
+});
+
+vi.mock("@/contexts/PlatformContext", () => ({
+  usePlatform: () => ({ platform: "web" }),
+}));
+
+vi.mock("@/lib/store", () => ({
+  useDonationStore: (selector: (state: {
+    settings: { calendarType: string; defaultCurrency: string; autoCalcChomesh: boolean };
+  }) => unknown) => selector({
+    settings: {
+      calendarType: "hebrew",
+      defaultCurrency: "ILS",
+      autoCalcChomesh: false,
+    },
+  }),
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: null }),
+}));
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+      i18n: { language: "he", dir: () => "rtl" },
+    }),
+  };
+});
+
+const expenseSplit = {
+  ok: true as const,
+  route: "several" as const,
+  items: [{
+    description: "מאפים",
+    amount: 15,
+    currency: "ILS",
+    date: "2026-11-01",
+    checkDate: false,
+    checkAmount: false,
+    typeHint: "expense",
+    typeQuestion: null,
+    requestedRate: null,
+    paymentMethod: null,
+    category: null,
+    ruleId: null,
+    ruleName: null,
+    recurrence: null,
+    unsupportedFrequency: false,
+  }],
+  found: 1,
+  dropped: 0,
+  rule: null,
+  question: null,
+  usageId: null,
+};
+
+const intentOk = {
+  ok: true as const,
+  intent: "add_transaction" as const,
+  confidence: 0.95,
+  halachaPage: null,
+  halachaPageConfidence: null,
+};
+
+function useHarness() {
+  const state = useAssistantDrawerState();
+  const intent = useAssistantDrawerIntent(state);
+  return { state, intent };
+}
+
+async function submit(
+  result: { current: ReturnType<typeof useHarness> },
+  spoken: string,
+  kind: "text" | "voice" = "text",
+  skipBeginTurn = false,
+  skipTracking = false,
+) {
+  await act(async () => {
+    await result.current.intent.handleSubmit(spoken, kind, skipBeginTurn, skipTracking);
+  });
+}
+
+describe("useAssistantDrawerIntent handleSubmit", () => {
   beforeEach(() => {
-    mocks.trackAiTurnStarted.mockClear();
-    mocks.trackAiTurnFailed.mockClear();
-    mocks.trackAiQuestionReasked.mockClear();
-    mocks.classifyIntentFallback.mockClear();
-    mocks.splitItems.mockClear();
+    vi.clearAllMocks();
+    ai.classifyIntentFallback.mockReset();
+    ai.splitItems.mockReset();
   });
 
-  it("(a) intent fails non-LIMIT, split ok: turn proceeds, no ai_turn_failed", () => {
-    // Setup: intent failure (non-LIMIT), split success
-    const decidedFailed = false; // intent analyzed but failed
-    const readOk = true; // split succeeded
-
-    // Simulate the logic from handleSubmit
-    const bothFailed = !decidedFailed && !readOk; // false
-    
-    // Expectations: no ai_turn_failed should fire (split succeeded)
-    expect(bothFailed).toBe(false);
-    
-    // Verify the control flow would continue (no early return)
-    // In real code: turn proceeds to decideTurn/split handling
+  afterEach(() => {
+    cleanup();
   });
 
-  it("(b) split fails non-LIMIT, intent ok: turn proceeds, no ai_turn_failed", () => {
-    // Setup: intent success, split failure (non-LIMIT)
-    const decidedOk = true; // intent succeeded
-    const readFailed = false; // split analyzed but failed
+  it("(a) intent fails non-LIMIT and split succeeds: the turn shows the split draft and does not fire ai_turn_failed", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    ai.splitItems.mockResolvedValue(expenseSplit);
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the logic
-    const bothFailed = !decidedOk && !readFailed; // false
+    await submit(result, "קניתי מאפים ב-15 שח");
 
-    // Expectations: no ai_turn_failed should fire (intent succeeded)
-    expect(bothFailed).toBe(false);
-    
-    // Verify the control flow would continue
+    expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1);
+    expect(ai.splitItems).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnStarted).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnStarted).toHaveBeenCalledWith("text");
+    expect(trackAiTurnFailed).not.toHaveBeenCalled();
+    expect(result.current.state.intent).toBe("add_transaction");
+    expect(result.current.state.draft).toMatchObject({
+      amount: 15,
+      type: "expense",
+      description: "מאפים",
+    });
+    expect(result.current.state.askIntent).toBe(false);
+    expect(result.current.state.status).toBeNull();
   });
 
-  it("(c) both fail non-LIMIT: exactly one ai_turn_failed with stage 'split'", () => {
-    // Setup: both intent and split failed (non-LIMIT)
-    const decidedOk = false;
-    const readOk = false;
-    const kind = "text";
-    const readReason = "UNREADABLE";
+  it("(b) split fails non-LIMIT and intent succeeds: the turn proceeds and does not fire ai_turn_failed", async () => {
+    ai.classifyIntentFallback.mockResolvedValue(intentOk);
+    ai.splitItems.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the logic from handleSubmit
-    const bothFailed = !decidedOk && !readOk; // true
-    
-    if (bothFailed) {
-      mocks.trackAiTurnFailed(kind, "split", aiOutcomeEvents.mapErrorToFailureReason(readReason));
-    }
+    await submit(result, "קניתי מאפים ב-15 שח");
 
-    // Expectations: exactly one ai_turn_failed with stage 'split'
-    expect(bothFailed).toBe(true);
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledWith("text", "split", "unreadable");
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1);
+    expect(ai.splitItems).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).not.toHaveBeenCalled();
+    expect(result.current.state.intent).toBe("add_transaction");
+    expect(result.current.state.status).toBe("couldNotRead");
+    expect(result.current.state.draft).toBeNull();
   });
 
-  it("(d) intent LIMIT: one ai_turn_failed 'limit', stops", () => {
-    // Setup: intent LIMIT
-    const kind = "text";
-    const decidedReason = "LIMIT";
-    const decidedOk = false;
+  it("(c) both fail non-LIMIT: exactly one ai_turn_failed with stage split", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    ai.splitItems.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the LIMIT path from handleSubmit
-    if (!decidedOk && decidedReason === "LIMIT") {
-      mocks.trackAiTurnFailed(kind, "intent", "limit");
-      // Turn stops here (early return)
-    }
+    await submit(result, "קניתי מאפים ב-15 שח");
 
-    // Expectations: exactly one ai_turn_failed with 'limit' at 'intent' stage
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledWith("text", "intent", "limit");
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1);
+    expect(ai.splitItems).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledWith("text", "split", "unavailable");
+    expect(result.current.state.askIntent).toBe(true);
+    expect(result.current.state.intent).toBeNull();
+    expect(result.current.state.draft).toBeNull();
   });
 
-  it("(d) split LIMIT: one ai_turn_failed 'limit', stops", () => {
-    // Setup: intent ok, split LIMIT
-    const kind = "text";
-    const readReason = "LIMIT";
-    const readOk = false;
+  it("(d) intent LIMIT fires one limit failure and stops before a draft", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: false,
+      reason: "LIMIT",
+      limit: { kind: "daily_limit", resetsAt: null },
+    });
+    ai.splitItems.mockResolvedValue(expenseSplit);
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the LIMIT path from handleSubmit
-    if (!readOk && readReason === "LIMIT") {
-      mocks.trackAiTurnFailed(kind, "split", "limit");
-      // Turn stops here (early return)
-    }
+    await submit(result, "קניתי מאפים ב-15 שח");
 
-    // Expectations: exactly one ai_turn_failed with 'limit' at 'split' stage
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledWith("text", "split", "limit");
-    expect(mocks.trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(ai.classifyIntentFallback).toHaveBeenCalledTimes(1);
+    expect(ai.splitItems).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledWith("text", "intent", "limit");
+    expect(result.current.state.status).toBe("limitDailyLimit");
+    expect(result.current.state.limitInfo).toEqual({ kind: "daily_limit", resetsAt: null });
+    expect(result.current.state.intent).toBeNull();
+    expect(result.current.state.draft).toBeNull();
+    expect(result.current.state.askIntent).toBe(false);
   });
 
-  it("(e) ai_turn_started fires exactly once for text", () => {
-    // Setup: normal text turn
-    const kind = "text";
-    const skipTracking = false;
+  it("(d) split LIMIT fires one limit failure and stops before the intent outcome", async () => {
+    ai.classifyIntentFallback.mockResolvedValue(intentOk);
+    ai.splitItems.mockResolvedValue({
+      ok: false,
+      reason: "LIMIT",
+      limit: { kind: "quota_exhausted", resetsAt: "2026-12-01T00:00:00Z" },
+    });
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the logic from handleSubmit
-    if (!skipTracking) {
-      mocks.trackAiTurnStarted(kind);
-    }
+    await submit(result, "קניתי מאפים ב-15 שח");
 
-    // Expectations: ai_turn_started fires once
-    expect(mocks.trackAiTurnStarted).toHaveBeenCalledWith("text");
-    expect(mocks.trackAiTurnStarted).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnFailed).toHaveBeenCalledWith("text", "split", "limit");
+    expect(result.current.state.status).toBe("limitQuotaExhausted");
+    expect(result.current.state.limitInfo).toEqual({
+      kind: "quota_exhausted",
+      resetsAt: "2026-12-01T00:00:00Z",
+    });
+    expect(result.current.state.intent).toBeNull();
+    expect(result.current.state.draft).toBeNull();
+    expect(result.current.state.askIntent).toBe(false);
   });
 
-  it("(e) ai_turn_started fires exactly once for voice (no double from finishVoice)", () => {
-    // Setup: voice turn with skipTracking=true (called from finishVoice)
-    const kind = "voice";
-    const skipTracking = true;
+  it("(e) ai_turn_started fires once for text and once for voice, and skipTracking does not fire again", async () => {
+    ai.classifyIntentFallback.mockResolvedValue(intentOk);
+    ai.splitItems.mockResolvedValue(expenseSplit);
+    const { result } = renderHook(() => useHarness());
 
-    // Simulate the logic from handleSubmit
-    if (!skipTracking) {
-      mocks.trackAiTurnStarted(kind);
-    }
+    await submit(result, "קניתי מאפים", "text");
+    expect(trackAiTurnStarted).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnStarted).toHaveBeenCalledWith("text");
 
-    // Expectations: ai_turn_started does NOT fire (skipTracking=true)
-    expect(mocks.trackAiTurnStarted).not.toHaveBeenCalled();
-    
-    // In real flow: finishVoice already called trackAiTurnStarted("voice")
-    // before calling handleSubmit with skipTracking=true
-  });
+    vi.mocked(trackAiTurnStarted).mockClear();
+    await submit(result, "קניתי מאפים", "voice");
+    expect(trackAiTurnStarted).toHaveBeenCalledTimes(1);
+    expect(trackAiTurnStarted).toHaveBeenCalledWith("voice");
 
-  it("control flow: non-LIMIT failures do not stop turn", () => {
-    // Test that the control flow does NOT include early returns for non-LIMIT failures
-    
-    // Case 1: intent fails non-LIMIT
-    const decided1 = { ok: false, reason: "UNAVAILABLE" };
-    const shouldStopAfterIntent1 = !decided1.ok && decided1.reason === "LIMIT";
-    expect(shouldStopAfterIntent1).toBe(false); // turn continues
-    
-    // Case 2: split fails non-LIMIT
-    const read2 = { ok: false, reason: "UNAVAILABLE" };
-    const shouldStopAfterSplit2 = !read2.ok && read2.reason === "LIMIT";
-    expect(shouldStopAfterSplit2).toBe(false); // turn continues
-    
-    // Only LIMIT stops turn
-    const decidedLimit = { ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } };
-    const shouldStopLimit = !decidedLimit.ok && decidedLimit.reason === "LIMIT";
-    expect(shouldStopLimit).toBe(true); // turn stops
+    vi.mocked(trackAiTurnStarted).mockClear();
+    await submit(result, "קניתי מאפים", "voice", true, true);
+    expect(trackAiTurnStarted).not.toHaveBeenCalled();
   });
 });
