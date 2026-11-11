@@ -36,12 +36,11 @@ const ai = vi.hoisted(() => ({
   splitItems: vi.fn(),
 }));
 
+const mockSupabaseRpc = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/supabaseClient", () => ({
   supabase: {
-    rpc: vi.fn().mockResolvedValue({
-      data: { accepted: true, version: "beta-v1", current: "beta-v1" },
-      error: null,
-    }),
+    rpc: mockSupabaseRpc,
   },
 }));
 vi.mock("react-i18next", () => ({
@@ -56,7 +55,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/contexts/PlatformContext", () => ({ usePlatform: () => ({ platform: ai.platform.value }) }));
 vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ user: { email: "qa@example.com", user_metadata: { full_name: "QA" } } }),
+  useAuth: () => ({ user: { id: "test-user-id", email: "qa@example.com", user_metadata: { full_name: "QA" } } }),
 }));
 vi.mock("@/lib/platformManager", () => ({ getPlatform: () => ai.platform.value }));
 vi.mock("@/lib/ai/flags", () => ({ isAiIntakeEnabled: () => true, aiCallsAllowed: () => true }));
@@ -126,9 +125,16 @@ function Harness() {
   );
 }
 
-function setup() {
+async function setup() {
   const user = userEvent.setup();
   render(<Harness />);
+  // Wait for consent gate to resolve and drawer to be interactive
+  await waitFor(
+    () => {
+      expect(screen.getByRole("textbox", { name: "aiIntake.placeholder" })).toBeInTheDocument();
+    },
+    { timeout: 2000 }
+  );
   return user;
 }
 
@@ -162,6 +168,16 @@ beforeEach(() => {
   for (const value of Object.values(ai)) {
     if (typeof value === "function" && "mockReset" in value) value.mockReset();
   }
+  // Mock consent RPC to return accepted status
+  mockSupabaseRpc.mockImplementation((name: string) => {
+    if (name === "ai_beta_consent_status") {
+      return Promise.resolve({
+        data: { accepted: true, version: "beta-v1", current: "beta-v1" },
+        error: null,
+      });
+    }
+    return Promise.resolve({ data: null, error: null });
+  });
   ai.listActiveUserRules.mockResolvedValue([]);
   ai.loadTitheBalance.mockResolvedValue(null);
   ai.listDuplicateCandidates.mockResolvedValue([]);
@@ -256,7 +272,7 @@ describe("AssistantDrawer characterization", () => {
   });
 
   it("pushes the app aside while the desktop side panel is open", async () => {
-    const user = setup();
+    const user = await setup();
     expect(document.documentElement.dataset.assistantPanel).toBe("open");
     await user.click(screen.getByRole("button", { name: "actions.close" }));
     await waitFor(() => expect(document.documentElement.dataset.assistantPanel).toBeUndefined());
@@ -286,7 +302,7 @@ describe("AssistantDrawer characterization", () => {
       addListener: () => {},
       removeListener: () => {},
     })) as unknown as typeof window.matchMedia;
-    const user = setup();
+    const user = await setup();
     const box = screen.getByRole("textbox", { name: "aiIntake.placeholder" });
     expect(box).toHaveAttribute("enterkeyhint", "send");
     await user.type(box, "קניתי מאפים{Shift>}{Enter}{/Shift}באליס ב-15 שח{Enter}");
@@ -308,7 +324,7 @@ describe("AssistantDrawer characterization", () => {
       halachaPage: "tithes",
       halachaPageConfidence: 0.95,
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "האם מעשרות משכורת הן מהברוטו או מהנטו?");
     expect(await screen.findByText("aiIntake.askRabbi")).toBeInTheDocument();
     expect(screen.queryByText("introduction.body")).not.toBeInTheDocument();
@@ -359,7 +375,7 @@ describe("AssistantDrawer characterization", () => {
         recurrence: null,
       }],
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "קיבלתי משכורת 8000, תוציא גם חומש");
     await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
@@ -369,7 +385,7 @@ describe("AssistantDrawer characterization", () => {
   it("turns a sentence with a verb and an amount into an editable draft and saves it", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
     expect(screen.getByRole("textbox", { name: "aiIntake.editDescription" })).toHaveValue("מאפים באליס");
@@ -382,7 +398,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("sends the earlier message and the open draft with the next message, and forgets them on a new chat", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
     expect(ai.classifyIntentFallback.mock.calls[0][1]).toBe("");
@@ -401,7 +417,7 @@ describe("AssistantDrawer characterization", () => {
   it("tells the next message that the draft was saved", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
@@ -447,7 +463,7 @@ describe("AssistantDrawer characterization", () => {
       .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
       .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
@@ -472,7 +488,7 @@ describe("AssistantDrawer characterization", () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" });
     ai.undoTextIntake.mockResolvedValue({ ok: false, reason: "NOT_ALLOWED" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
@@ -490,7 +506,7 @@ describe("AssistantDrawer characterization", () => {
       .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
       .mockResolvedValueOnce({ ok: false, reason: "SAVE_FAILED" });
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
@@ -543,7 +559,7 @@ describe("AssistantDrawer characterization", () => {
   it("says the same message again is already saved, and saves nothing", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await saveFirst(user);
     repeatRead({ continues: true });
     await send(user, "קניתי מאפים באליס ב-15 שח");
@@ -562,7 +578,7 @@ describe("AssistantDrawer characterization", () => {
   it("says a rephrasing with the same amount, description and date is already saved", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await saveFirst(user);
     repeatRead({ continues: false });
     await send(user, "שילמתי 15 שקל על מאפים באליס");
@@ -577,7 +593,7 @@ describe("AssistantDrawer characterization", () => {
       .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
       .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
-    const user = setup();
+    const user = await setup();
     await saveFirst(user);
     repeatRead({ amount: 20, continues: true });
     await send(user, "בעצם 20");
@@ -602,7 +618,7 @@ describe("AssistantDrawer characterization", () => {
       intent: "add_transaction",
       confidence: 0.95,
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "50 במכולת ו־120 לישיבה");
     expect(await screen.findByText("aiIntake.couldNotRead")).toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
@@ -625,7 +641,7 @@ describe("AssistantDrawer characterization", () => {
         { description: "ישיבה", amount: 120, currency: "ILS", date: "2026-10-29", typeHint: "donation" },
       ],
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "50 במכולת ו־120 לישיבה");
     expect(await screen.findByRole("button", { name: "aiIntake.splitSave" })).toBeInTheDocument();
   });
@@ -636,7 +652,7 @@ describe("AssistantDrawer characterization", () => {
       intent: "add_transaction",
       confidence: 0.95,
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
     expect(screen.queryByText("aiIntake.oneAtATime")).not.toBeInTheDocument();
@@ -646,7 +662,7 @@ describe("AssistantDrawer characterization", () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await user.click(await screen.findByRole("button", { name: "aiIntake.undo" }));
@@ -657,7 +673,7 @@ describe("AssistantDrawer characterization", () => {
   it("saves the draft on Enter in a field", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     const save = await screen.findByRole("button", { name: "aiIntake.save" });
     await waitFor(() => expect(save).toBeEnabled());
@@ -671,7 +687,7 @@ describe("AssistantDrawer characterization", () => {
       .mockResolvedValueOnce({ ok: true, transactionId: "t1", itemId: "i1" })
       .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
     ai.undoTextIntake.mockResolvedValue({ ok: true, alreadyReverted: false });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     await user.click(await screen.findByRole("button", { name: "aiIntake.changeType" }));
@@ -684,7 +700,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("asks for the type when the sentence has no verb", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await send(user, "מאפים באליס ב-15 שח");
     expect(await screen.findByText("aiIntake.askType")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "aiIntake.types.expense" }));
@@ -693,7 +709,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("asks for the amount when the sentence has none", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס");
     expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
     await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "15");
@@ -704,7 +720,7 @@ describe("AssistantDrawer characterization", () => {
   it("shows the amount reply and drops a late reader", async () => {
     confident("add_transaction");
     let finish: (value: unknown) => void = () => {};
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס");
     expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
     let hangReply = true;
@@ -788,7 +804,7 @@ describe("AssistantDrawer characterization", () => {
       { id: "d1", date: "2026-10-20", amount: 15, description: "מאפים", kind: "transaction" },
     ]);
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: null, itemId: "i1", sameEvent: true });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByText(/aiIntake\.duplicateWarning/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "aiIntake.sameEvent" }));
@@ -805,7 +821,7 @@ describe("AssistantDrawer characterization", () => {
     ai.saveTextDraft
       .mockResolvedValueOnce({ ok: true, transactionId: null, itemId: "i1", sameEvent: true })
       .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await user.click(await screen.findByRole("button", { name: "aiIntake.sameEvent" }));
     await screen.findByText("aiIntake.duplicateKept");
@@ -818,7 +834,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("asks what the message is when Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "ask_data", confidence: 0.5 });
-    const user = setup();
+    const user = await setup();
     await send(user, "תרומות 2025");
     expect(await screen.findByText("aiIntake.askIntent")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "aiIntake.intentChoices.add_transaction" })).toBeInTheDocument();
@@ -839,7 +855,7 @@ describe("AssistantDrawer characterization", () => {
     });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
     ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
-    const user = setup();
+    const user = await setup();
     await send(user, "כמה תרמתי ב-2025?");
     expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
   });
@@ -849,7 +865,7 @@ describe("AssistantDrawer characterization", () => {
     const slots = { family: null, measure: null, recipient: null, category: null, paymentMethod: null, measurementId: null, period: null };
     ai.readQuestionSlots.mockResolvedValueOnce({ ...slots, subject: "balance" });
     ai.loadTitheBalance.mockResolvedValue({ total: 420, maaser: 420, chomesh: 0 });
-    const user = setup();
+    const user = await setup();
     await send(user, "כמה אני חייב למעשרות?");
     expect(await screen.findByText("aiIntake.balance.title")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askPeriod")).not.toBeInTheDocument();
@@ -873,7 +889,7 @@ describe("AssistantDrawer characterization", () => {
       measurementId: "m-1",
       period: { kind: "span", from: "2025-01-01", to: "2025-12-31" },
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "כמה ב-2025?");
     expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "actions.close" }));
@@ -893,7 +909,7 @@ describe("AssistantDrawer characterization", () => {
     });
     ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
     ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
-    const user = setup();
+    const user = await setup();
     await send(user, "כמה תרמתי ב-2025?");
     expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "actions.close" }));
@@ -912,7 +928,7 @@ describe("AssistantDrawer characterization", () => {
       }],
     });
     ai.deleteTransaction.mockResolvedValue(undefined);
-    const user = setup();
+    const user = await setup();
     await send(user, "יש כפילויות?");
     const deletes = await screen.findAllByRole("button", { name: "aiIntake.duplicateDelete" });
     expect(deletes).toHaveLength(2);
@@ -925,7 +941,7 @@ describe("AssistantDrawer characterization", () => {
   it("saves a forward rule only after approval", async () => {
     confident("create_rule");
     ai.approveUserRule.mockResolvedValue(true);
-    const user = setup();
+    const user = await setup();
     await send(user, "מהיום כל הוצאה על גן היא הוצאה מוכרת");
     await user.click(await screen.findByRole("button", { name: "aiIntake.ruleApprove" }));
     expect(ai.approveUserRule).toHaveBeenCalledWith("גן", "recognized-expense", expect.any(String));
@@ -939,7 +955,7 @@ describe("AssistantDrawer characterization", () => {
       fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS", checkDate: false, ruleName: null, ruledType: null },
       artifactId: "art1",
     });
-    const user = setup();
+    const user = await setup();
     await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.askType")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "aiIntake.viewReceipt" }).length).toBeGreaterThan(0);
@@ -949,7 +965,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("does not draft several receipts or a bank statement", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: true, route: "several_receipts" });
-    const user = setup();
+    const user = await setup();
     await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.severalReceipts")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
@@ -989,7 +1005,7 @@ describe("AssistantDrawer characterization", () => {
       () => new Promise(() => {}) // Never resolves - we only check skeleton appears
     );
 
-    const user = setup();
+    const user = await setup();
     await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
     
@@ -1031,7 +1047,7 @@ describe("AssistantDrawer characterization", () => {
       value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
     });
     ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
-    const user = setup();
+    const user = await setup();
     await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
     expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
@@ -1061,7 +1077,7 @@ describe("AssistantDrawer characterization", () => {
       value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
     });
     ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
-    const user = setup();
+    const user = await setup();
     await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: "reopen" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.voice" }));
@@ -1072,14 +1088,14 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows a provider failure for a receipt", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
-    const user = setup();
+    const user = await setup();
     await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
   });
 
   it("puts shared text in the composer and sends it only on the user's Send", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await act(async () => {
       receiveRef.current?.receiveText("קניתי מאפים באליס ב-15 שח");
     });
@@ -1103,7 +1119,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("forgets the conversation when closed", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
     await user.keyboard("{Escape}");
@@ -1114,7 +1130,7 @@ describe("AssistantDrawer characterization", () => {
   it("keeps the previous message visible and locks a saved draft", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await clickSave(user);
     expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
@@ -1140,7 +1156,7 @@ describe("AssistantDrawer characterization", () => {
       amount: 250,
     });
     ai.updateRecurringTransaction.mockResolvedValue({ id: "r1", status: "cancelled" });
-    const user = setup();
+    const user = await setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
     // Summary shows formatted amount, expand to edit
@@ -1166,7 +1182,7 @@ describe("AssistantDrawer characterization", () => {
     const createdAt = new Date().toISOString();
     ai.createRecurringTransaction.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 0 });
     ai.getRecurringTransactionById.mockResolvedValue({ id: "r1", created_at: createdAt, execution_count: 1 });
-    const user = setup();
+    const user = await setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
@@ -1181,7 +1197,7 @@ describe("AssistantDrawer characterization", () => {
       created_at: new Date().toISOString(),
       execution_count: 1,
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
     expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
@@ -1190,7 +1206,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("disables send when the field is empty and clears the chat", async () => {
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     expect(screen.getByRole("button", { name: "aiIntake.send" })).toBeDisabled();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
@@ -1202,7 +1218,7 @@ describe("AssistantDrawer characterization", () => {
   it("opens the same draft inside the mobile drawer", async () => {
     installDomPolyfills("mobile");
     confident("add_transaction");
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
   });
@@ -1215,7 +1231,7 @@ describe("AssistantDrawer characterization", () => {
       halachaPage: "personal",
       halachaPageConfidence: 0.3,
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "קיבלתי ירושה מאבא שלי, האם אני חייב לתת ממנה מעשר?");
     expect(await screen.findByRole("button", { name: "aiIntake.rabbiSend" })).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
@@ -1271,7 +1287,7 @@ describe("AssistantDrawer characterization", () => {
         recurrence: null,
       }],
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי לחם ב-15 וכמה הוצאתי החודש?");
     const amount = await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
     const answer = await screen.findByText("answer:sum:1");
@@ -1303,7 +1319,7 @@ describe("AssistantDrawer characterization", () => {
         to: null,
       },
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "מה יתרת המעשרות שלי?");
     expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.dataUnsupported")).not.toBeInTheDocument();
@@ -1336,7 +1352,7 @@ describe("AssistantDrawer characterization", () => {
         to: null,
       },
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "כמה מעשרות אני עוד צריך לתת?");
     expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.rabbiSend" })).not.toBeInTheDocument();
@@ -1368,7 +1384,7 @@ describe("AssistantDrawer characterization", () => {
         recurrence: null,
       }],
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "שילמתי לגן 900, הוצאה מוכרת");
     await user.click(await screen.findByRole("button", { name: "aiIntake.askSpecialYes" }));
     expect(await screen.findByRole("button", { name: "aiIntake.ruleApprove" })).toBeInTheDocument();
@@ -1404,7 +1420,7 @@ describe("AssistantDrawer characterization", () => {
         unsupportedFrequency: true,
       }],
     });
-    const user = setup();
+    const user = await setup();
     await send(user, "Pay 40 dollars bimonthly for the gym");
     expect(await screen.findByText("aiIntake.frequencyUnsupported")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.recurring.save" })).not.toBeInTheDocument();
@@ -1412,7 +1428,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows the daily limit message instead of askIntent when classifyIntent returns daily_limit", async () => {
     ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
@@ -1422,7 +1438,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows the quota exhausted message instead of askIntent when classifyIntent returns quota_exhausted", async () => {
     ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "quota_exhausted", resetsAt: null } });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByText("aiIntake.limitQuotaExhausted")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
@@ -1431,7 +1447,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows the rate limited message instead of askIntent when classifyIntent returns rate_limited", async () => {
     ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "rate_limited", resetsAt: null } });
-    const user = setup();
+    const user = await setup();
     await send(user, "קניתי מאפים באליס ב-15 שח");
     expect(await screen.findByText("aiIntake.limitRateLimited")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.askIntent")).not.toBeInTheDocument();
@@ -1461,7 +1477,7 @@ describe("AssistantDrawer characterization", () => {
       value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
     });
     ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
-    const user = setup();
+    const user = await setup();
     await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
     await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
     expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
@@ -1472,7 +1488,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows the daily limit message for receipt read failure", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "LIMIT", limit: { kind: "daily_limit", resetsAt: null } });
-    const user = setup();
+    const user = await setup();
     await readShared(user, new File(["x"], "r.jpg", { type: "image/jpeg" }));
     expect(await screen.findByText("aiIntake.limitDailyLimit")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.providerFailed")).not.toBeInTheDocument();
