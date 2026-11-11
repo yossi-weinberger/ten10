@@ -118,15 +118,38 @@ const TransactionCard = memo(function TransactionCard({
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const swipeTriggeredRef = useRef(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [actionButtonsWidth, setActionButtonsWidth] = useState(108);
   const isSwipeOpen = swipeOpenId === transaction.id;
 
-  // Measured width: 44px (edit) + 8px (gap-2) + 44px (delete) + 12px (pe-3) = 108px
-  const ACTION_BUTTONS_WIDTH = 108;
   const SWIPE_THRESHOLD = 50;
 
   const isMobileSwipeEnabled = typeof window !== "undefined" 
     && typeof window.matchMedia === "function"
     && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+
+  useEffect(() => {
+    if (isMobileSwipeEnabled && actionsRef.current) {
+      const width = actionsRef.current.offsetWidth;
+      if (width > 0) {
+        setActionButtonsWidth(width);
+      }
+    }
+  }, [isMobileSwipeEnabled]);
+
+  const getMaxSwipeOffset = useCallback(() => {
+    if (typeof window === "undefined") return actionButtonsWidth;
+    const viewportWidth = window.innerWidth;
+    
+    // At narrow widths, limit translation to ensure text stays visible
+    // Reserve at least 60% of viewport for content visibility
+    const maxTranslation = Math.min(
+      actionButtonsWidth,
+      viewportWidth * 0.4
+    );
+    
+    return Math.floor(maxTranslation);
+  }, [actionButtonsWidth]);
 
   const longPressHandlers = useLongPress({
     onLongPress: () => {
@@ -148,12 +171,14 @@ const TransactionCard = memo(function TransactionCard({
       setIsAnimating(false);
     },
     onSwipeMove: (offset) => {
-      setSwipeOffset(Math.min(offset, ACTION_BUTTONS_WIDTH));
+      const maxOffset = getMaxSwipeOffset();
+      setSwipeOffset(Math.min(offset, maxOffset));
     },
     onSwipeEnd: (offset) => {
       setIsAnimating(true);
+      const maxOffset = getMaxSwipeOffset();
       if (offset >= SWIPE_THRESHOLD) {
-        setSwipeOffset(ACTION_BUTTONS_WIDTH);
+        setSwipeOffset(maxOffset);
         onSwipeOpen(transaction.id);
       } else {
         setSwipeOffset(0);
@@ -249,6 +274,7 @@ const TransactionCard = memo(function TransactionCard({
   return (
     <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
       <div
+        ref={actionsRef}
         className="max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden"
         aria-hidden={!isSwipeOpen}
       >
@@ -285,7 +311,7 @@ const TransactionCard = memo(function TransactionCard({
         )}
         style={{
           transform: `translateX(${isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset}px)`,
-          transition: isAnimating || !isSwipeOpen ? "transform 0.3s ease-out" : "none",
+          transition: isAnimating ? "transform 0.3s ease-out" : "none",
         }}
         onClick={handleCardClick}
         onKeyDown={onKeyDown}

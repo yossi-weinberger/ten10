@@ -206,4 +206,112 @@ describe("useSwipe", () => {
 
     expect(onSwipeEnd).toHaveBeenCalledWith(0);
   });
+
+  it("should update offset live during drag in LTR", () => {
+    const onSwipeMove = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeMove,
+        movementThreshold: 10,
+        isRTL: false,
+      })
+    );
+
+    act(() => {
+      result.current.onPointerDown(createPointerEvent("pointerdown", 100, 100));
+    });
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 130, 100));
+    });
+
+    expect(onSwipeMove).toHaveBeenCalledWith(30);
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 160, 100));
+    });
+
+    expect(onSwipeMove).toHaveBeenCalledWith(60);
+  });
+
+  it("should update offset live during drag in RTL", () => {
+    const onSwipeMove = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeMove,
+        movementThreshold: 10,
+        isRTL: true,
+      })
+    );
+
+    act(() => {
+      result.current.onPointerDown(createPointerEvent("pointerdown", 100, 100));
+    });
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 70, 100));
+    });
+
+    expect(onSwipeMove).toHaveBeenCalledWith(30);
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 40, 100));
+    });
+
+    expect(onSwipeMove).toHaveBeenCalledWith(60);
+  });
+
+  it("should snap to final offset when threshold is exceeded", () => {
+    const onSwipeEnd = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeEnd,
+        threshold: 50,
+        movementThreshold: 10,
+      })
+    );
+
+    act(() => {
+      result.current.onPointerDown(createPointerEvent("pointerdown", 100, 100));
+    });
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 180, 100));
+    });
+
+    act(() => {
+      result.current.onPointerUp(createPointerEvent("pointerup", 180, 100));
+    });
+
+    expect(onSwipeEnd).toHaveBeenCalledWith(80);
+  });
+
+  it("should snap closed when threshold is not reached", () => {
+    const onSwipeEnd = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeEnd,
+        threshold: 50,
+        movementThreshold: 10,
+      })
+    );
+
+    act(() => {
+      result.current.onPointerDown(createPointerEvent("pointerdown", 100, 100));
+    });
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 140, 100));
+    });
+
+    act(() => {
+      result.current.onPointerUp(createPointerEvent("pointerup", 140, 100));
+    });
+
+    expect(onSwipeEnd).toHaveBeenCalledWith(0);
+  });
 });

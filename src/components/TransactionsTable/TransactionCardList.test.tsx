@@ -1768,9 +1768,10 @@ describe("TransactionCardList", () => {
       // So in LTR with positive offset, translateX is negative (moves left, reveals buttons on right)
     });
 
-    it("clamps live drag offset to actions width", () => {
-      // The component should clamp swipeOffset to ACTION_BUTTONS_WIDTH (108px)
-      // This is done in onSwipeMove: setSwipeOffset(Math.min(offset, ACTION_BUTTONS_WIDTH))
+    it("clamps live drag offset to max allowed offset", () => {
+      // The component should clamp swipeOffset to getMaxSwipeOffset()
+      // which is the minimum of measured actions width and viewport-based limit
+      // This is done in onSwipeMove: setSwipeOffset(Math.min(offset, maxOffset))
       const markup = renderToStaticMarkup(
         <TransactionCardList
           transactions={[mockTransactions[0]]}
@@ -1783,14 +1784,17 @@ describe("TransactionCardList", () => {
       );
 
       // Verify the actions wrapper has the expected structure:
-      // 44px (button) + 8px (gap-2) + 44px (button) + 12px (pe-3) = 108px
+      // 44px (button) + 8px (gap-2) + 44px (button) + 12px (pe-3) = 108px measured
+      // At narrow viewports, max offset is limited to 40% of viewport width
       expect(markup).toContain("gap-2");
       expect(markup).toContain("pe-3");
       expect(markup).toContain("h-11 w-11");
     });
 
-    it("snaps to actions width when threshold is met", () => {
-      // When drag offset >= SWIPE_THRESHOLD (50px), should snap to ACTION_BUTTONS_WIDTH (108px)
+    it("snaps to measured actions width when threshold is met", () => {
+      // When drag offset >= SWIPE_THRESHOLD (50px), should snap to maxOffset
+      // which is dynamically measured and viewport-aware (40% of viewport at narrow widths)
+      // Live drag follows finger with no animation, snap open/closed has animation
       // This is verified by the existing swipe hook tests
       const markup = renderToStaticMarkup(
         <TransactionCardList
