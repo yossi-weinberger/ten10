@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { useState } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RecurringCard } from "@/lib/ai/recurring-card";
 import { RecurringDraftCard } from "./RecurringDraftCard";
 
@@ -65,6 +65,22 @@ function renderCard(value: RecurringCard, onChange = vi.fn(), onSave = vi.fn()) 
 }
 
 describe("recurring draft card", () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+  });
+
   afterEach(() => cleanup());
 
   it("shows collapsed summary when complete, expandable to full form", async () => {

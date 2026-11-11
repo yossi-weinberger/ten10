@@ -1,4 +1,5 @@
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { trackAiDraftCorrected, type AiDraftField } from "@/lib/analytics/aiOutcomeEvents";
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { nextDraftIdempotency, saveTextDraft } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
@@ -300,9 +301,20 @@ export function useAssistantDrawerThread(
     setSaving(true);
     const request = requestRef.current;
     setStatus(null);
+    const savingDraft = { ...current, amount };
     // A correction of the last save: undo that one first. If it cannot be undone, nothing is saved.
     const replaced = replacing.current;
     if (replaced) {
+      const correctedFields: AiDraftField[] = [];
+      const original = originalDraft.current;
+      if (original) {
+        if (savingDraft.amount !== original.amount) correctedFields.push("amount");
+        if (savingDraft.description !== original.description) correctedFields.push("description");
+        if (savingDraft.date !== original.date) correctedFields.push("date");
+      }
+      if (correctedFields.length > 0) {
+        trackAiDraftCorrected("text", correctedFields);
+      }
       const undone = await undoTextIntake(replaced.itemId);
       if (!undone.ok) {
         setSaving(false);
@@ -313,7 +325,6 @@ export function useAssistantDrawerThread(
       savedTransaction.current = null;
       refreshAfterIntakeSave();
     }
-    const savingDraft = { ...current, amount };
     idempotency.current = nextDraftIdempotency(idempotency.current, {
       description: savingDraft.description,
       amount: amountInput,
@@ -409,6 +420,7 @@ export function useAssistantDrawerThread(
       isChomesh: type === "income" ? draft.isChomesh ?? autoCalcChomesh : false,
     };
     if (savedItemId) {
+      trackAiDraftCorrected("text", ["type"]);
       if (!(await handleUndo())) return;
       setDraft(next);
       await handleSave(undefined, next);
