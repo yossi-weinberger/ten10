@@ -22,11 +22,15 @@ vi.mock("react-i18next", () => ({
       const translations: Record<string, Record<string, string>> = {
         en: {
           "datePicker.selectDateRange": "Select date range",
+          "datePicker.selectDate": "Select date",
+          "datePicker.openCalendar": "Open calendar",
           "calendarDay.shabbat": "Shabbat",
           "calendarDay.yomTov": "Yom Tov",
         },
         he: {
           "datePicker.selectDateRange": "בחר טווח תאריכים",
+          "datePicker.selectDate": "בחירת תאריך",
+          "datePicker.openCalendar": "פתיחת לוח שנה",
           "calendarDay.shabbat": "שבת",
           "calendarDay.yomTov": "יום טוב",
         },
@@ -317,7 +321,7 @@ describe("Hebrew date pickers", () => {
       <DatePicker date={parseLocalDate("2026-09-12")} setDate={vi.fn()} />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
 
     expect(screen.getByRole("option", { name: "תשפ״ח" })).toBeInTheDocument();
   });
@@ -334,7 +338,7 @@ describe("Hebrew date pickers", () => {
       "DD/MM/YYYY",
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
     await user.click(getDayButton("2026-09-23"));
 
     expect(setDate).not.toHaveBeenCalledWith(undefined);
@@ -354,7 +358,7 @@ describe("Hebrew date pickers", () => {
       <DatePicker date={parseLocalDate("2026-09-12")} setDate={setDate} />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
     await user.click(getDayButton("2026-09-21"));
 
     const selected = setDate.mock.calls[setDate.mock.calls.length - 1][0] as Date;
