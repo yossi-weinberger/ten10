@@ -342,10 +342,11 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("2026-11");
     expect(markup).toContain("2026-12");
     
-    // Month separators use CSS variable for mobile offset with fallback to 0px
-    expect(markup).toContain("max-md:top-[var(--mobile-topbar-h,0px)]");
-    // Wide-screen keeps top-0
-    expect(markup).toContain("md:top-0");
+    // Month separators use CSS variable universally (no breakpoint prefix)
+    // Variable is 52px+safe-area on mobile/landscape, 0px on wide-screen
+    expect(markup).toContain("top-[var(--mobile-topbar-h,0px)]");
+    // Ensure no md:top-0 override that would break mobile landscape
+    expect(markup).not.toContain("md:top-0");
   });
 
   it("includes drawer with masked title in component structure", () => {
