@@ -9,6 +9,8 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 import { PieCustomTooltip } from "./PieCustomTooltip";
 
 /**
@@ -83,8 +85,12 @@ export function BreakdownBarPieChart({
           >
             <ChartContainer
               config={chartConfig}
-              className="w-full aspect-auto min-h-0 min-w-0"
+              className={cn(
+                "w-full aspect-auto min-h-0 min-w-0",
+                PH_SENSITIVE_PROPS.className,
+              )}
               style={{ height: fullBarHeight, minHeight: fullBarHeight }}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -103,7 +109,14 @@ export function BreakdownBarPieChart({
                   tickLine={false}
                   axisLine={false}
                 />
-                <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      {...PH_SENSITIVE_PROPS}
+                      formatter={(value) => fmt(Number(value))}
+                    />
+                  }
+                />
                 <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive maxBarSize={22}>
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -125,8 +138,9 @@ export function BreakdownBarPieChart({
         >
           <ChartContainer
             config={chartConfig}
-            className="w-full"
+            className={cn("w-full", PH_SENSITIVE_PROPS.className)}
             style={{ height: pieHeight, minHeight: pieHeight }}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
           >
             <PieChart>
               <Pie
@@ -150,7 +164,15 @@ export function BreakdownBarPieChart({
                 align="center"
                 iconType="circle"
                 iconSize={8}
-                formatter={(value) => <span style={{ fontSize: 11 }}>{value}</span>}
+                formatter={(value) => (
+                  <span
+                    className={PH_SENSITIVE_PROPS.className}
+                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    style={{ fontSize: 11 }}
+                  >
+                    {value}
+                  </span>
+                )}
               />
             </PieChart>
           </ChartContainer>

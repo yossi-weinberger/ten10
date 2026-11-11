@@ -13,6 +13,8 @@ import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { RecurringTransaction } from "@/types/transaction";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 
 const KPI_GRID_CLASS = "grid grid-cols-3 gap-2 sm:gap-4 items-stretch";
 
@@ -36,9 +38,12 @@ function DeltaBadge({ pct, t }: { pct: number; t: (key: string) => string }) {
   const isDown = pct < -0.5;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-medium mt-1 ${
-        isUp ? "text-primary" : isDown ? "text-destructive" : "text-muted-foreground"
-      }`}
+      className={cn(
+        "inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-medium mt-1",
+        isUp ? "text-primary" : isDown ? "text-destructive" : "text-muted-foreground",
+        PH_SENSITIVE_PROPS.className,
+      )}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
     >
       {isUp ? <TrendingUp className="h-3 w-3" /> : isDown ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
       {Math.abs(pct).toFixed(1)}%{" "}
@@ -71,6 +76,7 @@ function InsightKpiCard({
   isLoading,
   colorClass,
   tooltip,
+  maskTooltip = false,
   deltaNode,
   index,
 }: {
@@ -79,6 +85,7 @@ function InsightKpiCard({
   isLoading: boolean;
   colorClass: string;
   tooltip?: string;
+  maskTooltip?: boolean;
   deltaNode?: React.ReactNode;
   index: number;
 }) {
@@ -106,13 +113,24 @@ function InsightKpiCard({
                     <Info className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
+                <TooltipContent
+                  side="top"
+                  className={cn("max-w-xs", maskTooltip && PH_SENSITIVE_PROPS.className)}
+                  data-ph-mask={maskTooltip ? PH_SENSITIVE_PROPS["data-ph-mask"] : undefined}
+                >
                   <p className="text-xs" dir={i18n.dir()}>{tooltip}</p>
                 </TooltipContent>
               </Tooltip>
             )}
           </div>
-          <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${colorClass}`}>
+          <p
+            className={cn(
+              "text-2xl sm:text-3xl font-semibold tracking-tight",
+              colorClass,
+              PH_SENSITIVE_PROPS.className,
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
             <CountUp
               start={startAnimateValue}
               end={displayValue}
@@ -259,6 +277,7 @@ export function InsightsSummaryRow({
             : "text-destructive"
         }
         tooltip={periodTooltip}
+        maskTooltip={Boolean(prevPeriodStart && prevPeriodEnd && !isAllTime)}
         deltaNode={
           isAllTime ? (
             <NotApplicableBadge label={notApplicableLabel} />

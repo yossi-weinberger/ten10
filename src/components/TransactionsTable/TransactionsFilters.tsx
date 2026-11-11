@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
@@ -8,6 +8,7 @@ import {
   OriginFilter,
 } from "@/lib/tableTransactions/tableTransactions.types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
@@ -32,6 +33,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 import {
   getPaymentMethodCacheVersion,
   getUserPaymentMethods,
@@ -62,6 +65,8 @@ const availableTransactionTypes: TransactionType[] = [
 export function TransactionsFilters() {
   const { t: tTables, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
+  const isMobile = useMediaQuery(MOBILE_COMPACT_QUERY);
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     storeFilters,
     setStoreFilters,
@@ -283,17 +288,87 @@ export function TransactionsFilters() {
   const dropdownAlign = isRtl ? "end" : "start";
   const dropdownDir = isRtl ? "rtl" : "ltr";
 
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localDateRange?.from || localDateRange?.to) count++;
+    if (localTypes.length > 0) count++;
+    if (localPaymentMethods.length > 0) count++;
+    if (localIsRecurring !== "all") count++;
+    if (localOrigin !== "all") count++;
+    if (localRecurringStatuses.length > 0) count++;
+    return count;
+  }, [
+    localDateRange,
+    localTypes,
+    localPaymentMethods,
+    localIsRecurring,
+    localOrigin,
+    localRecurringStatuses,
+  ]);
+
+  if (isMobile && !isExpanded) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Input
+                id="search"
+                placeholder={tTables("filters.searchPlaceholder")}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11"
+                aria-label={tTables("filters.freeSearch")}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsExpanded(true)}
+              className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 gap-2 shrink-0"
+              aria-expanded="false"
+              aria-label={
+                activeFiltersCount > 0
+                  ? `${tTables("filters.showFilters")} (${activeFiltersCount})`
+                  : tTables("filters.showFilters")
+              }
+            >
+              <ListFilter className="h-4 w-4" />
+              {tTables("filters.showFilters")}
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1" aria-hidden="true">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="mb-4">
-      <CardContent className="p-4">
-        <div className="flex flex-wrap items-end gap-4">
+      <CardContent className={isMobile ? "p-3" : "p-4"}>
+        {isMobile && (
+          <div className="mb-3 flex justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => setIsExpanded(false)}
+              className="h-8 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 text-sm"
+              aria-expanded="true"
+            >
+              {tTables("filters.hideFilters")}
+            </Button>
+          </div>
+        )}
+        <div className={isMobile ? "grid grid-cols-2 gap-3" : "flex flex-wrap items-end gap-4"}>
           {/* Main Filters Group */}
-          <div className="flex flex-wrap items-end gap-4 flex-1 min-w-full sm:min-w-0">
+          <div className={isMobile ? "col-span-2 grid grid-cols-2 gap-3" : "flex flex-wrap items-end gap-4 flex-1 min-w-full sm:min-w-0"}>
             {/* Free Search */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
               <Label
                 htmlFor="search"
-                className="mb-2 block text-sm font-medium"
+                className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}
               >
                 {tTables("filters.freeSearch")}
               </Label>
@@ -302,13 +377,13 @@ export function TransactionsFilters() {
                 placeholder={tTables("filters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="w-full"
+                className={isMobile ? "h-9 w-full" : "w-full"}
               />
             </div>
 
             {/* Date Range */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-              <Label className="mb-2 block text-sm font-medium">
+            <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+              <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                 {tTables("filters.dateRange")}
               </Label>
               <DatePickerWithRange
@@ -318,8 +393,8 @@ export function TransactionsFilters() {
             </div>
 
             {/* Transaction Types */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-              <Label className="mb-2 block text-sm font-medium">
+            <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+              <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                 {tTables("filters.transactionTypes")}
               </Label>
               <DropdownMenu
@@ -328,8 +403,8 @@ export function TransactionsFilters() {
                 dir={dropdownDir}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span>
+                  <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
+                    <span className={isMobile ? "truncate" : ""}>
                       {localTypes.length === 0
                         ? tTables("filters.allTypes")
                         : localTypes.length === 1
@@ -338,7 +413,7 @@ export function TransactionsFilters() {
                             count: localTypes.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                    <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -367,8 +442,8 @@ export function TransactionsFilters() {
             </div>
 
             {/* Payment Method */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-              <Label className="mb-2 block text-sm font-medium">
+            <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+              <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                 {tTables("filters.paymentMethod")}
               </Label>
               <DropdownMenu
@@ -377,8 +452,8 @@ export function TransactionsFilters() {
                 dir={dropdownDir}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span>
+                  <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
+                    <span className={isMobile ? "truncate" : ""}>
                       {localPaymentMethods.length === 0
                         ? tTables("filters.paymentMethodPlaceholder")
                         : localPaymentMethods.length === 1
@@ -387,7 +462,7 @@ export function TransactionsFilters() {
                             count: localPaymentMethods.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                    <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -416,8 +491,8 @@ export function TransactionsFilters() {
             </div>
 
             {/* Recurring Filter */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-              <Label className="mb-2 block text-sm font-medium">
+            <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+              <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                 {tTables("filters.recurringTransactions")}
               </Label>
               <Select
@@ -425,7 +500,7 @@ export function TransactionsFilters() {
                 onValueChange={handleIsRecurringChange}
                 dir="rtl"
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className={isMobile ? "h-9 w-full" : "w-full"}>
                   <SelectValue
                     placeholder={tTables("filters.filterRecurringPlaceholder")}
                   />
@@ -443,8 +518,8 @@ export function TransactionsFilters() {
             </div>
 
             {platform === "web" && isAiIntakeEnabled() ? (
-              <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-                <Label className="mb-2 block text-sm font-medium">
+              <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+                <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                   {tTables("filters.origin")}
                 </Label>
                 <Select
@@ -458,7 +533,7 @@ export function TransactionsFilters() {
                   }}
                   dir="rtl"
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className={isMobile ? "h-9 w-full" : "w-full"}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -474,12 +549,12 @@ export function TransactionsFilters() {
           </div>
 
           {/* Conditional Recurring Filters & Reset Button Group */}
-          <div className="flex flex-wrap items-end gap-4 w-full sm:w-auto">
+          <div className={isMobile ? "col-span-2 grid grid-cols-2 gap-3" : "flex flex-wrap items-end gap-4 w-full sm:w-auto"}>
             {localIsRecurring === "recurring" && (
               <>
                 {/* Recurring Status */}
-                <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-                  <Label className="mb-2 block text-sm font-medium">
+                <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+                  <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
                     {tTables("filters.recurringStatus")}
                   </Label>
                   <DropdownMenu
@@ -490,17 +565,17 @@ export function TransactionsFilters() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-between"
+                        className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}
                         disabled={localIsRecurring !== "recurring"}
                       >
-                        <span>
+                        <span className={isMobile ? "truncate" : ""}>
                           {localRecurringStatuses.length === 0
                             ? tTables("filters.allStatuses")
                             : tTables("filters.statusesSelected", {
                                 count: localRecurringStatuses.length,
                               })}
                         </span>
-                        <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                        <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -584,11 +659,11 @@ export function TransactionsFilters() {
             )}
 
             {/* Reset Button */}
-            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
               <Button
                 onClick={handleResetFilters}
                 variant="outline"
-                className="w-full"
+                className={isMobile ? "h-9 w-full" : "w-full"}
               >
                 {tTables("filters.resetFilters")}
               </Button>
