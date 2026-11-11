@@ -12,6 +12,8 @@ import {
 import { DailyHeatmapResponse, HeatmapTypeGroup } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
+import { cn } from "@/lib/utils";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { CalendarDays } from "lucide-react";
 import {
   format, parseISO,
@@ -322,7 +324,11 @@ export function TransactionHeatmap({
                                     style={{ width: cellSize, height: cellSize }}
                                   />
                                 </TooltipTrigger>
-                                <TooltipContent side="top">
+                                <TooltipContent
+                                  side="top"
+                                  className={cn(PH_SENSITIVE_PROPS.className)}
+                                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                                >
                                   <p className="text-xs" dir={i18n.dir()}>
                                     {cell.entry
                                       ? t("analytics.heatmap.tooltip", {
