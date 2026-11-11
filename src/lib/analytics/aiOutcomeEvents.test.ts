@@ -4,6 +4,7 @@ import {
   trackAiDraftCancelled,
   trackAiDraftCorrected,
   trackAiQuestionReasked,
+  trackAiTurnStarted,
   mapErrorToFailureReason,
   normalizeQuestionText,
   compareQuestions,
@@ -128,6 +129,36 @@ describe("aiOutcomeEvents", () => {
         within_seconds: 60,
       });
     });
+
+    it("tracks ai_question_reasked with elapsed seconds", () => {
+      trackAiQuestionReasked(12);
+      expect(productAnalytics.trackProductEvent).toHaveBeenCalledWith("ai_question_reasked", {
+        within_seconds: 12,
+      });
+    });
+  });
+
+  describe("trackAiTurnStarted", () => {
+    it("tracks ai_turn_started with input kind", () => {
+      trackAiTurnStarted("text");
+      expect(productAnalytics.trackProductEvent).toHaveBeenCalledWith("ai_turn_started", {
+        input: "text",
+      });
+    });
+
+    it("tracks ai_turn_started with voice input", () => {
+      trackAiTurnStarted("voice");
+      expect(productAnalytics.trackProductEvent).toHaveBeenCalledWith("ai_turn_started", {
+        input: "voice",
+      });
+    });
+
+    it("tracks ai_turn_started with receipt input", () => {
+      trackAiTurnStarted("receipt");
+      expect(productAnalytics.trackProductEvent).toHaveBeenCalledWith("ai_turn_started", {
+        input: "receipt",
+      });
+    });
   });
 
   describe("mapErrorToFailureReason", () => {
@@ -147,12 +178,16 @@ describe("aiOutcomeEvents", () => {
       expect(mapErrorToFailureReason(undefined, "TOO_LONG")).toBe("unreadable");
     });
 
-    it("maps TIMEOUT to timeout", () => {
-      expect(mapErrorToFailureReason(undefined, "TIMEOUT")).toBe("timeout");
+    it("maps UNREADABLE to unreadable", () => {
+      expect(mapErrorToFailureReason(undefined, "UNREADABLE")).toBe("unreadable");
     });
 
-    it("maps no_amount error code to no_amount", () => {
-      expect(mapErrorToFailureReason("no_amount", undefined)).toBe("no_amount");
+    it("maps UNHEARD to unreadable", () => {
+      expect(mapErrorToFailureReason(undefined, "UNHEARD")).toBe("unreadable");
+    });
+
+    it("maps MIXED to unreadable", () => {
+      expect(mapErrorToFailureReason(undefined, "MIXED")).toBe("unreadable");
     });
 
     it("maps unknown errors to unknown", () => {

@@ -6,7 +6,7 @@ import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { splitItems } from "@/lib/ai/split-items";
 import { openCardEvidence, rememberClosed, rememberDraft } from "@/lib/ai/assistant-turn";
 import { digitsOnlyAmount } from "@/lib/ai/split-draft";
-import { trackAiTurnFailed, trackAiDraftCancelled, mapErrorToFailureReason } from "@/lib/analytics/aiOutcomeEvents";
+import { trackAiTurnFailed, trackAiTurnStarted, trackAiDraftCancelled, mapErrorToFailureReason } from "@/lib/analytics/aiOutcomeEvents";
 import {
   isSingleReceipt,
   openReceiptFailureStatus,
@@ -123,6 +123,7 @@ export function useAssistantDrawerComposer(
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
     if (previewUrl) previewUrls.current.push(previewUrl);
     beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type, previewUrl });
+    trackAiTurnStarted("receipt");
     setPendingPhase("receipt");
     setChecking(true);
     setStatus(null);
@@ -183,6 +184,7 @@ export function useAssistantDrawerComposer(
     // beginTurn saves live-card context, clears reply state, and sets the user turn.
     // This ensures the skeleton renders in the correct position (after the voice bubble).
     beginTurn(emptyVoiceTurn);
+    trackAiTurnStarted("voice");
     setPendingPhase("voice");
     setChecking(true);
     setTranscribing(true);
@@ -208,8 +210,8 @@ export function useAssistantDrawerComposer(
     state.setActiveUser(voiceTurn);
     state.conversationRef.current.active = voiceTurn;
     setText("");
-    // skipBeginTurn=true because beginTurn already ran above and saved the context.
-    await intent.handleSubmit(heard.text, "voice", true);
+    // skipBeginTurn=true and skipTracking=true because beginTurn and trackAiTurnStarted already ran above.
+    await intent.handleSubmit(heard.text, "voice", true, true);
   }
 
   async function toggleRecording() {

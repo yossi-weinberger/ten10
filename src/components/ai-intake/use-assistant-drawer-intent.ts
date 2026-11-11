@@ -7,7 +7,7 @@ import {
   rememberInspiration,
 } from "@/lib/ai/inspiration-pick";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { trackAiTurnFailed, trackAiQuestionReasked, mapErrorToFailureReason, compareQuestions } from "@/lib/analytics/aiOutcomeEvents";
+import { trackAiTurnFailed, trackAiTurnStarted, trackAiQuestionReasked, mapErrorToFailureReason, compareQuestions } from "@/lib/analytics/aiOutcomeEvents";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readQuestionSlots } from "@/lib/ai/read-question";
 import { resolveQuestionFilter, sumYearType, type QuestionFilter } from "@/lib/ai/sum-year-type";
@@ -242,7 +242,8 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       const current = { text: source, family: family || "", search: searchDescriptions };
       
       if (compareQuestions(current, lastQuestion.current, 60000, now, lastQuestion.current?.at ?? null)) {
-        trackAiQuestionReasked(60);
+        const elapsedSeconds = Math.round((now - (lastQuestion.current?.at ?? now)) / 1000);
+        trackAiQuestionReasked(elapsedSeconds);
       }
       
       lastQuestion.current = { ...current, at: now };
@@ -515,13 +516,16 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     }));
   }
 
-  async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text", skipBeginTurn = false) {
+  async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text", skipBeginTurn = false, skipTracking = false) {
     const source = spoken ?? state.text;
     const today = getCurrentLocalDate();
     if (!source.trim()) return;
     const request = ++requestRef.current;
     if (!skipBeginTurn) {
       beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
+    }
+    if (!skipTracking) {
+      trackAiTurnStarted(kind);
     }
     state.setText("");
     setPendingPhase(kind === "voice" ? "voice" : "reading");
@@ -541,6 +545,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const read = await splitPromise;
     if (requestRef.current !== request) return;
     setChecking(false);
+    
     if (!decided.ok && decided.reason === "LIMIT") {
       trackAiTurnFailed(kind, "intent", "limit");
       setStatus(limitStatus(decided.limit));
@@ -548,9 +553,6 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       setIntent(null);
       setAskIntent(false);
       return;
-    }
-    if (!decided.ok) {
-      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(undefined, decided.reason));
     }
     if (!read.ok && read.reason === "LIMIT") {
       trackAiTurnFailed(kind, "split", "limit");
@@ -560,8 +562,14 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       setAskIntent(false);
       return;
     }
+    
+    if (!decided.ok) {
+      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(undefined, decided.reason));
+      return;
+    }
     if (!read.ok) {
       trackAiTurnFailed(kind, "split", mapErrorToFailureReason(undefined, read.reason));
+      return;
     }
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh
       ? { ...read, items: withChomesh(read.items, true) }

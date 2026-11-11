@@ -39,6 +39,7 @@ export type ProductAnalyticsEvent =
   | "onboarding_completed"
   | "onboarding_restarted"
   | "ai_inspiration_shown"
+  | "ai_turn_started"
   | "ai_turn_failed"
   | "ai_draft_cancelled"
   | "ai_draft_corrected"

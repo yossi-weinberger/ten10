@@ -8,8 +8,6 @@ export type AiTurnFailureReason =
   | "unavailable"
   | "unreadable"
   | "limit"
-  | "timeout"
-  | "no_amount"
   | "unknown";
 
 export type AiDraftCancelStage = "draft" | "question" | "recording";
@@ -22,6 +20,10 @@ export type AiDraftField =
   | "payment_method"
   | "description"
   | "currency";
+
+export function trackAiTurnStarted(input: AiInputKind) {
+  trackProductEvent("ai_turn_started", { input });
+}
 
 export function trackAiTurnFailed(
   input: AiInputKind,
@@ -73,8 +75,14 @@ export function mapErrorToFailureReason(
 ): AiTurnFailureReason {
   if (reason === "LIMIT") return "limit";
   if (reason === "UNAVAILABLE") return "unavailable";
-  if (reason === "TOO_LARGE" || reason === "TOO_LONG") return "unreadable";
-  if (reason === "TIMEOUT") return "timeout";
-  if (errorCode === "no_amount") return "no_amount";
+  if (
+    reason === "TOO_LARGE" ||
+    reason === "TOO_LONG" ||
+    reason === "UNREADABLE" ||
+    reason === "UNHEARD" ||
+    reason === "MIXED"
+  ) {
+    return "unreadable";
+  }
   return "unknown";
 }
