@@ -1,9 +1,25 @@
 // @vitest-environment jsdom
 
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeAll } from "vitest";
 import { TransactionRow } from "./TransactionRow";
 import type { TransactionForTable } from "@/types/transaction";
+
+beforeAll(() => {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+});
 
 vi.mock("@/lib/supabaseClient", () => ({
   supabase: {},
@@ -168,5 +184,122 @@ describe("TransactionRow PostHog masking", () => {
     expect(recipientCell).toBeTruthy();
     expect(recipientCell?.classList.contains("ph-mask")).toBe(true);
     expect(recipientCell?.classList.contains("ph-sensitive")).toBe(true);
+  });
+
+  it("applies ph-mask and data-ph-mask to date cell", () => {
+    const { container } = render(
+      <table>
+        <tbody>
+          <TransactionRow
+            transaction={sampleTransaction}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            selected={false}
+            onToggleSelected={vi.fn()}
+            selectLabel="Select"
+          />
+        </tbody>
+      </table>
+    );
+
+    const dateCell = container.querySelector('td[data-ph-mask]:first-child');
+    expect(dateCell).toBeTruthy();
+    expect(dateCell?.classList.contains("ph-mask")).toBe(true);
+    expect(dateCell?.classList.contains("ph-sensitive")).toBe(true);
+    expect(dateCell?.textContent).toContain("2026-11-10");
+  });
+
+  it("applies ph-mask and data-ph-mask to payment method cell", () => {
+    const { container } = render(
+      <table>
+        <tbody>
+          <TransactionRow
+            transaction={sampleTransaction}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            selected={false}
+            onToggleSelected={vi.fn()}
+            selectLabel="Select"
+          />
+        </tbody>
+      </table>
+    );
+
+    const allCells = Array.from(container.querySelectorAll('td'));
+    const paymentMethodCell = allCells.find((cell) =>
+      cell.textContent?.includes("cash")
+    );
+    expect(paymentMethodCell).toBeTruthy();
+    expect(paymentMethodCell?.hasAttribute("data-ph-mask")).toBe(true);
+    expect(paymentMethodCell?.classList.contains("ph-mask")).toBe(true);
+    expect(paymentMethodCell?.classList.contains("ph-sensitive")).toBe(true);
+  });
+
+  it("applies ph-mask and data-ph-mask to chomesh cell", () => {
+    const { container } = render(
+      <table>
+        <tbody>
+          <TransactionRow
+            transaction={{ ...sampleTransaction, is_chomesh: true }}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            selected={false}
+            onToggleSelected={vi.fn()}
+            selectLabel="Select"
+          />
+        </tbody>
+      </table>
+    );
+
+    const allMaskedCells = Array.from(container.querySelectorAll('td[data-ph-mask]'));
+    expect(allMaskedCells.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("applies ph-mask and data-ph-mask to recurring info cell", () => {
+    const transactionWithRecurring: TransactionForTable = {
+      ...sampleTransaction,
+      source_recurring_id: "rec-1",
+      occurrence_number: 1,
+      recurring_info: {
+        status: "active",
+        execution_count: 1,
+        total_occurrences: 12,
+        frequency: "monthly",
+        day_of_month: 10,
+      },
+    };
+
+    const { container } = render(
+      <table>
+        <tbody>
+          <TransactionRow
+            transaction={transactionWithRecurring}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            selected={false}
+            onToggleSelected={vi.fn()}
+            selectLabel="Select"
+          />
+        </tbody>
+      </table>
+    );
+
+    const allCells = Array.from(container.querySelectorAll('td'));
+    const recurringCell = allCells.find((cell) =>
+      cell.querySelector('[data-ph-mask]')
+    );
+    expect(recurringCell).toBeTruthy();
+    const maskedElement = recurringCell?.querySelector('[data-ph-mask]');
+    expect(maskedElement).toBeTruthy();
+    expect(maskedElement?.classList.contains("ph-mask")).toBe(true);
+    expect(maskedElement?.classList.contains("ph-sensitive")).toBe(true);
   });
 });

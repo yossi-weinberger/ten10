@@ -497,7 +497,10 @@ export function RecurringTransactionsTableDisplay() {
                       >
                         {rec.description || "-"}
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell
+                        className={cn("text-start", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         {formatPaymentMethod(
                           rec.payment_method,
                           i18n.language,
@@ -519,7 +522,10 @@ export function RecurringTransactionsTableDisplay() {
                           mode="live"
                         />
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell
+                        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <span className="block">
                           {t(
                             `recurring.frequencies.${rec.frequency}`,
@@ -535,7 +541,10 @@ export function RecurringTransactionsTableDisplay() {
                           )}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell
+                        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <span>{nextDueDate.primary}</span>
                         {nextDueDate.secondary && (
                           <span className="block text-xs text-muted-foreground">

@@ -82,7 +82,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
-      <TableCell className="text-start whitespace-nowrap">
+      <TableCell
+        className={cn("text-start whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <span>{displayDate.primary}</span>
         {displayDate.secondary && (
           <span className="block text-xs text-muted-foreground">
@@ -163,27 +166,38 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       >
         {transaction.recipient || "-"}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatPaymentMethod(
           transaction.payment_method,
           i18n.language,
           "-"
         )}
       </TableCell>
-      <TableCell className="text-center whitespace-nowrap">
+      <TableCell
+        className={cn("text-center whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatBoolean(transaction.is_chomesh)}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {transaction.recurring_info ? (
-          <RecurringProgressBadge
-            status={transaction.recurring_info.status}
-            type={transaction.type}
-            executionCount={transaction.recurring_info.execution_count}
-            totalOccurrences={transaction.recurring_info.total_occurrences}
-            occurrenceNumber={transaction.occurrence_number}
-            frequency={transaction.recurring_info.frequency}
-            dayOfMonth={transaction.recurring_info.day_of_month}
-          />
+          <span
+            className={PH_SENSITIVE_PROPS.className}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            <RecurringProgressBadge
+              status={transaction.recurring_info.status}
+              type={transaction.type}
+              executionCount={transaction.recurring_info.execution_count}
+              totalOccurrences={transaction.recurring_info.total_occurrences}
+              occurrenceNumber={transaction.occurrence_number}
+              frequency={transaction.recurring_info.frequency}
+              dayOfMonth={transaction.recurring_info.day_of_month}
+            />
+          </span>
         ) : (
           "-"
         )}
