@@ -19,6 +19,7 @@ const mockUserPlans: AdminUserPlan[] = [
     source: "manual",
     expires_at: null,
     note: "Test user",
+    is_active: true,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   },
@@ -166,6 +167,7 @@ describe("AdminUserPlans", () => {
       source: "manual",
       expires_at: "2026-07-15T20:59:59.000Z", // 23:59:59 in Asia/Jerusalem (IDT, UTC+3)
       note: null,
+      is_active: true,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     };
