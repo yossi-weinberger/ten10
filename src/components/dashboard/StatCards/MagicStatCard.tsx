@@ -45,7 +45,7 @@ export function MagicStatCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="h-full max-md:relative"
+      className="h-full max-md:relative mobile-landscape:relative"
     >
       <Card
         className={cn(

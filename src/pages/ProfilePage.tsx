@@ -158,7 +158,7 @@ export function ProfilePage() {
   return (
     <div className="grid gap-6" dir={i18n.dir()}>
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="text-2xl font-bold text-foreground max-md:sr-only mobile-landscape:sr-only">
           {t("profile.title")}
         </h2>
         <p className="text-muted-foreground">{t("profile.subtitle")}</p>
