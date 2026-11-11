@@ -54,11 +54,15 @@ export function AssistantDrawer({
     checking: boolean;
     accepted: boolean | null;
     showDialog: boolean;
-  }>({ checking: false, accepted: null, showDialog: false });
+  }>({ checking: open, accepted: null, showDialog: false });
 
   // Check consent status when drawer opens
   useEffect(() => {
-    if (!open || !userId) return;
+    if (!open || !userId) {
+      // Fail closed: no interaction when userId is null
+      setConsentState({ checking: false, accepted: null, showDialog: false });
+      return;
+    }
 
     let cancelled = false;
 
@@ -143,13 +147,16 @@ export function AssistantDrawer({
 
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
+  // Derive consent OK: fail closed unless explicitly accepted
+  const consentOk = !!userId && !consentState.checking && consentState.accepted === true;
+
   const handleBetaAccept = () => {
     setConsentState({ checking: false, accepted: true, showDialog: false });
   };
 
   const handleBetaDecline = () => {
     setConsentState((prev) => ({ ...prev, showDialog: false }));
-    onOpenChange(false);
+    handleOpenChange(false); // Use handleOpenChange to stop recording and clear conversation
   };
 
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
@@ -192,9 +199,9 @@ export function AssistantDrawer({
           <SquarePen aria-hidden />
         </Button>
       )}
-      onReceipt={(file) => {
+      onReceipt={consentOk ? (file) => {
         void composer.handleReceipt(file);
-      }}
+      } : undefined}
       footer={(
         <>
         {sharedFile ? (
@@ -211,7 +218,9 @@ export function AssistantDrawer({
               <Button
                 type="button"
                 className="h-10"
+                disabled={!consentOk}
                 onClick={() => {
+                  if (!consentOk) return;
                   setSharedFile(null);
                   void composer.handleReceipt(sharedFile);
                 }}
@@ -226,21 +235,25 @@ export function AssistantDrawer({
           onChange={state.setText}
           textareaRef={state.textareaRef}
           busy={composer.wiring.busyKey !== undefined}
+          disabled={!consentOk}
           recording={composer.wiring.recording}
           transcribing={composer.wiring.transcribing}
           mediaStream={state.mediaStream.current}
           elapsed={composer.wiring.elapsed}
           mode={composer.wiring.mode}
           onReceipt={(file) => {
+            if (!consentOk) return;
             void composer.handleReceipt(file);
           }}
           onToggleVoice={() => {
+            if (!consentOk) return;
             void composer.toggleRecording();
           }}
           onCancelRecording={() => {
             composer.cancelRecording();
           }}
           onSubmit={() => {
+            if (!consentOk) return;
             if (state.clarification === "amount") composer.handleAmountReply(state.text);
             else void intent.handleSubmit();
           }}
@@ -259,16 +272,19 @@ export function AssistantDrawer({
           history={thread.history}
           active={thread.active}
           activeBlocks={thread.blocks}
-          interactiveActive={consentState.accepted === true && !consentState.checking}
+          interactiveActive={consentOk}
           transcribing={composer.wiring.transcribing}
-          opening={consentState.accepted === true ? { name: firstName, line: openingLine } : undefined}
+          opening={consentOk ? { name: firstName, line: openingLine } : undefined}
           onSuggestion={(suggestion) => {
+            if (!consentOk) return;
             void intent.handleSubmit(suggestion);
           }}
           onReceipt={(file) => {
+            if (!consentOk) return;
             void composer.handleReceipt(file);
           }}
           onVoice={() => {
+            if (!consentOk) return;
             void composer.toggleRecording();
           }}
           handlers={thread.handlers}
