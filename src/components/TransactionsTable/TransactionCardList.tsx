@@ -324,7 +324,12 @@ const TransactionCard = memo(function TransactionCard({
             {cardTitle}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{displayDate.primary}</span>
+            <span
+              className={cn(PH_SENSITIVE_PROPS.className)}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              {displayDate.primary}
+            </span>
             {categoryText && (
               <>
                 <span>·</span>
@@ -624,7 +629,12 @@ export function TransactionCardList({
                 key={`month-separator-${item.monthKey}`}
                 className="sticky top-0 z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
               >
-                {item.monthLabel}
+                <span
+                  className={cn(PH_SENSITIVE_PROPS.className)}
+                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                >
+                  {item.monthLabel}
+                </span>
               </div>
             );
           }
@@ -748,7 +758,10 @@ export function TransactionCardList({
               <div className="grid gap-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("columns.date")}</span>
-                  <span className="font-medium">
+                  <span
+                    className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
+                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                  >
                     {(() => {
                       const displayDate = formatDisplayDate(selectedTransaction.date, "numeric");
                       return displayDate.secondary
@@ -821,22 +834,32 @@ export function TransactionCardList({
                 {trackChomeshSeparately && selectedTransaction.is_chomesh && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t("columns.chomesh")}</span>
-                    <span>{formatBoolean(selectedTransaction.is_chomesh)}</span>
+                    <span
+                      className={cn(PH_SENSITIVE_PROPS.className)}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {formatBoolean(selectedTransaction.is_chomesh)}
+                    </span>
                   </div>
                 )}
 
                 {selectedTransaction.recurring_info && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t("columns.recurring")}</span>
-                    <RecurringProgressBadge
-                      status={selectedTransaction.recurring_info.status}
-                      type={selectedTransaction.type}
-                      executionCount={selectedTransaction.recurring_info.execution_count}
-                      totalOccurrences={selectedTransaction.recurring_info.total_occurrences}
-                      occurrenceNumber={selectedTransaction.occurrence_number}
-                      frequency={selectedTransaction.recurring_info.frequency}
-                      dayOfMonth={selectedTransaction.recurring_info.day_of_month}
-                    />
+                    <span
+                      className={cn(PH_SENSITIVE_PROPS.className)}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      <RecurringProgressBadge
+                        status={selectedTransaction.recurring_info.status}
+                        type={selectedTransaction.type}
+                        executionCount={selectedTransaction.recurring_info.execution_count}
+                        totalOccurrences={selectedTransaction.recurring_info.total_occurrences}
+                        occurrenceNumber={selectedTransaction.occurrence_number}
+                        frequency={selectedTransaction.recurring_info.frequency}
+                        dayOfMonth={selectedTransaction.recurring_info.day_of_month}
+                      />
+                    </span>
                   </div>
                 )}
               </div>
