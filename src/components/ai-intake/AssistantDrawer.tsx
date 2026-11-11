@@ -230,8 +230,7 @@ export function AssistantDrawer({
           value={composer.wiring.value}
           onChange={state.setText}
           textareaRef={state.textareaRef}
-          busy={composer.wiring.busyKey !== undefined}
-          disabled={!consentOk}
+          busy={composer.wiring.busyKey !== undefined || !consentOk}
           recording={composer.wiring.recording}
           transcribing={composer.wiring.transcribing}
           mediaStream={state.mediaStream.current}
