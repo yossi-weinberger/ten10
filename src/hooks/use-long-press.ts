@@ -10,7 +10,7 @@ export interface UseLongPressOptions {
 export interface UseLongPressResult {
   onPointerDown: (event: React.PointerEvent) => void;
   onPointerMove: (event: React.PointerEvent) => void;
-  onPointerUp: (event: React.PointerEvent) => void;
+  onPointerUp: (event?: React.PointerEvent) => void;
   onPointerCancel: () => void;
 }
 
@@ -83,7 +83,8 @@ export function useLongPress({
     [cancel, movementThreshold]
   );
 
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback((event?: React.PointerEvent) => {
+    void event;
     if (!longPressTriggeredRef.current && timerRef.current !== null) {
       cancel();
     } else {
