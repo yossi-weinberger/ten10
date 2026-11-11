@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef, memo } from "react";
+import { useCallback, useMemo, useState, useRef, memo, useEffect } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -37,6 +37,7 @@ import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useSwipe } from "@/hooks/use-swipe";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
@@ -84,6 +85,12 @@ interface TransactionCardProps {
   longPressTriggeredRef: React.MutableRefObject<boolean>;
   trackChomeshSeparately: boolean;
   t: (key: string, defaultValue?: string) => string;
+  isRTL: boolean;
+  onEdit: (transaction: TransactionForTable) => void;
+  onDelete: (transaction: TransactionForTable) => void;
+  swipeOpenId: string | null;
+  onSwipeOpen: (id: string) => void;
+  onSwipeClose: () => void;
 }
 
 const TransactionCard = memo(function TransactionCard({
@@ -101,7 +108,25 @@ const TransactionCard = memo(function TransactionCard({
   longPressTriggeredRef,
   trackChomeshSeparately,
   t,
+  isRTL,
+  onEdit,
+  onDelete,
+  swipeOpenId,
+  onSwipeOpen,
+  onSwipeClose,
 }: TransactionCardProps) {
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const swipeTriggeredRef = useRef(false);
+  const isSwipeOpen = swipeOpenId === transaction.id;
+
+  const ACTION_BUTTONS_WIDTH = 160;
+  const SWIPE_THRESHOLD = 50;
+
+  const isMobileSwipeEnabled = typeof window !== "undefined" 
+    && typeof window.matchMedia === "function"
+    && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+
   const longPressHandlers = useLongPress({
     onLongPress: () => {
       if (!selectionDisabled && onToggleSelected) {
@@ -116,14 +141,74 @@ const TransactionCard = memo(function TransactionCard({
     movementThreshold: 10,
   });
 
+  const swipeHandlers = useSwipe({
+    onSwipeStart: () => {
+      swipeTriggeredRef.current = true;
+      setIsAnimating(false);
+    },
+    onSwipeMove: (offset) => {
+      setSwipeOffset(Math.min(offset, ACTION_BUTTONS_WIDTH));
+    },
+    onSwipeEnd: (offset) => {
+      setIsAnimating(true);
+      if (offset >= SWIPE_THRESHOLD) {
+        setSwipeOffset(ACTION_BUTTONS_WIDTH);
+        onSwipeOpen(transaction.id);
+      } else {
+        setSwipeOffset(0);
+        if (isSwipeOpen) {
+          onSwipeClose();
+        }
+      }
+      setTimeout(() => {
+        swipeTriggeredRef.current = false;
+      }, 100);
+    },
+    threshold: SWIPE_THRESHOLD,
+    movementThreshold: 10,
+    isRTL,
+    disabled: inSelectionMode || !isMobileSwipeEnabled,
+  });
+
+  const effectiveSwipeOffset = (isSwipeOpen && isMobileSwipeEnabled) ? swipeOffset : 0;
+
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
+    swipeTriggeredRef.current = false;
     longPressHandlers.onPointerDown(e);
+    swipeHandlers.onPointerDown(e);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    longPressHandlers.onPointerMove(e);
+    swipeHandlers.onPointerMove(e);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const wasSwipeActive = swipeTriggeredRef.current;
+    longPressHandlers.onPointerUp();
+    swipeHandlers.onPointerUp(e);
+    
+    if (wasSwipeActive && inSelectionMode) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   const handlePointerCancel = () => {
     longPressTriggeredRef.current = false;
+    const wasSwipeActive = swipeTriggeredRef.current;
+    swipeTriggeredRef.current = false;
     longPressHandlers.onPointerCancel();
+    swipeHandlers.onPointerCancel();
+    
+    if (wasSwipeActive) {
+      setSwipeOffset(0);
+      setIsAnimating(true);
+      if (isSwipeOpen) {
+        onSwipeClose();
+      }
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -134,96 +219,151 @@ const TransactionCard = memo(function TransactionCard({
     }
   };
 
+  const handleCardClick = () => {
+    if (swipeTriggeredRef.current || longPressTriggeredRef.current) {
+      swipeTriggeredRef.current = false;
+      longPressTriggeredRef.current = false;
+      return;
+    }
+    if (inSelectionMode && swipeOffset > 0) {
+      return;
+    }
+    onCardClick(transaction);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(transaction);
+    onSwipeClose();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(transaction);
+    onSwipeClose();
+  };
+
   return (
-    <Card
-      role="button"
-      tabIndex={0}
-      aria-selected={inSelectionMode ? isSelected : undefined}
-      aria-pressed={inSelectionMode ? isSelected : undefined}
-      className={cn(
-        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
-        surfaceClasses,
-        isSelected && "ring-2 ring-primary ring-offset-2"
-      )}
-      onClick={() => onCardClick(transaction)}
-      onKeyDown={onKeyDown}
-      onContextMenu={handleContextMenu}
-      onPointerDown={handlePointerDown}
-      onPointerMove={longPressHandlers.onPointerMove}
-      onPointerUp={longPressHandlers.onPointerUp}
-      onPointerCancel={handlePointerCancel}
-    >
-      <div className="flex-1 overflow-hidden">
+    <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
+      <div
+        className="max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-center max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:pe-3 hidden"
+        aria-hidden={!isSwipeOpen}
+      >
+        <Button
+          variant="default"
+          size="icon"
+          className="h-11 w-11 min-w-[44px] min-h-[44px]"
+          onClick={handleEditClick}
+          tabIndex={isSwipeOpen ? 0 : -1}
+          aria-label={t("actions.edit")}
+        >
+          <Edit3 className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 min-w-[44px] min-h-[44px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={handleDeleteClick}
+          tabIndex={isSwipeOpen ? 0 : -1}
+          aria-label={t("actions.delete")}
+        >
+          <Trash2 className="h-5 w-5" />
+        </Button>
+      </div>
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-selected={inSelectionMode ? isSelected : undefined}
+        aria-pressed={inSelectionMode ? isSelected : undefined}
+        className={cn(
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
+          surfaceClasses,
+          isSelected && "ring-2 ring-primary ring-offset-2"
+        )}
+        style={{
+          transform: `translateX(${isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset}px)`,
+          transition: isAnimating || !isSwipeOpen ? "transform 0.3s ease-out" : "none",
+        }}
+        onClick={handleCardClick}
+        onKeyDown={onKeyDown}
+        onContextMenu={handleContextMenu}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <div className="flex-1 overflow-hidden">
+          <div
+            className={cn(
+              "truncate font-medium",
+              !transaction.description && "text-muted-foreground",
+              PH_SENSITIVE_PROPS.className
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            {cardTitle}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{displayDate.primary}</span>
+            {categoryText && (
+              <>
+                <span>·</span>
+                <span
+                  className={cn(
+                    "truncate",
+                    PH_SENSITIVE_PROPS.className
+                  )}
+                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                >
+                  {categoryText}
+                </span>
+              </>
+            )}
+            {transaction.recurring_info && (
+              <>
+                <span>·</span>
+                <Repeat className="h-3 w-3" aria-hidden="true" />
+              </>
+            )}
+            {isSpecialType(transaction.type) && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-5 border px-1.5 py-0 text-[10px]",
+                  typeBadgeColors[transaction.type as TransactionType]
+                )}
+              >
+                {t(`types.${transaction.type}`, transaction.type)}
+              </Badge>
+            )}
+            {trackChomeshSeparately && transaction.is_chomesh && (
+              <span className="inline-flex items-center gap-0.5 text-[10px]">
+                <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+                <span>{t("cards.chomesh")}</span>
+              </span>
+            )}
+          </div>
+        </div>
         <div
           className={cn(
-            "truncate font-medium",
-            !transaction.description && "text-muted-foreground",
+            "shrink-0 text-end font-bold",
             PH_SENSITIVE_PROPS.className
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          {cardTitle}
+          <CurrencyConversionInfo
+            amount={transaction.amount}
+            currency={transaction.currency}
+            originalAmount={transaction.original_amount}
+            originalCurrency={transaction.original_currency}
+            conversionRate={transaction.conversion_rate}
+            conversionDate={transaction.conversion_date}
+            rateSource={transaction.rate_source}
+            mode="static"
+          />
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span>{displayDate.primary}</span>
-          {categoryText && (
-            <>
-              <span>·</span>
-              <span
-                className={cn(
-                  "truncate",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                {categoryText}
-              </span>
-            </>
-          )}
-          {transaction.recurring_info && (
-            <>
-              <span>·</span>
-              <Repeat className="h-3 w-3" aria-hidden="true" />
-            </>
-          )}
-          {isSpecialType(transaction.type) && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 border px-1.5 py-0 text-[10px]",
-                typeBadgeColors[transaction.type as TransactionType]
-              )}
-            >
-              {t(`types.${transaction.type}`, transaction.type)}
-            </Badge>
-          )}
-          {trackChomeshSeparately && transaction.is_chomesh && (
-            <span className="inline-flex items-center gap-0.5 text-[10px]">
-              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-              <span>{t("cards.chomesh")}</span>
-            </span>
-          )}
-        </div>
-      </div>
-      <div
-        className={cn(
-          "shrink-0 text-end font-bold",
-          PH_SENSITIVE_PROPS.className
-        )}
-        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-      >
-        <CurrencyConversionInfo
-          amount={transaction.amount}
-          currency={transaction.currency}
-          originalAmount={transaction.original_amount}
-          originalCurrency={transaction.original_currency}
-          conversionRate={transaction.conversion_rate}
-          conversionDate={transaction.conversion_date}
-          rateSource={transaction.rate_source}
-          mode="static"
-        />
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 });
 
@@ -260,8 +400,10 @@ export function TransactionCardList({
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
 
   const inSelectionMode = selectedIds.size > 0;
+  const computedSwipeOpenId = inSelectionMode ? null : swipeOpenId;
 
   React.useEffect(() => {
     if (inSelectionMode) {
@@ -273,6 +415,30 @@ export function TransactionCardList({
       delete document.body.dataset.mobileSelectionActive;
     };
   }, [inSelectionMode]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (computedSwipeOpenId && !(e.target as Element).closest('[role="button"]')) {
+        setSwipeOpenId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      if (computedSwipeOpenId) {
+        setSwipeOpenId(null);
+      }
+    };
+
+    if (computedSwipeOpenId) {
+      document.addEventListener("click", handleClickOutside, true);
+      window.addEventListener("scroll", handleScroll, true);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside, true);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -378,6 +544,14 @@ export function TransactionCardList({
     }
     setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }, [selectedTransaction, t]);
+
+  const handleSwipeOpen = useCallback((id: string) => {
+    setSwipeOpenId(id);
+  }, []);
+
+  const handleSwipeClose = useCallback(() => {
+    setSwipeOpenId(null);
+  }, []);
 
   if (loading && transactions.length === 0) {
     return (
@@ -488,6 +662,12 @@ export function TransactionCardList({
               longPressTriggeredRef={longPressTriggeredRef}
               trackChomeshSeparately={trackChomeshSeparately}
               t={t}
+              isRTL={i18n.dir() === "rtl"}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              swipeOpenId={computedSwipeOpenId}
+              onSwipeOpen={handleSwipeOpen}
+              onSwipeClose={handleSwipeClose}
             />
           );
         })}
