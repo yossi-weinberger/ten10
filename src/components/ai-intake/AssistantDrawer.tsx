@@ -6,9 +6,12 @@ import type { CurrencyCode } from "@/lib/currencies";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
+import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
+import { BetaTermsDialog } from "./BetaTermsDialog";
 import { conversationStarted } from "./assistant-drawer-state";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
@@ -45,6 +48,51 @@ export function AssistantDrawer({
   const defaultCurrency = useDonationStore((store) => store.settings.defaultCurrency);
   const [openingBalance, setOpeningBalance] = useState<number | null>(null);
   const userId = state.user?.id ?? null;
+
+  // Beta consent gate
+  const [consentState, setConsentState] = useState<{
+    checking: boolean;
+    accepted: boolean | null;
+    showDialog: boolean;
+  }>({ checking: false, accepted: null, showDialog: false });
+
+  // Check consent status when drawer opens
+  useEffect(() => {
+    if (!open || !userId) return;
+
+    let cancelled = false;
+
+    const checkConsent = async () => {
+      setConsentState({ checking: true, accepted: null, showDialog: false });
+
+      try {
+        const { data, error } = await supabase.rpc("ai_beta_consent_status");
+
+        if (cancelled) return;
+
+        if (error) {
+          console.error("Failed to check AI beta consent:", error);
+          setConsentState({ checking: false, accepted: false, showDialog: true });
+        } else if (data) {
+          const accepted = data.accepted === true && data.version === AI_BETA_TERMS_VERSION;
+          setConsentState({ checking: false, accepted, showDialog: !accepted });
+        } else {
+          setConsentState({ checking: false, accepted: false, showDialog: true });
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Unexpected error checking consent:", err);
+        setConsentState({ checking: false, accepted: false, showDialog: true });
+      }
+    };
+
+    void checkConsent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, userId]);
+
   // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
   useEffect(() => {
     if (!open) return;
@@ -95,6 +143,15 @@ export function AssistantDrawer({
 
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
+  const handleBetaAccept = () => {
+    setConsentState({ checking: false, accepted: true, showDialog: false });
+  };
+
+  const handleBetaDecline = () => {
+    setConsentState((prev) => ({ ...prev, showDialog: false }));
+    onOpenChange(false);
+  };
+
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
   const firstName = userName?.trim().split(/\s+/)[0] || null;
   const openingLine = openingBalance === null
@@ -106,7 +163,13 @@ export function AssistantDrawer({
       : state.t("aiIntake.openingCovered");
 
   return (
-    <AssistantShell
+    <>
+      <BetaTermsDialog
+        open={consentState.showDialog}
+        onAccept={handleBetaAccept}
+        onDecline={handleBetaDecline}
+      />
+      <AssistantShell
       open={open}
       onOpenChange={handleOpenChange}
       title={state.t("aiIntake.title")}
@@ -196,9 +259,9 @@ export function AssistantDrawer({
           history={thread.history}
           active={thread.active}
           activeBlocks={thread.blocks}
-          interactiveActive
+          interactiveActive={consentState.accepted === true && !consentState.checking}
           transcribing={composer.wiring.transcribing}
-          opening={{ name: firstName, line: openingLine }}
+          opening={consentState.accepted === true ? { name: firstName, line: openingLine } : undefined}
           onSuggestion={(suggestion) => {
             void intent.handleSubmit(suggestion);
           }}
@@ -213,5 +276,6 @@ export function AssistantDrawer({
         />
       </div>
     </AssistantShell>
+    </>
   );
 }

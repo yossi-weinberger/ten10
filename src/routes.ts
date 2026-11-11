@@ -75,6 +75,10 @@ const TermsPage = lazyRouteComponent(
   () => import("./pages/TermsPage"),
   "TermsPage"
 );
+const BetaTermsPage = lazyRouteComponent(
+  () => import("./pages/BetaTermsPage"),
+  "BetaTermsPage"
+);
 const AccessibilityPage = lazyRouteComponent(
   () => import("./pages/AccessibilityPage"),
   "AccessibilityPage"
@@ -260,6 +264,12 @@ const termsRoute = createRoute({
   component: TermsPage,
 });
 
+const betaTermsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/beta-terms",
+  component: BetaTermsPage,
+});
+
 const accessibilityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/accessibility",
@@ -321,6 +331,7 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   privacyRoute,
   termsRoute,
+  betaTermsRoute,
   accessibilityRoute,
   adminRoute,
   transactionsTableRoute.addChildren([
