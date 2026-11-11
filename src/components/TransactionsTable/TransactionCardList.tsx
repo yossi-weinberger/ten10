@@ -116,6 +116,7 @@ const TransactionCard = memo(function TransactionCard({
   onSwipeClose,
 }: TransactionCardProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const swipeTriggeredRef = useRef(false);
   const isSwipeOpen = swipeOpenId === transaction.id;
 
@@ -139,11 +140,13 @@ const TransactionCard = memo(function TransactionCard({
   const swipeHandlers = useSwipe({
     onSwipeStart: () => {
       swipeTriggeredRef.current = true;
+      setIsAnimating(false);
     },
     onSwipeMove: (offset) => {
       setSwipeOffset(Math.min(offset, ACTION_BUTTONS_WIDTH));
     },
     onSwipeEnd: (offset) => {
+      setIsAnimating(true);
       if (offset >= SWIPE_THRESHOLD) {
         setSwipeOffset(ACTION_BUTTONS_WIDTH);
         onSwipeOpen(transaction.id);
@@ -163,11 +166,7 @@ const TransactionCard = memo(function TransactionCard({
     disabled: inSelectionMode,
   });
 
-  useEffect(() => {
-    if (!isSwipeOpen && swipeOffset > 0) {
-      setSwipeOffset(0);
-    }
-  }, [isSwipeOpen, swipeOffset]);
+  const effectiveSwipeOffset = isSwipeOpen ? swipeOffset : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
@@ -258,8 +257,8 @@ const TransactionCard = memo(function TransactionCard({
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
         style={{
-          transform: `translateX(${isRTL ? -swipeOffset : swipeOffset}px)`,
-          transition: swipeTriggeredRef.current ? "none" : "transform 0.3s ease-out",
+          transform: `translateX(${isRTL ? -effectiveSwipeOffset : effectiveSwipeOffset}px)`,
+          transition: isAnimating || !isSwipeOpen ? "transform 0.3s ease-out" : "none",
         }}
         onClick={handleCardClick}
         onKeyDown={onKeyDown}
@@ -380,11 +379,11 @@ export function TransactionCardList({
   const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
 
   const inSelectionMode = selectedIds.size > 0;
+  const computedSwipeOpenId = inSelectionMode ? null : swipeOpenId;
 
   React.useEffect(() => {
     if (inSelectionMode) {
       document.body.dataset.mobileSelectionActive = "true";
-      setSwipeOpenId(null);
     } else {
       delete document.body.dataset.mobileSelectionActive;
     }
@@ -395,18 +394,18 @@ export function TransactionCardList({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (swipeOpenId && !(e.target as Element).closest('[role="button"]')) {
+      if (computedSwipeOpenId && !(e.target as Element).closest('[role="button"]')) {
         setSwipeOpenId(null);
       }
     };
 
     const handleScroll = () => {
-      if (swipeOpenId) {
+      if (computedSwipeOpenId) {
         setSwipeOpenId(null);
       }
     };
 
-    if (swipeOpenId) {
+    if (computedSwipeOpenId) {
       document.addEventListener("click", handleClickOutside, true);
       window.addEventListener("scroll", handleScroll, true);
     }
@@ -415,7 +414,7 @@ export function TransactionCardList({
       document.removeEventListener("click", handleClickOutside, true);
       window.removeEventListener("scroll", handleScroll, true);
     };
-  }, [swipeOpenId]);
+  }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -642,7 +641,7 @@ export function TransactionCardList({
               isRTL={i18n.dir() === "rtl"}
               onEdit={onEdit}
               onDelete={onDelete}
-              swipeOpenId={swipeOpenId}
+              swipeOpenId={computedSwipeOpenId}
               onSwipeOpen={handleSwipeOpen}
               onSwipeClose={handleSwipeClose}
             />
