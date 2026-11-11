@@ -1226,3 +1226,170 @@ describe("TransactionCardList", () => {
     expect(parent?.className).toContain("ph-mask");
   });
 });
+
+function expectPostHogMask(element: Element | null | undefined) {
+  expect(element).toBeTruthy();
+  expect(element).toHaveAttribute("data-ph-mask", "");
+  expect(element?.classList.contains("ph-mask")).toBe(true);
+  expect(element?.classList.contains("ph-sensitive")).toBe(true);
+}
+
+describe("TransactionCardList PostHog masking", () => {
+  const renderList = (transactions: TransactionForTable[], trackChomesh = false) => {
+    mockUseDonationStore.mockReturnValue(trackChomesh);
+    return render(
+      <TransactionCardList
+        transactions={transactions}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+  };
+
+  const openCard = async (label: string) => {
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((item) => item.textContent?.includes(label));
+    expect(card).toBeTruthy();
+    fireEvent.click(card!);
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+  };
+
+  beforeEach(() => {
+    mockUseDonationStore.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("applies ph-mask and data-ph-mask to the card description", () => {
+    renderList([mockTransactions[1]]);
+
+    const description = screen.getByText("Groceries");
+    expectPostHogMask(description.closest("[data-ph-mask]"));
+    expect(description.textContent).toBe("Groceries");
+  });
+
+  it("applies ph-mask and data-ph-mask to the card date", () => {
+    renderList([mockTransactions[1]]);
+
+    const date = screen.getByText("2026-11-05");
+    expectPostHogMask(date.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card amount", () => {
+    renderList([mockTransactions[1]]);
+
+    const amount = screen.getByText("200 ILS");
+    expectPostHogMask(amount.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card category", () => {
+    renderList([mockTransactions[1]]);
+
+    const category = screen.getByText("Food");
+    expectPostHogMask(category.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card chomesh status, icon, and text", () => {
+    const { container } = renderList(
+      [{ ...mockTransactions[1], is_chomesh: true }],
+      true,
+    );
+
+    const labels = screen.getAllByText("Chomesh");
+    expect(labels.length).toBeGreaterThanOrEqual(1);
+    labels.forEach((label) => {
+      expectPostHogMask(label.closest("[data-ph-mask]"));
+    });
+
+    const icon = container.querySelector(".lucide-badge-check");
+    expect(icon).toBeTruthy();
+    expectPostHogMask(icon?.closest("[data-ph-mask]"));
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("applies ph-mask and data-ph-mask to the card recurring indicator", () => {
+    renderList([mockTransactions[2]]);
+
+    const card = screen.getByRole("button", { name: /Charity/ });
+    const icon = card.querySelector(".lucide-repeat");
+    expect(icon).toBeTruthy();
+    expectPostHogMask(icon?.closest("[data-ph-mask]"));
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer description and amount", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const descriptions = screen.getAllByText("Groceries");
+    expect(descriptions.length).toBeGreaterThanOrEqual(2);
+    descriptions.forEach((description) => {
+      expectPostHogMask(description.closest("[data-ph-mask]"));
+    });
+
+    const amounts = screen.getAllByText("200 ILS");
+    expect(amounts.length).toBeGreaterThanOrEqual(2);
+    amounts.forEach((amount) => {
+      expectPostHogMask(amount.closest("[data-ph-mask]"));
+    });
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer date", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const dates = screen.getAllByText("2026-11-05");
+    expect(dates.length).toBeGreaterThanOrEqual(2);
+    dates.forEach((date) => {
+      expectPostHogMask(date.closest("[data-ph-mask]"));
+    });
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer category and recipient", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    screen.getAllByText("Food").forEach((category) => {
+      expectPostHogMask(category.closest("[data-ph-mask]"));
+    });
+    expectPostHogMask(screen.getByText("SuperMarket").closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer payment method", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const paymentMethod = screen.getByText("Credit Card");
+    expectPostHogMask(paymentMethod);
+    expect(paymentMethod.closest("[data-ph-mask]")?.classList.contains("ph-mask")).toBe(true);
+  });
+
+  it("applies ph-mask and data-ph-mask to drawer chomesh label and value", async () => {
+    renderList([{ ...mockTransactions[1], is_chomesh: true }], true);
+    await openCard("Groceries");
+
+    const labels = screen.getAllByText("Chomesh");
+    expect(labels.length).toBeGreaterThanOrEqual(2);
+    labels.forEach((label) => {
+      expectPostHogMask(label);
+    });
+
+    const value = screen.getByText("Yes");
+    expectPostHogMask(value);
+  });
+
+  it("applies ph-mask and data-ph-mask to drawer recurring info", async () => {
+    renderList([mockTransactions[2]], true);
+    await openCard("Charity");
+
+    const recurringBadge = screen.getByText("Recurring Badge");
+    expectPostHogMask(recurringBadge.closest("[data-ph-mask]"));
+  });
+});

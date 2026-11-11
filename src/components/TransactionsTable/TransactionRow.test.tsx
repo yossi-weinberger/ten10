@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
-import { render } from "@testing-library/react";
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi, beforeAll, afterEach } from "vitest";
 import { TransactionRow } from "./TransactionRow";
 import type { TransactionForTable } from "@/types/transaction";
 
@@ -80,6 +81,10 @@ const sampleTransaction: TransactionForTable = {
 };
 
 describe("TransactionRow PostHog masking", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("applies ph-mask and data-ph-mask to description cell", () => {
     const { container } = render(
       <table>
@@ -305,5 +310,59 @@ describe("TransactionRow PostHog masking", () => {
     expect(maskedElement).toBeTruthy();
     expect(maskedElement?.classList.contains("ph-mask")).toBe(true);
     expect(maskedElement?.classList.contains("ph-sensitive")).toBe(true);
+  });
+
+  it("applies ph-mask and data-ph-mask to recurring tooltip text", async () => {
+    const transactionWithRecurring: TransactionForTable = {
+      ...sampleTransaction,
+      source_recurring_id: "rec-1",
+      occurrence_number: 1,
+      recurring_info: {
+        status: "active",
+        execution_count: 1,
+        total_occurrences: 12,
+        frequency: "monthly",
+        day_of_month: 10,
+        start_date: "2026-01-01",
+        next_due_date: "2026-12-10",
+        calendar_type: "gregorian",
+        anchor_month_code: null,
+      },
+    };
+
+    const { container } = render(
+      <table>
+        <tbody>
+          <TransactionRow
+            transaction={transactionWithRecurring}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            selected={false}
+            onToggleSelected={vi.fn()}
+            selectLabel="Select"
+          />
+        </tbody>
+      </table>
+    );
+
+    const user = userEvent.setup();
+    const progress = Array.from(container.querySelectorAll("span")).find(
+      (node) => node.textContent === "1/12" && node.children.length === 0,
+    );
+    expect(progress).toBeTruthy();
+    const trigger = progress?.closest("[data-state]");
+    expect(trigger).toBeTruthy();
+    await user.hover(trigger!);
+
+    const dayOfMonth = await screen.findByText(/recurring\.dayOfMonth/, undefined, {
+      timeout: 2000,
+    });
+    const tooltip = dayOfMonth.closest("[data-ph-mask]");
+    expect(tooltip).toBeTruthy();
+    expect(tooltip?.classList.contains("ph-mask")).toBe(true);
+    expect(tooltip?.classList.contains("ph-sensitive")).toBe(true);
+    expect(tooltip?.getAttribute("data-ph-mask")).toBe("");
   });
 });

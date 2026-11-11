@@ -291,7 +291,12 @@ export function TransactionCardList({
                   {transaction.recurring_info && (
                     <>
                       <span>·</span>
-                      <Repeat className="h-3 w-3" aria-hidden="true" />
+                      <span
+                        className={cn(PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        <Repeat className="h-3 w-3" aria-hidden="true" />
+                      </span>
                     </>
                   )}
                   {isSpecialType(transaction.type) && (
@@ -306,9 +311,20 @@ export function TransactionCardList({
                     </Badge>
                   )}
                   {trackChomeshSeparately && transaction.is_chomesh && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px]">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-0.5 text-[10px]",
+                        PH_SENSITIVE_PROPS.className
+                      )}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
                       <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-                      <span>{t("cards.chomesh")}</span>
+                      <span
+                        className={cn(PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {t("cards.chomesh")}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -466,7 +482,15 @@ export function TransactionCardList({
 
                 {trackChomeshSeparately && selectedTransaction.is_chomesh && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.chomesh")}</span>
+                    <span
+                      className={cn(
+                        "text-muted-foreground",
+                        PH_SENSITIVE_PROPS.className
+                      )}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {t("columns.chomesh")}
+                    </span>
                     <span
                       className={cn(PH_SENSITIVE_PROPS.className)}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
