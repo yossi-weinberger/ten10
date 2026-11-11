@@ -102,7 +102,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     replacing,
   } = state;
   const { pairActionBusy } = state;
-  const lastQuestionRef = useRef<{ slots: string; at: number } | null>(null);
+  const lastQuestionRef = useRef<{ normalizedText: string; family: string; search: boolean; at: number } | null>(null);
+
+  function normalizeQuestionText(text: string): string {
+    return text.trim().replace(/\s+/g, " ").toLowerCase().replace(/[.!?]+$/, "");
+  }
 
   function showHeld(next: HeldDraft) {
     held.current = next;
@@ -238,13 +242,26 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
     
-    const questionKey = `${family || ""}-${searchDescriptions}`;
-    const now = Date.now();
-    const last = lastQuestionRef.current;
-    if (last && last.slots === questionKey && now - last.at <= 60000) {
-      trackAiQuestionReasked(60);
+    if (turn) {
+      const normalizedText = normalizeQuestionText(source);
+      const now = Date.now();
+      const last = lastQuestionRef.current;
+      if (
+        last &&
+        last.normalizedText === normalizedText &&
+        last.family === (family || "") &&
+        last.search === searchDescriptions &&
+        now - last.at <= 60000
+      ) {
+        trackAiQuestionReasked(60);
+      }
+      lastQuestionRef.current = {
+        normalizedText,
+        family: family || "",
+        search: searchDescriptions,
+        at: now,
+      };
     }
-    lastQuestionRef.current = { slots: questionKey, at: now };
     
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
