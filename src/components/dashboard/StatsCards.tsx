@@ -375,8 +375,8 @@ export function StatsCards({
 
   const containerClass =
     orientation === "horizontal"
-      ? "grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4"
-      : "grid grid-cols-2 md:grid-cols-1 gap-4";
+      ? "grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 mobile-landscape:!grid-cols-4"
+      : "grid grid-cols-2 md:grid-cols-1 gap-4 mobile-landscape:!grid-cols-4";
 
   const rootContainerClass = "space-y-4";
 
@@ -402,7 +402,8 @@ export function StatsCards({
                   : ""
               }
             >
-              {dateRangeLabels[rangeKey]}
+              <span className="hidden sm:inline">{dateRangeLabels[rangeKey]}</span>
+              <span className="sm:hidden">{t(`dateRange.${rangeKey}Short`)}</span>
             </Button>
           ))}
         <DatePickerWithRange

@@ -286,7 +286,9 @@
     "allFrequencies": "כל התדירויות",
     "frequenciesSelected": "{{count}} נבחרו",
     "filterByFrequency": "סינון לפי תדירות",
-    "resetFilters": "אפס סינונים"
+    "resetFilters": "אפס סינונים",
+    "showFilters": "סינון",
+    "hideFilters": "הסתר סינונים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",

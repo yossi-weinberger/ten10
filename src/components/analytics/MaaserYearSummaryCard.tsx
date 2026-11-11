@@ -16,6 +16,8 @@ import { isMaaserYearCloseWindow } from "@/lib/calendar";
 import { formatCurrency } from "@/lib/utils/currency";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import type { CurrencyCode } from "@/lib/currencies";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 
 interface MaaserYearSummaryCardProps {
   summary: MaaserYearSummary;
@@ -74,7 +76,16 @@ function StatCell({
           </TooltipProvider>
         ) : null}
       </div>
-      <p className={`text-lg font-semibold tracking-tight ${toneClass}`}>{value}</p>
+      <p
+        className={cn(
+          "text-lg font-semibold tracking-tight",
+          toneClass,
+          PH_SENSITIVE_PROPS.className,
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        {value}
+      </p>
     </div>
   );
 }

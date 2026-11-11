@@ -250,7 +250,7 @@ export function AnalyticsPage() {
     <div className="grid gap-6" dir={i18n.dir()}>
       {/* Page header */}
       <div className="grid gap-1">
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="text-2xl font-bold text-foreground max-md:sr-only mobile-landscape:sr-only">
           {t("analytics.title")}
         </h2>
         <p className="text-muted-foreground text-sm">{t("analytics.subtitle")}</p>

@@ -32,12 +32,12 @@ export function AssistantFab() {
   }
 
   return (
-    <div className="fixed bottom-6 end-6 z-50">
+    <div className="fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            className="size-14 rounded-full shadow-lg [&_svg]:size-7"
+            className="size-14 mobile-landscape:size-12 rounded-full shadow-lg [&_svg]:size-7 mobile-landscape:[&_svg]:size-6"
             aria-label={t("menu.assistant")}
             onClick={requestAssistantOpen}
           >
