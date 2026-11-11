@@ -627,7 +627,7 @@ export function TransactionCardList({
             return (
               <div
                 key={`month-separator-${item.monthKey}`}
-                className="sticky top-0 z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
+                className="sticky max-md:top-[var(--mobile-topbar-h,0px)] md:top-0 z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
               >
                 <span
                   className={cn(PH_SENSITIVE_PROPS.className)}
