@@ -120,7 +120,8 @@ const TransactionCard = memo(function TransactionCard({
   const swipeTriggeredRef = useRef(false);
   const isSwipeOpen = swipeOpenId === transaction.id;
 
-  const ACTION_BUTTONS_WIDTH = 160;
+  // Measured width: 44px (edit) + 8px (gap-2) + 44px (delete) + 12px (pe-3) = 108px
+  const ACTION_BUTTONS_WIDTH = 108;
   const SWIPE_THRESHOLD = 50;
 
   const isMobileSwipeEnabled = typeof window !== "undefined" 
@@ -170,7 +171,9 @@ const TransactionCard = memo(function TransactionCard({
     disabled: inSelectionMode || !isMobileSwipeEnabled,
   });
 
-  const effectiveSwipeOffset = (isSwipeOpen && isMobileSwipeEnabled) ? swipeOffset : 0;
+  // Apply offset during drag (swipeOffset > 0) or when open
+  // Reset to 0 if another card is open (swipeOpenId is not null and not this card)
+  const effectiveSwipeOffset = isMobileSwipeEnabled && (swipeOffset > 0 || isSwipeOpen) ? swipeOffset : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
@@ -292,7 +295,7 @@ const TransactionCard = memo(function TransactionCard({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div
             className={cn(
               "truncate font-medium",
