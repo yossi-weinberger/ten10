@@ -99,6 +99,7 @@ export function AssistantThread({
   activeBlocks,
   interactiveActive,
   transcribing = false,
+  disabled = false,
   onSuggestion,
   onReceipt,
   onVoice,
@@ -112,6 +113,8 @@ export function AssistantThread({
   activeBlocks: ReplyBlock[];
   interactiveActive: boolean;
   transcribing?: boolean;
+  /** Empty-state suggestion chips. The drawer passes this from the consent gate. */
+  disabled?: boolean;
   onSuggestion: (text: string) => void;
   onReceipt?: (file: File) => void;
   onVoice?: () => void;
@@ -156,8 +159,10 @@ export function AssistantThread({
             >
               <button
                 type="button"
-                className="inline-flex h-11 min-h-11 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={disabled}
+                className="inline-flex h-11 min-h-11 items-center gap-1.5 rounded-full border bg-card pe-3 ps-1 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 onClick={() => {
+                  if (disabled) return;
                   if (key === "receipt") fileRef.current?.click();
                   else if (key === "voice") onVoice?.();
                   else onSuggestion(t(`aiIntake.suggestions.${key}`));
