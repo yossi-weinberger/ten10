@@ -139,22 +139,44 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 min-h-[170px] sm:min-h-[185px]`}
+      } transition-all duration-300 min-h-[112px] md:min-h-[185px] mobile-landscape:!min-h-[96px]`}
       gradientColor={styles.gradient}
     >
       <div className="relative h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight">
-            {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon}`} />}
+        <CardHeader className="flex flex-row items-center justify-between pb-2 max-md:pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-2 mobile-landscape:pt-2 mobile-landscape:gap-1">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight max-md:leading-none max-md:min-w-0 max-md:flex-1 mobile-landscape:min-w-0 mobile-landscape:flex-1 mobile-landscape:text-[11px]">
+            {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon} max-md:shrink-0 mobile-landscape:shrink-0`} />}
             {title}
           </CardTitle>
-          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
+          <div className="flex items-center gap-2">
+            <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
+            {showAddButton && onAddClick && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onAddClick}
+                    data-onboarding={addButtonOnboarding}
+                    className={`md:hidden mobile-landscape:!inline-flex size-11 mobile-landscape:!size-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  >
+                    <BadgePlus className="h-6 w-6 mobile-landscape:!h-5 mobile-landscape:!w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="max-w-xs text-sm" dir={i18n.dir()}>
+                    {addButtonTooltip}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6">
+        <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6 max-md:px-2 max-md:pt-0">
           <div
             className={`text-center ${
               i18n.dir() === "rtl" ? "sm:text-right" : "sm:text-left"
-            } mt-2 sm:mt-0 h-10 sm:h-12`}
+            } mt-2 sm:mt-0 max-md:mt-0 h-10 sm:h-12 max-md:h-8`}
           >
             {error ? (
               <p className="text-xs text-red-500" dir={i18n.dir()}>
@@ -167,7 +189,7 @@ export function StatCard({
               />
             ) : (
               <span
-                className={`ph-mask inline-block text-2xl sm:text-3xl font-bold tabular-nums whitespace-nowrap ${styles.text}`}
+                className={`ph-mask inline-block text-2xl sm:text-3xl max-md:!text-[clamp(20px,6vw,26px)] mobile-landscape:!text-[clamp(16px,3.4vw,22px)] font-bold tabular-nums whitespace-nowrap ${styles.text}`}
                 data-ph-mask
               >
                 <CountUp
@@ -183,7 +205,7 @@ export function StatCard({
             )}
           </div>
           <div
-            className={`mt-auto text-xs text-muted-foreground ${
+            className={`mt-auto text-xs text-muted-foreground mobile-landscape:hidden ${
               i18n.dir() === "rtl" ? "text-right" : "text-left"
             }`}
             dir={i18n.dir()}
@@ -197,7 +219,7 @@ export function StatCard({
 
         {showAddButton && onAddClick && (
           <div
-            className={`absolute bottom-2 ${
+            className={`absolute bottom-2 max-md:hidden mobile-landscape:hidden ${
               i18n.dir() === "rtl" ? "left-2" : "right-2"
             }`}
           >

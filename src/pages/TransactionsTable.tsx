@@ -15,7 +15,7 @@ export function TransactionsTable() {
   if (platform === "loading") {
     return (
       <div className="container mx-auto py-4">
-        <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
+        <h1 className="text-3xl font-bold text-center mb-6 text-foreground max-md:sr-only mobile-landscape:sr-only">
           {t("transactionsTable.pageTitle")}
         </h1>
         <Card>
@@ -30,7 +30,7 @@ export function TransactionsTable() {
   return (
     <div className="container mx-auto py-4">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold text-foreground max-md:sr-only mobile-landscape:sr-only">
           {t("transactionsTable.pageTitle")}
         </h1>
         <Button
