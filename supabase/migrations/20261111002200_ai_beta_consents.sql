@@ -1,7 +1,6 @@
--- AI beta consent record (PR-4): migration only, no client UI or edge function changes yet.
--- This establishes the consent table, RPCs for accepting terms and checking status, and a
--- service-role helper for server-side consent checks. The current terms version is a SQL
--- function that must match the client/edge constant AI_BETA_TERMS_VERSION.
+-- AI beta consent record (PR-4, revised design): consent in user_plans, not a separate table.
+-- Consent is irreversible: once accepted, it cannot be un-accepted (but a newer version may be accepted later).
+-- is_active: admin can revoke access by setting is_active=false (keeps plan + beta columns for audit).
 --
 -- Rollback: supabase/migrations/rollback/20261111002200_ai_beta_consents_down.sql
 
@@ -20,35 +19,272 @@ COMMENT ON FUNCTION ai.current_beta_terms_version() IS
   'Returns the current AI beta terms version. This must match the client and edge constant AI_BETA_TERMS_VERSION.';
 
 -- ---------------------------------------------------------------------------
--- Consent record table
+-- Add beta consent columns to public.user_plans
 -- ---------------------------------------------------------------------------
-CREATE TABLE ai.beta_consents (
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  terms_version text NOT NULL CHECK (length(terms_version) <= 20),
-  accepted_at timestamptz NOT NULL DEFAULT now(),
-  opted_out_at timestamptz,
-  accepted_metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  PRIMARY KEY (user_id, terms_version)
-);
+ALTER TABLE public.user_plans 
+  ADD COLUMN beta_terms_version text NULL CHECK (length(beta_terms_version) <= 20),
+  ADD COLUMN beta_terms_accepted_at timestamptz NULL,
+  ADD COLUMN is_active boolean NOT NULL DEFAULT true;
 
-COMMENT ON TABLE ai.beta_consents IS 
-  'Records AI beta terms acceptance and opt-out. Row is kept after opt-out as proof of consent and withdrawal (pending lawyer confirmation, Decision D6).';
+COMMENT ON COLUMN public.user_plans.beta_terms_version IS 
+  'AI beta terms version accepted by the user. NULL if never accepted.';
 
-COMMENT ON COLUMN ai.beta_consents.accepted_metadata IS 
-  'Whitelisted metadata only: {platform, locale, country_header}. No IP address. Length-limited at write time.';
+COMMENT ON COLUMN public.user_plans.beta_terms_accepted_at IS 
+  'Timestamp when the user accepted the beta terms. NULL if never accepted.';
+
+COMMENT ON COLUMN public.user_plans.is_active IS 
+  'Whether the plan assignment is active. Admin can revoke by setting to false (keeps row for audit).';
 
 -- ---------------------------------------------------------------------------
--- RLS policies: authenticated users can SELECT only their own rows
+-- Update ai.effective_plan to treat is_active=false as no plan
 -- ---------------------------------------------------------------------------
-ALTER TABLE ai.beta_consents ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION ai.effective_plan(p_user_id uuid) RETURNS text
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public', 'ai'
+    AS $$
+  SELECT COALESCE(
+    (SELECT up.plan
+       FROM public.user_plans up
+      WHERE up.user_id = p_user_id
+        AND up.is_active = true
+        AND (up.expires_at IS NULL OR up.expires_at > now())),
+    (SELECT p.plan FROM public.plans p WHERE p.is_default)
+  );
+$$;
 
-CREATE POLICY beta_consents_select ON ai.beta_consents
-  FOR SELECT TO authenticated
-  USING ((SELECT auth.uid()) = user_id);
+COMMENT ON FUNCTION ai.effective_plan(p_user_id uuid) IS 
+  'Returns the effective plan for a user. Treats is_active=false as no plan.';
 
-REVOKE ALL ON ai.beta_consents FROM PUBLIC, anon, authenticated;
-GRANT SELECT ON ai.beta_consents TO authenticated;
-GRANT ALL ON ai.beta_consents TO service_role;
+-- ---------------------------------------------------------------------------
+-- Update admin_remove_user_plan to set is_active=false instead of DELETE
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.admin_remove_user_plan(
+  p_email text,
+  p_force boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public', 'auth'
+AS $$
+DECLARE
+  v_user_id uuid;
+  v_existing_source text;
+  v_deactivated boolean := false;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized: Authentication required';
+  END IF;
+
+  IF NOT public.is_admin_user() THEN
+    RAISE EXCEPTION 'Access denied: Admin privileges required';
+  END IF;
+
+  -- Resolve user by email (case-insensitive, trimmed)
+  SELECT id INTO v_user_id
+  FROM auth.users
+  WHERE lower(trim(both from email)) = lower(trim(both from p_email))
+    AND deleted_at IS NULL;
+
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'USER_NOT_FOUND'
+      USING DETAIL = p_email,
+            ERRCODE = 'P0002';
+  END IF;
+
+  -- Check if assignment is from billing (with lock to avoid race)
+  SELECT source INTO v_existing_source
+  FROM public.user_plans
+  WHERE user_id = v_user_id
+  FOR UPDATE;
+
+  IF v_existing_source IS NULL THEN
+    RETURN jsonb_build_object(
+      'user_id', v_user_id,
+      'email', p_email,
+      'deleted', false,
+      'reason', 'no_assignment'
+    );
+  END IF;
+
+  IF v_existing_source = 'billing' AND NOT COALESCE(p_force, false) THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Set is_active=false instead of DELETE (keeps row for audit, including beta columns)
+  UPDATE public.user_plans
+  SET is_active = false, updated_at = now()
+  WHERE user_id = v_user_id;
+
+  v_deactivated := FOUND;
+
+  RETURN jsonb_build_object(
+    'user_id', v_user_id,
+    'email', p_email,
+    'deleted', v_deactivated
+  );
+END;
+$$;
+
+COMMENT ON FUNCTION public.admin_remove_user_plan(text, boolean) IS 
+  'Admin-only. Sets is_active=false instead of DELETE. Keeps row for audit (plan, source, beta columns).';
+
+-- ---------------------------------------------------------------------------
+-- Update admin_set_user_plan to set is_active=true when assigning/re-assigning
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.admin_set_user_plan(
+  p_email text,
+  p_plan text,
+  p_expires_on date DEFAULT NULL,
+  p_note text DEFAULT NULL,
+  p_force boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public', 'auth'
+AS $$
+DECLARE
+  v_user_id uuid;
+  v_existing_source text;
+  v_expires_at timestamp with time zone;
+  v_rows_affected integer;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized: Authentication required';
+  END IF;
+
+  IF NOT public.is_admin_user() THEN
+    RAISE EXCEPTION 'Access denied: Admin privileges required';
+  END IF;
+
+  -- Resolve user by email (case-insensitive, trimmed)
+  SELECT id INTO v_user_id
+  FROM auth.users
+  WHERE lower(trim(both from email)) = lower(trim(both from p_email))
+    AND deleted_at IS NULL;
+
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'USER_NOT_FOUND'
+      USING DETAIL = p_email,
+            ERRCODE = 'P0002';
+  END IF;
+
+  -- Verify plan exists
+  IF NOT EXISTS (SELECT 1 FROM public.plans WHERE plan = p_plan) THEN
+    RAISE EXCEPTION 'PLAN_NOT_FOUND'
+      USING DETAIL = p_plan,
+            ERRCODE = 'P0002';
+  END IF;
+
+  -- Reject past expiry dates (valid through the chosen day in Asia/Jerusalem)
+  IF p_expires_on IS NOT NULL AND p_expires_on < (now() AT TIME ZONE 'Asia/Jerusalem')::date THEN
+    RAISE EXCEPTION 'EXPIRY_IN_PAST'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Compute expiry timestamp: 23:59:59.999999 on the chosen day in Asia/Jerusalem
+  IF p_expires_on IS NOT NULL THEN
+    v_expires_at := ((p_expires_on + 1)::timestamp AT TIME ZONE 'Asia/Jerusalem') - interval '1 microsecond';
+  ELSE
+    v_expires_at := NULL;
+  END IF;
+
+  -- Check if existing assignment is from billing (with lock to avoid race)
+  SELECT source INTO v_existing_source
+  FROM public.user_plans
+  WHERE user_id = v_user_id
+  FOR UPDATE;
+
+  IF v_existing_source = 'billing' AND NOT COALESCE(p_force, false) THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Upsert the assignment (protect billing rows in DO UPDATE, always set is_active=true)
+  INSERT INTO public.user_plans (user_id, plan, expires_at, note, source, is_active)
+  VALUES (v_user_id, p_plan, v_expires_at, p_note, 'manual', true)
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    plan = EXCLUDED.plan,
+    expires_at = EXCLUDED.expires_at,
+    note = EXCLUDED.note,
+    source = 'manual',
+    is_active = true,
+    updated_at = now()
+  WHERE user_plans.source <> 'billing' OR COALESCE(p_force, false);
+
+  GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+
+  IF v_rows_affected = 0 THEN
+    RAISE EXCEPTION 'BILLING_REQUIRES_FORCE'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  RETURN jsonb_build_object(
+    'user_id', v_user_id,
+    'email', p_email,
+    'plan', p_plan,
+    'expires_at', v_expires_at,
+    'note', p_note
+  );
+END;
+$$;
+
+COMMENT ON FUNCTION public.admin_set_user_plan(text, text, date, text, boolean) IS 
+  'Admin-only. Sets is_active=true when assigning/re-assigning a plan.';
+
+-- ---------------------------------------------------------------------------
+-- Update admin_list_user_plans to return is_active column
+-- (must DROP first because return type changes)
+-- ---------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.admin_list_user_plans();
+
+CREATE FUNCTION public.admin_list_user_plans()
+RETURNS TABLE (
+  user_email text,
+  user_id uuid,
+  plan text,
+  source text,
+  expires_at timestamp with time zone,
+  note text,
+  is_active boolean,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public', 'auth'
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized: Authentication required';
+  END IF;
+
+  IF NOT public.is_admin_user() THEN
+    RAISE EXCEPTION 'Access denied: Admin privileges required';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    u.email::text,
+    up.user_id,
+    up.plan,
+    up.source,
+    up.expires_at,
+    up.note,
+    up.is_active,
+    up.created_at,
+    up.updated_at
+  FROM public.user_plans up
+  JOIN auth.users u ON u.id = up.user_id
+  ORDER BY up.updated_at DESC;
+END;
+$$;
+
+COMMENT ON FUNCTION public.admin_list_user_plans() IS 
+  'Admin-only. Lists all user plan assignments with is_active column.';
 
 -- ---------------------------------------------------------------------------
 -- RPC: Accept AI beta terms (authenticated users only)
@@ -63,10 +299,7 @@ CREATE FUNCTION public.accept_ai_beta_terms(
 DECLARE
   v_uid uuid := auth.uid();
   v_current_version text;
-  v_clean_metadata jsonb;
-  v_platform text;
-  v_locale text;
-  v_country text;
+  v_plan_exists boolean;
 BEGIN
   IF v_uid IS NULL THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
@@ -82,36 +315,24 @@ BEGIN
       HINT = v_current_version;
   END IF;
 
-  -- Whitelist and length-limit metadata fields
-  v_platform := left(coalesce(p_metadata->>'platform', ''), 50);
-  v_locale := left(coalesce(p_metadata->>'locale', ''), 10);
-  v_country := left(coalesce(p_metadata->>'country_header', ''), 2);
+  -- Check if user has an active user_plans row
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_plans
+    WHERE user_id = v_uid AND is_active = true
+  ) INTO v_plan_exists;
 
-  v_clean_metadata := jsonb_build_object(
-    'platform', nullif(v_platform, ''),
-    'locale', nullif(v_locale, ''),
-    'country_header', nullif(v_country, '')
-  );
+  IF NOT v_plan_exists THEN
+    RAISE EXCEPTION 'NO_ACTIVE_PLAN';
+  END IF;
 
-  -- Upsert consent row and clear opted_out_at
-  INSERT INTO ai.beta_consents (
-    user_id,
-    terms_version,
-    accepted_at,
-    opted_out_at,
-    accepted_metadata
-  ) VALUES (
-    v_uid,
-    p_version,
-    now(),
-    NULL,
-    v_clean_metadata
-  )
-  ON CONFLICT (user_id, terms_version) DO UPDATE
-  SET
-    accepted_at = now(),
-    opted_out_at = NULL,
-    accepted_metadata = EXCLUDED.accepted_metadata;
+  -- Update the user's own row (consent is irreversible, only version+timestamp change)
+  -- p_metadata is accepted but ignored (no storage) for compatibility with PR #707
+  UPDATE public.user_plans
+  SET 
+    beta_terms_version = p_version,
+    beta_terms_accepted_at = now(),
+    updated_at = now()
+  WHERE user_id = v_uid AND is_active = true;
 
   RETURN jsonb_build_object(
     'success', true,
@@ -122,7 +343,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.accept_ai_beta_terms(text, jsonb) IS 
-  'Records user consent to AI beta terms. Validates version against current, upserts row, clears opted_out_at. Metadata is whitelisted (platform, locale, country_header only).';
+  'Records user consent to AI beta terms. Requires active user_plans row. Validates version against current. Metadata param accepted but ignored for compatibility.';
 
 -- ---------------------------------------------------------------------------
 -- RPC: Check AI beta consent status (authenticated users only)
@@ -134,7 +355,7 @@ CREATE FUNCTION public.ai_beta_consent_status() RETURNS jsonb
 DECLARE
   v_uid uuid := auth.uid();
   v_current_version text;
-  v_consent_record ai.beta_consents%ROWTYPE;
+  v_plan_row public.user_plans%ROWTYPE;
   v_accepted boolean := false;
   v_accepted_version text;
 BEGIN
@@ -144,16 +365,16 @@ BEGIN
 
   v_current_version := ai.current_beta_terms_version();
 
-  -- Check if user has accepted current version and not opted out
-  SELECT * INTO v_consent_record
-  FROM ai.beta_consents
+  -- Check if user has an active plan with accepted current version
+  SELECT * INTO v_plan_row
+  FROM public.user_plans
   WHERE user_id = v_uid
-    AND terms_version = v_current_version
+    AND is_active = true
   LIMIT 1;
 
-  IF FOUND AND v_consent_record.opted_out_at IS NULL THEN
+  IF FOUND AND v_plan_row.beta_terms_version = v_current_version THEN
     v_accepted := true;
-    v_accepted_version := v_consent_record.terms_version;
+    v_accepted_version := v_plan_row.beta_terms_version;
   END IF;
 
   RETURN jsonb_build_object(
@@ -165,7 +386,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.ai_beta_consent_status() IS 
-  'Returns consent status for the calling user: {accepted, version, current}. accepted is true only if the current version is accepted and not opted out.';
+  'Returns consent status for the calling user: {accepted, version, current}. accepted is true only if current version is accepted and plan is active.';
 
 -- ---------------------------------------------------------------------------
 -- Service-role only helper: Check if a user has consented to a version
@@ -175,20 +396,20 @@ CREATE FUNCTION ai.has_beta_consent(
   p_version text
 ) RETURNS boolean
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'pg_catalog', 'ai'
+    SET search_path TO 'pg_catalog', 'public', 'ai'
     AS $$
 DECLARE
   v_has_consent boolean := false;
 BEGIN
   -- This function is for service_role only (edge functions, cron jobs)
-  -- It checks if a specific user has accepted a specific version and not opted out
+  -- It checks if a specific user has accepted a specific version and has an active plan
   
   SELECT EXISTS (
     SELECT 1
-    FROM ai.beta_consents
+    FROM public.user_plans
     WHERE user_id = p_user_id
-      AND terms_version = p_version
-      AND opted_out_at IS NULL
+      AND beta_terms_version = p_version
+      AND is_active = true
   ) INTO v_has_consent;
 
   RETURN v_has_consent;
@@ -196,7 +417,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION ai.has_beta_consent(uuid, text) IS 
-  'Service-role only. Returns true if the specified user has accepted the specified version and not opted out.';
+  'Service-role only. Returns true if the specified user has accepted the specified version and has an active plan.';
 
 -- ---------------------------------------------------------------------------
 -- Grants: authenticated can EXECUTE accept and status; service_role only for has_beta_consent

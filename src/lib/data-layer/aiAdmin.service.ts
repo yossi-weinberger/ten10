@@ -79,6 +79,7 @@ export type AdminUserPlan = {
   source: "manual" | "billing";
   expires_at: string | null;
   note: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 };
