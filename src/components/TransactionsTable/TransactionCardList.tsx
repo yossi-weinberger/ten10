@@ -289,16 +289,15 @@ const TransactionCard = memo(function TransactionCard({
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
           surfaceClasses,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
         style={{
-          transform: `translateX(${isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset}px)`,
-          transition: isAnimating ? "transform 0.3s ease-out" : "none",
-          paddingInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0 
-            ? `${effectiveSwipeOffset + 12}px` 
+          marginInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0 
+            ? `${effectiveSwipeOffset}px` 
             : undefined,
+          transition: isAnimating ? "margin 0.3s ease-out" : "none",
         }}
         onClick={handleCardClick}
         onKeyDown={onKeyDown}

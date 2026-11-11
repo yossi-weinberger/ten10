@@ -1791,11 +1791,10 @@ describe("TransactionCardList", () => {
       expect(markup).toContain("h-11 w-11");
     });
 
-    it("snaps to measured actions width when threshold is met", () => {
-      // When drag offset >= SWIPE_THRESHOLD (50px), should snap to maxOffset
-      // which is dynamically measured and viewport-aware (40% of viewport at narrow widths)
-      // Live drag follows finger with no animation, snap open/closed has animation
-      // This is verified by the existing swipe hook tests
+    it("uses marginInlineEnd instead of transform to reveal actions", () => {
+      // Card shrinks from inline-end side (where actions are) via marginInlineEnd
+      // This keeps the inline-start side (title/date) in place
+      // No transform/translateX is applied - the card doesn't move
       const markup = renderToStaticMarkup(
         <TransactionCardList
           transactions={[mockTransactions[0]]}
@@ -1807,7 +1806,8 @@ describe("TransactionCardList", () => {
         />
       );
 
-      expect(markup).toContain("translateX");
+      expect(markup).not.toContain("translateX");
+      expect(markup).not.toContain("transform:");
     });
 
     it("has min-w-0 on text column for proper truncation", () => {
@@ -1824,6 +1824,28 @@ describe("TransactionCardList", () => {
 
       // Text column should have min-w-0 to allow shrinking below intrinsic width
       expect(markup).toContain("min-w-0");
+    });
+
+    it("applies marginInlineEnd when swiped to reveal actions in both RTL and LTR", () => {
+      // In both RTL and LTR, marginInlineEnd shrinks the card from the end side
+      // where actions are positioned, keeping title/date (at start) in place
+      const markup = renderToStaticMarkup(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      // Actions are anchored at inline-end (end-0)
+      expect(markup).toContain("end-0");
+      // Card uses marginInlineEnd (not marginInlineStart or transform)
+      // The margin value equals effectiveSwipeOffset when open
+      // This is direction-agnostic: marginInlineEnd automatically applies to
+      // the correct side (right in LTR, left in RTL)
     });
   });
 });
