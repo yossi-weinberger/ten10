@@ -11,7 +11,13 @@ import { parseLocalDate } from "@/lib/utils/local-date";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "datePicker.selectDate": "Select date",
+        "datePicker.openCalendar": "Open calendar",
+      };
+      return translations[key] || key;
+    },
     i18n: {
       language: "en",
       dir: () => "ltr",

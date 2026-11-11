@@ -16,7 +16,9 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import {
@@ -284,6 +286,8 @@ export function DatePickerWithRange({
         </div>
         <Drawer open={open} onOpenChange={handleOpenChange}>
           <DrawerContent dir={i18n.dir()}>
+            <DrawerTitle className="sr-only">{t("datePicker.selectDateRange")}</DrawerTitle>
+            <DrawerDescription className="sr-only" aria-describedby={undefined} />
             <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-2 pt-4">
               {calendarComponent}
             </div>

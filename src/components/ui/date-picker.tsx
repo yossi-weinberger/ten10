@@ -371,7 +371,7 @@ export function DatePicker({
           onClick={() => setOpen(true)}
         >
           <CalendarIcon className="size-4 text-muted-foreground" />
-          <span className="sr-only">Open calendar</span>
+          <span className="sr-only">{t("datePicker.openCalendar")}</span>
         </Button>
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent dir={i18n.dir()}>
@@ -419,7 +419,7 @@ export function DatePicker({
             className={cn("absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0", compact && "touch-target right-1 size-6")}
           >
             <CalendarIcon className="size-4 text-muted-foreground" />
-            <span className="sr-only">Open calendar</span>
+            <span className="sr-only">{t("datePicker.openCalendar")}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
