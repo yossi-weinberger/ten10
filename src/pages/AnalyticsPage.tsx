@@ -35,8 +35,6 @@ import { formatDisplayDate } from "@/lib/calendar/display-date";
 import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
-import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
-import { cn } from "@/lib/utils";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
@@ -249,11 +247,7 @@ export function AnalyticsPage() {
   };
 
   return (
-    <div
-      className={cn("grid gap-6", PH_SENSITIVE_PROPS.className)}
-      dir={i18n.dir()}
-      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-    >
+    <div className="grid gap-6" dir={i18n.dir()}>
       {/* Page header */}
       <div className="grid gap-1">
         <h2 className="text-2xl font-bold text-foreground">

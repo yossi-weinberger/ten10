@@ -1,3 +1,6 @@
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
+
 interface PieCustomTooltipProps {
   active?: boolean;
   payload?: Array<{ name: string; value: number }>;
@@ -10,7 +13,13 @@ export function PieCustomTooltip({ active, payload, total, fmt }: PieCustomToolt
   const { name, value } = payload[0];
   const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
   return (
-    <div className="rounded-md border border-border bg-popover px-3 py-2 text-sm shadow-md">
+    <div
+      className={cn(
+        "rounded-md border border-border bg-popover px-3 py-2 text-sm shadow-md",
+        PH_SENSITIVE_PROPS.className,
+      )}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+    >
       <p className="font-medium text-foreground">{name}</p>
       <p className="text-muted-foreground">{fmt(value)} ({pct}%)</p>
     </div>

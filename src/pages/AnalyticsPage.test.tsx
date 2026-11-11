@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, beforeAll } from "vitest";
 import { AnalyticsPage } from "./AnalyticsPage";
 
@@ -54,7 +56,14 @@ vi.mock("@/hooks/useDateControls", () => ({
     dateRangeSelection: "month",
     setDateRangeSelection: vi.fn(),
     activeDateRangeObject: { from: "2026-11-01", to: "2026-11-30" },
-    dateRangeLabels: {},
+    dateRangeLabels: {
+      today: "Today",
+      week: "This week",
+      month: "This month",
+      year: "This year",
+      all: "All time",
+      custom: "Custom range",
+    },
     customDateRange: null,
     setCustomDateRange: vi.fn(),
   }),
@@ -73,7 +82,7 @@ vi.mock("@/hooks/useInsights", () => ({
     incomeCategories: [],
     isLoading: false,
     error: null,
-    categoryData: [],
+    categoryData: [{ category: "Groceries", total_amount: 50 }],
     paymentMethodData: [],
     recipientsData: [],
     heatmapData: [],
@@ -102,9 +111,9 @@ vi.mock("@/hooks/useInsights", () => ({
 
 vi.mock("@/hooks/useServerStats", () => ({
   useServerStats: () => ({
-    serverTotalIncome: 0,
+    serverTotalIncome: 200,
     isLoadingServerIncome: false,
-    serverTotalExpenses: 0,
+    serverTotalExpenses: 50,
     isLoadingServerExpenses: false,
     serverCalculatedDonationsData: null,
   }),
@@ -133,10 +142,6 @@ vi.mock("@/components/analytics/MaaserYearSummaryCard", () => ({
   MaaserYearSummaryCard: () => null,
 }));
 
-vi.mock("@/components/analytics/CategoryBreakdownChart", () => ({
-  CategoryBreakdownChart: () => null,
-}));
-
 vi.mock("@/components/analytics/RecurringForecastInsight", () => ({
   RecurringForecastInsight: () => null,
 }));
@@ -151,10 +156,6 @@ vi.mock("@/components/analytics/RecurringRatioInsight", () => ({
 
 vi.mock("@/components/analytics/DonationRecipientsInsight", () => ({
   DonationRecipientsInsight: () => null,
-}));
-
-vi.mock("@/components/analytics/InsightsSummaryRow", () => ({
-  InsightsSummaryRow: () => null,
 }));
 
 vi.mock("@/components/analytics/TextInsightsCard", () => ({
@@ -199,15 +200,30 @@ vi.mock("recharts", () => ({
   PieChart: () => null,
   Pie: () => null,
   Cell: () => null,
-  BarChart: () => null,
   Bar: () => null,
-  XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
   Tooltip: () => null,
   Legend: () => null,
   LineChart: () => null,
   Line: () => null,
+  BarChart: ({
+    children,
+    data,
+  }: {
+    children?: React.ReactNode;
+    data?: Array<{ label?: string }>;
+  }) => (
+    <div>
+      {data?.map((item) => (
+        <span key={item.label}>{item.label}</span>
+      ))}
+      {children}
+    </div>
+  ),
+  XAxis: ({ tickFormatter }: { tickFormatter?: (value: number) => string }) => (
+    <span>{tickFormatter?.(50)}</span>
+  ),
 }));
 
 describe("AnalyticsPage PostHog masking", () => {
@@ -215,13 +231,44 @@ describe("AnalyticsPage PostHog masking", () => {
     vi.clearAllMocks();
   });
 
-  it("applies ph-mask and data-ph-mask to page content root", () => {
-    const { container } = render(<AnalyticsPage />);
+  it("masks personal values without masking the page chrome", () => {
+    render(
+      <TooltipProvider>
+        <AnalyticsPage />
+      </TooltipProvider>,
+    );
 
-    const maskedRoot = container.querySelector('div[data-ph-mask].ph-mask.ph-sensitive');
-    expect(maskedRoot).toBeTruthy();
-    expect(maskedRoot?.classList.contains("ph-mask")).toBe(true);
-    expect(maskedRoot?.classList.contains("ph-sensitive")).toBe(true);
-    expect(maskedRoot?.hasAttribute("data-ph-mask")).toBe(true);
+    const title = screen.getByRole("heading", { level: 2, name: "analytics.title" });
+    const root = title.parentElement?.parentElement;
+    expect(root?.classList.contains("grid")).toBe(true);
+    expect(root?.classList.contains("ph-mask")).toBe(false);
+    expect(root?.classList.contains("ph-sensitive")).toBe(false);
+    expect(root?.hasAttribute("data-ph-mask")).toBe(false);
+
+    expect(title.closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByRole("button", { name: "Custom range" }).closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByRole("button", { name: "This month" }).closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByRole("button", { name: "analytics.exportPdf" }).closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByText("analytics.categories.title").closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByText("analytics.categories.tabExpenses").closest("[data-ph-mask]")).toBeNull();
+
+    const statValue = screen.getByText("75.0%");
+    const statMask = statValue.closest("[data-ph-mask]");
+    expect(statMask).toBeTruthy();
+    expect(statMask?.classList.contains("ph-mask")).toBe(true);
+    expect(statMask?.classList.contains("ph-sensitive")).toBe(true);
+
+    const categoryName = screen.getByText("Groceries");
+    const categoryMask = categoryName.closest("[data-ph-mask]");
+    expect(categoryMask).toBeTruthy();
+    expect(categoryMask?.classList.contains("ph-mask")).toBe(true);
+    expect(categoryMask?.classList.contains("ph-sensitive")).toBe(true);
+
+    const chartValue = screen.getByText(formatCurrency(50, "ILS", "en"));
+    const chartMask = chartValue.closest("[data-ph-mask]");
+    expect(chartMask).toBeTruthy();
+    expect(chartMask?.classList.contains("ph-mask")).toBe(true);
+    expect(chartMask?.classList.contains("ph-sensitive")).toBe(true);
+    expect(chartMask?.contains(categoryName)).toBe(true);
   });
 });
