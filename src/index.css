@@ -253,6 +253,7 @@ html {
   :root,
   .light,
   [data-theme="ten10-emerald-light"] {
+    --mobile-topbar-h: 0px;
     /* 
       The color-scheme property tells the browser which color theme is active.
       This affects the appearance of built-in browser UI elements and form controls
@@ -695,4 +696,17 @@ html[data-assistant-panel] .assistant-push {
   border: 8px solid hsl(var(--popover));
   border-radius: 8px;
   box-shadow: 0 0 0 1px rgb(15 23 42 / 0.16);
+}
+
+/* Mobile top bar height variable - used for sticky elements that need to sit below the fixed mobile top bar */
+@media (max-width: 767px) {
+  :root {
+    --mobile-topbar-h: calc(52px + env(safe-area-inset-top));
+  }
+}
+
+@media (pointer: coarse) and (max-height: 500px) {
+  :root {
+    --mobile-topbar-h: calc(52px + env(safe-area-inset-top));
+  }
 }

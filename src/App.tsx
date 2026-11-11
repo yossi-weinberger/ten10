@@ -389,6 +389,7 @@ function App() {
                     variant="ghost"
                     size="icon"
                     className="size-11 rounded-full border border-border shadow-sm hover:bg-accent hover:text-accent-foreground"
+                    aria-label={t("menu.open", { ns: "navigation" })}
                   >
                     <Menu className="h-6 w-6" />
                   </Button>
@@ -399,9 +400,9 @@ function App() {
                 >
                   {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
                   <SheetHeader>
-                    <SheetTitle className="sr-only">Mobile navigation</SheetTitle>
+                    <SheetTitle className="sr-only">{t("sheet.title", { ns: "navigation" })}</SheetTitle>
                     <SheetDescription className="sr-only">
-                      Main navigation panel for mobile view
+                      {t("sheet.description", { ns: "navigation" })}
                     </SheetDescription>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
