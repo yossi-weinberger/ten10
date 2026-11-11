@@ -36,7 +36,14 @@ const ai = vi.hoisted(() => ({
   splitItems: vi.fn(),
 }));
 
-vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {
+    rpc: vi.fn().mockResolvedValue({
+      data: { accepted: true, version: "beta-v1", current: "beta-v1" },
+      error: null,
+    }),
+  },
+}));
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({

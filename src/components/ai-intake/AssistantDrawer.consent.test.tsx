@@ -7,9 +7,11 @@ import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
 import { createRef } from "react";
 
+const mockRpc = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/supabaseClient", () => ({
   supabase: {
-    rpc: vi.fn(),
+    rpc: mockRpc,
   },
 }));
 
@@ -91,6 +93,7 @@ vi.mock("./use-assistant-drawer-thread", () => ({
 }));
 
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: {
@@ -98,6 +101,14 @@ vi.mock("react-i18next", () => ({
       dir: () => "ltr",
     },
   }),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, ...props }: { children: React.ReactNode }) => <a {...props}>{children}</a>,
+}));
+
+vi.mock("@/hooks/use-media-query", () => ({
+  useMediaQuery: () => false,
 }));
 
 vi.mock("@/hooks/use-media-query", () => ({
@@ -121,7 +132,7 @@ describe("AssistantDrawer consent gate", () => {
   });
 
   it("shows beta terms dialog when user has not accepted current version", async () => {
-    const mockRpc = vi.fn().mockResolvedValue({
+    mockRpc.mockResolvedValue({
       data: {
         accepted: false,
         version: null,
@@ -129,7 +140,6 @@ describe("AssistantDrawer consent gate", () => {
       },
       error: null,
     });
-    (supabase.rpc as unknown) = mockRpc;
 
     render(
       <AssistantDrawer
@@ -146,12 +156,12 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/Beta Terms Consent/i)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
     });
   });
 
   it("shows beta terms dialog when user accepted old version", async () => {
-    const mockRpc = vi.fn().mockResolvedValue({
+    mockRpc.mockResolvedValue({
       data: {
         accepted: true,
         version: "beta-v0",
@@ -159,7 +169,6 @@ describe("AssistantDrawer consent gate", () => {
       },
       error: null,
     });
-    (supabase.rpc as unknown) = mockRpc;
 
     render(
       <AssistantDrawer
@@ -176,12 +185,12 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("betaTerms.title")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
     });
   });
 
   it("does not show beta terms dialog when user accepted current version", async () => {
-    const mockRpc = vi.fn().mockResolvedValue({
+    mockRpc.mockResolvedValue({
       data: {
         accepted: true,
         version: AI_BETA_TERMS_VERSION,
@@ -189,7 +198,6 @@ describe("AssistantDrawer consent gate", () => {
       },
       error: null,
     });
-    (supabase.rpc as unknown) = mockRpc;
 
     render(
       <AssistantDrawer
@@ -205,13 +213,16 @@ describe("AssistantDrawer consent gate", () => {
       expect(mockRpc).toHaveBeenCalledWith("ai_beta_consent_status");
     });
 
-    await waitFor(() => {
-      expect(screen.queryByText("betaTerms.title")).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByRole("heading", { name: "betaTerms.title" })).not.toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("shows beta terms dialog when user opted out (accepted=false)", async () => {
-    const mockRpc = vi.fn().mockResolvedValue({
+    mockRpc.mockResolvedValue({
       data: {
         accepted: false,
         version: AI_BETA_TERMS_VERSION,
@@ -219,7 +230,6 @@ describe("AssistantDrawer consent gate", () => {
       },
       error: null,
     });
-    (supabase.rpc as unknown) = mockRpc;
 
     render(
       <AssistantDrawer
@@ -236,16 +246,15 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("betaTerms.title")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
     });
   });
 
   it("shows beta terms dialog on RPC error (fail closed)", async () => {
-    const mockRpc = vi.fn().mockResolvedValue({
+    mockRpc.mockResolvedValue({
       data: null,
       error: new Error("Network error"),
     });
-    (supabase.rpc as unknown) = mockRpc;
 
     render(
       <AssistantDrawer
@@ -262,7 +271,7 @@ describe("AssistantDrawer consent gate", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("betaTerms.title")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "betaTerms.title" })).toBeInTheDocument();
     });
   });
 

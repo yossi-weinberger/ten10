@@ -18,16 +18,16 @@ import {
 
 export function BetaTermsPage() {
   const { t, i18n } = useTranslation("betaTerms");
-  const headerRef = useScrollAnimation({ threshold: 0.1 });
+  const { ref: headerRef, isInView: headerIsInView } = useScrollAnimation({ threshold: 0.1 });
 
   return (
     <div className="min-h-screen" dir={i18n.dir()}>
       <div className="container mx-auto max-w-4xl px-4 py-12">
         <motion.div
           className="text-center mb-12"
-          ref={headerRef.ref}
+          ref={headerRef}
           initial="hidden"
-          animate={headerRef.isInView ? "visible" : "hidden"}
+          animate={headerIsInView ? "visible" : "hidden"}
           variants={fadeInUp}
         >
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">

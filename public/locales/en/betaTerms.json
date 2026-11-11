@@ -17,25 +17,23 @@
     "description": "When using the AI assistant, we may collect:",
     "item1": "Text you enter or share",
     "item2": "Transcripts of voice recordings",
-    "item3": "Receipt metadata (not full images)",
+    "item3": "Receipts you upload",
     "item4": "Generated drafts and corrections you made"
   },
   "retention": {
     "title": "Data Retention Period",
-    "description": "Conversations you consented to for learning purposes will be kept for up to 90 days, then automatically deleted. Receipts you uploaded will be deleted after 30 days."
+    "description": "Conversations and uploaded content will be retained according to our data policy."
   },
   "processors": {
     "title": "Processing Providers",
-    "description": "Data is processed through external AI providers:",
-    "item1": "TypeSafe AI (via Vercel Gateway, US)",
-    "item2": "Anthropic (for receipt processing, US)",
-    "item3": "Microsoft (for voice transcription)"
+    "description": "Data is processed through Vercel AI Gateway to the following providers:",
+    "item1": "TypeSafe AI",
+    "item2": "Anthropic",
+    "item3": "Microsoft"
   },
   "yourRights": {
     "title": "Your Rights",
-    "description": "You can at any time:",
-    "item1": "Delete all your conversations",
-    "item2": "Leave the beta and delete all data"
+    "description": "Information about user rights is available in the general Terms of Service."
   },
   "security": {
     "title": "Security",
