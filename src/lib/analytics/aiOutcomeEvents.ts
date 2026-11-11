@@ -69,10 +69,7 @@ export function compareQuestions(
   );
 }
 
-export function mapErrorToFailureReason(
-  errorCode?: string | null,
-  reason?: string,
-): AiTurnFailureReason {
+export function mapErrorToFailureReason(reason?: string): AiTurnFailureReason {
   if (reason === "LIMIT") return "limit";
   if (reason === "UNAVAILABLE") return "unavailable";
   if (

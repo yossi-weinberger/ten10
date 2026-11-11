@@ -564,11 +564,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     }
     
     if (!decided.ok) {
-      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(undefined, decided.reason));
+      trackAiTurnFailed(kind, "intent", mapErrorToFailureReason(decided.reason));
       return;
     }
     if (!read.ok) {
-      trackAiTurnFailed(kind, "split", mapErrorToFailureReason(undefined, read.reason));
+      trackAiTurnFailed(kind, "split", mapErrorToFailureReason(read.reason));
       return;
     }
     const split = read.ok && read.route === "several" && decided.ok && decided.chomesh

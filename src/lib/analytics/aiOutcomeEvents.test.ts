@@ -163,39 +163,39 @@ describe("aiOutcomeEvents", () => {
 
   describe("mapErrorToFailureReason", () => {
     it("maps LIMIT to limit", () => {
-      expect(mapErrorToFailureReason(undefined, "LIMIT")).toBe("limit");
+      expect(mapErrorToFailureReason("LIMIT")).toBe("limit");
     });
 
     it("maps UNAVAILABLE to unavailable", () => {
-      expect(mapErrorToFailureReason(undefined, "UNAVAILABLE")).toBe("unavailable");
+      expect(mapErrorToFailureReason("UNAVAILABLE")).toBe("unavailable");
     });
 
     it("maps TOO_LARGE to unreadable", () => {
-      expect(mapErrorToFailureReason(undefined, "TOO_LARGE")).toBe("unreadable");
+      expect(mapErrorToFailureReason("TOO_LARGE")).toBe("unreadable");
     });
 
     it("maps TOO_LONG to unreadable", () => {
-      expect(mapErrorToFailureReason(undefined, "TOO_LONG")).toBe("unreadable");
+      expect(mapErrorToFailureReason("TOO_LONG")).toBe("unreadable");
     });
 
     it("maps UNREADABLE to unreadable", () => {
-      expect(mapErrorToFailureReason(undefined, "UNREADABLE")).toBe("unreadable");
+      expect(mapErrorToFailureReason("UNREADABLE")).toBe("unreadable");
     });
 
     it("maps UNHEARD to unreadable", () => {
-      expect(mapErrorToFailureReason(undefined, "UNHEARD")).toBe("unreadable");
+      expect(mapErrorToFailureReason("UNHEARD")).toBe("unreadable");
     });
 
     it("maps MIXED to unreadable", () => {
-      expect(mapErrorToFailureReason(undefined, "MIXED")).toBe("unreadable");
+      expect(mapErrorToFailureReason("MIXED")).toBe("unreadable");
     });
 
     it("maps unknown errors to unknown", () => {
-      expect(mapErrorToFailureReason(undefined, "SOMETHING_ELSE")).toBe("unknown");
+      expect(mapErrorToFailureReason("SOMETHING_ELSE")).toBe("unknown");
     });
 
     it("maps missing reason to unknown", () => {
-      expect(mapErrorToFailureReason(undefined, undefined)).toBe("unknown");
+      expect(mapErrorToFailureReason(undefined)).toBe("unknown");
     });
   });
 
