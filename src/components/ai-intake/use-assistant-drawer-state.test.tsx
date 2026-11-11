@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import * as aiOutcomeEvents from "@/lib/analytics/aiOutcomeEvents";
-import type { ReplyState } from "@/lib/ai/assistant-turn";
+import type { ReplyState } from "./assistant-reply-view";
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 
