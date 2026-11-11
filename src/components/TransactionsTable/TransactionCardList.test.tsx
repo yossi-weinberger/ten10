@@ -7,6 +7,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
 
+const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, params?: { date?: string }) => {
@@ -42,7 +44,7 @@ vi.mock("react-i18next", () => ({
     },
     i18n: {
       language: "en",
-      dir: () => "ltr",
+      dir: () => i18nDir.current,
     },
   }),
 }));
@@ -1972,6 +1974,7 @@ describe("TransactionCardList PostHog masking", () => {
     });
 
     afterEach(() => {
+      i18nDir.current = "ltr";
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
       vi.useRealTimers();
@@ -2003,9 +2006,9 @@ describe("TransactionCardList PostHog masking", () => {
       const card = cards.find((c) => c.textContent?.includes("Salary"));
 
       act(() => {
-        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100, pointerType: "touch" });
-        fireEvent.pointerMove(card!, { clientX: 180, clientY: 100, pointerType: "touch" });
-        fireEvent.pointerUp(card!, { clientX: 180, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerDown(card!, { clientX: 180, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerMove(card!, { clientX: 20, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerUp(card!, { clientX: 20, clientY: 100, pointerType: "touch" });
       });
 
       expect(onEdit).not.toHaveBeenCalled();
@@ -2066,7 +2069,244 @@ describe("TransactionCardList PostHog masking", () => {
       expect(markup).toContain("min-w-0");
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:relative");
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[1]");
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[2]");
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:invisible");
+    });
+
+    function cardTitled(title: string): HTMLElement {
+      const card = screen.getAllByRole("button").find((el) => el.textContent?.includes(title));
+      if (!card) {
+        throw new Error(`missing card ${title}`);
+      }
+      return card;
+    }
+
+    function swipeCard(card: HTMLElement, direction: "open" | "close") {
+      const openMovesLeft = i18nDir.current !== "rtl";
+      const moveLeft = direction === "open" ? openMovesLeft : !openMovesLeft;
+      const startX = 160;
+      const endX = moveLeft ? 20 : 300;
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: startX, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: endX, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerUp(card, { clientX: endX, clientY: 40, pointerType: "touch" });
+      });
+    }
+
+    function swipeCardOpen(card: HTMLElement) {
+      swipeCard(card, "open");
+    }
+
+    it("outside tap closes an open card and its actions are not clickable", () => {
+      const onDelete = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={onDelete}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expect(card.style.marginInlineEnd).toBe("128px");
+
+      const topBar = document.createElement("button");
+      topBar.setAttribute("aria-label", "Menu");
+      document.body.appendChild(topBar);
+      fireEvent.click(topBar);
+
+      expect(card.style.marginInlineEnd).toBe("");
+      topBar.remove();
+      const deleteButton = screen.getByRole("button", { name: "Delete", hidden: true });
+      expect(deleteButton).toHaveAttribute("tabindex", "-1");
+      fireEvent.click(deleteButton);
+      expect(onDelete).not.toHaveBeenCalled();
+    });
+
+    it("swiping a second card closes the first", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const first = cardTitled("Salary");
+      const second = cardTitled("Groceries");
+      swipeCardOpen(first);
+      expect(first.style.marginInlineEnd).toBe("128px");
+
+      swipeCardOpen(second);
+
+      expect(first.style.marginInlineEnd).toBe("");
+      expect(second.style.marginInlineEnd).toBe("128px");
+    });
+
+    it("entering selection mode closes an open card and that card can be selected", () => {
+      const onToggleSelected = vi.fn();
+      const onDelete = vi.fn();
+      const listProps = {
+        transactions: [mockTransactions[0], mockTransactions[1]],
+        onEdit: vi.fn(),
+        onDelete,
+        onEditRecurring: vi.fn(),
+        isFetchingRec: false,
+        loading: false,
+        onToggleSelected,
+        onClearSelection: vi.fn(),
+        onSelectionEdit: vi.fn(),
+        onSelectionDelete: vi.fn(),
+        selectedCountLabel: "1 selected",
+        editLabel: "Edit selected",
+        deleteLabel: "Delete selected",
+        clearLabel: "Clear",
+        bulkToolbarAriaLabel: "Bulk actions",
+      };
+
+      const { rerender } = render(
+        <TransactionCardList {...listProps} selectedIds={new Set()} />
+      );
+
+      const salary = cardTitled("Salary");
+      swipeCardOpen(salary);
+      expect(salary.style.marginInlineEnd).toBe("128px");
+
+      rerender(
+        <TransactionCardList {...listProps} selectedIds={new Set(["2"])} />
+      );
+
+      expect(salary.style.marginInlineEnd).toBe("");
+      swipeCard(salary, "open");
+      expect(salary.style.marginInlineEnd).toBe("");
+      const deleteButtons = screen.getAllByRole("button", { name: "Delete", hidden: true });
+      deleteButtons.forEach((button) => {
+        expect(button).toHaveAttribute("tabindex", "-1");
+      });
+      fireEvent.click(deleteButtons[0]);
+      expect(onDelete).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      fireEvent.click(salary);
+      expect(onToggleSelected).toHaveBeenCalledWith("1");
+    });
+
+    it("Edit closes the open card", () => {
+      const onEdit = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={onEdit}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expect(card.style.marginInlineEnd).toBe("128px");
+
+      const actions = card.closest("[data-swipe-row]")?.firstElementChild;
+      expect(actions?.className).toContain("z-[2]");
+      expect(actions?.className).not.toContain("pointer-events-none");
+      const editButton = screen.getByRole("button", { name: "Edit" });
+      expect(editButton).toBeEnabled();
+      fireEvent.click(editButton);
+
+      expect(onEdit).toHaveBeenCalledWith(mockTransactions[0]);
+      expect(card.style.marginInlineEnd).toBe("");
+    });
+
+    it("opens on a finger-left swipe in LTR, ignores finger-right, and closes on finger-right", () => {
+      i18nDir.current = "ltr";
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "close");
+      expect(card.style.marginInlineEnd).toBe("");
+      expect(card.style.transform).toBe("");
+
+      swipeCard(card, "open");
+      expect(card.style.marginInlineEnd).toBe("128px");
+      expect(card.closest("[data-swipe-row]")?.firstElementChild?.className).toContain("end-0");
+
+      swipeCard(card, "close");
+      expect(card.style.marginInlineEnd).toBe("");
+    });
+
+    it("opens on a finger-right swipe in RTL, ignores finger-left, and closes on finger-left", () => {
+      i18nDir.current = "rtl";
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "close");
+      expect(card.style.marginInlineEnd).toBe("");
+
+      swipeCard(card, "open");
+      expect(card.style.marginInlineEnd).toBe("128px");
+      expect(card.closest("[data-swipe-row]")?.firstElementChild?.className).toContain("end-0");
+
+      swipeCard(card, "close");
+      expect(card.style.marginInlineEnd).toBe("");
+    });
+
+    it("does not open when the viewport is wider than the phone query", () => {
+      vi.stubGlobal("matchMedia", () => ({
+        matches: false,
+        media: "",
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+        onchange: null,
+      }));
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "open");
+      expect(card.style.marginInlineEnd).toBe("");
     });
   });
 });

@@ -117,10 +117,16 @@ const TransactionCard = memo(function TransactionCard({
 }: TransactionCardProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const swipeTriggeredRef = useRef(false);
+  const dragBaseRef = useRef(0);
+  if (inSelectionMode && isDragging) {
+    setIsDragging(false);
+  }
   const actionsRef = useRef<HTMLDivElement>(null);
   const [actionButtonsWidth, setActionButtonsWidth] = useState(128);
   const isSwipeOpen = swipeOpenId === transaction.id;
+  const actionsInteractive = isSwipeOpen && !inSelectionMode;
 
   const SWIPE_THRESHOLD = 50;
 
@@ -153,15 +159,23 @@ const TransactionCard = memo(function TransactionCard({
 
   const swipeHandlers = useSwipe({
     onSwipeStart: () => {
+      setIsDragging(true);
+      dragBaseRef.current = isSwipeOpen ? swipeOffset : 0;
       swipeTriggeredRef.current = true;
       setIsAnimating(false);
     },
-    onSwipeMove: (offset) => {
-      setSwipeOffset(Math.min(offset, actionButtonsWidth));
+    onSwipeMove: (delta) => {
+      const next = Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
+      setSwipeOffset(next);
     },
-    onSwipeEnd: (offset) => {
+    onSwipeEnd: (delta) => {
+      setIsDragging(false);
       setIsAnimating(true);
-      if (offset >= SWIPE_THRESHOLD) {
+      const blocked = inSelectionMode || !isMobileSwipeEnabled;
+      const next = blocked
+        ? 0
+        : Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
+      if (!blocked && next >= SWIPE_THRESHOLD) {
         setSwipeOffset(actionButtonsWidth);
         onSwipeOpen(transaction.id);
       } else {
@@ -180,7 +194,10 @@ const TransactionCard = memo(function TransactionCard({
     disabled: inSelectionMode || !isMobileSwipeEnabled,
   });
 
-  const effectiveSwipeOffset = isMobileSwipeEnabled && (swipeOffset > 0 || isSwipeOpen) ? swipeOffset : 0;
+  const effectiveSwipeOffset =
+    isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
+      ? swipeOffset
+      : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
@@ -209,6 +226,7 @@ const TransactionCard = memo(function TransactionCard({
     longPressTriggeredRef.current = false;
     const wasSwipeActive = swipeTriggeredRef.current;
     swipeTriggeredRef.current = false;
+    setIsDragging(false);
     longPressHandlers.onPointerCancel();
     swipeHandlers.onPointerCancel();
 
@@ -235,40 +253,44 @@ const TransactionCard = memo(function TransactionCard({
       longPressTriggeredRef.current = false;
       return;
     }
-    if (inSelectionMode && swipeOffset > 0) {
-      return;
-    }
     onCardClick(transaction);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!actionsInteractive) return;
     onEdit(transaction);
     onSwipeClose();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!actionsInteractive) return;
     onDelete(transaction);
     onSwipeClose();
   };
 
   return (
-    <div className="relative max-md:[@media(pointer:coarse)]:overflow-hidden">
+    <div
+      className="relative max-md:[@media(pointer:coarse)]:overflow-hidden"
+      data-swipe-row={transaction.id}
+    >
       <div
         ref={actionsRef}
         className={cn(
-          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2 hidden",
-          effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible"
+          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-[2] max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2 hidden",
+          effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible",
+          !actionsInteractive && "pointer-events-none"
         )}
-        aria-hidden={!isSwipeOpen}
+        aria-hidden={!actionsInteractive}
       >
         <Button
           variant="default"
           size="icon"
           className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
           onClick={handleEditClick}
-          tabIndex={isSwipeOpen ? 0 : -1}
+          tabIndex={actionsInteractive ? 0 : -1}
+          disabled={!actionsInteractive}
           aria-label={t("actions.edit")}
         >
           <Edit3 className="h-5 w-5" />
@@ -279,7 +301,8 @@ const TransactionCard = memo(function TransactionCard({
           size="icon"
           className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
           onClick={handleDeleteClick}
-          tabIndex={isSwipeOpen ? 0 : -1}
+          tabIndex={actionsInteractive ? 0 : -1}
+          disabled={!actionsInteractive}
           aria-label={t("actions.delete")}
         >
           <Trash2 className="h-5 w-5" />
@@ -442,6 +465,9 @@ export function TransactionCardList({
   const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
 
   const inSelectionMode = selectedIds.size > 0;
+  if (inSelectionMode && swipeOpenId !== null) {
+    setSwipeOpenId(null);
+  }
   const computedSwipeOpenId = inSelectionMode ? null : swipeOpenId;
 
   React.useEffect(() => {
@@ -457,9 +483,13 @@ export function TransactionCardList({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (computedSwipeOpenId && !(e.target as Element).closest('[role="button"]')) {
-        setSwipeOpenId(null);
+      if (!computedSwipeOpenId) return;
+      const target = e.target;
+      if (target instanceof Element) {
+        const row = target.closest("[data-swipe-row]");
+        if (row?.getAttribute("data-swipe-row") === computedSwipeOpenId) return;
       }
+      setSwipeOpenId(null);
     };
 
     const handleScroll = () => {

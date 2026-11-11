@@ -78,7 +78,7 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 80, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 120, 100));
     });
 
     expect(onSwipeMove).toHaveBeenCalledWith(20);
@@ -125,11 +125,11 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 170, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 30, 100));
     });
 
     act(() => {
-      result.current.onPointerUp(createPointerEvent("pointerup", 170, 100));
+      result.current.onPointerUp(createPointerEvent("pointerup", 30, 100));
     });
 
     expect(onSwipeEnd).toHaveBeenCalledWith(70);
@@ -151,17 +151,17 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 130, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 70, 100));
     });
 
     act(() => {
-      result.current.onPointerUp(createPointerEvent("pointerup", 130, 100));
+      result.current.onPointerUp(createPointerEvent("pointerup", 70, 100));
     });
 
     expect(onSwipeEnd).toHaveBeenCalledWith(0);
   });
 
-  it("should not allow negative offsets", () => {
+  it("reports a negative delta when the finger moves the close direction", () => {
     const onSwipeMove = vi.fn();
 
     const { result } = renderHook(() =>
@@ -176,10 +176,40 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 80, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 130, 100));
     });
 
-    expect(onSwipeMove).toHaveBeenCalledWith(0);
+    expect(onSwipeMove).toHaveBeenCalledWith(-30);
+  });
+
+  it("does not open when the finger moves toward inline-end in RTL", () => {
+    const onSwipeMove = vi.fn();
+    const onSwipeEnd = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeMove,
+        onSwipeEnd,
+        isRTL: true,
+        threshold: 50,
+        movementThreshold: 10,
+      })
+    );
+
+    act(() => {
+      result.current.onPointerDown(createPointerEvent("pointerdown", 100, 100));
+    });
+
+    act(() => {
+      result.current.onPointerMove(createPointerEvent("pointermove", 40, 100));
+    });
+
+    act(() => {
+      result.current.onPointerUp(createPointerEvent("pointerup", 40, 100));
+    });
+
+    expect(onSwipeMove).toHaveBeenCalledWith(-60);
+    expect(onSwipeEnd).toHaveBeenCalledWith(-60);
   });
 
   it("should clean up on cancel", () => {
@@ -223,13 +253,13 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 130, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 70, 100));
     });
 
     expect(onSwipeMove).toHaveBeenCalledWith(30);
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 160, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 40, 100));
     });
 
     expect(onSwipeMove).toHaveBeenCalledWith(60);
@@ -251,13 +281,13 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 70, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 130, 100));
     });
 
     expect(onSwipeMove).toHaveBeenCalledWith(30);
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 40, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 160, 100));
     });
 
     expect(onSwipeMove).toHaveBeenCalledWith(60);
@@ -279,11 +309,11 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 180, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 20, 100));
     });
 
     act(() => {
-      result.current.onPointerUp(createPointerEvent("pointerup", 180, 100));
+      result.current.onPointerUp(createPointerEvent("pointerup", 20, 100));
     });
 
     expect(onSwipeEnd).toHaveBeenCalledWith(80);
@@ -305,11 +335,11 @@ describe("useSwipe", () => {
     });
 
     act(() => {
-      result.current.onPointerMove(createPointerEvent("pointermove", 140, 100));
+      result.current.onPointerMove(createPointerEvent("pointermove", 60, 100));
     });
 
     act(() => {
-      result.current.onPointerUp(createPointerEvent("pointerup", 140, 100));
+      result.current.onPointerUp(createPointerEvent("pointerup", 60, 100));
     });
 
     expect(onSwipeEnd).toHaveBeenCalledWith(0);

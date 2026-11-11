@@ -70,15 +70,10 @@ export function useSwipe({
         event.preventDefault();
         event.stopPropagation();
 
-        const logicalOffset = isRTL ? -deltaX : deltaX;
-        
-        if (logicalOffset >= 0) {
-          currentOffsetRef.current = logicalOffset;
-          onSwipeMove?.(logicalOffset);
-        } else {
-          currentOffsetRef.current = 0;
-          onSwipeMove?.(0);
-        }
+        // Positive opens toward inline-start: finger left in LTR, finger right in RTL.
+        const openDelta = isRTL ? deltaX : -deltaX;
+        currentOffsetRef.current = openDelta;
+        onSwipeMove?.(openDelta);
       }
     },
     [disabled, isRTL, movementThreshold, onSwipeStart, onSwipeMove]
@@ -89,8 +84,10 @@ export function useSwipe({
 
     if (swipeActiveRef.current && axisLockedRef.current === "horizontal") {
       const finalOffset = currentOffsetRef.current;
-      
+
       if (finalOffset > threshold) {
+        onSwipeEnd?.(finalOffset);
+      } else if (finalOffset < 0) {
         onSwipeEnd?.(finalOffset);
       } else {
         onSwipeEnd?.(0);
