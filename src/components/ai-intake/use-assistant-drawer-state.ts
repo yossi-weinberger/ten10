@@ -83,6 +83,8 @@ export function useAssistantDrawerState() {
   const splitDuplicateWarned = useRef<string | null>(null);
   const originalDraft = useRef<OriginalDraft | null>(null);
   const savedRecurring = useRef<RecurringTransaction | null>(null);
+  /** The last question asked (text + family + search flag) and when, for re-ask detection. */
+  const lastQuestion = useRef<{ text: string; family: string; search: boolean; at: number } | null>(null);
   /** The row id a standing-order save sends, kept while the definition is unchanged. */
   const recurringSaveId = useRef<{ signature: string; id: string } | null>(null);
   /** A duplicate-pair delete or dismiss in flight. */
@@ -483,6 +485,7 @@ export function useAssistantDrawerState() {
     splitDuplicateWarned,
     originalDraft,
     savedRecurring,
+    lastQuestion,
     recurringSaveId,
     savedTransaction,
     replacing,

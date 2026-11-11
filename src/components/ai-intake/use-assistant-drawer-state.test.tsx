@@ -197,4 +197,38 @@ describe("useAssistantDrawerState - AI outcome events", () => {
       expect(aiOutcomeEvents.trackAiDraftCancelled).not.toHaveBeenCalled();
     });
   });
+
+  describe("lastQuestion ref stability", () => {
+    it("returns stable lastQuestion ref across rerenders", () => {
+      const { result, rerender } = renderHook(() => useAssistantDrawerState());
+
+      const firstRef = result.current.lastQuestion;
+
+      rerender();
+
+      const secondRef = result.current.lastQuestion;
+
+      expect(firstRef).toBe(secondRef);
+    });
+
+    it("persists lastQuestion.current value across rerenders", () => {
+      const { result, rerender } = renderHook(() => useAssistantDrawerState());
+
+      result.current.lastQuestion.current = {
+        text: "test question",
+        family: "expense",
+        search: false,
+        at: Date.now(),
+      };
+
+      const firstValue = result.current.lastQuestion.current;
+
+      rerender();
+
+      const secondValue = result.current.lastQuestion.current;
+
+      expect(secondValue).toBe(firstValue);
+      expect(secondValue?.text).toBe("test question");
+    });
+  });
 });

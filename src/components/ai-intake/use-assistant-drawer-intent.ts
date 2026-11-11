@@ -99,10 +99,9 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     beginTurn,
     savedTransaction,
     replacing,
+    lastQuestion,
   } = state;
   const { pairActionBusy } = state;
-
-  let lastQuestion: { text: string; family: string; search: boolean; at: number } | null = null;
 
   function showHeld(next: HeldDraft) {
     held.current = next;
@@ -242,11 +241,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
       const now = Date.now();
       const current = { text: source, family: family || "", search: searchDescriptions };
       
-      if (compareQuestions(current, lastQuestion, 60000, now, lastQuestion?.at ?? null)) {
+      if (compareQuestions(current, lastQuestion.current, 60000, now, lastQuestion.current?.at ?? null)) {
         trackAiQuestionReasked(60);
       }
       
-      lastQuestion = { ...current, at: now };
+      lastQuestion.current = { ...current, at: now };
     }
     
     let question = searchDescriptions ? askedQuestion : null;
