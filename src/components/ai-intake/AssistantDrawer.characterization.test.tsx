@@ -333,7 +333,7 @@ describe("AssistantDrawer characterization", () => {
 
   it("reads a receipt pasted into the composer", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
-    setup();
+    await setup();
     const file = new File(["png"], "snap.png", { type: "image/png" });
     fireEvent.paste(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), {
       clipboardData: { files: [file] },

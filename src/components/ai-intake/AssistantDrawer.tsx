@@ -49,20 +49,16 @@ export function AssistantDrawer({
   const [openingBalance, setOpeningBalance] = useState<number | null>(null);
   const userId = state.user?.id ?? null;
 
-  // Beta consent gate
+  // Beta consent gate - fail closed: start checking when drawer opens with a userId
   const [consentState, setConsentState] = useState<{
     checking: boolean;
     accepted: boolean | null;
     showDialog: boolean;
-  }>({ checking: open, accepted: null, showDialog: false });
+  }>(() => ({ checking: open && !!userId, accepted: null, showDialog: false }));
 
   // Check consent status when drawer opens
   useEffect(() => {
-    if (!open || !userId) {
-      // Fail closed: no interaction when userId is null
-      setConsentState({ checking: false, accepted: null, showDialog: false });
-      return;
-    }
+    if (!open || !userId) return;
 
     let cancelled = false;
 
