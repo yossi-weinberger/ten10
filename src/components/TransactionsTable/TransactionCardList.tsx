@@ -137,20 +137,6 @@ const TransactionCard = memo(function TransactionCard({
     }
   }, [isMobileSwipeEnabled]);
 
-  const getMaxSwipeOffset = useCallback(() => {
-    if (typeof window === "undefined") return actionButtonsWidth;
-    const viewportWidth = window.innerWidth;
-    
-    // At narrow widths, limit translation to ensure text stays visible
-    // Reserve at least 60% of viewport for content visibility
-    const maxTranslation = Math.min(
-      actionButtonsWidth,
-      viewportWidth * 0.4
-    );
-    
-    return Math.floor(maxTranslation);
-  }, [actionButtonsWidth]);
-
   const longPressHandlers = useLongPress({
     onLongPress: () => {
       if (!selectionDisabled && onToggleSelected) {
@@ -171,14 +157,12 @@ const TransactionCard = memo(function TransactionCard({
       setIsAnimating(false);
     },
     onSwipeMove: (offset) => {
-      const maxOffset = getMaxSwipeOffset();
-      setSwipeOffset(Math.min(offset, maxOffset));
+      setSwipeOffset(Math.min(offset, actionButtonsWidth));
     },
     onSwipeEnd: (offset) => {
       setIsAnimating(true);
-      const maxOffset = getMaxSwipeOffset();
       if (offset >= SWIPE_THRESHOLD) {
-        setSwipeOffset(maxOffset);
+        setSwipeOffset(actionButtonsWidth);
         onSwipeOpen(transaction.id);
       } else {
         setSwipeOffset(0);
@@ -312,6 +296,9 @@ const TransactionCard = memo(function TransactionCard({
         style={{
           transform: `translateX(${isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset}px)`,
           transition: isAnimating ? "transform 0.3s ease-out" : "none",
+          paddingInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0 
+            ? `${effectiveSwipeOffset + 12}px` 
+            : undefined,
         }}
         onClick={handleCardClick}
         onKeyDown={onKeyDown}
