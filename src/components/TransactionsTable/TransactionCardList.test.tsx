@@ -341,11 +341,7 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("2026-11");
     expect(markup).toContain("2026-12");
-    
-    // Month separators use CSS variable universally (no breakpoint prefix)
-    // Variable is 52px+safe-area on mobile/landscape, 0px on wide-screen
     expect(markup).toContain("top-[var(--mobile-topbar-h,0px)]");
-    // Ensure no md:top-0 override that would break mobile landscape
     expect(markup).not.toContain("md:top-0");
   });
 
@@ -1283,11 +1279,8 @@ describe("TransactionCardList", () => {
 
       expect(screen.getByText("1 selected")).toBeInTheDocument();
       expect(screen.getByRole("region", { name: "Bulk actions" })).toBeInTheDocument();
-      const editButtons = screen.getAllByText("Edit");
-      const deleteButtons = screen.getAllByText("Delete");
-      // One from toolbar, one from swipe action label
-      expect(editButtons.length).toBeGreaterThanOrEqual(1);
-      expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Edit").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Delete").length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("Clear")).toBeInTheDocument();
     });
 
@@ -1317,7 +1310,6 @@ describe("TransactionCardList", () => {
       expect(screen.queryByText("0 selected")).not.toBeInTheDocument();
       expect(screen.queryByRole("region", { name: "Bulk actions" })).not.toBeInTheDocument();
       expect(screen.queryByText("Clear")).not.toBeInTheDocument();
-      // Swipe action labels are still present (invisible), so don't check for Edit/Delete text absence
     });
 
     it("long-press does not open drawer after successful trigger", async () => {
@@ -1666,19 +1658,329 @@ describe("TransactionCardList", () => {
     expect(screen.queryByText("Chomesh")).not.toBeInTheDocument();
   });
 
+  it("masks card date with PostHog masking attributes", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    // Find the card date section
+    const dateSection = markup.match(/2026-11-01[^<]*</);
+    expect(dateSection).toBeTruthy();
+    
+    // Verify that the date is wrapped in a span with ph-mask classes and data-ph-mask attribute
+    const dateMaskPattern = /<span[^>]*ph-mask[^>]*data-ph-mask=""[^>]*>2026-11-01<\/span>/;
+    expect(markup).toMatch(dateMaskPattern);
+  });
+
+  it("masks month separator label with PostHog masking attributes", () => {
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    // Verify month separator has masking
+    const separatorMaskPattern = /<span[^>]*ph-mask[^>]*data-ph-mask=""[^>]*>2026-11<\/span>/;
+    expect(markup).toMatch(separatorMaskPattern);
+  });
+
+  it("masks drawer date row with PostHog masking attributes", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[0]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    // Check that the date label is present
+    expect(screen.getByText("Date")).toBeInTheDocument();
+    
+    // There are two date elements: one in the card, one in the drawer
+    const dateElements = screen.getAllByText("2026-11-01");
+    expect(dateElements.length).toBeGreaterThanOrEqual(2);
+    
+    // Check that both have data-ph-mask attribute
+    dateElements.forEach((dateElement) => {
+      expect(dateElement).toHaveAttribute("data-ph-mask", "");
+      expect(dateElement.className).toContain("ph-mask");
+    });
+  });
+
+  it("masks chomesh info in drawer when visible", async () => {
+    mockUseDonationStore.mockReturnValue(true);
+
+    const chomeshTransaction: TransactionForTable = {
+      ...mockTransactions[0],
+      is_chomesh: true,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[chomeshTransaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Salary"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    const yesElement = screen.getByText("Yes");
+    expect(yesElement).toHaveAttribute("data-ph-mask", "");
+    expect(yesElement.className).toContain("ph-mask");
+  });
+
+  it("masks recurring info in drawer when visible", async () => {
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[2]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((c) => c.textContent?.includes("Charity"));
+    fireEvent.click(card!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    // The recurring badge wrapper should have masking
+    const recurringBadge = screen.getByText("Recurring Badge");
+    const parent = recurringBadge.parentElement;
+    expect(parent).toHaveAttribute("data-ph-mask", "");
+    expect(parent?.className).toContain("ph-mask");
+  });
+});
+
+function expectPostHogMask(element: Element | null | undefined) {
+  expect(element).toBeTruthy();
+  expect(element).toHaveAttribute("data-ph-mask", "");
+  expect(element?.classList.contains("ph-mask")).toBe(true);
+  expect(element?.classList.contains("ph-sensitive")).toBe(true);
+}
+
+describe("TransactionCardList PostHog masking", () => {
+  const renderList = (transactions: TransactionForTable[], trackChomesh = false) => {
+    mockUseDonationStore.mockReturnValue(trackChomesh);
+    return render(
+      <TransactionCardList
+        transactions={transactions}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+  };
+
+  const openCard = async (label: string) => {
+    const cards = screen.getAllByRole("button");
+    const card = cards.find((item) => item.textContent?.includes(label));
+    expect(card).toBeTruthy();
+    fireEvent.click(card!);
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+  };
+
+  beforeEach(() => {
+    mockUseDonationStore.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("applies ph-mask and data-ph-mask to the card description", () => {
+    renderList([mockTransactions[1]]);
+
+    const description = screen.getByText("Groceries");
+    expectPostHogMask(description.closest("[data-ph-mask]"));
+    expect(description.textContent).toBe("Groceries");
+  });
+
+  it("applies ph-mask and data-ph-mask to the card date", () => {
+    renderList([mockTransactions[1]]);
+
+    const date = screen.getByText("2026-11-05");
+    expectPostHogMask(date.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card amount", () => {
+    renderList([mockTransactions[1]]);
+
+    const amount = screen.getByText("200 ILS");
+    expectPostHogMask(amount.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card category", () => {
+    renderList([mockTransactions[1]]);
+
+    const category = screen.getByText("Food");
+    expectPostHogMask(category.closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the card chomesh status, icon, and text", () => {
+    const { container } = renderList(
+      [{ ...mockTransactions[1], is_chomesh: true }],
+      true,
+    );
+
+    const labels = screen.getAllByText("Chomesh");
+    expect(labels.length).toBeGreaterThanOrEqual(1);
+    labels.forEach((label) => {
+      expectPostHogMask(label.closest("[data-ph-mask]"));
+    });
+
+    const icon = container.querySelector(".lucide-badge-check");
+    expect(icon).toBeTruthy();
+    expectPostHogMask(icon?.closest("[data-ph-mask]"));
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("applies ph-mask and data-ph-mask to the card recurring indicator", () => {
+    renderList([mockTransactions[2]]);
+
+    const card = screen.getByRole("button", { name: /Charity/ });
+    const icon = card.querySelector(".lucide-repeat");
+    expect(icon).toBeTruthy();
+    expectPostHogMask(icon?.closest("[data-ph-mask]"));
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer description and amount", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const descriptions = screen.getAllByText("Groceries");
+    expect(descriptions.length).toBeGreaterThanOrEqual(2);
+    descriptions.forEach((description) => {
+      expectPostHogMask(description.closest("[data-ph-mask]"));
+    });
+
+    const amounts = screen.getAllByText("200 ILS");
+    expect(amounts.length).toBeGreaterThanOrEqual(2);
+    amounts.forEach((amount) => {
+      expectPostHogMask(amount.closest("[data-ph-mask]"));
+    });
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer date", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const dates = screen.getAllByText("2026-11-05");
+    expect(dates.length).toBeGreaterThanOrEqual(2);
+    dates.forEach((date) => {
+      expectPostHogMask(date.closest("[data-ph-mask]"));
+    });
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer category and recipient", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    screen.getAllByText("Food").forEach((category) => {
+      expectPostHogMask(category.closest("[data-ph-mask]"));
+    });
+    expectPostHogMask(screen.getByText("SuperMarket").closest("[data-ph-mask]"));
+  });
+
+  it("applies ph-mask and data-ph-mask to the drawer payment method", async () => {
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    const paymentMethod = screen.getByText("Credit Card");
+    expectPostHogMask(paymentMethod);
+    expect(paymentMethod.closest("[data-ph-mask]")?.classList.contains("ph-mask")).toBe(true);
+  });
+
+  it("applies ph-mask and data-ph-mask to drawer chomesh label and value", async () => {
+    renderList([{ ...mockTransactions[1], is_chomesh: true }], true);
+    await openCard("Groceries");
+
+    const labels = screen.getAllByText("Chomesh");
+    expect(labels.length).toBeGreaterThanOrEqual(2);
+    labels.forEach((label) => {
+      expectPostHogMask(label);
+    });
+
+    const value = screen.getByText("Yes");
+    expectPostHogMask(value);
+  });
+
+  it("applies ph-mask and data-ph-mask to drawer recurring info", async () => {
+    renderList([mockTransactions[2]], true);
+    await openCard("Charity");
+
+    const recurringBadge = screen.getByText("Recurring Badge");
+    expectPostHogMask(recurringBadge.closest("[data-ph-mask]"));
+  });
+
   describe("swipe actions", () => {
     beforeEach(() => {
       vi.useFakeTimers();
+      vi.stubGlobal("matchMedia", (query: string) => ({
+        matches: query.includes("max-width: 767px") && query.includes("pointer: coarse"),
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+        onchange: null,
+      }));
     });
 
     afterEach(() => {
+      vi.unstubAllGlobals();
       vi.restoreAllMocks();
       vi.useRealTimers();
     });
 
-    it("swipe gesture is disabled in selection mode", async () => {
+    it("does not swipe or edit while selection mode is active", () => {
       const onEdit = vi.fn();
       const onDelete = vi.fn();
+      const onToggleSelected = vi.fn();
       const selectedIds = new Set<string>(["1"]);
 
       render(
@@ -1690,7 +1992,7 @@ describe("TransactionCardList", () => {
           isFetchingRec={false}
           loading={false}
           selectedIds={selectedIds}
-          onToggleSelected={vi.fn()}
+          onToggleSelected={onToggleSelected}
           onClearSelection={vi.fn()}
           onSelectionEdit={vi.fn()}
           onSelectionDelete={vi.fn()}
@@ -1701,22 +2003,46 @@ describe("TransactionCardList", () => {
       const card = cards.find((c) => c.textContent?.includes("Salary"));
 
       act(() => {
-        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
-      });
-
-      act(() => {
-        fireEvent.pointerMove(card!, { clientX: 150, clientY: 100 });
-      });
-
-      act(() => {
-        fireEvent.pointerUp(card!);
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerMove(card!, { clientX: 180, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerUp(card!, { clientX: 180, clientY: 100, pointerType: "touch" });
       });
 
       expect(onEdit).not.toHaveBeenCalled();
       expect(onDelete).not.toHaveBeenCalled();
+      expect(onToggleSelected).not.toHaveBeenCalled();
+      expect((card as HTMLElement).style.marginInlineEnd).toBe("");
     });
 
-    it("action buttons are rendered in the component structure", () => {
+    it("a horizontal swipe does not fire the long-press selection", () => {
+      const onToggleSelected = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          onToggleSelected={onToggleSelected}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100, pointerType: "touch" });
+        fireEvent.pointerMove(card!, { clientX: 160, clientY: 102, pointerType: "touch" });
+        vi.advanceTimersByTime(800);
+        fireEvent.pointerUp(card!, { clientX: 160, clientY: 102, pointerType: "touch" });
+      });
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+    });
+
+    it("action buttons are full-height and anchored at the inline end", () => {
       const markup = renderToStaticMarkup(
         <TransactionCardList
           transactions={[mockTransactions[0]]}
@@ -1728,153 +2054,18 @@ describe("TransactionCardList", () => {
         />
       );
 
-      // Verify Edit and Delete buttons are rendered in markup
       expect(markup).toContain('aria-label="Edit"');
       expect(markup).toContain('aria-label="Delete"');
-      // Verify buttons stretch full height and have proper width for touch targets
       expect(markup).toContain("h-full");
       expect(markup).toContain("w-14");
       expect(markup).toContain("min-w-[44px]");
-    });
-
-    it("translate direction matches anchor side for RTL", () => {
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Buttons are anchored at inline-end (end-0 in the wrapper)
       expect(markup).toContain("end-0");
-      
-      // For RTL: buttons at left (inline-end), card should translate right (positive)
-      // The transform will be applied with swipeOffset, but the sign logic should be:
-      // isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset
-      // So in RTL with positive offset, translateX is positive (moves right, reveals buttons on left)
-    });
-
-    it("translate direction matches anchor side for LTR", () => {
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Buttons are anchored at inline-end (end-0 in the wrapper)
-      expect(markup).toContain("end-0");
-      
-      // For LTR: buttons at right (inline-end), card should translate left (negative)
-      // The transform will be applied with swipeOffset, but the sign logic should be:
-      // isRTL ? effectiveSwipeOffset : -effectiveSwipeOffset
-      // So in LTR with positive offset, translateX is negative (moves left, reveals buttons on right)
-    });
-
-    it("clamps live drag offset to measured actions width", () => {
-      // The component clamps swipeOffset to measured actionButtonsWidth
-      // This is done in onSwipeMove: setSwipeOffset(Math.min(offset, actionButtonsWidth))
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Verify the actions wrapper has the expected structure:
-      // 8px (ps-2) + 56px (w-14 button) + 8px (gap-2) + 56px (w-14 button) = 128px measured
-      expect(markup).toContain("gap-2");
       expect(markup).toContain("ps-2");
-      expect(markup).toContain("w-14");
-    });
-
-    it("uses marginInlineEnd instead of transform to reveal actions", () => {
-      // Card shrinks from inline-end side (where actions are) via marginInlineEnd
-      // This keeps the inline-start side (title/date) in place
-      // No transform/translateX is applied - the card doesn't move
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
       expect(markup).not.toContain("translateX");
       expect(markup).not.toContain("transform:");
-    });
-
-    it("has min-w-0 on text column for proper truncation", () => {
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Text column should have min-w-0 to allow shrinking below intrinsic width
       expect(markup).toContain("min-w-0");
-    });
-
-    it("applies marginInlineEnd when swiped to reveal actions in both RTL and LTR", () => {
-      // In both RTL and LTR, marginInlineEnd shrinks the card from the end side
-      // where actions are positioned, keeping title/date (at start) in place
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Actions are anchored at inline-end (end-0)
-      expect(markup).toContain("end-0");
-      // Card uses marginInlineEnd (not marginInlineStart or transform)
-      // The margin value equals effectiveSwipeOffset when open
-      // This is direction-agnostic: marginInlineEnd automatically applies to
-      // the correct side (right in LTR, left in RTL)
-    });
-
-    it("card has positioned stacking context to stay above actions at rest", () => {
-      // Card must be positioned with z-index to create stacking context
-      // This prevents absolutely-positioned actions (rendered before Card) from painting above it
-      const markup = renderToStaticMarkup(
-        <TransactionCardList
-          transactions={[mockTransactions[0]]}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onEditRecurring={vi.fn()}
-          isFetchingRec={false}
-          loading={false}
-        />
-      );
-
-      // Card has relative positioning and z-index on mobile touch only
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:relative");
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[1]");
-      // Actions are invisible at rest (effectiveSwipeOffset === 0)
       expect(markup).toContain("max-md:[@media(pointer:coarse)]:invisible");
     });
   });

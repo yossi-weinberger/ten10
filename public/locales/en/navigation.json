@@ -14,7 +14,12 @@
     "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds",
     "feedback": "Feedback",
     "assistant": "Ask Natan",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "open": "Open menu"
+  },
+  "sheet": {
+    "title": "Mobile navigation",
+    "description": "Main navigation panel for mobile view"
   },
   "aiIntake": {
     "title": "Natan",

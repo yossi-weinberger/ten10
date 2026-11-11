@@ -226,6 +226,8 @@ export default {
     function ({ addVariant }) {
       // Tailwind v4: migrate to @custom-variant short (...) in CSS
       addVariant('short', '@media (min-width: 1024px) and (max-height: 799px) { &:is(&) }');
+      // Mobile landscape: coarse pointer (touch) and short height
+      addVariant('mobile-landscape', '@media (pointer: coarse) and (max-height: 500px) { &:is(&) }');
     },
   ],
 };

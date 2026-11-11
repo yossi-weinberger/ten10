@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef, memo, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, memo } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -124,7 +124,7 @@ const TransactionCard = memo(function TransactionCard({
 
   const SWIPE_THRESHOLD = 50;
 
-  const isMobileSwipeEnabled = typeof window !== "undefined" 
+  const isMobileSwipeEnabled = typeof window !== "undefined"
     && typeof window.matchMedia === "function"
     && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
 
@@ -180,8 +180,6 @@ const TransactionCard = memo(function TransactionCard({
     disabled: inSelectionMode || !isMobileSwipeEnabled,
   });
 
-  // Apply offset during drag (swipeOffset > 0) or when open
-  // Reset to 0 if another card is open (swipeOpenId is not null and not this card)
   const effectiveSwipeOffset = isMobileSwipeEnabled && (swipeOffset > 0 || isSwipeOpen) ? swipeOffset : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -198,9 +196,9 @@ const TransactionCard = memo(function TransactionCard({
 
   const handlePointerUp = (e: React.PointerEvent) => {
     const wasSwipeActive = swipeTriggeredRef.current;
-    longPressHandlers.onPointerUp();
+    longPressHandlers.onPointerUp(e);
     swipeHandlers.onPointerUp(e);
-    
+
     if (wasSwipeActive && inSelectionMode) {
       e.preventDefault();
       e.stopPropagation();
@@ -213,7 +211,7 @@ const TransactionCard = memo(function TransactionCard({
     swipeTriggeredRef.current = false;
     longPressHandlers.onPointerCancel();
     swipeHandlers.onPointerCancel();
-    
+
     if (wasSwipeActive) {
       setSwipeOffset(0);
       setIsAnimating(true);
@@ -224,7 +222,7 @@ const TransactionCard = memo(function TransactionCard({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
+    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch")
       || window.matchMedia("(pointer: coarse)").matches;
     if (isTouch) {
       e.preventDefault();
@@ -299,8 +297,8 @@ const TransactionCard = memo(function TransactionCard({
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
         style={{
-          marginInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0 
-            ? `${effectiveSwipeOffset}px` 
+          marginInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0
+            ? `${effectiveSwipeOffset}px`
             : undefined,
           transition: isAnimating ? "margin 0.3s ease-out" : "none",
         }}
@@ -312,81 +310,97 @@ const TransactionCard = memo(function TransactionCard({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <div
-            className={cn(
-              "truncate font-medium",
-              !transaction.description && "text-muted-foreground",
-              PH_SENSITIVE_PROPS.className
-            )}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-          >
-            {cardTitle}
-          </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <span
-              className={cn(PH_SENSITIVE_PROPS.className)}
-              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-            >
-              {displayDate.primary}
-            </span>
-            {categoryText && (
-              <>
-                <span>·</span>
-                <span
-                  className={cn(
-                    "truncate",
-                    PH_SENSITIVE_PROPS.className
-                  )}
-                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                >
-                  {categoryText}
-                </span>
-              </>
-            )}
-            {transaction.recurring_info && (
-              <>
-                <span>·</span>
-                <Repeat className="h-3 w-3" aria-hidden="true" />
-              </>
-            )}
-            {isSpecialType(transaction.type) && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-5 border px-1.5 py-0 text-[10px]",
-                  typeBadgeColors[transaction.type as TransactionType]
-                )}
-              >
-                {t(`types.${transaction.type}`, transaction.type)}
-              </Badge>
-            )}
-            {trackChomeshSeparately && transaction.is_chomesh && (
-              <span className="inline-flex items-center gap-0.5 text-[10px]">
-                <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-                <span>{t("cards.chomesh")}</span>
-              </span>
-            )}
-          </div>
-        </div>
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
-            "shrink-0 text-end font-bold",
+            "truncate font-medium",
+            !transaction.description && "text-muted-foreground",
             PH_SENSITIVE_PROPS.className
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          <CurrencyConversionInfo
-            amount={transaction.amount}
-            currency={transaction.currency}
-            originalAmount={transaction.original_amount}
-            originalCurrency={transaction.original_currency}
-            conversionRate={transaction.conversion_rate}
-            conversionDate={transaction.conversion_date}
-            rateSource={transaction.rate_source}
-            mode="static"
-          />
+          {cardTitle}
         </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span
+            className={cn(PH_SENSITIVE_PROPS.className)}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            {displayDate.primary}
+          </span>
+          {categoryText && (
+            <>
+              <span>·</span>
+              <span
+                className={cn(
+                  "truncate",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {categoryText}
+              </span>
+            </>
+          )}
+          {transaction.recurring_info && (
+            <>
+              <span>·</span>
+              <span
+                className={cn(PH_SENSITIVE_PROPS.className)}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <Repeat className="h-3 w-3" aria-hidden="true" />
+              </span>
+            </>
+          )}
+          {isSpecialType(transaction.type) && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 border px-1.5 py-0 text-[10px]",
+                typeBadgeColors[transaction.type as TransactionType]
+              )}
+            >
+              {t(`types.${transaction.type}`, transaction.type)}
+            </Badge>
+          )}
+          {trackChomeshSeparately && transaction.is_chomesh && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 text-[10px]",
+                PH_SENSITIVE_PROPS.className
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+              <span
+                className={cn(PH_SENSITIVE_PROPS.className)}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {t("cards.chomesh")}
+              </span>
+            </span>
+          )}
+        </div>
+      </div>
+      <div
+        className={cn(
+          "shrink-0 text-end font-bold",
+          PH_SENSITIVE_PROPS.className
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        <CurrencyConversionInfo
+          amount={transaction.amount}
+          currency={transaction.currency}
+          originalAmount={transaction.original_amount}
+          originalCurrency={transaction.original_currency}
+          conversionRate={transaction.conversion_rate}
+          conversionDate={transaction.conversion_date}
+          rateSource={transaction.rate_source}
+          mode="static"
+        />
+      </div>
       </Card>
     </div>
   );
@@ -833,7 +847,15 @@ export function TransactionCardList({
 
                 {trackChomeshSeparately && selectedTransaction.is_chomesh && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.chomesh")}</span>
+                    <span
+                      className={cn(
+                        "text-muted-foreground",
+                        PH_SENSITIVE_PROPS.className
+                      )}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {t("columns.chomesh")}
+                    </span>
                     <span
                       className={cn(PH_SENSITIVE_PROPS.className)}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}

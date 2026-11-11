@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,16 +11,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-// Removed - using translations instead
+import { Badge } from "@/components/ui/badge";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
 import { transactionTypes } from "@/types/transaction";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 
 // Moved to translation files - no longer needed
 
 export function RecurringTransactionsFilters() {
   const { t, i18n } = useTranslation("data-tables");
+  const isMobile = useMediaQuery(MOBILE_COMPACT_QUERY);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { filters, setFilters, resetFilters } = useRecurringTableStore();
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [localTypes, setLocalTypes] = useState<string[]>(filters.types);
@@ -79,27 +83,86 @@ export function RecurringTransactionsFilters() {
   const dropdownAlign = isRtl ? "end" : "start";
   const dropdownDir = isRtl ? "rtl" : "ltr";
 
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localTypes.length > 0) count++;
+    if (filters.statuses.length > 0) count++;
+    if (localFrequencies.length > 0) count++;
+    return count;
+  }, [localTypes, filters.statuses, localFrequencies]);
+
+  if (isMobile && !isExpanded) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Input
+                placeholder={t("recurringFilters.searchPlaceholder")}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11"
+                aria-label={t("filters.freeSearch")}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsExpanded(true)}
+              className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 gap-2 shrink-0"
+              aria-expanded="false"
+              aria-label={
+                activeFiltersCount > 0
+                  ? `${t("filters.showFilters")} (${activeFiltersCount})`
+                  : t("filters.showFilters")
+              }
+            >
+              <ListFilter className="h-4 w-4" />
+              {t("filters.showFilters")}
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1" aria-hidden="true">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="mb-4">
-      <CardHeader>
-        <CardTitle className="text-lg">{t("recurringFilters.title")}</CardTitle>
+      <CardHeader className={isMobile ? "pb-2" : ""}>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">{t("recurringFilters.title")}</CardTitle>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              onClick={() => setIsExpanded(false)}
+              className="h-8 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 text-sm"
+              aria-expanded="true"
+            >
+              {t("filters.hideFilters")}
+            </Button>
+          )}
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-            <Label className="mb-2 block text-sm font-medium">
+      <CardContent className={isMobile ? "p-3 pt-0" : ""}>
+        <div className={isMobile ? "grid grid-cols-2 gap-3" : "flex flex-wrap items-end gap-4"}>
+          <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
               {t("filters.freeSearch")}
             </Label>
             <Input
               placeholder={t("recurringFilters.searchPlaceholder")}
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="w-full"
+              className={isMobile ? "h-9 w-full" : "w-full"}
             />
           </div>
 
-          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-            <Label className="mb-2 block text-sm font-medium">
+          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
               {t("filters.transactionTypes")}
             </Label>
             <DropdownMenu
@@ -108,8 +171,8 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
+                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
+                  <span className={isMobile ? "truncate" : ""}>
                     {localTypes.length === 0
                       ? t("filters.allTypes")
                       : localTypes.length === 1
@@ -118,7 +181,7 @@ export function RecurringTransactionsFilters() {
                           count: localTypes.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -146,8 +209,8 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-            <Label className="mb-2 block text-sm font-medium">
+          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
               {t("recurringFilters.filterByStatus")}
             </Label>
             <DropdownMenu
@@ -156,8 +219,8 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
+                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
+                  <span className={isMobile ? "truncate" : ""}>
                     {filters.statuses.length === 0
                       ? t("filters.allStatuses")
                       : filters.statuses.length === 1
@@ -166,7 +229,7 @@ export function RecurringTransactionsFilters() {
                           count: filters.statuses.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -197,8 +260,8 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-            <Label className="mb-2 block text-sm font-medium">
+          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
               {t("filters.recurringFrequency")}
             </Label>
             <DropdownMenu
@@ -207,15 +270,15 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
+                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
+                  <span className={isMobile ? "truncate" : ""}>
                     {localFrequencies.length === 0
                       ? t("filters.allFrequencies")
                       : t("filters.frequenciesSelected", {
                           count: localFrequencies.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
+                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -243,11 +306,13 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
-            <Label className="mb-2 block text-sm font-medium opacity-0">
-              {t("filters.resetFilters")}
-            </Label>
-            <Button onClick={handleReset} variant="outline" className="w-full">
+          <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
+            {!isMobile && (
+              <Label className="mb-2 block text-sm font-medium opacity-0">
+                {t("filters.resetFilters")}
+              </Label>
+            )}
+            <Button onClick={handleReset} variant="outline" className={isMobile ? "h-9 w-full" : "w-full"}>
               {t("filters.resetFilters")}
             </Button>
           </div>

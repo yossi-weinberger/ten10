@@ -14,7 +14,12 @@
     "donateTooltip": "התרומה למכון ול-Ten10 יכולה להיות מכספי מעשר",
     "feedback": "משוב",
     "assistant": "שאל את נתן",
-    "contact": "צור קשר"
+    "contact": "צור קשר",
+    "open": "פתיחת תפריט"
+  },
+  "sheet": {
+    "title": "ניווט נייד",
+    "description": "לוח ניווט ראשי לתצוגת נייד"
   },
   "aiIntake": {
     "title": "נתן",
