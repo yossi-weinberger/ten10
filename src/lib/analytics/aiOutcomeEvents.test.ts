@@ -60,8 +60,8 @@ describe("aiOutcomeEvents", () => {
 
     it("accepts all valid reasons", () => {
       const reasons: Array<
-        "unavailable" | "unreadable" | "limit" | "timeout" | "no_amount" | "unknown"
-      > = ["unavailable", "unreadable", "limit", "timeout", "no_amount", "unknown"];
+        "unavailable" | "unreadable" | "limit" | "unknown"
+      > = ["unavailable", "unreadable", "limit", "unknown"];
       reasons.forEach((reason) => {
         trackAiTurnFailed("text", "intent", reason);
         expect(productAnalytics.trackProductEvent).toHaveBeenCalledWith(
