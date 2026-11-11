@@ -320,7 +320,12 @@ export function TransactionHeatmap({
                               <Tooltip key={cell.dateStr} delayDuration={100}>
                                 <TooltipTrigger asChild>
                                   <div
-                                    className={`rounded-sm cursor-default transition-colors ${intensityColors[intensity]}`}
+                                    className={cn(
+                                      "rounded-sm cursor-default transition-colors",
+                                      intensityColors[intensity],
+                                      PH_SENSITIVE_PROPS.className,
+                                    )}
+                                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                                     style={{ width: cellSize, height: cellSize }}
                                   />
                                 </TooltipTrigger>

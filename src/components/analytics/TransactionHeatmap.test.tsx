@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, waitFor } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { DailyHeatmapResponse } from "@/lib/data-layer/insights.service";
 import { TransactionHeatmap } from "./TransactionHeatmap";
@@ -43,6 +43,10 @@ const populatedDay: DailyHeatmapResponse = [
   },
 ];
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("TransactionHeatmap PostHog masking", () => {
   it("masks the portaled day tooltip, not the page root", async () => {
     const { container } = render(
@@ -59,6 +63,17 @@ describe("TransactionHeatmap PostHog masking", () => {
 
     const populatedCell = container.querySelector(".cursor-default");
     expect(populatedCell).toBeTruthy();
+    expect(populatedCell?.classList.contains("ph-mask")).toBe(true);
+    expect(populatedCell?.classList.contains("ph-sensitive")).toBe(true);
+    expect(populatedCell?.hasAttribute("data-ph-mask")).toBe(true);
+
+    for (const spacer of container.querySelectorAll(".opacity-0")) {
+      expect(spacer.hasAttribute("data-ph-mask")).toBe(false);
+    }
+
+    expect(screen.getByText("analytics.heatmap.title").closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByText("analytics.heatmap.typeAll").closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByText("Su").closest("[data-ph-mask]")).toBeNull();
 
     fireEvent.pointerMove(populatedCell as Element, { pointerType: "mouse" });
 
@@ -71,7 +86,22 @@ describe("TransactionHeatmap PostHog masking", () => {
       expect(tooltip?.hasAttribute("data-ph-mask")).toBe(true);
       expect(tooltip?.textContent).toContain("7");
     });
+  });
 
-    expect(container.querySelector("[data-ph-mask]")).toBeNull();
+  it("leaves the empty state unmasked", () => {
+    render(
+      <TooltipProvider>
+        <TransactionHeatmap
+          data={[]}
+          isLoading={false}
+          error={null}
+          typeGroup="all"
+          onTypeGroupChange={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByText("analytics.heatmap.noData").closest("[data-ph-mask]")).toBeNull();
+    expect(screen.getByText("analytics.heatmap.title").closest("[data-ph-mask]")).toBeNull();
   });
 });
