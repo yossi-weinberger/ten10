@@ -112,6 +112,7 @@ export function useAssistantDrawerComposer(
       setReceiptLink(result.url);
       return;
     }
+    if (result.status === "beta_consent") return;
     setStatus(openReceiptFailureStatus(result));
   }
 
@@ -133,7 +134,7 @@ export function useAssistantDrawerComposer(
       state.setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setStatus(receiptFailureStatus(result));
+      if (result.reason !== "BETA_CONSENT") setStatus(receiptFailureStatus(result));
       return;
     }
     if (!isSingleReceipt(result)) {
@@ -196,8 +197,10 @@ export function useAssistantDrawerComposer(
     setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
-      setStatus(voiceFailureStatus(heard));
-      state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
+      if (heard.reason !== "BETA_CONSENT") {
+        setStatus(voiceFailureStatus(heard));
+        state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
+      }
       return;
     }
     const voiceTurn: UserTurn = { kind: "voice", text: heard.text };
@@ -293,6 +296,7 @@ export function useAssistantDrawerComposer(
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);
+      if (!split.ok && split.reason === "BETA_CONSENT") return;
       splitRef.current = split;
       intent.showIntent(source, "add_transaction", false, trimmed);
     });

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import type { AnchoredSplitItem } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
 import type { ResolvedQuestion } from "../../../supabase/functions/_shared/ai/split-response.ts";
 import type { SplitRuleInput } from "../../../supabase/functions/_shared/ai/split-schema.ts";
@@ -22,6 +23,7 @@ export type SplitItemsResult =
     usageId: string | null;
   } & CardFlags)
   | { ok: false; reason: "LIMIT"; limit: LimitInfo }
+  | { ok: false; reason: "BETA_CONSENT" }
   | { ok: false; reason: "UNAVAILABLE" };
 
 export interface SplitCallOptions {
@@ -60,6 +62,7 @@ export async function splitItems(
       ...(options.turn ? { turn: options.turn } : {}),
     },
   });
+  if (await claimBetaConsentRequired(error, data)) return { ok: false, reason: "BETA_CONSENT" };
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const limit = readLimitInfo(data);
   if (limit) return { ok: false, reason: "LIMIT", limit };

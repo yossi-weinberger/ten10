@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
+import { onBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
@@ -92,6 +93,12 @@ export function AssistantDrawer({
       cancelled = true;
     };
   }, [open, userId]);
+
+  useEffect(() => {
+    return onBetaConsentRequired(() => {
+      setConsentState({ checking: false, accepted: false, showDialog: true });
+    });
+  }, []);
 
   // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
   useEffect(() => {

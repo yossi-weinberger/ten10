@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { isReceiptUrl } from "@/lib/ai/receipt-url";
 import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
@@ -8,7 +9,8 @@ export type OpenReceiptResult =
   | { status: "blocked"; url: string }
   | { status: "none" }
   | { status: "limit"; limit: LimitInfo }
-  | { status: "unavailable" };
+  | { status: "unavailable" }
+  | { status: "beta_consent" };
 
 type ReceiptWindow = {
   opener: Window | null;
@@ -38,6 +40,10 @@ export async function openAiReceipt(
   const { data, error } = await supabase.functions.invoke("ai-receipt-url", {
     body,
   });
+  if (await claimBetaConsentRequired(error, data)) {
+    win?.close();
+    return { status: "beta_consent" };
+  }
   if (error || !data || typeof data !== "object") {
     win?.close();
     return { status: "unavailable" };

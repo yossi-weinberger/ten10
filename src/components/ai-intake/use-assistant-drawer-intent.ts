@@ -246,6 +246,7 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
         state.setLimitInfo(read.limit);
         return;
       }
+      if (read && "betaConsentRequired" in read) return;
       if (read) {
         periodHold.current = read.period;
         nameHold.current = read.nameText;
@@ -525,6 +526,11 @@ export function useAssistantDrawerIntent(state: AssistantDrawerState) {
     const read = await splitPromise;
     if (requestRef.current !== request) return;
     setChecking(false);
+    if ((!decided.ok && decided.reason === "BETA_CONSENT") || (!read.ok && read.reason === "BETA_CONSENT")) {
+      setIntent(null);
+      setAskIntent(false);
+      return;
+    }
     if (!decided.ok && decided.reason === "LIMIT") {
       setStatus(limitStatus(decided.limit));
       state.setLimitInfo(decided.limit);

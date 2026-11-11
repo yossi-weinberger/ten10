@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { PAYMENT_METHOD_KEYS } from "@/lib/payment-methods";
 import {
   asQuestionFamily,
@@ -14,7 +15,7 @@ export type ReadQuestionSlotsResult = (QuestionSlots & {
   measurementId: string | null;
   period: { kind: "all" } | { kind: "span"; from: string; to: string } | null;
   nameText: string | null;
-}) | { limit: LimitInfo };
+}) | { limit: LimitInfo } | { betaConsentRequired: true };
 
 /** Null when the question reader service is unavailable or did not return slots. Returns limit info when a usage limit was hit. */
 export async function readQuestionSlots(
@@ -32,6 +33,7 @@ export async function readQuestionSlots(
       ...(options.turn ? { turn: options.turn } : {}),
     },
   });
+  if (await claimBetaConsentRequired(error, data)) return { betaConsentRequired: true };
   if (error || !data || typeof data !== "object") return null;
   const limit = readLimitInfo(data);
   if (limit) return { limit };

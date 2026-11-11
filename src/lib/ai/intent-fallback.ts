@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { INTAKE_INTENTS, type IntakeIntent } from "@/lib/ai/classify-intake";
 import { readLimitInfo, type LimitInfo } from "@/lib/ai/limit-reason";
 
@@ -14,6 +15,7 @@ export type IntentFallbackResult =
     chomesh?: boolean;
   }
   | { ok: false; reason: "LIMIT"; limit: LimitInfo }
+  | { ok: false; reason: "BETA_CONSENT" }
   | { ok: false; reason: "UNAVAILABLE" };
 
 function readConfidence(value: unknown): number | null {
@@ -26,6 +28,7 @@ export async function classifyIntentFallback(text: string, context = "", turn?: 
   const { data, error } = await supabase.functions.invoke("ai-classify-intent", {
     body: { text, ...(context ? { context } : {}), ...(turn ? { turn } : {}) },
   });
+  if (await claimBetaConsentRequired(error, data)) return { ok: false, reason: "BETA_CONSENT" };
   if (error || !data || typeof data !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const limit = readLimitInfo(data);
   if (limit) return { ok: false, reason: "LIMIT", limit };
