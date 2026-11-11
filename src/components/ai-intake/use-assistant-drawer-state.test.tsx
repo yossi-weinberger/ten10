@@ -70,7 +70,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as Partial<ReplyState>,
+        } as unknown as ReplyState,
       };
 
       result.current.clearConversation();
@@ -104,7 +104,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as Partial<ReplyState>,
+        } as unknown as ReplyState,
       };
 
       result.current.clearConversation();
@@ -138,7 +138,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: null,
-        } as Partial<ReplyState>,
+        } as unknown as ReplyState,
       };
 
       result.current.clearConversation();
@@ -172,7 +172,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
             locked: false,
           },
           savedItemId: "saved-123",
-        } as Partial<ReplyState>,
+        } as unknown as ReplyState,
       };
 
       result.current.clearConversation();
@@ -189,7 +189,7 @@ describe("useAssistantDrawerState - AI outcome events", () => {
         reply: {
           draft: null,
           savedItemId: null,
-        } as Partial<ReplyState>,
+        } as unknown as ReplyState,
       };
 
       result.current.clearConversation();
