@@ -80,11 +80,10 @@ function requestUrl(input: RequestInfo | URL): string {
 
 /**
  * Serves the real supabase-js client used by requireAiUser.
- * Consent is true only for the version the caller asks about when that version is "beta-v1".
+ * The gate calls one public RPC. A version mismatch is decided inside SQL.
  */
 function installGateFetch(options: {
   allowed: boolean;
-  currentVersion: string | { error: number };
   consent?: boolean | { error: number };
 }): GateCall[] {
   const calls: GateCall[] = [];
@@ -113,22 +112,12 @@ function installGateFetch(options: {
     if (url.endsWith("/rest/v1/rpc/ai_user_allowed")) {
       return Promise.resolve(jsonResponse(options.allowed));
     }
-    if (url.endsWith("/rest/v1/rpc/current_beta_terms_version")) {
-      if (typeof options.currentVersion === "object") {
-        return Promise.resolve(jsonResponse({ message: "missing function", code: "PGRST202" }, options.currentVersion.error));
-      }
-      return Promise.resolve(jsonResponse(options.currentVersion));
-    }
-    if (url.endsWith("/rest/v1/rpc/has_beta_consent")) {
+    if (url.endsWith("/rest/v1/rpc/ai_has_current_beta_consent")) {
       const consent = options.consent ?? false;
       if (typeof consent === "object") {
         return Promise.resolve(jsonResponse({ message: "consent rpc failed", code: "PGRST202" }, consent.error));
       }
-      const asked = body && typeof body === "object" && "p_version" in body
-        ? (body as { p_version?: unknown }).p_version
-        : null;
-      const accepted = consent && asked === "beta-v1";
-      return Promise.resolve(jsonResponse(accepted));
+      return Promise.resolve(jsonResponse(consent));
     }
     return Promise.resolve(jsonResponse({ message: `unexpected ${url}` }, 500));
   };
@@ -164,9 +153,9 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 }, async (t) => {
-  await t.step("consented user passes and the service role asks the database for the current version", async () => {
+  await t.step("consented user passes through the public wrapper", async () => {
     await withGateEnv(async () => {
-      const calls = installGateFetch({ allowed: true, currentVersion: "beta-v1", consent: true });
+      const calls = installGateFetch({ allowed: true, consent: true });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -174,21 +163,19 @@ Deno.test({
       const result = await requireAiUser(req, { skipEnabledCheck: true });
       assertEquals(result.ok, true);
       if (result.ok) assertEquals(result.userId, USER_ID);
-      const versionCalls = callsNamed(calls, "current_beta_terms_version");
-      const consentCalls = callsNamed(calls, "has_beta_consent");
-      assertEquals(versionCalls.length, 1);
+      const consentCalls = callsNamed(calls, "ai_has_current_beta_consent");
       assertEquals(consentCalls.length, 1);
-      assertEquals(versionCalls[0].apiKey, "test-service-key");
-      assertEquals(versionCalls[0].profile, "ai");
+      assertEquals(callsNamed(calls, "has_beta_consent").length, 0);
+      assertEquals(callsNamed(calls, "current_beta_terms_version").length, 0);
       assertEquals(consentCalls[0].apiKey, "test-service-key");
-      assertEquals(consentCalls[0].profile, "ai");
-      assertEquals(consentCalls[0].body, { p_user_id: USER_ID, p_version: "beta-v1" });
+      assertEquals(consentCalls[0].profile, "public");
+      assertEquals(consentCalls[0].body, { p_user_id: USER_ID });
     });
   });
 
   await t.step("a user without consent is denied with beta_consent_required", async () => {
     await withGateEnv(async () => {
-      installGateFetch({ allowed: true, currentVersion: "beta-v1", consent: false });
+      installGateFetch({ allowed: true, consent: false });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -205,29 +192,9 @@ Deno.test({
     });
   });
 
-  await t.step("an outdated accepted version is denied because the gate uses the database version", async () => {
-    await withGateEnv(async () => {
-      const calls = installGateFetch({ allowed: true, currentVersion: "beta-v2", consent: true });
-      const req = new Request("https://test.com", {
-        method: "POST",
-        headers: { Authorization: "Bearer user-jwt" },
-      });
-      const result = await requireAiUser(req, { skipEnabledCheck: true });
-      assertEquals(result.ok, false);
-      if (!result.ok) {
-        assertEquals(result.response.status, 403);
-        const body = await result.response.json();
-        assertEquals(body.code, "beta_consent_required");
-      }
-      const consentCalls = callsNamed(calls, "has_beta_consent");
-      assertEquals(consentCalls.length, 1);
-      assertEquals(consentCalls[0].body, { p_user_id: USER_ID, p_version: "beta-v2" });
-    });
-  });
-
   await t.step("an RPC error denies the request", async () => {
     await withGateEnv(async () => {
-      installGateFetch({ allowed: true, currentVersion: "beta-v1", consent: { error: 500 } });
+      installGateFetch({ allowed: true, consent: { error: 500 } });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -244,7 +211,7 @@ Deno.test({
 
   await t.step("a missing consent function denies the request", async () => {
     await withGateEnv(async () => {
-      installGateFetch({ allowed: true, currentVersion: { error: 404 } });
+      installGateFetch({ allowed: true, consent: { error: 404 } });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -261,7 +228,7 @@ Deno.test({
 
   await t.step("a user with no plan still gets the plan error, not beta_consent_required", async () => {
     await withGateEnv(async () => {
-      const calls = installGateFetch({ allowed: false, currentVersion: "beta-v1", consent: true });
+      const calls = installGateFetch({ allowed: false, consent: true });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -275,14 +242,13 @@ Deno.test({
         assertEquals(result.response.status, 200);
         assertEquals(await result.response.json(), { intent: null });
       }
-      assertEquals(callsNamed(calls, "has_beta_consent").length, 0);
-      assertEquals(callsNamed(calls, "current_beta_terms_version").length, 0);
+      assertEquals(callsNamed(calls, "ai_has_current_beta_consent").length, 0);
     });
   });
 
   await t.step("skipping the plan check still requires current consent", async () => {
     await withGateEnv(async () => {
-      const calls = installGateFetch({ allowed: false, currentVersion: "beta-v1", consent: false });
+      const calls = installGateFetch({ allowed: false, consent: false });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -295,13 +261,13 @@ Deno.test({
         assertEquals(body.code, "beta_consent_required");
       }
       assertEquals(callsNamed(calls, "ai_user_allowed").length, 0);
-      assertEquals(callsNamed(calls, "has_beta_consent").length, 1);
+      assertEquals(callsNamed(calls, "ai_has_current_beta_consent").length, 1);
     });
   });
 
   await t.step("a saved-receipt caller can skip consent without skipping every other caller", async () => {
     await withGateEnv(async () => {
-      const calls = installGateFetch({ allowed: false, currentVersion: "beta-v1", consent: false });
+      const calls = installGateFetch({ allowed: false, consent: false });
       const req = new Request("https://test.com", {
         method: "POST",
         headers: { Authorization: "Bearer user-jwt" },
@@ -312,7 +278,7 @@ Deno.test({
         skipConsentCheck: true,
       });
       assertEquals(result.ok, true);
-      assertEquals(callsNamed(calls, "has_beta_consent").length, 0);
+      assertEquals(callsNamed(calls, "ai_has_current_beta_consent").length, 0);
     });
   });
 });

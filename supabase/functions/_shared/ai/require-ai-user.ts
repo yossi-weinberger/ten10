@@ -72,10 +72,10 @@ function envValue(name: string): string {
 }
 
 /**
- * Service-role check against the database version.
- * ai.current_beta_terms_version() is the only source of truth; the client
- * constant AI_BETA_TERMS_VERSION must match it, and this gate does not trust
- * a copy. Any RPC error, missing function, or non-true result denies.
+ * Service-role check through public.ai_has_current_beta_consent.
+ * That wrapper calls ai.has_beta_consent with ai.current_beta_terms_version(),
+ * which stays the SQL source of truth. PostgREST does not expose the ai schema.
+ * Any RPC error, missing function, or non-true result denies.
  */
 async function hasCurrentBetaConsent(userId: string): Promise<boolean> {
   const serviceKey = envValue("SUPABASE_SERVICE_ROLE_KEY").trim();
@@ -84,12 +84,7 @@ async function hasCurrentBetaConsent(userId: string): Promise<boolean> {
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const version = await admin.schema("ai").rpc("current_beta_terms_version");
-  if (version.error || typeof version.data !== "string" || version.data.length === 0) return false;
-  const consent = await admin.schema("ai").rpc("has_beta_consent", {
-    p_user_id: userId,
-    p_version: version.data,
-  });
+  const consent = await admin.rpc("ai_has_current_beta_consent", { p_user_id: userId });
   if (consent.error) return false;
   return consent.data === true;
 }

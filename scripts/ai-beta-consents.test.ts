@@ -6,6 +6,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 const plansSql = readFileSync("supabase/migrations/20261110100000_ai_plans.sql", "utf8");
 const adminSql = readFileSync("supabase/migrations/20261110120000_admin_ai_user_plans.sql", "utf8");
 const consentsSql = readFileSync("supabase/migrations/20261111002200_ai_beta_consents.sql", "utf8");
+const currentConsentSql = readFileSync(
+  "supabase/migrations/20261111180000_ai_has_current_beta_consent.sql",
+  "utf8",
+);
 
 let db: PGlite;
 let adminUserId: string;
@@ -36,6 +40,7 @@ beforeAll(async () => {
   await db.exec(plansSql);
   await db.exec(adminSql);
   await db.exec(consentsSql);
+  await db.exec(currentConsentSql);
 
   await db.exec(`
     INSERT INTO public.plans (plan, ai_monthly_units, ai_daily_calls, ai_minute_calls, is_default)
@@ -367,6 +372,102 @@ describe("ai.has_beta_consent", () => {
       [normalUserId],
     );
     expect(rows[0].has_beta_consent).toBe(true);
+    await db.query("DELETE FROM public.user_plans WHERE user_id = $1", [normalUserId]);
+  });
+});
+
+describe("public.ai_has_current_beta_consent", () => {
+  it("calls the current SQL version from an empty search_path", async () => {
+    const { rows } = await db.query<{ def: string; config: string[] | null }>(`
+      SELECT pg_get_functiondef('public.ai_has_current_beta_consent(uuid)'::regprocedure) AS def,
+             proconfig AS config
+        FROM pg_proc
+       WHERE proname = 'ai_has_current_beta_consent'
+    `);
+    expect(rows[0].def).toContain("ai.has_beta_consent(p_user_id, ai.current_beta_terms_version())");
+    expect(rows[0].config).toEqual(["search_path=\"\""]);
+  });
+
+  it("returns true after the current version is accepted on an active plan", async () => {
+    await db.query("INSERT INTO public.user_plans (user_id, plan, is_active) VALUES ($1, 'beta', true)", [
+      normalUserId,
+    ]);
+    await setAuthUser(normalUserId);
+    await db.query("SELECT public.accept_ai_beta_terms('beta-v1')");
+    const { rows } = await db.query<{ ai_has_current_beta_consent: boolean }>(
+      "SELECT public.ai_has_current_beta_consent($1)",
+      [normalUserId],
+    );
+    expect(rows[0].ai_has_current_beta_consent).toBe(true);
+    await db.query("DELETE FROM public.user_plans WHERE user_id = $1", [normalUserId]);
+  });
+
+  it("returns false without consent", async () => {
+    const testUserId = randomUUID();
+    const { rows } = await db.query<{ ai_has_current_beta_consent: boolean }>(
+      "SELECT public.ai_has_current_beta_consent($1)",
+      [testUserId],
+    );
+    expect(rows[0].ai_has_current_beta_consent).toBe(false);
+  });
+
+  it("returns false when the accepted version is not current", async () => {
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, is_active, beta_terms_version) VALUES ($1, 'beta', true, 'beta-v0')",
+      [normalUserId],
+    );
+    const { rows } = await db.query<{ ai_has_current_beta_consent: boolean }>(
+      "SELECT public.ai_has_current_beta_consent($1)",
+      [normalUserId],
+    );
+    expect(rows[0].ai_has_current_beta_consent).toBe(false);
+    await db.query("DELETE FROM public.user_plans WHERE user_id = $1", [normalUserId]);
+  });
+
+  it("returns false when the plan is inactive", async () => {
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, is_active, beta_terms_version) VALUES ($1, 'beta', false, 'beta-v1')",
+      [normalUserId],
+    );
+    const { rows } = await db.query<{ ai_has_current_beta_consent: boolean }>(
+      "SELECT public.ai_has_current_beta_consent($1)",
+      [normalUserId],
+    );
+    expect(rows[0].ai_has_current_beta_consent).toBe(false);
+    await db.query("DELETE FROM public.user_plans WHERE user_id = $1", [normalUserId]);
+  });
+
+  it("denies anon and authenticated, and allows service_role", async () => {
+    await db.query(
+      "INSERT INTO public.user_plans (user_id, plan, is_active, beta_terms_version) VALUES ($1, 'beta', true, 'beta-v1')",
+      [normalUserId],
+    );
+    await db.exec("SET ROLE anon");
+    try {
+      await expect(
+        db.query("SELECT public.ai_has_current_beta_consent($1)", [normalUserId]),
+      ).rejects.toThrow(/permission denied/);
+    } finally {
+      await db.exec("RESET ROLE");
+    }
+    await db.exec("SET ROLE authenticated");
+    try {
+      await expect(
+        db.query("SELECT public.ai_has_current_beta_consent($1)", [normalUserId]),
+      ).rejects.toThrow(/permission denied/);
+    } finally {
+      await db.exec("RESET ROLE");
+    }
+    await db.exec("SET ROLE service_role");
+    try {
+      const { rows } = await db.query<{ ai_has_current_beta_consent: boolean }>(
+        "SELECT public.ai_has_current_beta_consent($1)",
+        [normalUserId],
+      );
+      expect(rows[0].ai_has_current_beta_consent).toBe(true);
+    } finally {
+      await db.exec("RESET ROLE");
+    }
     await db.query("DELETE FROM public.user_plans WHERE user_id = $1", [normalUserId]);
   });
 });
