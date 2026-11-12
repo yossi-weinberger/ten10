@@ -6,14 +6,16 @@ import { shouldShowAiOriginIndicator, type AiOrigin } from "./ai-origin";
 export function AiOriginIndicator({
   origin,
   platform,
+  aiIntakeEnabled,
   className,
 }: {
   origin: AiOrigin;
   platform: Platform;
+  aiIntakeEnabled: boolean;
   className?: string;
 }) {
   const { t } = useTranslation("data-tables");
-  if (!shouldShowAiOriginIndicator(platform, origin)) return null;
+  if (!shouldShowAiOriginIndicator(platform, origin, aiIntakeEnabled)) return null;
 
   return (
     <span

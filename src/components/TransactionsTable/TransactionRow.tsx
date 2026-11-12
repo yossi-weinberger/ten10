@@ -21,9 +21,10 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { isAiIntakeEnabled, useAiIntakeUi } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -55,7 +56,9 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const { user } = useAuth();
   const { platform } = usePlatform();
+  const aiIntakeEnabled = useAiIntakeUi(platform, Boolean(user));
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
   const receiptVisible = showReceiptAction({
@@ -100,7 +103,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
           {transaction.description || "-"}
-          <AiOriginIndicator origin={transaction.origin} platform={platform} />
+          <AiOriginIndicator
+            origin={transaction.origin}
+            platform={platform}
+            aiIntakeEnabled={aiIntakeEnabled}
+          />
         </span>
         {receiptLink ? (
           <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">

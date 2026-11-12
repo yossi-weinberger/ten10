@@ -33,9 +33,10 @@ import {
   getCalendarMonthKey,
   isCalendarMonthTransition,
 } from "@/lib/calendar/calendar-period";
-import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform, type Platform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { isAiIntakeEnabled, useAiIntakeUi } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
@@ -267,6 +268,8 @@ interface TransactionCardProps {
   swipeOpenId: string | null;
   onSwipeOpen: (id: string) => void;
   onSwipeClose: () => void;
+  platform: Platform;
+  aiIntakeEnabled: boolean;
 }
 
 const TransactionCard = memo(function TransactionCard({
@@ -290,10 +293,15 @@ const TransactionCard = memo(function TransactionCard({
   swipeOpenId,
   onSwipeOpen,
   onSwipeClose,
+  platform,
+  aiIntakeEnabled,
 }: TransactionCardProps) {
   const { i18n } = useTranslation("data-tables");
-  const { platform } = usePlatform();
-  const showAiOrigin = shouldShowAiOriginIndicator(platform, transaction.origin);
+  const showAiOrigin = shouldShowAiOriginIndicator(
+    platform,
+    transaction.origin,
+    aiIntakeEnabled,
+  );
   const conversion = storedConversion(transaction);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -565,6 +573,7 @@ const TransactionCard = memo(function TransactionCard({
           <AiOriginIndicator
             origin={transaction.origin}
             platform={platform}
+            aiIntakeEnabled={aiIntakeEnabled}
             className="shrink-0"
           />
         </div>
@@ -766,7 +775,9 @@ export function TransactionCardList({
   const { t, i18n } = useTranslation("data-tables");
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
+  const { user } = useAuth();
   const { platform } = usePlatform();
+  const aiIntakeEnabled = useAiIntakeUi(platform, Boolean(user));
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
@@ -994,7 +1005,11 @@ export function TransactionCardList({
     selectedTransaction?.description || t("messages.defaultTransactionName");
   const showDrawerAiOrigin =
     selectedTransaction != null &&
-    shouldShowAiOriginIndicator(platform, selectedTransaction.origin);
+    shouldShowAiOriginIndicator(
+      platform,
+      selectedTransaction.origin,
+      aiIntakeEnabled,
+    );
 
   return (
     <>
@@ -1109,6 +1124,8 @@ export function TransactionCardList({
               swipeOpenId={computedSwipeOpenId}
               onSwipeOpen={handleSwipeOpen}
               onSwipeClose={handleSwipeClose}
+              platform={platform}
+              aiIntakeEnabled={aiIntakeEnabled}
             />
           );
         })}
@@ -1135,6 +1152,7 @@ export function TransactionCardList({
                 <AiOriginIndicator
                   origin={selectedTransaction?.origin}
                   platform={platform}
+                  aiIntakeEnabled={aiIntakeEnabled}
                   className="shrink-0"
                 />
               </DrawerTitle>
