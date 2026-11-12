@@ -323,6 +323,12 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("min-w-0 flex-1 truncate");
     expect(markup).toContain("min-w-0 max-w-[7.5rem] shrink truncate");
+    expect(markup).toContain(
+      "mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden",
+    );
+    expect(markup).not.toContain(
+      "mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden",
+    );
     expect(markup).not.toContain('title="Recognized Expense"');
     expect(markup).not.toContain('aria-label="Recognized Expense"');
     expect(markup).toContain(

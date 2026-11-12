@@ -322,7 +322,7 @@ const TransactionCard = memo(function TransactionCard({
             className="shrink-0"
           />
         </div>
-        <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden text-[10px] leading-none text-muted-foreground">
+        <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
           <span
             className={cn(
               "shrink-0 whitespace-nowrap",

@@ -305,6 +305,42 @@ describe("RecurringCardList", () => {
     expect(document.querySelector(".ph-no-capture")).toBeNull();
   });
 
+  it("keeps frequency and next-date labels as separate meta siblings with gap-x-1", () => {
+    for (const language of ["en", "he"] as const) {
+      cleanup();
+      i18nLanguage.current = language;
+      i18nDir.current = language === "he" ? "rtl" : "ltr";
+      render(
+        <RecurringCardList
+          recurring={[
+            recurringRow({
+              id: `rent-${language}`,
+              description: `Rent ${language}`,
+              amount: 1234567.5,
+            }),
+          ]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />,
+      );
+
+      const frequency = screen.getByText("recurring.frequencies.monthly");
+      const nextDue = screen.getByText("cards.nextShort:01/02/2026");
+      expect(frequency).not.toBe(nextDue);
+      expect(frequency.parentElement).toBe(nextDue.parentElement);
+      expect(frequency.parentElement?.className).toMatch(/\bgap-x-1\b/);
+      expect(frequency.parentElement?.className).not.toMatch(/\bgap-px\b/);
+      // Adjacent flex items — must not live in one text node (glued חודשיהבא:)
+      expect(frequency.contains(nextDue)).toBe(false);
+      expect(nextDue.contains(frequency)).toBe(false);
+      expect(
+        [...(frequency.parentElement?.children ?? [])].indexOf(frequency),
+      ).toBeLessThan(
+        [...(frequency.parentElement?.children ?? [])].indexOf(nextDue),
+      );
+    }
+  });
+
   it("shows a masked Hebrew calendar badge and the full next date", () => {
     i18nLanguage.current = "he";
     render(

@@ -447,7 +447,7 @@ export function RecurringCardList({
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden text-[10px] leading-none text-muted-foreground">
+                <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
                   <MaskedText className="shrink-0 whitespace-nowrap">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
