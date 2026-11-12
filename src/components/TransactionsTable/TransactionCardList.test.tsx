@@ -1309,6 +1309,94 @@ describe("TransactionCardList", () => {
       expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
     });
 
+    it("tap does not select a card while selection is disabled", () => {
+      const onToggleSelected = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set(["2"])}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+      fireEvent.keyDown(card!, { key: "Enter" });
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("keeps the drawer closed outside selection mode while a bulk action is pending", () => {
+      const onToggleSelected = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled
+          bulkPending
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+      fireEvent.keyDown(card!, { key: "Enter" });
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      act(() => {
+        fireEvent.pointerUp(card!);
+      });
+      fireEvent.click(card!);
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("opens the drawer while loading when rows are already shown", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading
+          selectedIds={new Set()}
+          selectionDisabled
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((c) => c.textContent?.includes("Salary"));
+      fireEvent.click(card!);
+
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
     it("selected card shows aria-selected and aria-pressed attributes", () => {
       const selectedIds = new Set<string>(["1"]);
 
