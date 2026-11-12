@@ -2020,6 +2020,7 @@ describe("TransactionCardList PostHog masking", () => {
     const detail = `${originalUsd} × 3.70`;
     const pillDetail = within(drawer).getByText(detail);
     expect(pillDetail.tagName).toBe("BDI");
+    expect(pillDetail).toHaveAttribute("dir", "ltr");
     expectPostHogMask(pillDetail);
     expect(pillDetail.closest("div")?.textContent).toContain("Converted · ");
     expect(drawer.querySelector(".lucide-refresh-cw")).toBeTruthy();
@@ -3042,6 +3043,8 @@ describe("transaction details drawer", () => {
     const detail = `${formatCurrency(25, "USD", "en")} × 3.11`;
     const pill = within(drawer).getByText(detail);
     expect(pill.tagName).toBe("BDI");
+    expect(pill).toHaveAttribute("dir", "ltr");
+    expect(pill.textContent).toBe("$25 × 3.11");
     expectPostHogMask(pill);
     expect(drawer.textContent).toContain("Converted · ");
     expect(drawer.querySelector(".lucide-refresh-cw")).toBeTruthy();

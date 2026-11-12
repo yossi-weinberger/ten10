@@ -148,9 +148,9 @@ function formatConversionDetail(
   originalAmount: number,
   originalCurrency: CurrencyCode,
   rate: number | null | undefined,
-  language: string,
 ): string {
-  const original = formatCurrency(originalAmount, originalCurrency, language);
+  // en formatting keeps the symbol and amount in one LTR run. he-IL inserts RLM marks that split them.
+  const original = formatCurrency(originalAmount, originalCurrency, "en");
   if (typeof rate !== "number" || !Number.isFinite(rate)) return original;
   return `${original} × ${rate.toFixed(2)}`;
 }
@@ -1080,6 +1080,7 @@ export function TransactionCardList({
                     <span>
                       {t("drawer.convertedPrefix")}
                       <bdi
+                        dir="ltr"
                         className={PH_SENSITIVE_PROPS.className}
                         data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                       >
@@ -1087,7 +1088,6 @@ export function TransactionCardList({
                           selectedConversion.originalAmount,
                           selectedConversion.originalCurrency,
                           selectedConversion.rate,
-                          i18n.language,
                         )}
                       </bdi>
                     </span>
