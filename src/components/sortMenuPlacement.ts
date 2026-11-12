@@ -1,7 +1,7 @@
 /** 24px assistant-button offset + 56px button + 8px gap. */
 export const SORT_MENU_FAB_CLEARANCE = 88;
-/** About 2.5 min-h-11 rows. Less than this opens upward. */
-export const SORT_MENU_MIN_DOWN_SPACE = 88;
+/** About 1.5 min-h-11 rows. Less usable space than this opens upward. */
+export const SORT_MENU_MIN_DOWN_SPACE = 56;
 /** Gap between an upward menu and the viewport edge, before the header. */
 export const SORT_MENU_VIEWPORT_GAP = 8;
 /** Mobile top bar (`--mobile-topbar-h` without the safe-area inset). */

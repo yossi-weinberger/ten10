@@ -16,11 +16,13 @@ function place(viewportHeight: number, triggerBottom: number) {
 describe("decideSortMenuPlacement", () => {
   it.each([
     { viewportHeight: 568, triggerBottom: 366, side: "bottom" as const, maxHeight: 114 },
-    { viewportHeight: 568, triggerBottom: 200, side: "bottom" as const, maxHeight: 280 },
-    { viewportHeight: 568, triggerBottom: 500, side: "top" as const, maxHeight: 396 },
+    { viewportHeight: 568, triggerBottom: 402, side: "bottom" as const, maxHeight: 78 },
+    { viewportHeight: 568, triggerBottom: 418, side: "bottom" as const, maxHeight: 62 },
+    { viewportHeight: 568, triggerBottom: 440, side: "top" as const, maxHeight: 336 },
     { viewportHeight: 844, triggerBottom: 366, side: "bottom" as const, maxHeight: 390 },
-    { viewportHeight: 844, triggerBottom: 200, side: "bottom" as const, maxHeight: 556 },
-    { viewportHeight: 844, triggerBottom: 500, side: "bottom" as const, maxHeight: 256 },
+    { viewportHeight: 844, triggerBottom: 402, side: "bottom" as const, maxHeight: 354 },
+    { viewportHeight: 844, triggerBottom: 418, side: "bottom" as const, maxHeight: 338 },
+    { viewportHeight: 844, triggerBottom: 440, side: "bottom" as const, maxHeight: 316 },
   ])(
     "viewport $viewportHeight trigger bottom $triggerBottom opens $side at $maxHeight",
     ({ viewportHeight, triggerBottom, side, maxHeight }) => {
@@ -37,6 +39,6 @@ describe("decideSortMenuPlacement", () => {
         safeAreaBottom: 34,
         headerClearance: 52,
       }),
-    ).toEqual({ side: "top", maxHeight: 262 });
+    ).toEqual({ side: "bottom", maxHeight: 80 });
   });
 });
