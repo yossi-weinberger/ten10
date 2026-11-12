@@ -206,20 +206,39 @@ const TransactionCard = memo(function TransactionCard({
   const contentRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const renderedXRef = useRef(targetX);
-  const actionsConcealed = !isDragging && !isSwipeOpen;
+  // Hidden at rest. A close keeps the strip painted until the release ends,
+  // while pointer events and aria-hidden drop immediately via actionsInert.
+  const [actionsHidden, setActionsHidden] = useState(true);
+  const rowClosed = !isDragging && !isSwipeOpen;
+  if (!rowClosed && actionsHidden) {
+    setActionsHidden(false);
+  }
+  const actionsConcealed = actionsHidden && rowClosed;
 
   // A transition added in the same commit as translateX does not run. Rewind
-  // to the previous offset, flush layout, then ease. Clear the inline
-  // transition once the release has settled so the next drag is not eased.
+  // to the painted offset, flush layout, then ease. The no-ease branch still
+  // writes translateX: React skips the style prop when the string is unchanged,
+  // which leaves an interrupted drag pinned off the finger.
   useLayoutEffect(() => {
-    const from = renderedXRef.current;
-    renderedXRef.current = targetX;
     const el = contentRef.current;
-    if (!el) return;
+    if (!el) {
+      renderedXRef.current = targetX;
+      return;
+    }
+    const releaseInFlight = el.style.transition.includes("transform");
+    const painted = releaseInFlight
+      ? parseTranslateX(window.getComputedStyle(el).transform)
+      : null;
+    const from = painted ?? renderedXRef.current;
+    renderedXRef.current = targetX;
     const shouldEase = !isDragging && reduceMotion === false && from !== targetX;
+    const closed = !isDragging && !isSwipeOpen;
     if (!shouldEase) {
       el.style.transition = isDragging || reduceMotion !== false ? "none" : "";
-      return;
+      el.style.transform = `translateX(${targetX}px)`;
+      if (!closed) return;
+      const hide = window.setTimeout(() => setActionsHidden(true), 0);
+      return () => window.clearTimeout(hide);
     }
     el.style.transition = "none";
     el.style.transform = `translateX(${from}px)`;
@@ -228,9 +247,10 @@ const TransactionCard = memo(function TransactionCard({
     el.style.transform = `translateX(${targetX}px)`;
     const timer = window.setTimeout(() => {
       el.style.transition = "";
+      if (closed) setActionsHidden(true);
     }, SWIPE_RELEASE_MS);
     return () => window.clearTimeout(timer);
-  }, [isDragging, reduceMotion, targetX]);
+  }, [isDragging, isSwipeOpen, reduceMotion, targetX]);
 
   useEffect(() => {
     if (isMobileSwipeEnabled && actionsRef.current) {

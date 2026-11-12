@@ -2669,6 +2669,113 @@ describe("TransactionCardList PostHog masking", () => {
       computed.mockRestore();
     });
 
+    it("a drag that lands on the release target is not left at the painted offset", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expectOpen(card);
+      swipeCard(card, "close");
+
+      const layer = contentLayer(card);
+      const originalGetComputedStyle = window.getComputedStyle.bind(window);
+      const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+        if (element === layer) {
+          return { transform: "matrix(1, 0, 0, 1, -10, 0)" } as CSSStyleDeclaration;
+        }
+        return originalGetComputedStyle(element);
+      });
+
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 100, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 112, clientY: 40, pointerType: "touch" });
+      });
+
+      expect(readTranslateX(card)).toBe(0);
+      computed.mockRestore();
+    });
+
+    it("closes from the painted offset and hides the strip only after the release settles", () => {
+      const hiddenClass = "max-md:[@media(pointer:coarse)]:invisible";
+      const closers = [
+        () => {
+          act(() => {
+            window.dispatchEvent(new Event("scroll"));
+          });
+        },
+        (card: HTMLElement) => {
+          tapCard(card);
+        },
+        () => {
+          const topBar = document.createElement("button");
+          topBar.setAttribute("aria-label", "Menu");
+          document.body.appendChild(topBar);
+          fireEvent.click(topBar);
+          topBar.remove();
+        },
+      ];
+
+      closers.forEach((close) => {
+        cleanup();
+        render(
+          <TransactionCardList
+            transactions={[mockTransactions[0]]}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            loading={false}
+          />
+        );
+
+        const card = cardTitled("Salary");
+        act(() => {
+          fireEvent.pointerDown(card, { clientX: 160, clientY: 40, pointerType: "touch" });
+          fireEvent.pointerMove(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+          fireEvent.pointerUp(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+        });
+
+        const layer = contentLayer(card);
+        const rewind: string[] = [];
+        const rect = vi.spyOn(layer, "getBoundingClientRect").mockImplementation(() => {
+          rewind.push(layer.style.transform);
+          return new DOMRect();
+        });
+        const originalGetComputedStyle = window.getComputedStyle.bind(window);
+        const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+          if (element === layer) {
+            return { transform: "matrix(1, 0, 0, 1, -40, 0)" } as CSSStyleDeclaration;
+          }
+          return originalGetComputedStyle(element);
+        });
+
+        close(card);
+
+        expect(rewind).toContain("translateX(-40px)");
+        expect(rewind).not.toContain("translateX(-128px)");
+        expect(readTranslateX(card)).toBe(0);
+        const actions = card.closest("[data-swipe-row]")?.firstElementChild as HTMLElement;
+        expect(actions).toHaveAttribute("aria-hidden", "true");
+        expect(actions.classList.contains(hiddenClass)).toBe(false);
+
+        act(() => {
+          vi.advanceTimersByTime(220);
+        });
+        expect(actions.classList.contains(hiddenClass)).toBe(true);
+        rect.mockRestore();
+        computed.mockRestore();
+      });
+    });
+
     it("jumps the card shut when reduced motion is preferred", () => {
       reducedMotion.current = true;
       render(
