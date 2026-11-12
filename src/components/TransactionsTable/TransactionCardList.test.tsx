@@ -1082,6 +1082,95 @@ describe("TransactionCardList", () => {
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
   });
 
+  it.each([
+    ["ai", "filters.originAi"],
+    ["ai_auto", "filters.originAuto"],
+  ] as const)(
+    "shows the AI origin indicator on the card and in the drawer for %s",
+    async (origin, label) => {
+      const transaction: TransactionForTable = {
+        ...mockTransactions[0],
+        description: "Salary",
+        origin,
+      };
+
+      render(
+        <TransactionCardList
+          transactions={[transaction]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((item) =>
+        item.textContent?.includes("Salary"),
+      );
+      expect(card).toBeTruthy();
+      const cardIcon = card!.querySelector(`[aria-label="${label}"]`);
+      expect(cardIcon).toBeTruthy();
+      expect(cardIcon?.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(cardIcon?.parentElement?.className).toContain("ph-mask");
+      expect(cardIcon?.querySelector("svg")?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(card!.querySelector('[aria-label="filters.originAi"], [aria-label="filters.originAuto"]')).toBe(
+        cardIcon,
+      );
+
+      fireEvent.click(card!);
+      const drawer = await screen.findByRole("dialog");
+      const drawerIcon = drawer.querySelector(`[aria-label="${label}"]`);
+      expect(drawerIcon).toBeTruthy();
+      expect(drawerIcon?.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(drawerIcon?.parentElement?.className).toContain("ph-mask");
+      expect(drawerIcon?.querySelector("svg")?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(drawer.textContent).toContain("Salary");
+    },
+  );
+
+  it("does not show an AI origin indicator for a manual transaction", async () => {
+    const transaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes("Salary"),
+    );
+    expect(card).toBeTruthy();
+    expect(card!.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(card!.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const description = card!.querySelector(".font-medium");
+    expect(description?.className).toContain("truncate");
+    expect(description?.className).not.toContain("flex");
+    expect(description).toHaveAttribute("data-ph-mask", "");
+    expect(description?.textContent).toBe("Salary");
+
+    fireEvent.click(card!);
+    const drawer = await screen.findByRole("dialog");
+    expect(drawer.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(drawer.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const title = within(drawer).getByRole("heading", { name: "Salary" });
+    expect(title.className).toContain("line-clamp-2");
+    expect(title).toHaveAttribute("data-ph-mask", "");
+  });
+
   describe("selection mode and long-press", () => {
     beforeEach(() => {
       vi.useFakeTimers();
