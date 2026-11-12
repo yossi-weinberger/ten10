@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +28,11 @@ interface CurrencyConversionInfoProps {
   rateSource?: string | null;
   // Mode configuration
   mode?: "static" | "live";
+  /**
+   * Desktop rows keep the refresh indicator. Mobile cards pass false and draw
+   * their own icon so this shared component stays unchanged for the wide table.
+   */
+  showConversionIcon?: boolean;
 }
 
 export function CurrencyConversionInfo({
@@ -39,6 +44,7 @@ export function CurrencyConversionInfo({
   conversionDate,
   rateSource,
   mode = "static",
+  showConversionIcon = true,
 }: CurrencyConversionInfoProps) {
   const { i18n } = useTranslation();
   const { t: tCurrency } = useTranslation("currency-features");
@@ -98,8 +104,12 @@ export function CurrencyConversionInfo({
     // If no conversion happened or same currency, just show amount
     if (
       originalAmount == null ||
-      originalAmount === amount ||
-      originalCurrency === currency
+      !hasStoredCurrencyConversion({
+        amount,
+        currency,
+        originalAmount,
+        originalCurrency,
+      })
     ) {
       return (
         <span className="ph-mask" data-ph-mask>
@@ -111,6 +121,7 @@ export function CurrencyConversionInfo({
     return (
       <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {formatCurrency(amount, currency as CurrencyCode, i18n.language)}
+        {showConversionIcon ? (
         <TooltipProvider>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
@@ -171,6 +182,7 @@ export function CurrencyConversionInfo({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        ) : null}
       </div>
     );
   } else {
