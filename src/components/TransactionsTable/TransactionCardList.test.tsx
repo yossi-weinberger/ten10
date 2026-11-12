@@ -2461,6 +2461,7 @@ describe("TransactionCardList PostHog masking", () => {
       expect(card.style.marginInlineEnd).toBe("");
       expect(card.style.transform).toBe("");
       expect(card.parentElement?.hasAttribute("data-swipe-row")).toBe(true);
+      expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
     });
 
     it("keeps Edit and Delete opaque and enabled while the row is opening and when it is open", () => {
@@ -2802,6 +2803,122 @@ describe("TransactionCardList PostHog masking", () => {
 
       expect(card.style.marginInlineEnd).toBe("");
       expect(readTranslateX(card)).toBe(0);
+    });
+
+    it("covers the assistant FAB while a swipe strip is revealed and restores it on close", () => {
+      const onEdit = vi.fn();
+      const onDelete = vi.fn();
+      const listProps = {
+        transactions: [mockTransactions[0], mockTransactions[1]],
+        onEdit,
+        onDelete,
+        onEditRecurring: vi.fn(),
+        isFetchingRec: false,
+        loading: false,
+        onToggleSelected: vi.fn(),
+        onClearSelection: vi.fn(),
+        onSelectionEdit: vi.fn(),
+        onSelectionDelete: vi.fn(),
+        selectedCountLabel: "1 selected",
+        editLabel: "Edit selected",
+        deleteLabel: "Delete selected",
+        clearLabel: "Clear",
+        bulkToolbarAriaLabel: "Bulk actions",
+      };
+
+      const { rerender, unmount } = render(
+        <TransactionCardList {...listProps} selectedIds={new Set()} />
+      );
+
+      const expectCovered = () => {
+        expect(document.body.dataset.mobileSwipeOpen).toBe("true");
+      };
+      const expectRestored = () => {
+        settleSwipe();
+        expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+      };
+
+      expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+      const salary = cardTitled("Salary");
+      const groceries = cardTitled("Groceries");
+
+      act(() => {
+        fireEvent.pointerDown(salary, { clientX: 160, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(salary, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+      expectCovered();
+
+      act(() => {
+        fireEvent.pointerUp(salary, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+      expectOpen(salary);
+      expectCovered();
+
+      swipeCardOpen(groceries);
+      expectClosed(salary);
+      expectOpen(groceries);
+      expectCovered();
+
+      swipeCard(groceries, "close");
+      expectRestored();
+
+      swipeCardOpen(groceries);
+      const topBar = document.createElement("button");
+      topBar.setAttribute("aria-label", "Menu");
+      document.body.appendChild(topBar);
+      fireEvent.click(topBar);
+      topBar.remove();
+      expectRestored();
+
+      swipeCardOpen(groceries);
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+      expectRestored();
+
+      swipeCardOpen(groceries);
+      fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+      expect(onEdit).toHaveBeenCalledWith(mockTransactions[1]);
+      expectRestored();
+
+      swipeCardOpen(salary);
+      fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+      expect(onDelete).toHaveBeenCalledWith(mockTransactions[0]);
+      expectRestored();
+
+      swipeCardOpen(salary);
+      tapCard(salary);
+      expectRestored();
+
+      swipeCardOpen(salary);
+      tapCard(groceries);
+      expectClosed(salary);
+      expectRestored();
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      swipeCardOpen(salary);
+      act(() => {
+        fireEvent.pointerDown(salary, { clientX: 160, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(salary, { clientX: 40, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerCancel(salary);
+      });
+      expectRestored();
+
+      swipeCardOpen(salary);
+      expectCovered();
+      rerender(
+        <TransactionCardList {...listProps} selectedIds={new Set(["2"])} />
+      );
+      expectRestored();
+
+      rerender(
+        <TransactionCardList {...listProps} selectedIds={new Set()} />
+      );
+      swipeCardOpen(cardTitled("Salary"));
+      expectCovered();
+      unmount();
+      expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
     });
   });
 });
