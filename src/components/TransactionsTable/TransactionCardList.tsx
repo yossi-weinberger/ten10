@@ -884,8 +884,13 @@ export function TransactionCardList({
       return;
     }
 
+    // Pending bulk work must not open the drawer. A refetch still can.
+    if (bulkPending) {
+      return;
+    }
+
     setSelectedTransaction(transaction);
-  }, [inSelectionMode, onToggleSelected, selectionDisabled]);
+  }, [bulkPending, inSelectionMode, onToggleSelected, selectionDisabled]);
 
   const handleCloseDrawer = useCallback(() => {
     setSelectedTransaction(null);
