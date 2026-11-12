@@ -234,6 +234,11 @@
   "accessibility": {
     "openMenu": "פתח תפריט"
   },
+  "sort": {
+    "sortBy": "מיון לפי",
+    "ascending": "מיון עולה",
+    "descending": "מיון יורד"
+  },
   "recurring": {
     "status": "סטטוס",
     "frequency": "תדירות",

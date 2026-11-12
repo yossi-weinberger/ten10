@@ -256,6 +256,11 @@
   "accessibility": {
     "openMenu": "Open menu"
   },
+  "sort": {
+    "sortBy": "Sort by",
+    "ascending": "Sort ascending",
+    "descending": "Sort descending"
+  },
   "recurring": {
     "status": "Status",
     "frequency": "Frequency",
