@@ -1,10 +1,3 @@
-export const recurringStatusLabels: Record<string, string> = {
-  active: "פעיל",
-  paused: "מושהה",
-  completed: "הושלם",
-  cancelled: "בוטל",
-};
-
 export const recurringFrequencyLabels: Record<string, string> = {
   monthly: "חודשי",
   weekly: "שבועי",
