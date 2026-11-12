@@ -646,6 +646,7 @@ export function TransactionsTableDisplay() {
           />
           <TransactionCardList
             transactions={transactions as TransactionForTable[]}
+            showMonthSeparators={sorting.field === "date"}
             onEdit={handleEditInitiate}
             onDelete={handleDeleteInitiate}
             onEditRecurring={handleEditRecurringInitiate}

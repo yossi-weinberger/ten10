@@ -63,6 +63,7 @@ interface TransactionCardListProps {
   onSelectionDelete?: () => void;
   bulkPending?: boolean;
   bulkEditDisabled?: boolean;
+  showMonthSeparators?: boolean;
 }
 
 const isSpecialType = (type: TransactionType): boolean => {
@@ -512,6 +513,7 @@ export function TransactionCardList({
   onSelectionDelete,
   bulkPending = false,
   bulkEditDisabled = false,
+  showMonthSeparators = true,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
   const { t: tCurrency } = useTranslation("currency-features");
@@ -573,6 +575,13 @@ export function TransactionCardList({
   }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
+    if (!showMonthSeparators) {
+      return transactions.map((transaction) => ({
+        type: "transaction" as const,
+        transaction,
+      }));
+    }
+
     const result: Array<
       | { type: "transaction"; transaction: TransactionForTable }
       | { type: "separator"; monthKey: string; monthLabel: string }
@@ -614,7 +623,7 @@ export function TransactionCardList({
     });
 
     return result;
-  }, [transactions, i18n.language, calendarType]);
+  }, [transactions, i18n.language, calendarType, showMonthSeparators]);
 
   const handleCardClick = useCallback((transaction: TransactionForTable) => {
     if (longPressTriggeredRef.current) {

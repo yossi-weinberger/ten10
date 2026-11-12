@@ -1796,6 +1796,84 @@ describe("TransactionCardList", () => {
   });
 });
 
+describe("TransactionCardList month separators", () => {
+  const row = (
+    overrides: Pick<TransactionForTable, "id" | "date" | "amount" | "description">,
+  ): TransactionForTable => ({
+    ...mockTransactions[0],
+    ...overrides,
+  });
+
+  const amountOrder = [
+    row({ id: "a", date: "2026-11-02", amount: 30, description: "Nov late" }),
+    row({ id: "b", date: "2026-10-15", amount: 20, description: "Oct" }),
+    row({ id: "c", date: "2026-11-01", amount: 10, description: "Nov early" }),
+  ];
+
+  const dateOrder = [
+    row({ id: "c", date: "2026-11-01", amount: 10, description: "Nov early" }),
+    row({ id: "a", date: "2026-11-02", amount: 30, description: "Nov late" }),
+    row({ id: "b", date: "2026-10-15", amount: 20, description: "Oct" }),
+  ];
+
+  const renderRows = (
+    transactions: TransactionForTable[],
+    showMonthSeparators: boolean,
+  ) => {
+    mockUseDonationStore.mockReturnValue(false);
+    return render(
+      <TransactionCardList
+        transactions={transactions}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        showMonthSeparators={showMonthSeparators}
+      />,
+    );
+  };
+
+  const duplicateKeyWarnings = () => {
+    const messages: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      messages.push(args.map(String).join(" "));
+    });
+    return {
+      messages,
+      restore: () => spy.mockRestore(),
+    };
+  };
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("omits separators and duplicate month keys when grouping is off", () => {
+    const warnings = duplicateKeyWarnings();
+    renderRows(amountOrder, false);
+
+    expect(document.querySelectorAll(".sticky")).toHaveLength(0);
+    expect(screen.queryByText("2026-11")).not.toBeInTheDocument();
+    expect(screen.queryByText("2026-10")).not.toBeInTheDocument();
+    expect(screen.getByText("Nov late")).toBeInTheDocument();
+    expect(screen.getByText("Oct")).toBeInTheDocument();
+    expect(screen.getByText("Nov early")).toBeInTheDocument();
+    expect(warnings.messages.some((message) => message.includes("same key"))).toBe(false);
+    warnings.restore();
+  });
+
+  it("shows one separator per month change when grouping is on", () => {
+    const warnings = duplicateKeyWarnings();
+    renderRows(dateOrder, true);
+
+    expect(screen.getByText("2026-11")).toBeInTheDocument();
+    expect(screen.getByText("2026-10")).toBeInTheDocument();
+    expect(document.querySelectorAll(".sticky")).toHaveLength(2);
+    expect(warnings.messages.some((message) => message.includes("same key"))).toBe(false);
+    warnings.restore();
+  });
+});
+
 function expectPostHogMask(element: Element | null | undefined) {
   expect(element).toBeTruthy();
   expect(element).toHaveAttribute("data-ph-mask", "");
