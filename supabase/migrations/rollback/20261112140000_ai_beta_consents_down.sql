@@ -1,6 +1,6 @@
--- Rollback for 20261111002200_ai_beta_consents.sql
+-- Rollback for 20261112140000_ai_beta_consents.sql
 -- Restores original admin RPCs, drops new columns from user_plans, and drops consent RPCs.
--- After running: supabase migration repair --status reverted 20261111002200
+-- After running: supabase migration repair --status reverted 20261112140000
 
 SET check_function_bodies = false;
 
