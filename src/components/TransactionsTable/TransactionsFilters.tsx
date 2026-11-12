@@ -385,6 +385,9 @@ export function TransactionsFilters() {
         <CompactFilterHeader
           title={tTables("filters.compactTitle")}
           count={activeFiltersCount}
+          countLabel={tTables("filters.compactActiveCount", {
+            count: activeFiltersCount,
+          })}
           resetLabel={tTables("filters.compactReset")}
           closeLabel={tTables("filters.hideFilters")}
           onReset={handleResetFilters}
@@ -511,7 +514,7 @@ export function TransactionsFilters() {
               </SelectContent>
             </Select>
           </CompactFilterCell>
-          {platform === "web" ? (
+          {platform === "web" && isAiIntakeEnabled() ? (
             <CompactFilterCell>
               <Select
                 value={localOrigin}

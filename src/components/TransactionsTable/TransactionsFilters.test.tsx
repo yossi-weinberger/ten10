@@ -25,8 +25,12 @@ vi.mock("@/components/ui/date-range-picker", () => ({
   ),
 }));
 
+const { aiIntakeState } = vi.hoisted(() => ({
+  aiIntakeState: { enabled: false },
+}));
+
 vi.mock("@/lib/ai/flags", () => ({
-  isAiIntakeEnabled: () => false,
+  isAiIntakeEnabled: () => aiIntakeState.enabled,
 }));
 
 vi.mock("@/lib/data-layer", () => ({
@@ -353,6 +357,7 @@ describe("TransactionsFilters", () => {
 
     beforeEach(async () => {
       vi.clearAllMocks();
+      aiIntakeState.enabled = false;
       const { useMediaQuery } = await import("@/hooks/use-media-query");
       vi.mocked(useMediaQuery).mockReturnValue(true);
       vi.mocked(usePlatform).mockReturnValue({ platform: "web" as const });
@@ -381,6 +386,7 @@ describe("TransactionsFilters", () => {
       const panel = screen.getByTestId("mobile-filters-panel");
       expect(within(panel).queryByRole("button", { name: "filters.compactReset" })).not.toBeInTheDocument();
       expect(within(panel).queryByText(/^\d+$/)).not.toBeInTheDocument();
+      expect(within(panel).queryByText("filters.compactActiveCount")).not.toBeInTheDocument();
     });
 
     it("counts search text in the badge and shows the reset link", async () => {
@@ -389,7 +395,8 @@ describe("TransactionsFilters", () => {
       await user.type(search, "rent");
 
       const panel = screen.getByTestId("mobile-filters-panel");
-      expect(within(panel).getByText("1")).toBeInTheDocument();
+      expect(within(panel).getByText("1")).toHaveAttribute("aria-hidden", "true");
+      expect(within(panel).getByText("filters.compactActiveCount")).toHaveClass("sr-only");
       expect(
         within(panel).getByRole("button", { name: "filters.compactReset" }),
       ).toBeInTheDocument();
@@ -475,20 +482,36 @@ describe("TransactionsFilters", () => {
       expect(value).toHaveAttribute("dir", "ltr");
     });
 
-    it("keeps source as a half-width cell after recurring", async () => {
-      await openPanel();
-      const panel = screen.getByTestId("mobile-filters-panel");
+    function expectHalfWidthGrid(panel: HTMLElement) {
       const grid = panel.querySelector(".grid");
       expect(grid).not.toBeNull();
-      const labels = Array.from(grid?.querySelectorAll("button") ?? []).map(
-        (button) => button.textContent,
-      );
-      expect(labels[0]).toContain("filters.compactDate:");
-      expect(labels[1]).toContain("filters.compactType:");
-      expect(labels[2]).toContain("filters.compactPayment:");
-      expect(labels[3]).toContain("filters.compactRecurring:");
-      expect(labels[4]).toContain("filters.compactSource:");
-      expect(grid?.querySelector("[class*='col-span']")).toBeNull();
+      expect(grid).toHaveClass("grid-cols-2");
+      const cells = Array.from(grid?.children ?? []);
+      expect(cells.length).toBeGreaterThan(0);
+      for (const cell of cells) {
+        expect(cell.className).not.toMatch(/col-span/);
+      }
+      return cells;
+    }
+
+    it("hides source when AI intake is off and keeps the last cell half width", async () => {
+      aiIntakeState.enabled = false;
+      await openPanel();
+      const panel = screen.getByTestId("mobile-filters-panel");
+      const cells = expectHalfWidthGrid(panel);
+      expect(cells).toHaveLength(4);
+      expect(cells[3]?.textContent).toContain("filters.compactRecurring:");
+      expect(panel).not.toHaveTextContent("filters.compactSource:");
+    });
+
+    it("shows source as the last half-width cell when AI intake is on", async () => {
+      aiIntakeState.enabled = true;
+      await openPanel();
+      const panel = screen.getByTestId("mobile-filters-panel");
+      const cells = expectHalfWidthGrid(panel);
+      expect(cells).toHaveLength(5);
+      expect(cells[3]?.textContent).toContain("filters.compactRecurring:");
+      expect(cells[4]?.textContent).toContain("filters.compactSource:");
     });
   });
 });
