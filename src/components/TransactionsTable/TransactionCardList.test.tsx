@@ -1109,26 +1109,25 @@ describe("TransactionCardList", () => {
         item.textContent?.includes("Salary"),
       );
       expect(card).toBeTruthy();
-      const cardIcon = card!.querySelector(`[aria-label="${label}"]`);
-      expect(cardIcon).toBeTruthy();
-      expect(cardIcon?.parentElement).toHaveAttribute("data-ph-mask", "");
-      expect(cardIcon?.parentElement?.className).toContain("ph-mask");
-      expect(cardIcon?.querySelector("svg")?.getAttribute("class")).toContain(
+      const cardIcon = within(card!).getByRole("img", { name: label });
+      expect(cardIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(cardIcon.parentElement?.className).toContain("ph-mask");
+      const cardSvg = cardIcon.querySelector("svg");
+      expect(cardSvg?.getAttribute("class")).toContain(
         "h-3.5 w-3.5 shrink-0 text-muted-foreground",
       );
-      expect(card!.querySelector('[aria-label="filters.originAi"], [aria-label="filters.originAuto"]')).toBe(
-        cardIcon,
-      );
+      expect(cardSvg).toHaveAttribute("aria-hidden", "true");
 
       fireEvent.click(card!);
       const drawer = await screen.findByRole("dialog");
-      const drawerIcon = drawer.querySelector(`[aria-label="${label}"]`);
-      expect(drawerIcon).toBeTruthy();
-      expect(drawerIcon?.parentElement).toHaveAttribute("data-ph-mask", "");
-      expect(drawerIcon?.parentElement?.className).toContain("ph-mask");
-      expect(drawerIcon?.querySelector("svg")?.getAttribute("class")).toContain(
+      const drawerIcon = within(drawer).getByRole("img", { name: label });
+      expect(drawerIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(drawerIcon.parentElement?.className).toContain("ph-mask");
+      const drawerSvg = drawerIcon.querySelector("svg");
+      expect(drawerSvg?.getAttribute("class")).toContain(
         "h-3.5 w-3.5 shrink-0 text-muted-foreground",
       );
+      expect(drawerSvg).toHaveAttribute("aria-hidden", "true");
       expect(drawer.textContent).toContain("Salary");
     },
   );

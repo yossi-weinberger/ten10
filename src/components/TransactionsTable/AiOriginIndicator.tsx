@@ -18,11 +18,15 @@ export function AiOriginIndicator({
   return (
     <span
       className={className ? `inline-flex ${className}` : "inline-flex"}
+      role="img"
       aria-label={t(
         origin === "ai_auto" ? "filters.originAuto" : "filters.originAi",
       )}
     >
-      <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <Sparkles
+        className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+        aria-hidden="true"
+      />
     </span>
   );
 }
