@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import type { CurrencyCode } from "../currencies";
 import { currencyFractionDigits, formatCurrency } from "./currency";
 
 // Intl output varies slightly between ICU versions (NBSP, RTL marks),
@@ -66,5 +67,58 @@ describe("currencyFractionDigits", () => {
     expect(big).toBe("6,289.1");
     expect(clean(formatCurrency(6289.1, "ILS", "en"))).toContain("6,289.1");
     expect(currencyFractionDigits(6289)).toBe(0);
+  });
+});
+
+// Locked to the formatter as it behaves today: whole amounts have no decimals,
+// and any fractional amount is rounded to one decimal.
+const currentOutputs: Array<{
+  amount: number;
+  currency: CurrencyCode;
+  lang: string;
+  expected: string;
+}> = [
+  { amount: 0, currency: "ILS", lang: "he", expected: "0 ₪" },
+  { amount: 5, currency: "ILS", lang: "he", expected: "5 ₪" },
+  { amount: 5.5, currency: "ILS", lang: "he", expected: "5.5 ₪" },
+  { amount: 5.55, currency: "ILS", lang: "he", expected: "5.6 ₪" },
+  { amount: 5.555, currency: "ILS", lang: "he", expected: "5.6 ₪" },
+  { amount: -5, currency: "ILS", lang: "he", expected: "-5 ₪" },
+  { amount: -5.5, currency: "ILS", lang: "he", expected: "-5.5 ₪" },
+  { amount: -5.555, currency: "ILS", lang: "he", expected: "-5.6 ₪" },
+  { amount: 1234.6, currency: "ILS", lang: "he", expected: "1,234.6 ₪" },
+  { amount: 1234.6, currency: "ILS", lang: "en", expected: "₪1,234.6" },
+  { amount: 1234567.891, currency: "ILS", lang: "he", expected: "1,234,567.9 ₪" },
+  { amount: -1234567.891, currency: "ILS", lang: "he", expected: "-1,234,567.9 ₪" },
+  { amount: 0, currency: "USD", lang: "en", expected: "$0" },
+  { amount: 5, currency: "USD", lang: "en", expected: "$5" },
+  { amount: 5.5, currency: "USD", lang: "en", expected: "$5.5" },
+  { amount: 5.55, currency: "USD", lang: "en", expected: "$5.6" },
+  { amount: 5.555, currency: "USD", lang: "en", expected: "$5.6" },
+  { amount: -5.5, currency: "USD", lang: "en", expected: "-$5.5" },
+  { amount: -5.555, currency: "USD", lang: "en", expected: "-$5.6" },
+  { amount: 1234.6, currency: "USD", lang: "en", expected: "$1,234.6" },
+  { amount: 1234.6, currency: "USD", lang: "he", expected: "1,234.6 $" },
+  { amount: 1234567.891, currency: "USD", lang: "en", expected: "$1,234,567.9" },
+  { amount: 5.555, currency: "EUR", lang: "en", expected: "€5.6" },
+  { amount: 5.555, currency: "EUR", lang: "he", expected: "5.6 €" },
+  { amount: 1234.6, currency: "EUR", lang: "en", expected: "€1,234.6" },
+  { amount: 1234.6, currency: "GBP", lang: "en", expected: "1,234.6 £" },
+  { amount: 1234.6, currency: "GBP", lang: "he", expected: "1,234.6 £" },
+];
+
+describe("formatCurrency current outputs", () => {
+  it.each(currentOutputs)(
+    "$amount $currency $lang → $expected",
+    ({ amount, currency, lang, expected }) => {
+      expect(clean(formatCurrency(amount, currency, lang))).toBe(expected);
+    },
+  );
+
+  it("uses one fractional digit for every non-whole sample", () => {
+    for (const sample of currentOutputs) {
+      const digits = currencyFractionDigits(sample.amount);
+      expect(digits).toBe(sample.amount % 1 === 0 ? 0 : 1);
+    }
   });
 });
