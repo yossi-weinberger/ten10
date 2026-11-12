@@ -9,7 +9,9 @@ import { useReducedMotion } from "framer-motion";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSwipe } from "@/hooks/use-swipe";
+import { COARSE_POINTER_QUERY, MOBILE_CARD_QUERY } from "@/lib/responsive";
 import { cn } from "@/lib/utils/formatting";
 
 const SWIPE_ACTION_FALLBACK_WIDTH = 128;
@@ -116,9 +118,11 @@ export function SwipeableCardRow({
   const actionsInert = inSelectionMode || (!isDragging && !isSwipeOpen);
   const reduceMotion = useReducedMotion();
 
-  const isMobileSwipeEnabled = typeof window !== "undefined"
-    && typeof window.matchMedia === "function"
-    && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+  // A narrow fine-pointer window still uses cards. Swipe stays on a coarse pointer,
+  // including phone landscape (coarse and max-height 500px).
+  const cardLayout = useMediaQuery(MOBILE_CARD_QUERY);
+  const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
+  const isMobileSwipeEnabled = cardLayout && coarsePointer;
 
   const logicalOffset =
     isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
@@ -135,7 +139,7 @@ export function SwipeableCardRow({
   if (!rowClosed && actionsHidden) {
     setActionsHidden(false);
   }
-  const actionsConcealed = actionsHidden && rowClosed;
+  const actionsConcealed = !isMobileSwipeEnabled || (actionsHidden && rowClosed);
 
   useEffect(() => {
     if (actionsConcealed) return;
@@ -253,18 +257,18 @@ export function SwipeableCardRow({
     longPressTriggeredRef.current = false;
     swipeTriggeredRef.current = false;
     longPressHandlers.onPointerDown(event);
-    swipeHandlers.onPointerDown(event);
+    if (isMobileSwipeEnabled) swipeHandlers.onPointerDown(event);
   };
 
   const handlePointerMove = (event: ReactPointerEvent) => {
     longPressHandlers.onPointerMove(event);
-    swipeHandlers.onPointerMove(event);
+    if (isMobileSwipeEnabled) swipeHandlers.onPointerMove(event);
   };
 
   const handlePointerUp = (event: ReactPointerEvent) => {
     const wasSwipeActive = swipeTriggeredRef.current;
     longPressHandlers.onPointerUp(event);
-    swipeHandlers.onPointerUp(event);
+    if (isMobileSwipeEnabled) swipeHandlers.onPointerUp(event);
 
     if (wasSwipeActive && inSelectionMode) {
       event.preventDefault();
@@ -278,7 +282,7 @@ export function SwipeableCardRow({
     swipeTriggeredRef.current = false;
     setIsDragging(false);
     longPressHandlers.onPointerCancel();
-    swipeHandlers.onPointerCancel();
+    if (isMobileSwipeEnabled) swipeHandlers.onPointerCancel();
 
     if (wasSwipeActive) {
       setSwipeOffset(0);
@@ -290,7 +294,7 @@ export function SwipeableCardRow({
 
   const handleContextMenu = (event: ReactMouseEvent) => {
     const isTouch = (event.nativeEvent instanceof PointerEvent && event.nativeEvent.pointerType === "touch")
-      || window.matchMedia("(pointer: coarse)").matches;
+      || window.matchMedia(COARSE_POINTER_QUERY).matches;
     if (isTouch) {
       event.preventDefault();
     }
@@ -332,7 +336,7 @@ export function SwipeableCardRow({
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] mobile-card:touch-pan-y",
           surfaceClassName,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -350,34 +354,36 @@ export function SwipeableCardRow({
 
   return (
     <div
-      className="relative max-md:[@media(pointer:coarse)]:isolate max-md:[@media(pointer:coarse)]:overflow-hidden"
+      className="relative mobile-card:isolate mobile-card:overflow-hidden"
       data-swipe-row={id}
     >
-      <div
-        ref={actionsRef}
-        className={cn(
-          "hidden max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2",
-          actionsConcealed && "max-md:[@media(pointer:coarse)]:invisible",
-          actionsInert && "pointer-events-none"
-        )}
-        aria-hidden={actionsInert}
-      >
-        {actions.map((action, index) => (
-          <Button
-            key={`${action.label}-${index}`}
-            variant={action.variant}
-            size="icon"
-            className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
-            onClick={(event) => handleActionClick(event, action)}
-            tabIndex={actionsInert ? -1 : 0}
-            aria-label={action.label}
-            {...(action.disabled ? { disabled: true } : {})}
-          >
-            {action.icon}
-            <span className="text-[11px] leading-tight">{action.label}</span>
-          </Button>
-        ))}
-      </div>
+      {isMobileSwipeEnabled ? (
+        <div
+          ref={actionsRef}
+          className={cn(
+            "hidden mobile-card:absolute mobile-card:inset-y-0 mobile-card:end-0 mobile-card:z-0 mobile-card:flex mobile-card:items-stretch mobile-card:gap-2 mobile-card:ps-2",
+            actionsConcealed && "mobile-card:invisible",
+            actionsInert && "pointer-events-none"
+          )}
+          aria-hidden={actionsInert}
+        >
+          {actions.map((action, index) => (
+            <Button
+              key={`${action.label}-${index}`}
+              variant={action.variant}
+              size="icon"
+              className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
+              onClick={(event) => handleActionClick(event, action)}
+              tabIndex={actionsInert ? -1 : 0}
+              aria-label={action.label}
+              {...(action.disabled ? { disabled: true } : {})}
+            >
+              {action.icon}
+              <span className="text-[11px] leading-tight">{action.label}</span>
+            </Button>
+          ))}
+        </div>
+      ) : null}
       {isMobileSwipeEnabled ? (
         <div
           ref={contentRef}
