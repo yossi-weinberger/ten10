@@ -2,8 +2,10 @@ import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "reac
 import { Paperclip, SquarePen } from "lucide-react";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { loadTitheBalance } from "@/lib/ai/assistant-extras";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import type { CurrencyCode } from "@/lib/currencies";
 import { useDonationStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { AssistantComposer } from "./AssistantComposer";
@@ -139,7 +141,12 @@ export function AssistantDrawer({
           <div role="status" className="mb-2 grid gap-2 rounded-lg border bg-muted/40 p-2 text-sm">
             <p className="flex min-w-0 items-center gap-2">
               <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-              <span className="min-w-0 flex-1 truncate">{state.t("aiIntake.sharedFile", { name: sharedFile.name })}</span>
+              <span
+                className={cn("min-w-0 flex-1 truncate", PH_SENSITIVE_PROPS.className)}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {state.t("aiIntake.sharedFile", { name: sharedFile.name })}
+              </span>
             </p>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" className="h-10" onClick={() => setSharedFile(null)}>
