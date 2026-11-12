@@ -393,12 +393,21 @@ export function RecurringTransactionsTableDisplay() {
     ],
     [t]
   );
+  // Cards are always grouped by status, so a status sort has no visible effect there.
+  const mobileSortColumns = useMemo(
+    () => sortableColumns.filter((column) => column.field !== "status"),
+    [sortableColumns]
+  );
+  const cardSort =
+    sorting.field === "status"
+      ? { field: "next_due_date" as const, direction: "asc" as const }
+      : sorting;
 
   const sortControl = (
     <MobileSortPicker
-      fields={sortableColumns}
-      field={sorting.field}
-      direction={sorting.direction}
+      fields={mobileSortColumns}
+      field={cardSort.field}
+      direction={cardSort.direction}
       onChange={handleSort}
     />
   );

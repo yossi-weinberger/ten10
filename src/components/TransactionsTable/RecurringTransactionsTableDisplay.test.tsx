@@ -401,4 +401,43 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
     await user.click(within(dialog).getByRole("button", { name: "actions.delete" }));
     expect(deleteRecurringTransaction).toHaveBeenCalledWith("active-1");
   });
+
+  it("hides status in the mobile sort picker and keeps a status sort on the desktop table", async () => {
+    api.sorting = { field: "status", direction: "desc" };
+    api.recurring = [recurringRow({ id: "active-1", description: "Rent" })];
+    const user = userEvent.setup();
+    render(<RecurringTransactionsTableDisplay />);
+
+    expect(screen.getByRole("columnheader", { name: "recurringColumns.status" })).toHaveAttribute(
+      "aria-sort",
+      "descending",
+    );
+    await user.click(screen.getByRole("button", { name: "recurringColumns.status" }));
+    expect(api.setSorting).toHaveBeenCalledWith("status");
+    api.setSorting.mockClear();
+
+    setCardMatches(true);
+
+    const trigger = screen.getByRole("button", { name: "sort.sortBy: recurringColumns.nextDueDate" });
+    await user.click(trigger);
+    const menu = await screen.findByRole("menu");
+    expect(within(menu).queryByRole("menuitemradio", { name: "recurringColumns.status" })).not.toBeInTheDocument();
+    expect(within(menu).getByRole("menuitemradio", { name: "recurringColumns.nextDueDate" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(within(menu).getByRole("menuitemradio", { name: "sort.directions.dateAsc" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(api.setSorting).not.toHaveBeenCalled();
+    expect(api.sorting).toEqual({ field: "status", direction: "desc" });
+
+    setCardMatches(false);
+    expect(screen.getByRole("columnheader", { name: "recurringColumns.status" })).toHaveAttribute(
+      "aria-sort",
+      "descending",
+    );
+    expect(api.setSorting).not.toHaveBeenCalled();
+  });
 });

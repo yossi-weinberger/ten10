@@ -105,4 +105,20 @@ describe("useMobileCardLayout", () => {
     expect(screen.getByTestId("layout")).toHaveAttribute("data-cards", "false");
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
   });
+
+  it("does not switch or scroll when a deferred crossing ends on the committed value", () => {
+    cardMatches = true;
+    const view = render(<Probe defer={false} />);
+    expect(screen.getByTestId("layout")).toHaveAttribute("data-cards", "true");
+    vi.mocked(window.scrollTo).mockClear();
+
+    view.rerender(<Probe defer />);
+    setCardMatches(false);
+    setCardMatches(true);
+    expect(screen.getByTestId("layout")).toHaveAttribute("data-cards", "true");
+
+    view.rerender(<Probe defer={false} />);
+    expect(screen.getByTestId("layout")).toHaveAttribute("data-cards", "true");
+    expect(window.scrollTo).not.toHaveBeenCalled();
+  });
 });
