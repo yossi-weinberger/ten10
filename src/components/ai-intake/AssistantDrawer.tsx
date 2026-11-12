@@ -6,6 +6,7 @@ import type { CurrencyCode } from "@/lib/currencies";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
+import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
 import { onBetaConsentRequired } from "@/lib/ai/beta-consent-required";
@@ -49,6 +50,7 @@ export function AssistantDrawer({
   const defaultCurrency = useDonationStore((store) => store.settings.defaultCurrency);
   const [openingBalance, setOpeningBalance] = useState<number | null>(null);
   const userId = state.user?.id ?? null;
+  const isCompactViewport = useMediaQuery(COMPACT_VIEWPORT_QUERY);
 
   // Beta consent gate - fail closed: start checking when drawer opens with a userId
   const [consentState, setConsentState] = useState<{
@@ -152,6 +154,9 @@ export function AssistantDrawer({
 
   // Derive consent OK: fail closed unless explicitly accepted
   const consentOk = !!userId && !consentState.checking && consentState.accepted === true;
+  // On a phone, keep the assistant closed until this terms version is accepted.
+  // Desktop still opens immediately and shows the dialog over the drawer.
+  const assistantOpen = isCompactViewport ? open && consentOk : open;
 
   const handleBetaAccept = () => {
     setConsentState({ checking: false, accepted: true, showDialog: false });
@@ -172,6 +177,10 @@ export function AssistantDrawer({
       })
       : state.t("aiIntake.openingCovered");
 
+  // On a phone the assistant stays unmounted until consent is in, so its drawer
+  // cannot sit behind the consent drawer.
+  const mountAssistant = !isCompactViewport || assistantOpen;
+
   return (
     <>
       <BetaTermsDialog
@@ -179,8 +188,9 @@ export function AssistantDrawer({
         onAccept={handleBetaAccept}
         onDecline={handleBetaDecline}
       />
+      {mountAssistant ? (
       <AssistantShell
-      open={open}
+      open={assistantOpen}
       onOpenChange={handleOpenChange}
       title={state.t("aiIntake.title")}
       description={state.t("aiIntake.emptyDescription")}
@@ -296,6 +306,7 @@ export function AssistantDrawer({
         />
       </div>
     </AssistantShell>
+      ) : null}
     </>
   );
 }

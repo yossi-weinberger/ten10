@@ -17,7 +17,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { useEffect, useState } from "react";
 
 interface AssistantShellProps {
@@ -111,7 +111,7 @@ export function AssistantShell({
   });
   // A phone in landscape is wide but short: it gets the full-height drawer too.
   // Also use the drawer for coarse pointer devices (touch screens) with small height.
-  const isSmallNow = useMediaQuery("(max-width: 767px), ((max-height: 500px) and (pointer: coarse))");
+  const isSmallNow = useMediaQuery(COMPACT_VIEWPORT_QUERY);
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
 
   useEffect(() => {

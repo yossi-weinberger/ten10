@@ -278,9 +278,9 @@ describe("AssistantDrawer characterization", () => {
     await waitFor(() => expect(document.documentElement.dataset.assistantPanel).toBeUndefined());
   });
 
-  it("keeps the full-screen drawer on a phone, without pushing the app", () => {
+  it("keeps the full-screen drawer on a phone, without pushing the app", async () => {
     installDomPolyfills("mobile");
-    setup();
+    await setup();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(document.documentElement.dataset.assistantPanel).toBeUndefined();
   });

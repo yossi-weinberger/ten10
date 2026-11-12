@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BetaTermsDialog } from "./BetaTermsDialog";
 import { supabase } from "@/lib/supabaseClient";
@@ -39,8 +39,11 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+const compactViewport = vi.hoisted(() => ({ value: true }));
+
 vi.mock("@/hooks/use-media-query", () => ({
-  useMediaQuery: () => false,
+  COMPACT_VIEWPORT_QUERY: "(max-width: 767px), ((max-height: 500px) and (pointer: coarse))",
+  useMediaQuery: () => compactViewport.value,
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -52,7 +55,9 @@ describe("BetaTermsDialog", () => {
   const mockOnDecline = vi.fn();
 
   beforeEach(() => {
+    cleanup();
     vi.clearAllMocks();
+    compactViewport.value = true;
   });
 
   it("renders dialog when open", () => {
@@ -66,8 +71,29 @@ describe("BetaTermsDialog", () => {
 
     expect(screen.getByText("aiIntake.betaTerms.title")).toBeInTheDocument();
     expect(screen.getByText("aiIntake.betaTerms.readFullTerms")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" })).toBeInTheDocument();
+    const accept = screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
+    const decline = screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" });
+    expect(accept.compareDocumentPosition(decline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(accept).toHaveClass("h-11", "w-full");
+    expect(decline).toHaveClass("h-11", "w-full");
+    expect(screen.getByText("aiIntake.betaTerms.readFullTerms")).toHaveClass("inline-flex", "min-h-11", "items-center");
+    expect(accept.parentElement).toHaveClass("pb-[max(16px,calc(env(safe-area-inset-bottom)+12px))]");
+  });
+
+  it("keeps the desktop dialog button order and link size", () => {
+    compactViewport.value = false;
+    render(
+      <BetaTermsDialog
+        open={true}
+        onAccept={mockOnAccept}
+        onDecline={mockOnDecline}
+      />
+    );
+
+    const decline = screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" });
+    const accept = screen.getByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
+    expect(decline.compareDocumentPosition(accept) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("aiIntake.betaTerms.readFullTerms")).not.toHaveClass("min-h-11");
   });
 
   it("does not render when closed", () => {

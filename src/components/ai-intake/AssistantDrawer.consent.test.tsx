@@ -13,6 +13,7 @@ const mockRpc = vi.hoisted(() => vi.fn());
 const mockHandleSubmit = vi.hoisted(() => vi.fn());
 const mockHandleReceipt = vi.hoisted(() => vi.fn());
 const mockToggleRecording = vi.hoisted(() => vi.fn());
+const compactViewport = vi.hoisted(() => ({ value: false }));
 
 let mockAuthUser: { id: string; email: string } | null = { id: "test-user-id", email: "test@example.com" };
 
@@ -115,11 +116,8 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("@/hooks/use-media-query", () => ({
-  useMediaQuery: () => false,
-}));
-
-vi.mock("@/hooks/use-media-query", () => ({
-  useMediaQuery: () => false,
+  COMPACT_VIEWPORT_QUERY: "(max-width: 767px), ((max-height: 500px) and (pointer: coarse))",
+  useMediaQuery: () => compactViewport.value,
 }));
 
 vi.mock("react-dropzone", () => ({
@@ -137,6 +135,10 @@ describe("AssistantDrawer consent gate", () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
+    compactViewport.value = false;
+    mockAuthUser = { id: "test-user-id", email: "test@example.com" };
+    // Some cases replace supabase.rpc with a hanging promise. Put the shared mock back.
+    (supabase as unknown as { rpc: typeof mockRpc }).rpc = mockRpc;
     // Reset mockRpc to default (no consent) with a proper implementation
     mockRpc.mockReset().mockResolvedValue({
       data: null,
@@ -463,6 +465,84 @@ describe("AssistantDrawer consent gate", () => {
           expect(screen.getByRole("button", { name: `aiIntake.suggestions.${key}` })).toBeEnabled();
         }
       });
+    });
+  });
+
+  describe("mobile consent before the assistant opens", () => {
+    const suggestion = "aiIntake.suggestions.transaction";
+
+    beforeEach(() => {
+      compactViewport.value = true;
+    });
+
+    function renderOpen() {
+      render(
+        <AssistantDrawer
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          receiveRef={receiveRef}
+          onNavigate={mockOnNavigate}
+          userName="Test User"
+        />,
+      );
+    }
+
+    it("shows only the consent drawer when the user has not accepted", async () => {
+      mockRpc.mockResolvedValue({
+        data: { accepted: false, version: null, current: AI_BETA_TERMS_VERSION },
+        error: null,
+      });
+
+      renderOpen();
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
+      });
+      expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+      expect(mockOnOpenChange).not.toHaveBeenCalled();
+    });
+
+    it("opens the assistant after accept", async () => {
+      mockRpc.mockImplementation((name: string) => {
+        if (name === "accept_ai_beta_terms") {
+          return Promise.resolve({ data: {}, error: null });
+        }
+        return Promise.resolve({
+          data: { accepted: false, version: null, current: AI_BETA_TERMS_VERSION },
+          error: null,
+        });
+      });
+
+      const user = userEvent.setup();
+      renderOpen();
+
+      const accept = await screen.findByRole("button", { name: "aiIntake.betaTerms.acceptButton" });
+      expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+      await user.click(accept);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: suggestion })).toBeEnabled();
+      });
+      expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.title" })).not.toBeInTheDocument();
+      expect(mockRpc).toHaveBeenCalledWith("accept_ai_beta_terms", expect.any(Object));
+    });
+
+    it("opens nothing when the user chooses not now", async () => {
+      mockRpc.mockResolvedValue({
+        data: { accepted: false, version: null, current: AI_BETA_TERMS_VERSION },
+        error: null,
+      });
+
+      const user = userEvent.setup();
+      renderOpen();
+
+      const decline = await screen.findByRole("button", { name: "aiIntake.betaTerms.declineButton" });
+      await user.click(decline);
+
+      expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+      expect(mockRpc).not.toHaveBeenCalledWith("accept_ai_beta_terms", expect.anything());
+      expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.title" })).not.toBeInTheDocument();
     });
   });
 });
