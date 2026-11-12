@@ -176,6 +176,7 @@ export function AdminUserPlans() {
                 <th className="py-2">{t("ai.userPlans.email")}</th>
                 <th>{t("ai.userPlans.plan")}</th>
                 <th>{t("ai.userPlans.source")}</th>
+                <th>{t("ai.userPlans.status")}</th>
                 <th>{t("ai.userPlans.expiresAt")}</th>
                 <th>{t("ai.userPlans.note")}</th>
                 <th>{t("ai.userPlans.actions")}</th>
@@ -187,6 +188,11 @@ export function AdminUserPlans() {
                   <td className="py-2" dir="ltr">{row.user_email}</td>
                   <td>{row.plan}</td>
                   <td>{t(`ai.userPlans.${row.source}`)}</td>
+                  <td>
+                    <span className={row.is_active !== false ? "text-green-600" : "text-red-600"}>
+                      {t(`ai.userPlans.${row.is_active !== false ? "active" : "inactive"}`)}
+                    </span>
+                  </td>
                   <td>{formatDate(row.expires_at)}</td>
                   <td className="max-w-xs truncate">{row.note || ""}</td>
                   <td>

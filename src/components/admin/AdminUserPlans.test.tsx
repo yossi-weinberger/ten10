@@ -19,6 +19,7 @@ const mockUserPlans: AdminUserPlan[] = [
     source: "manual",
     expires_at: null,
     note: "Test user",
+    is_active: true,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   },
@@ -166,6 +167,7 @@ describe("AdminUserPlans", () => {
       source: "manual",
       expires_at: "2026-07-15T20:59:59.000Z", // 23:59:59 in Asia/Jerusalem (IDT, UTC+3)
       note: null,
+      is_active: true,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     };
@@ -177,5 +179,67 @@ describe("AdminUserPlans", () => {
     // The date should be formatted as 2026-07-15 or similar (depending on locale)
     // We just check that the table contains the email, as exact formatting depends on browser
     expect(screen.getByText("expiry@example.com")).toBeInTheDocument();
+  });
+
+  it("shows active status when is_active is true", async () => {
+    const activeUser: AdminUserPlan = {
+      user_email: "active@example.com",
+      user_id: "789",
+      plan: "beta",
+      source: "manual",
+      expires_at: null,
+      note: null,
+      is_active: true,
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+    };
+    fetchUserPlans.mockResolvedValue([activeUser]);
+    render(<AdminUserPlans />);
+    await waitFor(() => {
+      expect(screen.getByText("active@example.com")).toBeInTheDocument();
+    });
+    expect(screen.getByText("ai.userPlans.active")).toBeInTheDocument();
+  });
+
+  it("shows inactive status when is_active is false", async () => {
+    const inactiveUser: AdminUserPlan = {
+      user_email: "inactive@example.com",
+      user_id: "790",
+      plan: "beta",
+      source: "manual",
+      expires_at: null,
+      note: null,
+      is_active: false,
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+    };
+    fetchUserPlans.mockResolvedValue([inactiveUser]);
+    render(<AdminUserPlans />);
+    await waitFor(() => {
+      expect(screen.getByText("inactive@example.com")).toBeInTheDocument();
+    });
+    expect(screen.getByText("ai.userPlans.inactive")).toBeInTheDocument();
+  });
+
+  it("shows active status when is_active is undefined (pre-migration)", async () => {
+    const userWithoutIsActive = {
+      user_email: "premigration@example.com",
+      user_id: "791",
+      plan: "beta",
+      source: "manual" as const,
+      expires_at: null,
+      note: null,
+      // is_active is missing (undefined) - simulates pre-migration state
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+    };
+    fetchUserPlans.mockResolvedValue([userWithoutIsActive as AdminUserPlan]);
+    render(<AdminUserPlans />);
+    await waitFor(() => {
+      expect(screen.getByText("premigration@example.com")).toBeInTheDocument();
+    });
+    // Should show active (not inactive) when is_active is undefined
+    expect(screen.getByText("ai.userPlans.active")).toBeInTheDocument();
+    expect(screen.queryByText("ai.userPlans.inactive")).not.toBeInTheDocument();
   });
 });
