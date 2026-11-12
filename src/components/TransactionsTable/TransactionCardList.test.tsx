@@ -2,6 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { useEffect, useReducer } from "react";
 import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
 import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
@@ -112,8 +113,35 @@ vi.mock("@/lib/ai/ai-undo-eligibility", () => ({
     transaction.origin === "ai" || transaction.origin === "ai_auto",
 }));
 
+const aiIntakeGate = vi.hoisted(() => {
+  let enabled = true;
+  const listeners = new Set<() => void>();
+  return {
+    isEnabled: () => enabled,
+    setEnabled(next: boolean) {
+      enabled = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+});
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { id: "user-1" } }),
+}));
+
 vi.mock("@/lib/ai/flags", () => ({
-  isAiIntakeEnabled: () => true,
+  isAiIntakeEnabled: () => aiIntakeGate.isEnabled(),
+  useAiIntakeUi: () => {
+    const [, rerender] = useReducer((count: number) => count + 1, 0);
+    useEffect(() => aiIntakeGate.subscribe(() => rerender()), []);
+    return aiIntakeGate.isEnabled();
+  },
 }));
 
 vi.mock("@/lib/ai/open-receipt", () => ({
@@ -209,6 +237,7 @@ describe("TransactionCardList", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
@@ -1080,6 +1109,129 @@ describe("TransactionCardList", () => {
     });
 
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["ai", "filters.originAi"],
+    ["ai_auto", "filters.originAuto"],
+  ] as const)(
+    "shows the AI origin indicator on the card and in the drawer for %s",
+    async (origin, label) => {
+      const transaction: TransactionForTable = {
+        ...mockTransactions[0],
+        description: "Salary",
+        origin,
+      };
+
+      render(
+        <TransactionCardList
+          transactions={[transaction]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((item) =>
+        item.textContent?.includes("Salary"),
+      );
+      expect(card).toBeTruthy();
+      const cardIcon = within(card!).getByRole("img", { name: label });
+      expect(cardIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(cardIcon.parentElement?.className).toContain("ph-mask");
+      const cardSvg = cardIcon.querySelector("svg");
+      expect(cardSvg?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(cardSvg).toHaveAttribute("aria-hidden", "true");
+
+      fireEvent.click(card!);
+      const drawer = await screen.findByRole("dialog");
+      const drawerIcon = within(drawer).getByRole("img", { name: label });
+      expect(drawerIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(drawerIcon.parentElement?.className).toContain("ph-mask");
+      const drawerSvg = drawerIcon.querySelector("svg");
+      expect(drawerSvg?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(drawerSvg).toHaveAttribute("aria-hidden", "true");
+      expect(drawer.textContent).toContain("Salary");
+    },
+  );
+
+  it("does not show an AI origin indicator for a manual transaction", async () => {
+    const transaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes("Salary"),
+    );
+    expect(card).toBeTruthy();
+    expect(card!.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(card!.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const description = card!.querySelector(".font-medium");
+    expect(description?.className).toContain("truncate");
+    expect(description?.className).not.toContain("flex");
+    expect(description).toHaveAttribute("data-ph-mask", "");
+    expect(description?.textContent).toBe("Salary");
+
+    fireEvent.click(card!);
+    const drawer = await screen.findByRole("dialog");
+    expect(drawer.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(drawer.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const title = within(drawer).getByRole("heading", { name: "Salary" });
+    expect(title.className).toContain("line-clamp-2");
+    expect(title).toHaveAttribute("data-ph-mask", "");
+  });
+
+  it("shows the AI origin icon after the intake flag turns on without remounting the card", () => {
+    aiIntakeGate.setEnabled(false);
+    const transaction: TransactionForTable = {
+      ...mockTransactions[0],
+      description: "Salary",
+      origin: "ai",
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes("Salary"),
+    );
+    expect(card).toBeTruthy();
+    expect(within(card!).queryByRole("img", { name: "filters.originAi" })).toBeNull();
+
+    act(() => {
+      aiIntakeGate.setEnabled(true);
+    });
+
+    expect(within(card!).getByRole("img", { name: "filters.originAi" })).toBeTruthy();
+    expect(
+      screen.getAllByRole("button").find((item) => item.textContent?.includes("Salary")),
+    ).toBe(card);
   });
 
   describe("selection mode and long-press", () => {
@@ -2058,6 +2210,7 @@ describe("TransactionCardList PostHog masking", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
@@ -3186,6 +3339,7 @@ describe("transaction details drawer", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
