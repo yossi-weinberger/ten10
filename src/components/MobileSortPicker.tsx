@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,14 +21,14 @@ export interface MobileSortPickerProps<Field extends string = string> {
 }
 
 function sortDirectionPresentation(direction: "asc" | "desc"): {
-  labelKey: "sort.ascending" | "sort.descending";
+  actionLabelKey: "sort.ascending" | "sort.descending";
   Icon: typeof ArrowUp;
 } {
   switch (direction) {
     case "asc":
-      return { labelKey: "sort.ascending", Icon: ArrowUp };
+      return { actionLabelKey: "sort.descending", Icon: ArrowUp };
     case "desc":
-      return { labelKey: "sort.descending", Icon: ArrowDown };
+      return { actionLabelKey: "sort.ascending", Icon: ArrowDown };
     default: {
       const exhaustive: never = direction;
       return exhaustive;
@@ -46,7 +46,8 @@ export function MobileSortPicker<Field extends string>({
   const textDirection = i18n.dir() === "rtl" ? "rtl" : "ltr";
   const currentLabel =
     fields.find((option) => option.field === field)?.label ?? field;
-  const { labelKey, Icon } = sortDirectionPresentation(direction);
+  const { actionLabelKey, Icon } = sortDirectionPresentation(direction);
+  const directionAction = t(actionLabelKey);
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2" dir={textDirection}>
@@ -72,26 +73,36 @@ export function MobileSortPicker<Field extends string>({
           align="start"
           className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
         >
-          {fields.map((option) => (
-            <DropdownMenuItem
-              key={option.field}
-              className="min-h-11"
-              onSelect={() => {
-                if (option.field === field) return;
-                onChange(option.field);
-              }}
-            >
-              {option.label}
-            </DropdownMenuItem>
-          ))}
+          {fields.map((option) => {
+            const selected = option.field === field;
+            return (
+              <DropdownMenuItem
+                key={option.field}
+                className="min-h-11 gap-2"
+                aria-checked={selected}
+                onSelect={() => {
+                  if (selected) return;
+                  onChange(option.field);
+                }}
+              >
+                <span className="min-w-0 flex-1 truncate text-start">
+                  {option.label}
+                </span>
+                {selected ? (
+                  <Check aria-hidden="true" className="h-4 w-4 shrink-0" />
+                ) : null}
+              </DropdownMenuItem>
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
       <Button
         type="button"
         variant="outline"
         size="icon"
-        className="h-11 w-11 shrink-0"
-        aria-label={t(labelKey)}
+        className="h-11 w-11 shrink-0 hover:bg-background hover:text-foreground [@media(hover:hover)]:hover:bg-accent [@media(hover:hover)]:hover:text-accent-foreground"
+        aria-label={directionAction}
+        title={directionAction}
         onClick={() => onChange(field)}
       >
         <Icon aria-hidden="true" />

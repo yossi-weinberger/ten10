@@ -219,7 +219,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     });
     expect(sortField).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "sort.descending" }),
+      screen.getByRole("button", { name: "sort.ascending" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("transaction-card-list")).toBeInTheDocument();
     expect(
@@ -266,8 +266,13 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(menu.className).toContain("overflow-y-auto");
 
     for (const label of SORTABLE_LABELS) {
-      expect(screen.getByRole("menuitem", { name: label })).toBeInTheDocument();
+      const item = screen.getByRole("menuitem", { name: label });
+      expect(item).toHaveAttribute(
+        "aria-checked",
+        label === "columns.date" ? "true" : "false",
+      );
     }
+    expect(screen.getByRole("menuitem", { name: "columns.date" }).querySelector(".lucide-check")).toBeTruthy();
 
     await user.click(screen.getByRole("menuitem", { name: "columns.paymentMethod" }));
 
@@ -293,11 +298,14 @@ describe("TransactionsTableDisplay mobile sort", () => {
     api.sorting = { field: "category", direction: "asc" };
     const view = renderDisplay();
 
-    const ascending = screen.getByRole("button", { name: "sort.ascending" });
-    expect(ascending.querySelector(".lucide-arrow-up")).toBeInTheDocument();
-    expect(ascending.querySelector(".lucide-arrow-down")).not.toBeInTheDocument();
+    const sortDescending = screen.getByRole("button", { name: "sort.descending" });
+    expect(sortDescending).toHaveAttribute("title", "sort.descending");
+    expect(sortDescending.className).toContain("[@media(hover:hover)]:hover:bg-accent");
+    expect(sortDescending.className.split(" ")).not.toContain("hover:bg-accent");
+    expect(sortDescending.querySelector(".lucide-arrow-up")).toBeInTheDocument();
+    expect(sortDescending.querySelector(".lucide-arrow-down")).not.toBeInTheDocument();
 
-    await user.click(ascending);
+    await user.click(sortDescending);
     expect(api.setSorting).toHaveBeenCalledTimes(1);
     expect(api.setSorting).toHaveBeenCalledWith("category");
 
@@ -306,9 +314,10 @@ describe("TransactionsTableDisplay mobile sort", () => {
     api.sorting = { field: "category", direction: "desc" };
     renderDisplay();
 
-    const descending = screen.getByRole("button", { name: "sort.descending" });
-    expect(descending.querySelector(".lucide-arrow-down")).toBeInTheDocument();
-    await user.click(descending);
+    const sortAscending = screen.getByRole("button", { name: "sort.ascending" });
+    expect(sortAscending).toHaveAttribute("title", "sort.ascending");
+    expect(sortAscending.querySelector(".lucide-arrow-down")).toBeInTheDocument();
+    await user.click(sortAscending);
     expect(api.setSorting).toHaveBeenCalledWith("category");
   });
 });
@@ -322,7 +331,7 @@ describe("TransactionsTableDisplay table path", () => {
       screen.queryByRole("button", { name: /sort\.sortBy/ }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "sort.descending" }),
+      screen.queryByRole("button", { name: "sort.ascending" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
 
