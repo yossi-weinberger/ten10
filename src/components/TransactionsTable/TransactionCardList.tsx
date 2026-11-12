@@ -303,8 +303,8 @@ const TransactionCard = memo(function TransactionCard({
         <div
           className={cn(
             showAiOrigin
-              ? "flex min-w-0 items-center gap-1 text-[13px] font-medium leading-tight"
-              : "truncate text-[13px] font-medium leading-tight",
+              ? "flex min-w-0 items-center gap-1 text-[12px] font-medium leading-none"
+              : "truncate text-[12px] font-medium leading-none",
             !transaction.description && "text-muted-foreground",
             PH_SENSITIVE_PROPS.className
           )}
@@ -322,7 +322,7 @@ const TransactionCard = memo(function TransactionCard({
             className="shrink-0"
           />
         </div>
-        <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-[11px] leading-tight text-muted-foreground">
+        <div className="mt-0.5 flex flex-nowrap items-center gap-0.5 overflow-hidden text-[10px] leading-none text-muted-foreground">
           <span
             className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
             data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -350,7 +350,7 @@ const TransactionCard = memo(function TransactionCard({
                 className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
-                <CalendarClock className="h-3 w-3" aria-hidden="true" />
+                <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
               </span>
             </>
           )}
@@ -358,7 +358,7 @@ const TransactionCard = memo(function TransactionCard({
             <Badge
               variant="outline"
               className={cn(
-                "h-4 shrink-0 border px-1 py-0 text-[10px] leading-none",
+                "h-3 shrink-0 border px-1 py-0 text-[9px] leading-none",
                 typeBadgeColors[transaction.type as TransactionType]
               )}
             >
@@ -368,12 +368,12 @@ const TransactionCard = memo(function TransactionCard({
           {trackChomeshSeparately && transaction.is_chomesh && (
             <span
               className={cn(
-                "inline-flex shrink-0 items-center gap-0.5 text-[10px]",
+                "inline-flex shrink-0 items-center gap-0.5 text-[9px]",
                 PH_SENSITIVE_PROPS.className
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <BadgeCheck className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
+              <BadgeCheck className="h-3 w-3 text-green-600" aria-hidden="true" />
               <span
                 className={cn(PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -395,10 +395,10 @@ const TransactionCard = memo(function TransactionCard({
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <Coins className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />
+              <Coins className="h-2 w-2 shrink-0 opacity-70" aria-hidden="true" />
               <span
                 className={cn(
-                  "text-[10px] font-normal leading-none text-muted-foreground",
+                  "text-[9px] font-normal leading-none text-muted-foreground",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}

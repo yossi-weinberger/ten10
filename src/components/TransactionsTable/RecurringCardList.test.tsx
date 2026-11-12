@@ -251,7 +251,7 @@ describe("RecurringCardList", () => {
     expect(card.className).toContain("bg-white");
     expect(card.className).not.toContain("bg-red-50");
     expect(card.querySelector(".bg-red-100")).toBeTruthy();
-    expect(card.querySelector(".size-7.rounded-full")).toBeTruthy();
+    expect(card.querySelector(".size-6.rounded-full")).toBeTruthy();
     const frequency = screen.getByText("recurring.frequencies.monthly");
     const nextDue = screen.getByText("cards.nextShort:01/02/2026");
     expect(frequency.className).toContain("whitespace-nowrap");
@@ -301,8 +301,9 @@ describe("RecurringCardList", () => {
 
     const card = cardTitled("Rent");
     expect(card.className).toContain("bg-white");
-    expect(card.className).toContain("h-[64px]");
-    expect(card.className).toContain("!p-1.5");
+    expect(card.className).toContain("h-[54px]");
+    expect(card.className).toContain("!min-h-[54px]");
+    expect(card.className).toContain("!p-1");
     expect(card.className).not.toContain("bg-green-50");
     expect(card.querySelector(".bg-green-100")).toBeTruthy();
     expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
