@@ -23,15 +23,34 @@ export interface MobileSortPickerProps<Field extends string = string> {
 
 /** Bottom is preferred. Flip only when the capped menu does not fit below the trigger. */
 const SORT_MENU_AVOID_COLLISIONS = true;
-/** Small inset. A large bottom pad shrinks a low trigger down to a single row. */
-const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 8 } as const;
+/**
+ * 24px FAB offset + 56px button + 8px gap. The menu stops above the assistant
+ * button and the home-indicator area. A low trigger still flips upward.
+ */
+const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 88 } as const;
+/** Above the assistant button (z-50). Applied to the portalled popper wrapper. */
+const SORT_MENU_Z_INDEX = "60";
 /**
  * Three min-h-11 rows plus the menu padding, and at most 20rem.
- * The 9rem fallback fits the gap under the control at 320x568, so that case
- * stays downward. A shorter gap flips upward instead of collapsing the menu.
+ * The 9rem fallback still fits under the control at 320x568 after the 88px
+ * bottom inset, so that case stays downward. A shorter gap flips upward.
  */
 const SORT_MENU_MAX_HEIGHT =
   "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)";
+
+/**
+ * Radix copies the content z-index onto `[data-radix-popper-content-wrapper]`
+ * from computed style. A static menu reports that as auto in some engines, and
+ * the wrapper's transform is the real stacking context, so the z-50 FAB paints
+ * on top. Set the wrapper after Radix's layout effect.
+ */
+function raiseMenuAboveFab(node: HTMLElement | null) {
+  if (!node) return;
+  queueMicrotask(() => {
+    const wrapper = node.closest("[data-radix-popper-content-wrapper]");
+    if (wrapper instanceof HTMLElement) wrapper.style.zIndex = SORT_MENU_Z_INDEX;
+  });
+}
 
 function sortDirectionPresentation(direction: "asc" | "desc"): {
   actionLabelKey: "sort.ascending" | "sort.descending";
@@ -89,10 +108,12 @@ export function MobileSortPicker<Field extends string>({
           side="bottom"
           avoidCollisions={SORT_MENU_AVOID_COLLISIONS}
           data-avoid-collisions={String(SORT_MENU_AVOID_COLLISIONS)}
+          ref={raiseMenuAboveFab}
           collisionPadding={SORT_MENU_COLLISION_PADDING}
+          data-collision-bottom={SORT_MENU_COLLISION_PADDING.bottom}
           align="start"
-          style={{ maxHeight: SORT_MENU_MAX_HEIGHT }}
-          className="z-[60] w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+          style={{ maxHeight: SORT_MENU_MAX_HEIGHT, zIndex: SORT_MENU_Z_INDEX }}
+          className="relative z-[60] w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
         >
           <DropdownMenuRadioGroup
             value={field}
@@ -106,7 +127,7 @@ export function MobileSortPicker<Field extends string>({
               <DropdownMenuRadioItem
                 key={option.field}
                 value={option.field}
-                className="min-h-11 ps-8 pe-2 pl-0 pr-0 [&>span]:start-2 [&>span]:left-auto"
+                className="min-h-11 rtl:pl-2 rtl:pr-8 [&>span]:rtl:left-auto [&>span]:rtl:right-2"
               >
                 {option.label}
               </DropdownMenuRadioItem>

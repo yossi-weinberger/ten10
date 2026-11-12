@@ -269,13 +269,26 @@ describe("TransactionsTableDisplay mobile sort", () => {
     const user = userEvent.setup();
     renderDisplay();
 
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 568 });
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 320 });
+    Object.defineProperty(document.documentElement, "clientHeight", {
+      configurable: true,
+      value: 568,
+    });
+    Object.defineProperty(document.documentElement, "clientWidth", {
+      configurable: true,
+      value: 320,
+    });
     await user.click(
       screen.getByRole("button", { name: "sort.sortBy: columns.date" }),
     );
 
     const menu = await screen.findByRole("menu");
     expect(menu).toHaveAttribute("data-side", "bottom");
-    expect(menu.className).toContain("z-[60]");
+    expect(menu).toHaveAttribute("data-collision-bottom", "88");
+    const popper = menu.closest("[data-radix-popper-content-wrapper]");
+    expect(popper).toBeInstanceOf(HTMLElement);
+    expect((popper as HTMLElement).style.zIndex).toBe("60");
     expect(menu.className).toContain("overflow-y-auto");
     expect(menu.style.maxHeight).toBe(
       "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)",
@@ -296,12 +309,15 @@ describe("TransactionsTableDisplay mobile sort", () => {
 
     const activeField = screen.getByRole("menuitemradio", { name: "columns.date" });
     const activeClasses = activeField.className.split(" ");
-    expect(activeClasses).toContain("ps-8");
-    expect(activeClasses).toContain("pe-2");
-    expect(activeClasses).toContain("[&>span]:start-2");
-    expect(activeClasses).toContain("[&>span]:left-auto");
-    expect(activeClasses).not.toContain("pl-8");
-    expect(activeClasses).not.toContain("pr-2");
+    expect(activeClasses).toContain("pl-8");
+    expect(activeClasses).toContain("pr-2");
+    expect(activeClasses).toContain("rtl:pl-2");
+    expect(activeClasses).toContain("rtl:pr-8");
+    expect(activeClasses).toContain("[&>span]:rtl:left-auto");
+    expect(activeClasses).toContain("[&>span]:rtl:right-2");
+    expect(activeClasses).not.toContain("pl-0");
+    expect(activeClasses).not.toContain("pr-0");
+    expect(activeClasses).not.toContain("ps-8");
 
     await user.click(screen.getByRole("menuitemradio", { name: "columns.paymentMethod" }));
 
