@@ -130,7 +130,8 @@ describe("RecurringTransactionsFilters", () => {
         "recurringFilters.compactSearchPlaceholder",
       );
       await user.type(search, "rent");
-      expect(within(panel).getByText("1")).toBeInTheDocument();
+      expect(within(panel).getByText("1")).toHaveAttribute("aria-hidden", "true");
+      expect(within(panel).getByText("filters.compactActiveCount")).toHaveClass("sr-only");
       expect(search).toHaveAttribute("data-ph-mask", "");
       await user.click(
         within(panel).getByRole("button", { name: "filters.compactReset" }),

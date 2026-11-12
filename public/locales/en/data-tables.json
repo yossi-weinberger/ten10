@@ -55,7 +55,9 @@
     "compactSource": "Source",
     "compactStatus": "Status",
     "compactFrequency": "Frequency",
-    "compactReset": "Reset filters"
+    "compactReset": "Reset filters",
+    "compactActiveCount_one": "{{count}} active filter",
+    "compactActiveCount_other": "{{count}} active filters"
   },
   "columns": {
     "select": "Select",

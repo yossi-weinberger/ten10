@@ -128,6 +128,7 @@ export function CompactFilterPanel({
 export function CompactFilterHeader({
   title,
   count,
+  countLabel,
   resetLabel,
   closeLabel,
   onReset,
@@ -135,6 +136,7 @@ export function CompactFilterHeader({
 }: {
   title: string;
   count: number;
+  countLabel: string;
   resetLabel: string;
   closeLabel: string;
   onReset: () => void;
@@ -145,13 +147,16 @@ export function CompactFilterHeader({
       <div className="flex min-w-0 items-center gap-2">
         <h2 className="m-0 truncate text-base font-bold leading-none">{title}</h2>
         {count > 0 ? (
-          <Badge
-            variant="default"
-            className="h-5 min-w-5 justify-center border-0 px-1 py-0 text-xs font-bold leading-none"
-            aria-hidden="true"
-          >
-            {count}
-          </Badge>
+          <>
+            <Badge
+              variant="default"
+              className="h-5 min-w-5 justify-center border-0 px-1 py-0 text-xs font-bold leading-none"
+              aria-hidden="true"
+            >
+              {count}
+            </Badge>
+            <span className="sr-only">{countLabel}</span>
+          </>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center">

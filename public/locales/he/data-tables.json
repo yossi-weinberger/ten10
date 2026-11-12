@@ -315,7 +315,11 @@
     "compactSource": "מקור",
     "compactStatus": "סטטוס",
     "compactFrequency": "תדירות",
-    "compactReset": "אפס סינונים"
+    "compactReset": "אפס סינונים",
+    "compactActiveCount_one": "{{count}} סינון פעיל",
+    "compactActiveCount_two": "{{count}} סינונים פעילים",
+    "compactActiveCount_many": "{{count}} סינונים פעילים",
+    "compactActiveCount_other": "{{count}} סינונים פעילים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",

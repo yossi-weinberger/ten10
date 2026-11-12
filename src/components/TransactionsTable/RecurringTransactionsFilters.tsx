@@ -134,6 +134,9 @@ export function RecurringTransactionsFilters() {
         <CompactFilterHeader
           title={t("filters.compactTitle")}
           count={activeFiltersCount}
+          countLabel={t("filters.compactActiveCount", {
+            count: activeFiltersCount,
+          })}
           resetLabel={t("filters.compactReset")}
           closeLabel={t("filters.hideFilters")}
           onReset={handleReset}
