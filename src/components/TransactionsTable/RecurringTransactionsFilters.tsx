@@ -154,7 +154,7 @@ export function RecurringTransactionsFilters() {
           ariaLabel={t("filters.freeSearch")}
           clearLabel={t("filters.compactClearSearch")}
         />
-        <CompactFilterGrid className="grid-cols-1 min-[321px]:grid-cols-2">
+        <CompactFilterGrid className="grid-cols-1 min-[377px]:grid-cols-2">
           <CompactFilterCell>
             <DropdownMenu
               open={typesDropdownOpen}
