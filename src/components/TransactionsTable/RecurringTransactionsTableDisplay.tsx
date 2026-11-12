@@ -153,7 +153,6 @@ function HowItWorksNote({ compact }: { compact: boolean }) {
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
   const formatDisplayDate = useDisplayDate();
-  const { platform } = usePlatform();
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
