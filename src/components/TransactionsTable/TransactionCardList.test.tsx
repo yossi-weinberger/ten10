@@ -245,7 +245,7 @@ describe("TransactionCardList", () => {
     cleanup();
   });
 
-  it("renders cards with correct type tint for income", () => {
+  it("renders neutral cards with income amount panel and type chip", () => {
     const markup = renderToStaticMarkup(
       <TransactionCardList
         transactions={[mockTransactions[0]]}
@@ -257,15 +257,17 @@ describe("TransactionCardList", () => {
       />
     );
 
-    expect(markup).toContain("border-green-200/70");
-    expect(markup).toContain("bg-green-50");
-    expect(markup).toContain("dark:border-green-900/60");
-    expect(markup).toContain("dark:bg-green-950");
+    expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
+    expect(markup).not.toContain("bg-green-50");
+    expect(markup).toContain("bg-green-100");
+    expect(markup).toContain("text-green-800");
+    expect(markup).toContain("size-10");
+    expect(markup).toContain("rounded-full");
     expect(markup).toContain("Salary");
     expect(markup).toContain("500 ILS");
   });
 
-  it("renders cards with correct type tint for expense", () => {
+  it("renders neutral cards with expense amount panel and type chip", () => {
     const markup = renderToStaticMarkup(
       <TransactionCardList
         transactions={[mockTransactions[1]]}
@@ -277,15 +279,15 @@ describe("TransactionCardList", () => {
       />
     );
 
-    expect(markup).toContain("border-red-200/70");
-    expect(markup).toContain("bg-red-50");
-    expect(markup).toContain("dark:border-red-900/60");
-    expect(markup).toContain("dark:bg-red-950");
+    expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
+    expect(markup).not.toContain("bg-red-50");
+    expect(markup).toContain("bg-red-100");
+    expect(markup).toContain("text-red-800");
     expect(markup).toContain("Groceries");
     expect(markup).toContain("200 ILS");
   });
 
-  it("renders cards with correct type tint for donation", () => {
+  it("renders neutral cards with donation amount panel and type chip", () => {
     const markup = renderToStaticMarkup(
       <TransactionCardList
         transactions={[mockTransactions[2]]}
@@ -297,10 +299,10 @@ describe("TransactionCardList", () => {
       />
     );
 
-    expect(markup).toContain("border-yellow-200/80");
-    expect(markup).toContain("bg-yellow-50");
-    expect(markup).toContain("dark:border-yellow-900/60");
-    expect(markup).toContain("dark:bg-yellow-950");
+    expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
+    expect(markup).not.toContain("bg-yellow-50");
+    expect(markup).toContain("bg-yellow-100");
+    expect(markup).toContain("text-yellow-800");
     expect(markup).toContain("Charity");
     expect(markup).toContain("100 ILS");
   });
@@ -2354,7 +2356,7 @@ describe("TransactionCardList PostHog masking", () => {
     expect(conversionIcon).toBeTruthy();
     expect(conversionIcon?.getAttribute("class")).toContain("h-4");
     expect(conversionIcon?.getAttribute("class")).toContain("w-4");
-    expect(conversionIcon?.getAttribute("class")).toContain("text-muted-foreground");
+    expect(conversionIcon?.getAttribute("class")).toContain("opacity-70");
     expect(recurringIcon).not.toBe(conversionIcon);
     expect(card.querySelector(".lucide-repeat")).toBeNull();
     expect(card.querySelector(".lucide-refresh-cw")).toBeNull();

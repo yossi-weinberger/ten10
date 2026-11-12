@@ -67,7 +67,12 @@ const {
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, params?: { field?: string; direction?: string }) => {
+      if (key === "sort.chip" && params?.field) {
+        return `Sort: ${params.field} · ${params.direction ?? ""}`;
+      }
+      return key;
+    },
     i18n: {
       dir: () => i18nDir(),
       language: "en",
@@ -268,22 +273,23 @@ describe("TransactionsTableDisplay mobile sort", () => {
     vi.mocked(useMediaQuery).mockReturnValue(true);
   });
 
-  it("renders one sort chip inside the card list", () => {
+  it("renders one sort chip in the export/import toolbar row", () => {
     renderDisplay();
 
     const sortField = screen.getByRole("button", {
-      name: "sort.sortBy: columns.date",
+      name: /^Sort: columns\.date/,
     });
-    expect(sortField).toHaveTextContent("sort.chip");
+    expect(sortField).toHaveTextContent("columns.date");
     expect(sortField.className).toContain("h-9");
-    expect(sortField.className).toContain("min-h-11");
+    expect(sortField.className).toContain("before:absolute");
+    expect(sortField.className).toContain("before:-inset-y-1");
     expect(sortField.className).toContain("rounded-full");
-    expect(sortField.className).toContain("text-sm");
+    expect(sortField.className).toContain("text-[13px]");
     expect(sortField.className).toContain("w-fit");
-    expect(screen.getAllByRole("button", { name: /sort\.sortBy/ })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Sort: / })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "sort.ascending" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("transaction-card-list")).toContainElement(sortField);
-    expect(cardListProps.hasSortControl).toBe(true);
+    expect(screen.getByTestId("transaction-card-list")).not.toContainElement(sortField);
+    expect(cardListProps.hasSortControl).toBe(false);
     expect(
       screen.queryByRole("columnheader", { name: "columns.date" }),
     ).not.toBeInTheDocument();
@@ -299,7 +305,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     renderDisplay();
 
     const sortField = screen.getByRole("button", {
-      name: "sort.sortBy: columns.date",
+      name: /^Sort: columns\.date/,
     });
     expect(sortField.parentElement).toHaveAttribute("dir", "rtl");
 
@@ -312,7 +318,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     renderDisplay();
 
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 568 });
-    const trigger = screen.getByRole("button", { name: "sort.sortBy: columns.date" });
+    const trigger = screen.getByRole("button", { name: /^Sort: columns\.date/ });
     const triggerRect = trigger.getBoundingClientRect();
     const expectedPlacement = decideSortMenuPlacement({
       triggerTop: triggerRect.top,
@@ -378,7 +384,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     renderDisplay();
 
     await user.click(
-      screen.getByRole("button", { name: "sort.sortBy: columns.amount" }),
+      screen.getByRole("button", { name: /^Sort: columns\.amount/ }),
     );
     await user.click(screen.getByRole("menuitemradio", { name: "columns.amount" }));
 
@@ -391,7 +397,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     const view = renderDisplay();
 
     await user.click(
-      screen.getByRole("button", { name: "sort.sortBy: columns.category" }),
+      screen.getByRole("button", { name: /^Sort: columns\.category/ }),
     );
     const textAscending = screen.getByRole("menuitemradio", {
       name: "sort.directions.textAsc",
@@ -412,7 +418,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     api.sorting = { field: "category", direction: "asc" };
     renderDisplay();
     await user.click(
-      screen.getByRole("button", { name: "sort.sortBy: columns.category" }),
+      screen.getByRole("button", { name: /^Sort: columns\.category/ }),
     );
     await user.click(
       screen.getByRole("menuitemradio", { name: "sort.directions.textAsc" }),
@@ -425,7 +431,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     renderDisplay();
 
     await user.click(
-      screen.getByRole("button", { name: "sort.sortBy: columns.amount" }),
+      screen.getByRole("button", { name: /^Sort: columns\.amount/ }),
     );
     expect(
       screen.getByRole("menuitemradio", { name: "sort.directions.amountDesc" }),

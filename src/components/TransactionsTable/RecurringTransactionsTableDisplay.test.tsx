@@ -29,8 +29,12 @@ const api = vi.hoisted(() => ({
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string, params?: { count?: number }) =>
-      params && typeof params.count === "number" ? `${key}:${params.count}` : key,
+    t: (key: string, params?: { count?: number; field?: string; direction?: string }) => {
+      if (key === "sort.chip" && params?.field) {
+        return `Sort: ${params.field} · ${params.direction ?? ""}`;
+      }
+      return params && typeof params.count === "number" ? `${key}:${params.count}` : key;
+    },
     i18n: {
       dir: () => "ltr",
       language: "en",
@@ -433,7 +437,7 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
     expect(cardTitles()[0]).toContain("Earlier");
     expect(cardTitles()[1]).toContain("Later");
 
-    const trigger = screen.getByRole("button", { name: "sort.sortBy: recurringColumns.nextDueDate" });
+    const trigger = screen.getByRole("button", { name: /^Sort: recurringColumns\.nextDueDate/ });
     await user.click(trigger);
     const menu = await screen.findByRole("menu");
     expect(within(menu).queryByRole("menuitemradio", { name: "recurringColumns.status" })).not.toBeInTheDocument();

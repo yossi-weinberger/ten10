@@ -30,7 +30,10 @@ vi.mock("framer-motion", () => ({
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string, params?: { count?: number; date?: string }) => {
+    t: (key: string, params?: { count?: number; date?: string; field?: string; direction?: string }) => {
+      if (key === "sort.chip" && params?.field) {
+        return `Sort: ${params.field} · ${params.direction ?? ""}`;
+      }
       if (params && typeof params.count === "number") return `${key}:${params.count}`;
       if (params && typeof params.date === "string") return `${key}:${params.date}`;
       return key;
@@ -232,7 +235,7 @@ afterEach(() => {
 });
 
 describe("RecurringCardList", () => {
-  it("masks description, amount, frequency, and the short next date on a type-tinted card", () => {
+  it("masks description, amount, frequency, and the short next date on a neutral card", () => {
     render(
       <RecurringCardList
         recurring={[recurringRow({ id: "rent", description: "Rent" })]}
@@ -242,9 +245,16 @@ describe("RecurringCardList", () => {
     );
 
     const card = cardTitled("Rent");
-    expect(card.className).toContain("bg-red-50");
-    expect(card.className).toContain("border-red-200/70");
-    expect(card.querySelector(".flex-nowrap")).toBeTruthy();
+    expect(card.className).toContain("overflow-hidden");
+    expect(card.className).toContain("bg-white");
+    expect(card.className).not.toContain("bg-red-50");
+    expect(card.querySelector(".bg-red-100")).toBeTruthy();
+    expect(card.querySelector(".size-10.rounded-full")).toBeTruthy();
+    const meta = Array.from(card.querySelectorAll("div")).find((el) =>
+      el.className.includes("flex-nowrap"),
+    );
+    expect(meta?.className).toContain("flex-nowrap");
+    expect(meta?.className).toContain("max-[389px]:flex-wrap");
     expectMasked(screen.getByText("Rent").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("100 ILS").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("recurring.frequencies.monthly").closest("[data-ph-mask]"));
@@ -287,7 +297,9 @@ describe("RecurringCardList", () => {
     );
 
     const card = cardTitled("Rent");
-    expect(card.className).toContain("bg-green-50");
+    expect(card.className).toContain("bg-white");
+    expect(card.className).not.toContain("bg-green-50");
+    expect(card.querySelector(".bg-green-100")).toBeTruthy();
     expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("cards.nextShort:05/03/2027").closest("[data-ph-mask]"));
   });
@@ -497,7 +509,8 @@ describe("RecurringCardList", () => {
       />,
     );
 
-    const trigger = screen.getByRole("button", { name: "sort.sortBy: recurring-next-due" });
+    const trigger = screen.getByRole("button", { name: /^Sort: recurring-next-due/ });
+    expect(trigger).toHaveClass("h-9", "rounded-full", "px-2.5", "text-[13px]");
     expect(trigger.closest("[data-sort-chip-slot]")).toHaveAttribute("data-sort-chip-slot", "separator");
     await user.click(trigger);
     await user.click(screen.getByRole("menuitemradio", { name: "recurring-amount" }));

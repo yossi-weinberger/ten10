@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -114,6 +115,11 @@ export function MobileSortPicker<Field extends string>({
     choices.find((choice) => choice.value === direction)?.key ??
       choices[0].key,
   );
+  const DirectionArrow = direction === "asc" ? ArrowUp : ArrowDown;
+  const ariaLabel = t("sort.chip", {
+    field: currentLabel,
+    direction: directionLabel,
+  });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [placement, setPlacement] = useState<SortMenuPlacement>({
@@ -145,19 +151,19 @@ export function MobileSortPicker<Field extends string>({
   }
 
   return (
-    <div className="inline-flex max-w-full" dir={textDirection}>
+    <div className="relative inline-flex max-w-full" dir={textDirection}>
       <DropdownMenu dir={textDirection} open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             ref={triggerRef}
             type="button"
             variant="outline"
-            className="h-9 min-h-11 w-fit max-w-full rounded-full px-3 text-sm font-normal"
-            aria-label={`${t("sort.sortBy")}: ${currentLabel}`}
+            className="relative h-9 w-fit max-w-full rounded-full px-2.5 text-[13px] font-normal before:absolute before:-inset-y-1 before:inset-x-0 before:content-['']"
+            aria-label={ariaLabel}
           >
-            <span className="truncate">
-              {t("sort.chip", { field: currentLabel, direction: directionLabel })}
-            </span>
+            <ArrowUpDown className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="max-[359px]:sr-only truncate">{currentLabel}</span>
+            <DirectionArrow className="size-3.5 shrink-0" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

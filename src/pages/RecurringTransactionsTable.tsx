@@ -6,7 +6,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { MOBILE_CARD_QUERY } from "@/lib/responsive";
+import { MOBILE_CARD_QUERY, MOBILE_PAGE_NAV_BUTTON_CLASS } from "@/lib/responsive";
 import { cn } from "@/lib/utils";
 import { RecurringTransactionsTableDisplay } from "@/components/TransactionsTable/RecurringTransactionsTableDisplay";
 
@@ -42,7 +42,7 @@ export function RecurringTransactionsTable() {
         className={cn(
           "mb-6 flex max-md:px-4",
           compactHeader
-            ? "items-start"
+            ? "w-full flex-col items-stretch"
             : "flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
         )}
       >
@@ -50,8 +50,8 @@ export function RecurringTransactionsTable() {
           {t("recurringTable.title")}
         </h1>
         <Button
-          variant={compactHeader ? "ghost" : "outline"}
-          className={cn(compactHeader && "h-9 self-start px-2")}
+          variant="outline"
+          className={cn(compactHeader && MOBILE_PAGE_NAV_BUTTON_CLASS)}
           onClick={() => navigate({ to: "/transactions-table" })}
         >
           <List aria-hidden="true" data-icon="inline-start" />

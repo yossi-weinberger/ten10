@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils/formatting";
 import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
 import type { CurrencyCode } from "@/lib/currencies";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
-import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { formatCategory } from "@/lib/category-registry";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatBoolean } from "@/lib/utils/formatting";
@@ -35,6 +34,7 @@ import { groupWithSeparators } from "@/components/card-list/group-with-separator
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
+import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform, type Platform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
@@ -203,12 +203,13 @@ function drawerDateValue(primary: string, secondary?: string) {
   );
 }
 
+const CARD_SURFACE_CLASS = "overflow-hidden bg-white dark:bg-card";
+
 interface TransactionCardProps {
   transaction: TransactionForTable;
   displayDate: { primary: string | null };
   categoryText: string;
   cardTitle: string;
-  surfaceClasses: string;
   isSelected: boolean;
   inSelectionMode: boolean;
   onCardClick: (transaction: TransactionForTable) => void;
@@ -233,7 +234,6 @@ const TransactionCard = memo(function TransactionCard({
   displayDate,
   categoryText,
   cardTitle,
-  surfaceClasses,
   isSelected,
   inSelectionMode,
   onCardClick,
@@ -262,7 +262,7 @@ const TransactionCard = memo(function TransactionCard({
   return (
     <SwipeableCardRow
       id={transaction.id}
-      surfaceClassName={surfaceClasses}
+      surfaceClassName={CARD_SURFACE_CLASS}
       isSelected={isSelected}
       inSelectionMode={inSelectionMode}
       selectionDisabled={selectionDisabled}
@@ -289,6 +289,7 @@ const TransactionCard = memo(function TransactionCard({
         },
       ]}
     >
+      <TypeIconChip type={transaction.type} />
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
@@ -374,16 +375,43 @@ const TransactionCard = memo(function TransactionCard({
           )}
         </div>
       </div>
-      <div
-        className={cn(
-          "shrink-0 text-end font-bold",
-          conversion && "flex flex-col items-end",
-          PH_SENSITIVE_PROPS.className
-        )}
-        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-      >
-        {conversion ? (
-          <div className="flex items-center justify-end gap-1">
+      <AmountPanel type={transaction.type}>
+        <div
+          className={cn(
+            "flex flex-col items-center gap-0.5",
+            PH_SENSITIVE_PROPS.className
+          )}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
+          {conversion ? (
+            <>
+              <CurrencyConversionInfo
+                amount={transaction.amount}
+                currency={transaction.currency}
+                originalAmount={transaction.original_amount}
+                originalCurrency={transaction.original_currency}
+                conversionRate={transaction.conversion_rate}
+                conversionDate={transaction.conversion_date}
+                rateSource={transaction.rate_source}
+                mode="static"
+                showConversionIcon={false}
+              />
+              <Coins className="h-4 w-4 opacity-70" aria-hidden="true" />
+              <span
+                className={cn(
+                  "text-xs font-normal text-muted-foreground",
+                  PH_SENSITIVE_PROPS.className
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {formatCurrency(
+                  conversion.originalAmount,
+                  conversion.originalCurrency,
+                  i18n.language
+                )}
+              </span>
+            </>
+          ) : (
             <CurrencyConversionInfo
               amount={transaction.amount}
               currency={transaction.currency}
@@ -393,38 +421,10 @@ const TransactionCard = memo(function TransactionCard({
               conversionDate={transaction.conversion_date}
               rateSource={transaction.rate_source}
               mode="static"
-              showConversionIcon={false}
             />
-            <Coins className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          </div>
-        ) : (
-          <CurrencyConversionInfo
-            amount={transaction.amount}
-            currency={transaction.currency}
-            originalAmount={transaction.original_amount}
-            originalCurrency={transaction.original_currency}
-            conversionRate={transaction.conversion_rate}
-            conversionDate={transaction.conversion_date}
-            rateSource={transaction.rate_source}
-            mode="static"
-          />
-        )}
-        {conversion ? (
-          <span
-            className={cn(
-              "text-xs font-normal text-muted-foreground",
-              PH_SENSITIVE_PROPS.className
-            )}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-          >
-            {formatCurrency(
-              conversion.originalAmount,
-              conversion.originalCurrency,
-              i18n.language
-            )}
-          </span>
-        ) : null}
-      </div>
+          )}
+        </div>
+      </AmountPanel>
     </SwipeableCardRow>
   );
 });
@@ -635,8 +635,6 @@ export function TransactionCardList({
           }
 
           const transaction = item.item;
-          const baseType = baseTypeOf(transaction.type);
-          const surfaceClasses = BASE_TYPE_SURFACE[baseType];
           const displayDate = formatDisplayDate(transaction.date, "numeric");
           
           const cardTitle = transaction.description
@@ -677,7 +675,6 @@ export function TransactionCardList({
               displayDate={displayDate}
               categoryText={categoryText}
               cardTitle={cardTitle}
-              surfaceClasses={surfaceClasses}
               isSelected={isSelected}
               inSelectionMode={inSelectionMode}
               onCardClick={handleCardClick}

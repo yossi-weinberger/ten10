@@ -245,7 +245,9 @@
   "buttons": {
     "showRecurring": "Show Recurring",
     "backToTransactions": "Back to Transactions",
-    "importTransactions": "Import Transactions"
+    "importTransactions": "Import Transactions",
+    "exportShort": "Export",
+    "importShort": "Import"
   },
   "movementType": {
     "recurring": "Recurring",

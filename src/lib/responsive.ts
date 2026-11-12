@@ -12,3 +12,6 @@ export const COARSE_POINTER_QUERY = "(pointer: coarse)";
  */
 export const MOBILE_SELECTION_CLEARANCE_CLASS =
   "max-md:pb-[calc(11rem+env(safe-area-inset-bottom))]";
+
+/** Shared mobile page nav control (show recurring / back to transactions). */
+export const MOBILE_PAGE_NAV_BUTTON_CLASS = "h-11 w-full gap-2";

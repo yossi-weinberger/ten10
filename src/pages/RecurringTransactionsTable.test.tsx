@@ -49,7 +49,7 @@ describe("RecurringTransactionsTable", () => {
     expect(back).not.toHaveClass("self-start");
   });
 
-  it("uses a screen-reader heading and a 36px ghost back link on mobile cards", () => {
+  it("uses a screen-reader heading and a full-width outline back button on mobile cards", () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query === MOBILE_CARD_QUERY,
       media: query,
@@ -66,9 +66,9 @@ describe("RecurringTransactionsTable", () => {
     const heading = screen.getByRole("heading", { name: "recurringTable.title" });
     expect(heading).toHaveClass("sr-only");
     const back = screen.getByRole("button", { name: "buttons.backToTransactions" });
-    expect(back).toHaveClass("h-9", "self-start");
-    expect(back).not.toHaveClass("border");
-    expect(heading.parentElement).toHaveClass("items-start");
+    expect(back).toHaveClass("h-11", "w-full", "gap-2");
+    expect(back).toHaveClass("border");
+    expect(heading.parentElement).toHaveClass("items-stretch");
     expect(heading.parentElement).not.toHaveClass("sm:justify-between");
   });
 

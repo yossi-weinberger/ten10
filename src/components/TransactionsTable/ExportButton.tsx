@@ -17,7 +17,7 @@ import { EXPORT_DESKTOP_SAVE_CANCELLED } from "@/lib/utils/save-export-file";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
 
-export function ExportButton() {
+export function ExportButton({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation("data-tables");
   const { exportTransactions, exportLoading } = useTableTransactionsStore(
     useShallow((state) => ({
@@ -26,6 +26,7 @@ export function ExportButton() {
     }))
   );
   const { platform } = usePlatform();
+  const label = compact ? t("buttons.exportShort") : t("export.title");
 
   const handleExport = async (format: "csv" | "excel" | "pdf") => {
     if (exportLoading || platform === "loading") return;
@@ -55,9 +56,10 @@ export function ExportButton() {
           variant="outline"
           disabled={exportLoading || platform === "loading"}
           className="bg-transparent text-foreground hover:bg-muted/50"
+          aria-label={t("export.title")}
         >
           <Download className="mr-2 h-4 w-4" />
-          {t("export.title")}
+          {label}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

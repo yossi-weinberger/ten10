@@ -589,22 +589,46 @@ export function TransactionsTableDisplay() {
     <div className="space-y-4">
       <TransactionsFilters />
 
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <ExportButton />
+      <div
+        className={cn(
+          "mb-4 flex items-center",
+          useMobileCards
+            ? "flex-nowrap justify-between gap-2"
+            : "flex-wrap justify-between gap-3",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            useMobileCards ? "flex-nowrap" : "flex-wrap",
+          )}
+        >
+          <ExportButton compact={useMobileCards} />
           <Button
             variant="outline"
             onClick={() => navigate({ to: "/transactions-table/import" })}
             className="gap-1.5"
+            aria-label={t("buttons.importTransactions")}
           >
             <Upload className="h-4 w-4" />
-            {t("buttons.importTransactions")}
+            {useMobileCards
+              ? t("buttons.importShort")
+              : t("buttons.importTransactions")}
             <span className="ms-0.5 inline-flex h-4 items-center rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase leading-none text-primary-foreground">
               {tImport("newBadge")}
             </span>
           </Button>
         </div>
-        {!useMobileCards && (
+        {useMobileCards ? (
+          <div className="ms-auto max-w-full shrink-0">
+            <MobileSortPicker
+              fields={sortableColumns}
+              field={sorting.field}
+              direction={sorting.direction}
+              onChange={handleSort}
+            />
+          </div>
+        ) : (
           <BulkActionsToolbar
             selectedCount={selection.selectedCount}
             selectedCountLabel={t("bulkToolbar.selectedCount", {
@@ -651,14 +675,6 @@ export function TransactionsTableDisplay() {
           <TransactionCardList
             transactions={transactions as TransactionForTable[]}
             showMonthSeparators={sorting.field === "date"}
-            sortControl={
-              <MobileSortPicker
-                fields={sortableColumns}
-                field={sorting.field}
-                direction={sorting.direction}
-                onChange={handleSort}
-              />
-            }
             onEdit={handleEditInitiate}
             onDelete={handleDeleteInitiate}
             onEditRecurring={handleEditRecurringInitiate}

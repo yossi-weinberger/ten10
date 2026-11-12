@@ -13,12 +13,12 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
-import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { CardListStates } from "@/components/card-list/CardListStates";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
+import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatCategory } from "@/lib/category-registry";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -36,6 +36,8 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 
 const STATUS_ORDER = ["active", "paused", "completed", "cancelled"] as const;
+
+const CARD_SURFACE_CLASS = "overflow-hidden bg-white dark:bg-card";
 
 const drawerRowClass =
   "flex min-h-11 w-full items-center justify-between gap-3 border-t border-border py-2 text-start";
@@ -387,7 +389,7 @@ export function RecurringCardList({
             <SwipeableCardRow
               key={row.id}
               id={row.id}
-              surfaceClassName={BASE_TYPE_SURFACE[baseTypeOf(row.type)]}
+              surfaceClassName={CARD_SURFACE_CLASS}
               isSelected={isSelected}
               inSelectionMode={inSelectionMode}
               selectionDisabled={selectionDisabled}
@@ -415,6 +417,7 @@ export function RecurringCardList({
                 },
               ]}
             >
+              <TypeIconChip type={row.type} />
               <div className="min-w-0 flex-1 overflow-hidden">
                 <MaskedText className="block truncate font-medium">
                   {row.description || "-"}
@@ -422,7 +425,7 @@ export function RecurringCardList({
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex flex-nowrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
+                <div className="mt-0.5 flex flex-nowrap max-[389px]:flex-wrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
                   <MaskedText className="min-w-0 truncate">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
@@ -454,18 +457,20 @@ export function RecurringCardList({
                   </span>
                 </div>
               </div>
-              <MaskedText className="shrink-0 text-end font-bold">
-                <CurrencyConversionInfo
-                  amount={row.amount}
-                  currency={row.currency}
-                  originalAmount={row.original_amount}
-                  originalCurrency={row.original_currency}
-                  conversionRate={row.conversion_rate}
-                  conversionDate={row.conversion_date}
-                  rateSource={row.rate_source}
-                  mode="live"
-                />
-              </MaskedText>
+              <AmountPanel type={row.type}>
+                <MaskedText>
+                  <CurrencyConversionInfo
+                    amount={row.amount}
+                    currency={row.currency}
+                    originalAmount={row.original_amount}
+                    originalCurrency={row.original_currency}
+                    conversionRate={row.conversion_rate}
+                    conversionDate={row.conversion_date}
+                    rateSource={row.rate_source}
+                    mode="live"
+                  />
+                </MaskedText>
+              </AmountPanel>
             </SwipeableCardRow>
           );
         })}
