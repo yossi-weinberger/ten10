@@ -2,7 +2,7 @@
 -- PostgREST exposes public only, so the edge function cannot call ai.* over RPC.
 -- The wrapper is the one call: it asks ai.has_beta_consent for ai.current_beta_terms_version().
 --
--- Rollback: supabase/migrations/rollback/20261111180000_ai_has_current_beta_consent_down.sql
+-- Rollback: supabase/migrations/rollback/20261112140100_ai_has_current_beta_consent_down.sql
 
 CREATE FUNCTION public.ai_has_current_beta_consent(p_user_id uuid)
 RETURNS boolean

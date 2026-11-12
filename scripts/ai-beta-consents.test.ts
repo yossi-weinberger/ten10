@@ -7,7 +7,7 @@ const plansSql = readFileSync("supabase/migrations/20261110100000_ai_plans.sql",
 const adminSql = readFileSync("supabase/migrations/20261110120000_admin_ai_user_plans.sql", "utf8");
 const consentsSql = readFileSync("supabase/migrations/20261112140000_ai_beta_consents.sql", "utf8");
 const currentConsentSql = readFileSync(
-  "supabase/migrations/20261111180000_ai_has_current_beta_consent.sql",
+  "supabase/migrations/20261112140100_ai_has_current_beta_consent.sql",
   "utf8",
 );
 
