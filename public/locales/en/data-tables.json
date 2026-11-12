@@ -44,7 +44,20 @@
     "filterByFrequency": "Filter by frequency",
     "resetFilters": "Reset Filters",
     "showFilters": "Filters",
-    "hideFilters": "Hide Filters"
+    "hideFilters": "Hide Filters",
+    "compactTitle": "Filters",
+    "compactSearchPlaceholder": "Search description, recipient, category…",
+    "compactClearSearch": "Clear search",
+    "compactDate": "Date",
+    "compactType": "Type",
+    "compactPayment": "Payment",
+    "compactRecurring": "Recurring",
+    "compactSource": "Source",
+    "compactStatus": "Status",
+    "compactFrequency": "Frequency",
+    "compactReset": "Reset filters",
+    "compactActiveCount_one": "{{count}} active filter",
+    "compactActiveCount_other": "{{count}} active filters"
   },
   "columns": {
     "select": "Select",
@@ -79,7 +92,8 @@
     "initial_balance": "Opening Balance"
   },
   "cards": {
-    "chomesh": "Chomesh"
+    "chomesh": "Chomesh",
+    "nextShort": "Next: {{date}}"
   },
   "actions": {
     "title": "Actions",
@@ -297,6 +311,7 @@
   "recurringFilters": {
     "title": "Filter Recurring Transactions",
     "searchPlaceholder": "Search by description...",
+    "compactSearchPlaceholder": "Search by description…",
     "filterByStatus": "Filter by status",
     "statusesSelected": "{{count}} statuses selected"
   },
@@ -304,7 +319,8 @@
     "frequency": "Frequency",
     "nextDueDate": "Next Due Date",
     "status": "Status",
-    "progress": "Progress"
+    "progress": "Progress",
+    "startDate": "Start date"
   },
   "recurringTable": {
     "title": "Recurring Transactions",

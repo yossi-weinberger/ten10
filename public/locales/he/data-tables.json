@@ -53,7 +53,8 @@
     "initial_balance": "יתרת פתיחה"
   },
   "cards": {
-    "chomesh": "חומש"
+    "chomesh": "חומש",
+    "nextShort": "הבא: {{date}}"
   },
   "actions": {
     "title": "פעולות",
@@ -304,11 +305,27 @@
     "filterByFrequency": "סינון לפי תדירות",
     "resetFilters": "אפס סינונים",
     "showFilters": "סינון",
-    "hideFilters": "הסתר סינונים"
+    "hideFilters": "הסתר סינונים",
+    "compactTitle": "סינון",
+    "compactSearchPlaceholder": "חיפוש תיאור, נמען, קטגוריה…",
+    "compactClearSearch": "נקה חיפוש",
+    "compactDate": "תאריך",
+    "compactType": "סוג",
+    "compactPayment": "תשלום",
+    "compactRecurring": "הוראת קבע",
+    "compactSource": "מקור",
+    "compactStatus": "סטטוס",
+    "compactFrequency": "תדירות",
+    "compactReset": "אפס סינונים",
+    "compactActiveCount_one": "{{count}} סינון פעיל",
+    "compactActiveCount_two": "{{count}} סינונים פעילים",
+    "compactActiveCount_many": "{{count}} סינונים פעילים",
+    "compactActiveCount_other": "{{count}} סינונים פעילים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",
     "searchPlaceholder": "חיפוש לפי תיאור...",
+    "compactSearchPlaceholder": "חיפוש לפי תיאור…",
     "filterByStatus": "סנן לפי סטטוס",
     "statusesSelected": "{{count}} סטטוסים נבחרו"
   },
@@ -316,7 +333,8 @@
     "frequency": "תדירות",
     "nextDueDate": "תאריך ביצוע הבא",
     "status": "סטטוס",
-    "progress": "התקדמות"
+    "progress": "התקדמות",
+    "startDate": "תאריך התחלה"
   },
   "recurringTable": {
     "title": "הוראות קבע",
