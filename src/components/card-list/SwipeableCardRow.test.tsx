@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { COARSE_POINTER_QUERY } from "@/lib/responsive";
 import { SwipeableCardRow, type SwipeCardAction } from "./SwipeableCardRow";
 
 const reducedMotion = vi.hoisted(() => ({ current: false }));
@@ -15,7 +16,10 @@ vi.mock("framer-motion", () => ({
 
 function phoneMatchMedia(matches: boolean) {
   return (query: string) => ({
-    matches: matches && query.includes("max-width: 767px") && query.includes("pointer: coarse"),
+    matches:
+      matches &&
+      (query === COARSE_POINTER_QUERY ||
+        (query.includes("max-width: 767px") && query.includes("pointer: coarse"))),
     media: query,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
@@ -23,6 +27,35 @@ function phoneMatchMedia(matches: boolean) {
     removeListener: () => undefined,
     dispatchEvent: () => false,
     onchange: null,
+  });
+}
+
+type SwipeViewport = { width: number; height: number; pointer: "fine" | "coarse" };
+
+function viewportFeatureMatches(feature: string, viewport: SwipeViewport): boolean {
+  const body = feature.replace(/[()]/g, "").trim();
+  if (body.startsWith("pointer:")) {
+    return body.slice("pointer:".length).trim() === viewport.pointer;
+  }
+  const maxWidth = /^max-width:\s*(\d+)px$/.exec(body);
+  if (maxWidth) return viewport.width <= Number(maxWidth[1]);
+  const maxHeight = /^max-height:\s*(\d+)px$/.exec(body);
+  if (maxHeight) return viewport.height <= Number(maxHeight[1]);
+  return false;
+}
+
+function viewportMatchMedia(viewport: SwipeViewport) {
+  return (query: string) => ({
+    matches: query.split(",").some((clause) =>
+      clause.split(/\band\b/).every((feature) => viewportFeatureMatches(feature, viewport)),
+    ),
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
   });
 }
 
@@ -254,5 +287,41 @@ describe("SwipeableCardRow", () => {
       vi.advanceTimersByTime(450);
     });
     expect(onToggleSelected).not.toHaveBeenCalled();
+  });
+
+  it("gives a fine pointer at 390px no swipe strip, and a click still activates the card", () => {
+    vi.stubGlobal(
+      "matchMedia",
+      viewportMatchMedia({ width: 390, height: 844, pointer: "fine" }),
+    );
+    const onActivate = vi.fn();
+    render(<Harness onActivate={onActivate} actions={editAndDelete(() => undefined, () => undefined)} />);
+    const card = cardTitled("Salary");
+
+    expect(screen.queryByRole("button", { name: "Edit", hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete", hidden: true })).not.toBeInTheDocument();
+    expect(card.parentElement).toHaveAttribute("data-swipe-row");
+    swipe(card, "open", false);
+    expect(readTranslateX(card)).toBe(0);
+    fireEvent.click(card);
+    expect(onActivate).toHaveBeenCalledTimes(1);
+  });
+
+  it("swipes on a coarse pointer at 390px and on coarse landscape at 844x390", () => {
+    for (const viewport of [
+      { width: 390, height: 844, pointer: "coarse" as const },
+      { width: 844, height: 390, pointer: "coarse" as const },
+    ]) {
+      cleanup();
+      vi.stubGlobal("matchMedia", viewportMatchMedia(viewport));
+      render(<Harness actions={editAndDelete(() => undefined, () => undefined)} />);
+      const card = cardTitled("Salary");
+      swipe(card, "open", false);
+      act(() => {
+        vi.advanceTimersByTime(220);
+      });
+      expect(readTranslateX(card)).toBe(-128);
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
+    }
   });
 });

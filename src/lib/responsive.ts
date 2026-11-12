@@ -1,7 +1,10 @@
 export const MOBILE_COMPACT_QUERY = "(max-width: 767px), (pointer: coarse) and (max-height: 500px)";
 
-/** Card/table switch and the swipe gate. One query so the two cannot disagree. */
+/** Card list versus the desktop table. Narrow windows and short touch screens both use cards. */
 export const MOBILE_CARD_QUERY = MOBILE_COMPACT_QUERY;
+
+/** Touch pointer. The swipe gesture and its action strip require this as well as the card layout. */
+export const COARSE_POINTER_QUERY = "(pointer: coarse)";
 
 /**
  * Space below a list while the fixed mobile bulk bar is showing.

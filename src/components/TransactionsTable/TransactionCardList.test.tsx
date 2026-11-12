@@ -4,6 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { useEffect, useReducer } from "react";
 import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
+import { COARSE_POINTER_QUERY } from "@/lib/responsive";
 import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
@@ -2406,12 +2407,43 @@ describe("TransactionCardList PostHog masking", () => {
     expect(screen.getByRole("dialog").querySelector(".lucide-refresh-cw")).toBeNull();
   });
 
+  type SwipeViewport = { width: number; height: number; pointer: "fine" | "coarse" };
+
+  function viewportFeatureMatches(feature: string, viewport: SwipeViewport): boolean {
+    const body = feature.replace(/[()]/g, "").trim();
+    if (body.startsWith("pointer:")) {
+      return body.slice("pointer:".length).trim() === viewport.pointer;
+    }
+    const maxWidth = /^max-width:\s*(\d+)px$/.exec(body);
+    if (maxWidth) return viewport.width <= Number(maxWidth[1]);
+    const maxHeight = /^max-height:\s*(\d+)px$/.exec(body);
+    if (maxHeight) return viewport.height <= Number(maxHeight[1]);
+    return false;
+  }
+
+  function viewportMatchMedia(viewport: SwipeViewport) {
+    return (query: string) => ({
+      matches: query.split(",").some((clause) =>
+        clause.split(/\band\b/).every((feature) => viewportFeatureMatches(feature, viewport)),
+      ),
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => false,
+    });
+  }
+
   describe("swipe actions", () => {
     beforeEach(() => {
       vi.useFakeTimers();
       reducedMotion.current = false;
       vi.stubGlobal("matchMedia", (query: string) => ({
-        matches: query.includes("max-width: 767px") && query.includes("pointer: coarse"),
+        matches:
+          query === COARSE_POINTER_QUERY ||
+          (query.includes("max-width: 767px") && query.includes("pointer: coarse")),
         media: query,
         addEventListener: () => undefined,
         removeEventListener: () => undefined,
@@ -3296,6 +3328,80 @@ describe("TransactionCardList PostHog masking", () => {
       expectCovered();
       unmount();
       expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+    });
+
+    it("gives a fine pointer at 390px no swipe strip, and a click opens the drawer", async () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 390, height: 844, pointer: "fine" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      expect(screen.queryByRole("button", { name: "Edit", hidden: true })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Delete", hidden: true })).not.toBeInTheDocument();
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeNull();
+      expect(card.parentElement).toHaveAttribute("data-swipe-row");
+      swipeCard(card, "open");
+      expect(readTranslateX(card)).toBe(0);
+      expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+      vi.useRealTimers();
+      fireEvent.click(card);
+      expect(await screen.findByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    it("swipes on a coarse pointer at 390px", () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 390, height: 844, pointer: "coarse" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "open");
+      expectOpen(card);
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
+    });
+
+    it("swipes on a coarse landscape viewport at 844x390", () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 844, height: 390, pointer: "coarse" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "open");
+      expectOpen(card);
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
     });
   });
 });

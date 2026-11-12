@@ -5,7 +5,11 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileSortPicker } from "@/components/MobileSortPicker";
-import { MOBILE_CARD_QUERY, MOBILE_SELECTION_CLEARANCE_CLASS } from "@/lib/responsive";
+import {
+  COARSE_POINTER_QUERY,
+  MOBILE_CARD_QUERY,
+  MOBILE_SELECTION_CLEARANCE_CLASS,
+} from "@/lib/responsive";
 import type { RecurringTransaction } from "@/types/transaction";
 import { RecurringCardList } from "./RecurringCardList";
 
@@ -69,7 +73,36 @@ function recurringRow(
 
 function phoneMatchMedia(matches: boolean) {
   return (query: string) => ({
-    matches: matches && query === MOBILE_CARD_QUERY,
+    matches: matches && (query === MOBILE_CARD_QUERY || query === COARSE_POINTER_QUERY),
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  });
+}
+
+type SwipeViewport = { width: number; height: number; pointer: "fine" | "coarse" };
+
+function viewportFeatureMatches(feature: string, viewport: SwipeViewport): boolean {
+  const body = feature.replace(/[()]/g, "").trim();
+  if (body.startsWith("pointer:")) {
+    return body.slice("pointer:".length).trim() === viewport.pointer;
+  }
+  const maxWidth = /^max-width:\s*(\d+)px$/.exec(body);
+  if (maxWidth) return viewport.width <= Number(maxWidth[1]);
+  const maxHeight = /^max-height:\s*(\d+)px$/.exec(body);
+  if (maxHeight) return viewport.height <= Number(maxHeight[1]);
+  return false;
+}
+
+function viewportMatchMedia(viewport: SwipeViewport) {
+  return (query: string) => ({
+    matches: query.split(",").some((clause) =>
+      clause.split(/\band\b/).every((feature) => viewportFeatureMatches(feature, viewport)),
+    ),
     media: query,
     onchange: null,
     addEventListener: () => undefined,
@@ -484,6 +517,74 @@ describe("RecurringCardList", () => {
     swipe(hebrew, "open");
     settleSwipe();
     expect(readTranslateX(hebrew)).toBe(128);
+  });
+
+  it("gives a fine pointer at 390px no swipe strip, and a click opens the drawer", async () => {
+    vi.stubGlobal(
+      "matchMedia",
+      viewportMatchMedia({ width: 390, height: 844, pointer: "fine" }),
+    );
+    render(
+      <RecurringCardList
+        recurring={[recurringRow({ id: "rent", description: "Rent" })]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const card = cardTitled("Rent");
+    expect(screen.queryByRole("button", { name: "actions.edit", hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "actions.delete", hidden: true })).not.toBeInTheDocument();
+    expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeNull();
+    expect(card.parentElement).toHaveAttribute("data-swipe-row");
+    swipe(card, "open");
+    expect(readTranslateX(card)).toBe(0);
+    expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+    fireEvent.click(card);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("swipes on a coarse pointer at 390px", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "matchMedia",
+      viewportMatchMedia({ width: 390, height: 844, pointer: "coarse" }),
+    );
+    render(
+      <RecurringCardList
+        recurring={[recurringRow({ id: "rent", description: "Rent" })]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const card = cardTitled("Rent");
+    swipe(card, "open");
+    settleSwipe();
+    expect(readTranslateX(card)).toBe(-128);
+    expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
+  });
+
+  it("swipes on a coarse landscape viewport at 844x390", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "matchMedia",
+      viewportMatchMedia({ width: 844, height: 390, pointer: "coarse" }),
+    );
+    render(
+      <RecurringCardList
+        recurring={[recurringRow({ id: "rent", description: "Rent" })]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const card = cardTitled("Rent");
+    swipe(card, "open");
+    settleSwipe();
+    expect(readTranslateX(card)).toBe(-128);
+    expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
   });
 
   it("restores body pointer events and overflow when the drawer unmounts while open", async () => {

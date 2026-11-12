@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { MOBILE_CARD_QUERY } from "@/lib/responsive";
+import { COARSE_POINTER_QUERY, MOBILE_CARD_QUERY } from "@/lib/responsive";
 import type { RecurringTransaction } from "@/types/transaction";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { RecurringTransactionsTableDisplay } from "./RecurringTransactionsTableDisplay";
@@ -130,7 +130,8 @@ function installMatchMedia() {
       const queryListeners = bucket;
       return {
         get matches() {
-          return query === MOBILE_CARD_QUERY ? cardMatches : false;
+          if (query === MOBILE_CARD_QUERY || query === COARSE_POINTER_QUERY) return cardMatches;
+          return false;
         },
         media: query,
         onchange: null,
@@ -151,9 +152,11 @@ function installMatchMedia() {
 function setCardMatches(next: boolean) {
   cardMatches = next;
   act(() => {
-    mediaListeners.get(MOBILE_CARD_QUERY)?.forEach((listener) => {
-      listener({ matches: next });
-    });
+    for (const query of [MOBILE_CARD_QUERY, COARSE_POINTER_QUERY]) {
+      mediaListeners.get(query)?.forEach((listener) => {
+        listener({ matches: next });
+      });
+    }
   });
 }
 
