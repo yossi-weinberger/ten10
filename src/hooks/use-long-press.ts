@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export interface UseLongPressOptions {
   onLongPress: () => void;
@@ -38,6 +38,12 @@ export function useLongPress({
       scrollListenerRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   const cancel = useCallback(() => {
     cleanup();
