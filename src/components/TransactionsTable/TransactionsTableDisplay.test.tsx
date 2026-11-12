@@ -294,6 +294,15 @@ describe("TransactionsTableDisplay mobile sort", () => {
       );
     }
 
+    const activeField = screen.getByRole("menuitemradio", { name: "columns.date" });
+    const activeClasses = activeField.className.split(" ");
+    expect(activeClasses).toContain("ps-8");
+    expect(activeClasses).toContain("pe-2");
+    expect(activeClasses).toContain("[&>span]:start-2");
+    expect(activeClasses).toContain("[&>span]:left-auto");
+    expect(activeClasses).not.toContain("pl-8");
+    expect(activeClasses).not.toContain("pr-2");
+
     await user.click(screen.getByRole("menuitemradio", { name: "columns.paymentMethod" }));
 
     expect(api.setSorting).toHaveBeenCalledTimes(1);

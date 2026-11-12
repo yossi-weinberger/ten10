@@ -106,7 +106,7 @@ export function MobileSortPicker<Field extends string>({
               <DropdownMenuRadioItem
                 key={option.field}
                 value={option.field}
-                className="min-h-11"
+                className="min-h-11 ps-8 pe-2 pl-0 pr-0 [&>span]:start-2 [&>span]:left-auto"
               >
                 {option.label}
               </DropdownMenuRadioItem>
