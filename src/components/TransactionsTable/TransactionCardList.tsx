@@ -31,8 +31,8 @@ import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import {
   formatCalendarMonthLabel,
   getCalendarMonthKey,
-  isCalendarMonthTransition,
 } from "@/lib/calendar/calendar-period";
+import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
@@ -806,61 +806,20 @@ export function TransactionCardList({
     };
   }, [computedSwipeOpenId]);
 
-  const transactionsWithSeparators = useMemo(() => {
-    if (!showMonthSeparators) {
-      return transactions.map((transaction) => ({
-        type: "transaction" as const,
-        transaction,
-      }));
-    }
-
-    const result: Array<
-      | { type: "transaction"; transaction: TransactionForTable }
-      | { type: "separator"; monthKey: string; monthLabel: string }
-    > = [];
-
-    let previousMonthKey: string | null = null;
-
-    transactions.forEach((transaction, index) => {
-      const currentMonthKey = getCalendarMonthKey(
-        transaction.date,
-        calendarType,
-      );
-
-      if (
-        index === 0 ||
-        isCalendarMonthTransition(
-          previousMonthKey,
-          transaction.date,
-          calendarType,
-        )
-      ) {
-        result.push({
-          type: "separator",
-          monthKey: currentMonthKey,
-          monthLabel: formatCalendarMonthLabel(
-            currentMonthKey,
-            calendarType,
-            i18n.language,
-          ),
-        });
-      }
-
-      result.push({
-        type: "transaction",
-        transaction,
-      });
-
-      previousMonthKey = currentMonthKey;
-    });
-
-    return result;
-  }, [transactions, i18n.language, calendarType, showMonthSeparators]);
+  const transactionsWithSeparators = useMemo(
+    () =>
+      groupWithSeparators(
+        transactions,
+        (transaction) => getCalendarMonthKey(transaction.date, calendarType),
+        showMonthSeparators,
+      ),
+    [transactions, calendarType, showMonthSeparators],
+  );
 
   let firstSeparatorKey: string | undefined;
   for (const item of transactionsWithSeparators) {
     if (item.type === "separator") {
-      firstSeparatorKey = item.monthKey;
+      firstSeparatorKey = item.key;
       break;
     }
   }
@@ -1003,10 +962,10 @@ export function TransactionCardList({
         {transactionsWithSeparators.map((item) => {
           if (item.type === "separator") {
             const placeChip =
-              chipOnFirstSeparator && item.monthKey === firstSeparatorKey;
+              chipOnFirstSeparator && item.key === firstSeparatorKey;
             return (
               <div
-                key={`month-separator-${item.monthKey}`}
+                key={`month-separator-${item.key}`}
                 data-sort-chip-slot={placeChip ? "separator" : undefined}
                 className={cn(
                   "sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground",
@@ -1019,7 +978,7 @@ export function TransactionCardList({
                   )}
                   data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                 >
-                  {item.monthLabel}
+                  {formatCalendarMonthLabel(item.key, calendarType, i18n.language)}
                 </span>
                 {placeChip ? (
                   <div className="absolute end-0 top-1/2 z-10 -translate-y-1/2">
@@ -1030,7 +989,7 @@ export function TransactionCardList({
             );
           }
 
-          const transaction = item.transaction;
+          const transaction = item.item;
           const baseType = baseTypeOf(transaction.type);
           const surfaceClasses = BASE_TYPE_SURFACE[baseType];
           const displayDate = formatDisplayDate(transaction.date, "numeric");
