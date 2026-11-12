@@ -28,8 +28,8 @@ export function RecurringTransactionsTable() {
   }
 
   return (
-    <div className="container mx-auto py-4 max-[376px]:px-0">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between max-[376px]:px-4">
+    <div className="container mx-auto py-4 max-md:px-0">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between max-md:px-4">
         <h1 className="text-2xl font-bold text-foreground">
           {t("recurringTable.title")}
         </h1>

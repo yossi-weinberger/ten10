@@ -318,7 +318,8 @@
     "frequency": "Frequency",
     "nextDueDate": "Next Due Date",
     "status": "Status",
-    "progress": "Progress"
+    "progress": "Progress",
+    "startDate": "Start date"
   },
   "recurringTable": {
     "title": "Recurring Transactions",

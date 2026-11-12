@@ -40,7 +40,10 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils/formatting";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MobileSortPicker } from "@/components/MobileSortPicker";
+import { useMobileCardLayout } from "@/hooks/useMobileCardLayout";
 import { RecurringTransactionsFilters } from "./RecurringTransactionsFilters";
+import { RecurringCardList } from "./RecurringCardList";
 import {
   RecurringTransactionsTableHeader,
   SortableField,
@@ -139,6 +142,7 @@ export function RecurringTransactionsTableDisplay() {
   const bulkChomeshType = getBulkChomeshType(selectedRecurring);
   const sharedBulkValues = getSharedBulkValues(selectedRecurring);
   const bulkPending = bulkLoading;
+  const useMobileCards = useMobileCardLayout(bulkPending);
 
   const handleConfirmDelete = async () => {
     if (!transactionToDelete) return;
@@ -186,6 +190,10 @@ export function RecurringTransactionsTableDisplay() {
       }).allowed &&
       shouldShowBulkChomeshField(bulkChomeshType, trackChomeshSeparately),
   };
+  const selectionEditDisabled =
+    selectionActionMode === "single"
+      ? selectedRecurring[0]?.status === "completed"
+      : !Object.values(bulkFieldAvailability).some(Boolean);
 
   const resetBulkEditValues = useCallback(() => {
     setBulkFieldActions(INITIAL_BULK_FIELD_ACTIONS);
@@ -347,27 +355,52 @@ export function RecurringTransactionsTableDisplay() {
 
   const sortableColumns = useMemo(
     () => [
-      { label: t("columns.type"), field: "type" as SortableField },
+      {
+        label: t("columns.type"),
+        field: "type" as SortableField,
+        directionKind: "text" as const,
+      },
       {
         label: t("columns.description"),
         field: "description" as SortableField,
+        directionKind: "text" as const,
       },
       {
         label: t("columns.paymentMethod"),
         field: "payment_method" as SortableField,
+        directionKind: "text" as const,
       },
-      { label: t("columns.amount"), field: "amount" as SortableField },
+      {
+        label: t("columns.amount"),
+        field: "amount" as SortableField,
+        directionKind: "amount" as const,
+      },
       {
         label: t("recurringColumns.frequency"),
         field: "frequency" as SortableField,
+        directionKind: "text" as const,
       },
       {
         label: t("recurringColumns.nextDueDate"),
         field: "next_due_date" as SortableField,
+        directionKind: "date" as const,
       },
-      { label: t("recurringColumns.status"), field: "status" as SortableField },
+      {
+        label: t("recurringColumns.status"),
+        field: "status" as SortableField,
+        directionKind: "text" as const,
+      },
     ],
     [t]
+  );
+
+  const sortControl = (
+    <MobileSortPicker
+      fields={sortableColumns}
+      field={sorting.field}
+      direction={sorting.direction}
+      onChange={handleSort}
+    />
   );
 
   return (
@@ -388,6 +421,39 @@ export function RecurringTransactionsTableDisplay() {
         </div>
       </div>
 
+      {useMobileCards ? (
+        <RecurringCardList
+          recurring={recurring}
+          loading={loading}
+          error={error}
+          sortControl={sortControl}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
+          selectedIds={selection.selectedIds}
+          onToggleSelected={selection.toggle}
+          onClearSelection={clearSelection}
+          selectionDisabled={loading || bulkPending}
+          selectedCountLabel={t("bulkToolbar.selectedRecurringCount", {
+            count: selection.selectedCount,
+          })}
+          editLabel={
+            selectionActionMode === "single"
+              ? t("actions.edit")
+              : t("bulkToolbar.edit")
+          }
+          deleteLabel={
+            selectionActionMode === "single"
+              ? t("actions.delete")
+              : t("bulkToolbar.delete")
+          }
+          clearLabel={t("bulkToolbar.clear")}
+          bulkToolbarAriaLabel={t("bulkToolbar.recurringAriaLabel")}
+          onSelectionEdit={handleSelectionEdit}
+          onSelectionDelete={handleSelectionDelete}
+          bulkPending={bulkPending}
+          bulkEditDisabled={selectionEditDisabled}
+        />
+      ) : (
       <Card className="mt-4">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1.5">
@@ -415,11 +481,7 @@ export function RecurringTransactionsTableDisplay() {
             onClear={clearSelection}
             ariaLabel={t("bulkToolbar.recurringAriaLabel")}
             pending={bulkPending}
-            editDisabled={
-              selectionActionMode === "single"
-                ? selectedRecurring[0]?.status === "completed"
-                : !Object.values(bulkFieldAvailability).some(Boolean)
-            }
+            editDisabled={selectionEditDisabled}
             dir={i18n.dir()}
           />
         </CardHeader>
@@ -631,6 +693,7 @@ export function RecurringTransactionsTableDisplay() {
           </div>
         </CardContent>
       </Card>
+      )}
       {isEditModalOpen && selectedTransaction && (
         <RecurringTransactionEditModal
           isOpen={isEditModalOpen}

@@ -43,6 +43,7 @@ import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useMobileSelectionBodyFlag } from "@/hooks/useMobileSelectionBodyFlag";
+import { useRestoreOverlayOnUnmount } from "@/hooks/useRestoreOverlayOnUnmount";
 import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
 import { shouldShowAiOriginIndicator } from "./ai-origin";
 import { AiOriginIndicator } from "./AiOriginIndicator";
@@ -462,6 +463,7 @@ export function TransactionCardList({
     (state) => state.settings.trackChomeshSeparately,
   );
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionForTable | null>(null);
+  useRestoreOverlayOnUnmount(selectedTransaction != null);
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -606,7 +608,7 @@ export function TransactionCardList({
           dir={i18n.dir()}
         />
       )}
-      <div className={cn("space-y-2", inSelectionMode && "max-md:pb-24")}>
+      <div className="space-y-2">
         {chipOnFirstSeparator ? null : sortRow}
         {transactionsWithSeparators.map((item) => {
           if (item.type === "separator") {

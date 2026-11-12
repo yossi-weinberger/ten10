@@ -9,7 +9,9 @@ import { useReducedMotion } from "framer-motion";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSwipe } from "@/hooks/use-swipe";
+import { MOBILE_CARD_QUERY } from "@/lib/responsive";
 import { cn } from "@/lib/utils/formatting";
 
 const SWIPE_ACTION_FALLBACK_WIDTH = 128;
@@ -116,9 +118,7 @@ export function SwipeableCardRow({
   const actionsInert = inSelectionMode || (!isDragging && !isSwipeOpen);
   const reduceMotion = useReducedMotion();
 
-  const isMobileSwipeEnabled = typeof window !== "undefined"
-    && typeof window.matchMedia === "function"
-    && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+  const isMobileSwipeEnabled = useMediaQuery(MOBILE_CARD_QUERY);
 
   const logicalOffset =
     isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
@@ -332,7 +332,7 @@ export function SwipeableCardRow({
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] mobile-card:touch-pan-y",
           surfaceClassName,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -350,14 +350,14 @@ export function SwipeableCardRow({
 
   return (
     <div
-      className="relative max-md:[@media(pointer:coarse)]:isolate max-md:[@media(pointer:coarse)]:overflow-hidden"
+      className="relative mobile-card:isolate mobile-card:overflow-hidden"
       data-swipe-row={id}
     >
       <div
         ref={actionsRef}
         className={cn(
-          "hidden max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2",
-          actionsConcealed && "max-md:[@media(pointer:coarse)]:invisible",
+          "hidden mobile-card:absolute mobile-card:inset-y-0 mobile-card:end-0 mobile-card:z-0 mobile-card:flex mobile-card:items-stretch mobile-card:gap-2 mobile-card:ps-2",
+          actionsConcealed && "mobile-card:invisible",
           actionsInert && "pointer-events-none"
         )}
         aria-hidden={actionsInert}

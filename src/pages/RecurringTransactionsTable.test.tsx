@@ -25,16 +25,17 @@ vi.mock("@/components/TransactionsTable/RecurringTransactionsTableDisplay", () =
 }));
 
 describe("RecurringTransactionsTable", () => {
-  it("keeps the narrow mobile padding through 375px", () => {
+  it("matches the transactions page padding below the md breakpoint", () => {
     render(<RecurringTransactionsTable />);
 
     const heading = screen.getByRole("heading", { name: "recurringTable.title" });
     const headerRow = heading.parentElement;
     const container = headerRow?.parentElement;
 
-    expect(container).toHaveClass("container", "mx-auto", "py-4", "max-[376px]:px-0");
-    expect(container).not.toHaveClass("max-[320px]:px-0");
-    expect(headerRow).toHaveClass("max-[376px]:px-4");
-    expect(headerRow).not.toHaveClass("max-[320px]:px-4");
+    expect(heading).not.toHaveClass("sr-only");
+    expect(container).toHaveClass("container", "mx-auto", "py-4", "max-md:px-0");
+    expect(container).not.toHaveClass("max-[376px]:px-0");
+    expect(headerRow).toHaveClass("max-md:px-4");
+    expect(headerRow).not.toHaveClass("max-[376px]:px-4");
   });
 });

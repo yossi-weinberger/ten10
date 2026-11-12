@@ -2517,8 +2517,8 @@ describe("TransactionCardList PostHog masking", () => {
       expect(markup).toContain("end-0");
       expect(markup).toContain("ps-2");
       expect(markup).toContain("min-w-0");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:touch-pan-y");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-0");
+      expect(markup).toContain("mobile-card:touch-pan-y");
+      expect(markup).toContain("mobile-card:z-0");
       expect(markup).toContain("relative z-10");
       expect(markup).toContain('tabindex="-1"');
       expect(markup).not.toContain("z-[1]");
@@ -2541,9 +2541,9 @@ describe("TransactionCardList PostHog masking", () => {
       const row = actions.parentElement as HTMLElement;
       expect(actions).toHaveAttribute("aria-hidden", "true");
       expect(actions.classList.contains("pointer-events-none")).toBe(true);
-      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(true);
+      expect(actions.classList.contains("mobile-card:invisible")).toBe(true);
       expect(row).toHaveAttribute("data-swipe-row", mockTransactions[0].id);
-      expect(row.classList.contains("max-md:[@media(pointer:coarse)]:isolate")).toBe(true);
+      expect(row.classList.contains("mobile-card:isolate")).toBe(true);
     });
 
     function cardTitled(title: string): HTMLElement {
@@ -2864,7 +2864,7 @@ describe("TransactionCardList PostHog masking", () => {
       expect(actions.className).toContain("z-0");
       expect(contentLayer(card).className).toContain("z-10");
       expect(actions.classList.contains("pointer-events-none")).toBe(false);
-      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(false);
+      expect(actions.classList.contains("mobile-card:invisible")).toBe(false);
       expect(actions.getAttribute("aria-hidden")).not.toBe("true");
       expect(readTranslateX(card)).toBe(-70);
       const openingEdit = screen.getByRole("button", { name: "Edit" });
@@ -3083,7 +3083,7 @@ describe("TransactionCardList PostHog masking", () => {
     });
 
     it("closes from the painted offset and hides the strip only after the release settles", () => {
-      const hiddenClass = "max-md:[@media(pointer:coarse)]:invisible";
+      const hiddenClass = "mobile-card:invisible";
       const closers = [
         () => {
           act(() => {
@@ -3561,5 +3561,35 @@ describe("transaction details drawer", () => {
     expect(pill).toHaveAttribute("dir", "ltr");
     expectPostHogMask(pill);
     expect(drawer.textContent).toContain("Converted · ");
+  });
+});
+
+describe("TransactionCardList overlay cleanup", () => {
+  it("restores body pointer events and overflow when the drawer unmounts open", async () => {
+    mockUseDonationStore.mockReturnValue(false);
+    const view = render(
+      <TransactionCardList
+        transactions={[mockTransactions[1]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+    fireEvent.click(screen.getByText("Groceries").closest("[role='button']")!);
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+    document.body.style.pointerEvents = "none";
+    document.body.style.overflow = "hidden";
+    document.body.setAttribute("data-scroll-locked", "1");
+
+    view.unmount();
+
+    expect(document.body.style.pointerEvents).not.toBe("none");
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(document.body.hasAttribute("data-scroll-locked")).toBe(false);
+    expect(document.querySelector("[aria-modal='true']")).toBeNull();
   });
 });
