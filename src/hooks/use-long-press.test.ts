@@ -295,6 +295,31 @@ describe("useLongPress", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
+  it("clears the pending timer and scroll listener on unmount", () => {
+    const onLongPress = vi.fn();
+    const onCancel = vi.fn();
+    const { result, unmount } = renderHook(() =>
+      useLongPress({ onLongPress, onCancel, threshold: 450 })
+    );
+
+    act(() => {
+      result.current.onPointerDown({
+        clientX: 100,
+        clientY: 100,
+      } as React.PointerEvent);
+    });
+
+    unmount();
+
+    act(() => {
+      vi.advanceTimersByTime(450);
+      window.dispatchEvent(new Event("scroll"));
+    });
+
+    expect(onLongPress).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
   it("can handle multiple pointer down cycles", () => {
     const onLongPress = vi.fn();
     const { result } = renderHook(() =>
