@@ -37,6 +37,7 @@ import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
 import {
   AmountPanel,
   MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
   TypeIconChip,
 } from "@/components/card-list/TypeVisual";
 import { useAuth } from "@/contexts/AuthContext";
@@ -209,6 +210,7 @@ function drawerDateValue(primary: string, secondary?: string) {
 
 const CARD_SURFACE_CLASS = cn(
   MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
   "overflow-hidden bg-white dark:bg-card",
 );
 
@@ -320,19 +322,19 @@ const TransactionCard = memo(function TransactionCard({
             className="shrink-0"
           />
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-xs leading-tight text-muted-foreground">
           <span
-            className={cn(PH_SENSITIVE_PROPS.className)}
+            className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
             data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
           >
             {displayDate.primary}
           </span>
           {categoryText && (
             <>
-              <span>·</span>
+              <span className="shrink-0">·</span>
               <span
                 className={cn(
-                  "truncate",
+                  "min-w-0 truncate",
                   PH_SENSITIVE_PROPS.className
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -343,9 +345,9 @@ const TransactionCard = memo(function TransactionCard({
           )}
           {transaction.recurring_info && (
             <>
-              <span>·</span>
+              <span className="shrink-0">·</span>
               <span
-                className={cn(PH_SENSITIVE_PROPS.className)}
+                className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
                 <CalendarClock className="h-3 w-3" aria-hidden="true" />
@@ -356,7 +358,7 @@ const TransactionCard = memo(function TransactionCard({
             <Badge
               variant="outline"
               className={cn(
-                "h-5 border px-1.5 py-0 text-[10px]",
+                "h-4 shrink-0 border px-1 py-0 text-[10px] leading-none",
                 typeBadgeColors[transaction.type as TransactionType]
               )}
             >
@@ -366,12 +368,12 @@ const TransactionCard = memo(function TransactionCard({
           {trackChomeshSeparately && transaction.is_chomesh && (
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 text-[10px]",
+                "inline-flex shrink-0 items-center gap-0.5 text-[10px]",
                 PH_SENSITIVE_PROPS.className
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+              <BadgeCheck className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
               <span
                 className={cn(PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -393,10 +395,10 @@ const TransactionCard = memo(function TransactionCard({
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <Coins className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
+              <Coins className="h-3 w-3 opacity-70" aria-hidden="true" />
               <span
                 className={cn(
-                  "text-[11px] font-normal text-muted-foreground",
+                  "text-[10px] font-normal text-muted-foreground",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}

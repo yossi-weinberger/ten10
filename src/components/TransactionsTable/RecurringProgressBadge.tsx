@@ -21,6 +21,7 @@ interface RecurringProgressBadgeProps {
   occurrenceNumber?: number | null; // From the transaction row if available
   frequency: string;
   dayOfMonth?: number | null;
+  className?: string;
 }
 
 export const RecurringProgressBadge: React.FC<RecurringProgressBadgeProps> = ({
@@ -31,6 +32,7 @@ export const RecurringProgressBadge: React.FC<RecurringProgressBadgeProps> = ({
   occurrenceNumber,
   frequency,
   dayOfMonth,
+  className,
 }) => {
   const { t } = useTranslation("data-tables");
 
@@ -46,7 +48,8 @@ export const RecurringProgressBadge: React.FC<RecurringProgressBadgeProps> = ({
               "cursor-default",
               status === "active"
                 ? typeBadgeColors[type]
-                : "border-gray-400 text-gray-600"
+                : "border-gray-400 text-gray-600",
+              className,
             )}
           >
             <div className="flex items-center gap-1">

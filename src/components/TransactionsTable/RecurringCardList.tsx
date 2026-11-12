@@ -27,6 +27,7 @@ import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
 import {
   AmountPanel,
   MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
   TypeIconChip,
 } from "@/components/card-list/TypeVisual";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -49,6 +50,7 @@ const STATUS_ORDER = ["active", "paused", "completed", "cancelled"] as const;
 
 const CARD_SURFACE_CLASS = cn(
   MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
   "overflow-hidden bg-white dark:bg-card",
 );
 
@@ -445,7 +447,7 @@ export function RecurringCardList({
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex flex-nowrap max-[389px]:flex-wrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
+                <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-xs leading-tight text-muted-foreground">
                   <MaskedText className="min-w-0 truncate">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
@@ -453,7 +455,7 @@ export function RecurringCardList({
                     <Badge
                       variant="secondary"
                       className={cn(
-                        "shrink-0 px-1.5 py-0 text-[10px] font-normal",
+                        "h-4 shrink-0 px-1 py-0 text-[10px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,
                       )}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -461,7 +463,7 @@ export function RecurringCardList({
                       {t("recurring.calendars.hebrew")}
                     </Badge>
                   ) : null}
-                  <MaskedText className="shrink-0">{nextDueLabel}</MaskedText>
+                  <MaskedText className="min-w-0 truncate">{nextDueLabel}</MaskedText>
                   {secondaryDue ? (
                     <MaskedText className="min-w-0 truncate">{secondaryDue}</MaskedText>
                   ) : null}
@@ -473,6 +475,7 @@ export function RecurringCardList({
                       totalOccurrences={row.total_occurrences}
                       frequency={row.frequency}
                       dayOfMonth={row.day_of_month}
+                      className="h-4 px-1 py-0 text-[10px] leading-none"
                     />
                   </span>
                 </div>
@@ -481,12 +484,12 @@ export function RecurringCardList({
                 type={row.type}
                 conversion={
                   conversion ? (
-                    <div className="flex flex-col items-center gap-0.5">
+                    <div className="flex flex-col items-center gap-0">
                       <Coins
-                        className="h-3.5 w-3.5 opacity-70"
+                        className="h-3 w-3 opacity-70"
                         aria-hidden="true"
                       />
-                      <MaskedText className="text-[11px] font-normal text-muted-foreground">
+                      <MaskedText className="text-[10px] font-normal text-muted-foreground">
                         {formatCurrency(
                           conversion.originalAmount,
                           conversion.originalCurrency,
@@ -499,7 +502,7 @@ export function RecurringCardList({
                       <Tooltip delayDuration={300}>
                         <TooltipTrigger asChild>
                           <RefreshCw
-                            className="h-3.5 w-3.5 text-muted-foreground cursor-help"
+                            className="h-3 w-3 text-muted-foreground cursor-help"
                             aria-label={tCurrency("row.tooltip.conversionDetails")}
                           />
                         </TooltipTrigger>

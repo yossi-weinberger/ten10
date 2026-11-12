@@ -258,11 +258,12 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
-    expect(markup).toContain("h-[120px]");
+    expect(markup).toContain("h-[80px]");
+    expect(markup).toContain("!p-2");
     expect(markup).not.toContain("bg-green-50");
     expect(markup).toContain("bg-green-100");
     expect(markup).toContain("text-green-800");
-    expect(markup).toContain("size-10");
+    expect(markup).toContain("size-8");
     expect(markup).toContain("rounded-full");
     expect(markup).toContain("Salary");
     expect(markup).toContain("500 ILS");
@@ -2367,8 +2368,8 @@ describe("TransactionCardList PostHog masking", () => {
     const conversionIcon = card.querySelector(".lucide-coins");
     expect(recurringIcon).toBeTruthy();
     expect(conversionIcon).toBeTruthy();
-    expect(conversionIcon?.getAttribute("class")).toContain("h-3.5");
-    expect(conversionIcon?.getAttribute("class")).toContain("w-3.5");
+    expect(conversionIcon?.getAttribute("class")).toContain("h-3");
+    expect(conversionIcon?.getAttribute("class")).toContain("w-3");
     expect(conversionIcon?.getAttribute("class")).toContain("opacity-70");
     expect(recurringIcon).not.toBe(conversionIcon);
     expect(card.querySelector(".lucide-repeat")).toBeNull();
@@ -2388,7 +2389,7 @@ describe("TransactionCardList PostHog masking", () => {
     const convertedCard = screen.getByRole("button", { name: /Charity/ });
     const originalAmount = within(convertedCard).getByText(originalUsd);
     expectPostHogMask(originalAmount);
-    expect(originalAmount.className).toContain("text-[11px]");
+    expect(originalAmount.className).toContain("text-[10px]");
     expect(originalAmount.className).toContain("text-muted-foreground");
 
     const plainCard = screen.getByRole("button", { name: /Groceries/ });
