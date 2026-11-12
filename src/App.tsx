@@ -34,6 +34,7 @@ import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
 import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
+import { APP_MAIN_SHELL_CLASS } from "./components/layout/appMainShellClass";
 import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
@@ -369,7 +370,7 @@ function App() {
           <SidebarHoverZone
             onExpandedChange={setIsSidebarExpanded}
             className={cn(
-              "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
+              "hidden md:block mobile-landscape:!hidden transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
               isSidebarExpanded
                 ? SIDEBAR_SIZE.expandedWidth.className
                 : SIDEBAR_SIZE.collapsedWidth.className
@@ -380,39 +381,59 @@ function App() {
         )}
 
         {!isFullScreenPage && (
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "md:hidden fixed top-4 z-50 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-accent hover:text-accent-foreground",
-                  i18n.dir() === "rtl" ? "right-4" : "left-4"
-                )}
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side={i18n.dir() === "rtl" ? "right" : "left"}
-              className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
-            >
-              {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
-              <SheetHeader>
-                <SheetTitle className="sr-only">Mobile navigation</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Main navigation panel for mobile view
-                </SheetDescription>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
-                <Sidebar
-                  expanded={true}
-                  inSheet={true}
-                  onLinkClick={() => setIsMobileMenuOpen(false)}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <>
+            {/* Mobile sticky top bar with hamburger and screen title */}
+            <div className="md:hidden mobile-landscape:!flex fixed top-0 inset-x-0 z-50 h-[calc(52px+env(safe-area-inset-top))] bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-2 pr-[max(.5rem,env(safe-area-inset-right))] pl-[max(.5rem,env(safe-area-inset-left))] safe-area-inset-top">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-11 rounded-full border border-border shadow-sm hover:bg-accent hover:text-accent-foreground"
+                    aria-label={t("menu.open", { ns: "navigation" })}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side={i18n.dir() === "rtl" ? "right" : "left"}
+                  className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
+                >
+                  {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
+                  <SheetHeader>
+                    <SheetTitle className="sr-only">{t("sheet.title", { ns: "navigation" })}</SheetTitle>
+                    <SheetDescription className="sr-only">
+                      {t("sheet.description", { ns: "navigation" })}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
+                    <Sidebar
+                      expanded={true}
+                      inSheet={true}
+                      onLinkClick={() => setIsMobileMenuOpen(false)}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <span className="flex-1 text-center text-base font-semibold truncate px-2">
+                {(() => {
+                  const pathToKey: Record<string, string> = {
+                    "/": "home",
+                    "/add-transaction": "addTransaction",
+                    "/analytics": "analytics",
+                    "/transactions-table": "transactionsTable",
+                    "/halacha": "halacha",
+                    "/settings": "settings",
+                    "/about": "about",
+                    "/profile": "profile",
+                  };
+                  const key = pathToKey[currentPath];
+                  return key ? t(`menu.${key}`, { ns: "navigation" }) : "";
+                })()}
+              </span>
+              <div className="size-11" />
+            </div>
+          </>
         )}
 
         <div
@@ -422,9 +443,7 @@ function App() {
         >
           <main
             className={`flex-1 ${
-              isFullScreenPage
-                ? "p-0"
-                : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
+              isFullScreenPage ? "p-0" : APP_MAIN_SHELL_CLASS
             }`}
           >
             <div

@@ -1,3 +1,4 @@
+import * as React from "react";
 import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -7,13 +8,37 @@ import { requestAssistantOpen } from "./assistant-open";
 /** The floating button for the assistant, where the contact button was. Contact moved into the menu. */
 export function AssistantFab() {
   const { t } = useTranslation("navigation");
+  const [hidden, setHidden] = React.useState(false);
+
+  React.useEffect(() => {
+    const syncHidden = () => {
+      const isSelectionActive = document.body.dataset.mobileSelectionActive === "true";
+      const isSwipeOpen = document.body.dataset.mobileSwipeOpen === "true";
+      setHidden(isSelectionActive || isSwipeOpen);
+    };
+
+    syncHidden();
+
+    const observer = new MutationObserver(syncHidden);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-mobile-selection-active", "data-mobile-swipe-open"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  if (hidden) {
+    return null;
+  }
+
   return (
-    <div className="fixed bottom-6 end-6 z-50">
+    <div className="fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            className="size-14 rounded-full shadow-lg [&_svg]:size-7"
+            className="size-14 mobile-landscape:size-12 rounded-full shadow-lg [&_svg]:size-7 mobile-landscape:[&_svg]:size-6"
             aria-label={t("menu.assistant")}
             onClick={requestAssistantOpen}
           >

@@ -4,6 +4,7 @@ import { StatCard } from "@/components/dashboard/StatCards/StatCard";
 import { useDonationStore } from "@/lib/store";
 import { normalizeCurrencyCode } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils/currency";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 /**
  * Read-only tithe StatCard for the opening-balance modal (matches home styling).
@@ -11,6 +12,7 @@ import { formatCurrency } from "@/lib/utils/currency";
  */
 export function OpeningBalanceHomeStyleStatCard() {
   const { t, i18n } = useTranslation("dashboard");
+  const useDrawer = useMediaQuery("(max-width: 767px), ((pointer: coarse) and (max-height: 500px))");
   const defaultCurrency = normalizeCurrencyCode(
     useDonationStore((s) => s.settings.defaultCurrency)
   );
@@ -64,7 +66,11 @@ export function OpeningBalanceHomeStyleStatCard() {
   ) : undefined;
 
   return (
-    <div className="w-full [&_.flex-1.flex-col>div:first-child]:sm:!text-center">
+    <div className={`w-full [&_.flex-1.flex-col>div:first-child]:sm:!text-center ${
+      useDrawer 
+        ? "[&_[data-slot=card]]:!h-auto [&_[data-slot=card]]:pt-2 [&_[data-slot=card]]:px-3 [&_[data-slot=card]]:min-h-0 [&_.text-3xl]:!text-2xl"
+        : ""
+    }`}>
       <StatCard
         title={t("statsCards.overallRequired.title")}
         value={serverTitheBalance ?? null}

@@ -52,6 +52,9 @@
     "non_tithe_donation": "תרומה שאינה ממעשר",
     "initial_balance": "יתרת פתיחה"
   },
+  "cards": {
+    "chomesh": "חומש"
+  },
   "actions": {
     "title": "פעולות",
     "edit": "עריכה",
@@ -70,8 +73,14 @@
   "bulkToolbar": {
     "ariaLabel": "פעולות מרובות לתנועות שנבחרו",
     "recurringAriaLabel": "פעולות מרובות להוראות קבע שנבחרו",
-    "selectedCount": "{{count}} תנועות נבחרו",
-    "selectedRecurringCount": "{{count}} הוראות קבע נבחרו",
+    "selectedCount_one": "תנועה {{count}} נבחרה",
+    "selectedCount_two": "{{count}} תנועות נבחרו",
+    "selectedCount_many": "{{count}} תנועות נבחרו",
+    "selectedCount_other": "{{count}} תנועות נבחרו",
+    "selectedRecurringCount_one": "הוראת קבע {{count}} נבחרה",
+    "selectedRecurringCount_two": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_many": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_other": "{{count}} הוראות קבע נבחרו",
     "edit": "עריכה מרובה",
     "delete": "מחיקה מרובה",
     "clear": "בטל בחירה"
@@ -219,8 +228,27 @@
     "editRecurringDescription": "עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.",
     "noRecurringSelected": "לא נבחרה הוראה לעריכה."
   },
+  "drawer": {
+    "detailsDescription": "פרטי התנועה ופעולות זמינות",
+    "editRecurring": "ערוך",
+    "convertedPrefix": "הומר · "
+  },
   "accessibility": {
     "openMenu": "פתח תפריט"
+  },
+  "sort": {
+    "sortBy": "מיון לפי",
+    "ascending": "מיון עולה",
+    "descending": "מיון יורד",
+    "chip": "מיון: {{field}} · {{direction}}",
+    "directions": {
+      "dateDesc": "חדש לישן",
+      "dateAsc": "ישן לחדש",
+      "amountDesc": "גבוה לנמוך",
+      "amountAsc": "נמוך לגבוה",
+      "textAsc": "א׳–ת׳",
+      "textDesc": "ת׳–א׳"
+    }
   },
   "recurring": {
     "status": "סטטוס",
@@ -274,7 +302,9 @@
     "allFrequencies": "כל התדירויות",
     "frequenciesSelected": "{{count}} נבחרו",
     "filterByFrequency": "סינון לפי תדירות",
-    "resetFilters": "אפס סינונים"
+    "resetFilters": "אפס סינונים",
+    "showFilters": "סינון",
+    "hideFilters": "הסתר סינונים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",

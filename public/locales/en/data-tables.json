@@ -42,7 +42,9 @@
     "allFrequencies": "All Frequencies",
     "frequenciesSelected": "{{count}} selected",
     "filterByFrequency": "Filter by frequency",
-    "resetFilters": "Reset Filters"
+    "resetFilters": "Reset Filters",
+    "showFilters": "Filters",
+    "hideFilters": "Hide Filters"
   },
   "columns": {
     "select": "Select",
@@ -76,6 +78,9 @@
     "non_tithe_donation": "Non-Tithe Donation",
     "initial_balance": "Opening Balance"
   },
+  "cards": {
+    "chomesh": "Chomesh"
+  },
   "actions": {
     "title": "Actions",
     "edit": "Edit",
@@ -94,8 +99,10 @@
   "bulkToolbar": {
     "ariaLabel": "Bulk actions for selected transactions",
     "recurringAriaLabel": "Bulk actions for selected recurring transactions",
-    "selectedCount": "{{count}} transactions selected",
-    "selectedRecurringCount": "{{count}} recurring transactions selected",
+    "selectedCount_one": "{{count}} transaction selected",
+    "selectedCount_other": "{{count}} transactions selected",
+    "selectedRecurringCount_one": "{{count}} recurring transaction selected",
+    "selectedRecurringCount_other": "{{count}} recurring transactions selected",
     "edit": "Bulk edit",
     "delete": "Bulk delete",
     "clear": "Clear selection"
@@ -243,8 +250,27 @@
     "editRecurringDescription": "Update recurring transaction details. Changes will apply only to future transactions.",
     "noRecurringSelected": "No recurring transaction selected for editing."
   },
+  "drawer": {
+    "detailsDescription": "Transaction details and actions",
+    "editRecurring": "Edit",
+    "convertedPrefix": "Converted · "
+  },
   "accessibility": {
     "openMenu": "Open menu"
+  },
+  "sort": {
+    "sortBy": "Sort by",
+    "ascending": "Sort ascending",
+    "descending": "Sort descending",
+    "chip": "Sort: {{field}} · {{direction}}",
+    "directions": {
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "High to low",
+      "amountAsc": "Low to high",
+      "textAsc": "A–Z",
+      "textDesc": "Z–A"
+    }
   },
   "recurring": {
     "status": "Status",
