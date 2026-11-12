@@ -7,8 +7,11 @@ import {
 import { cn } from "@/lib/utils/formatting";
 import type { TransactionType } from "@/types/transaction";
 
-/** Uniform mobile card height: title + meta + one badge/wrap row, vertically centered. */
-export const MOBILE_NEUTRAL_CARD_HEIGHT_CLASS = "h-[96px]";
+/**
+ * Uniform mobile card height: title + meta + wrapped badge row at 320px.
+ * Tallest recurring wrap needs scrollHeight 116px; with 1px borders use 120px client box.
+ */
+export const MOBILE_NEUTRAL_CARD_HEIGHT_CLASS = "h-[120px]";
 
 const AMOUNT_PANEL_CLASS =
   "relative -my-3 -me-3 self-stretch shrink-0 w-[26%] min-w-[84px] max-w-[112px] flex items-center justify-center px-1.5 py-2 text-center font-bold tabular-nums rounded-s-[10px]";

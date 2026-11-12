@@ -258,7 +258,7 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
-    expect(markup).toContain("h-[96px]");
+    expect(markup).toContain("h-[120px]");
     expect(markup).not.toContain("bg-green-50");
     expect(markup).toContain("bg-green-100");
     expect(markup).toContain("text-green-800");
