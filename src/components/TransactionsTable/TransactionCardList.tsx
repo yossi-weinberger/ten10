@@ -42,6 +42,7 @@ import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useLongPress } from "@/hooks/use-long-press";
 import { useSwipe } from "@/hooks/use-swipe";
+import { useMobileSelectionBodyFlag } from "@/hooks/useMobileSelectionBodyFlag";
 import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
@@ -767,17 +768,7 @@ export function TransactionCardList({
     open: handleSwipeOpen,
     close: handleSwipeClose,
   } = useSwipeOpenRow(inSelectionMode);
-
-  React.useEffect(() => {
-    if (inSelectionMode) {
-      document.body.dataset.mobileSelectionActive = "true";
-    } else {
-      delete document.body.dataset.mobileSelectionActive;
-    }
-    return () => {
-      delete document.body.dataset.mobileSelectionActive;
-    };
-  }, [inSelectionMode]);
+  useMobileSelectionBodyFlag(inSelectionMode);
 
   const transactionsWithSeparators = useMemo(
     () =>
