@@ -13,9 +13,11 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Repeat, Trash2, Undo2, Receipt, BadgeCheck } from "lucide-react";
+import { BadgeCheck, CalendarClock, Coins, Edit3, Receipt, Trash2, Undo2 } from "lucide-react";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
+import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
+import type { CurrencyCode } from "@/lib/currencies";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { formatCategory } from "@/lib/category-registry";
@@ -84,6 +86,31 @@ function contentTranslateX(openOffset: number, isRTL: boolean): number {
   return isRTL ? openOffset : -openOffset;
 }
 
+function storedConversion(transaction: TransactionForTable): {
+  originalAmount: number;
+  originalCurrency: CurrencyCode;
+  rate: number | null | undefined;
+} | null {
+  if (
+    transaction.original_amount == null ||
+    transaction.original_currency == null ||
+    !hasStoredCurrencyConversion({
+      amount: transaction.amount,
+      currency: transaction.currency,
+      originalAmount: transaction.original_amount,
+      originalCurrency: transaction.original_currency,
+    })
+  ) {
+    return null;
+  }
+
+  return {
+    originalAmount: transaction.original_amount,
+    originalCurrency: transaction.original_currency,
+    rate: transaction.conversion_rate,
+  };
+}
+
 interface TransactionCardProps {
   transaction: TransactionForTable;
   displayDate: { primary: string | null };
@@ -129,6 +156,8 @@ const TransactionCard = memo(function TransactionCard({
   onSwipeOpen,
   onSwipeClose,
 }: TransactionCardProps) {
+  const { i18n } = useTranslation("data-tables");
+  const conversion = storedConversion(transaction);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const swipeTriggeredRef = useRef(false);
@@ -365,7 +394,7 @@ const TransactionCard = memo(function TransactionCard({
                 className={cn(PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
-                <Repeat className="h-3 w-3" aria-hidden="true" />
+                <CalendarClock className="h-3 w-3" aria-hidden="true" />
               </span>
             </>
           )}
@@ -402,20 +431,53 @@ const TransactionCard = memo(function TransactionCard({
       <div
         className={cn(
           "shrink-0 text-end font-bold",
+          conversion && "flex flex-col items-end",
           PH_SENSITIVE_PROPS.className
         )}
         data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
       >
-        <CurrencyConversionInfo
-          amount={transaction.amount}
-          currency={transaction.currency}
-          originalAmount={transaction.original_amount}
-          originalCurrency={transaction.original_currency}
-          conversionRate={transaction.conversion_rate}
-          conversionDate={transaction.conversion_date}
-          rateSource={transaction.rate_source}
-          mode="static"
-        />
+        {conversion ? (
+          <div className="flex items-center justify-end gap-1">
+            <CurrencyConversionInfo
+              amount={transaction.amount}
+              currency={transaction.currency}
+              originalAmount={transaction.original_amount}
+              originalCurrency={transaction.original_currency}
+              conversionRate={transaction.conversion_rate}
+              conversionDate={transaction.conversion_date}
+              rateSource={transaction.rate_source}
+              mode="static"
+              showConversionIcon={false}
+            />
+            <Coins className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          </div>
+        ) : (
+          <CurrencyConversionInfo
+            amount={transaction.amount}
+            currency={transaction.currency}
+            originalAmount={transaction.original_amount}
+            originalCurrency={transaction.original_currency}
+            conversionRate={transaction.conversion_rate}
+            conversionDate={transaction.conversion_date}
+            rateSource={transaction.rate_source}
+            mode="static"
+          />
+        )}
+        {conversion ? (
+          <span
+            className={cn(
+              "text-xs font-normal text-muted-foreground",
+              PH_SENSITIVE_PROPS.className
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            {formatCurrency(
+              conversion.originalAmount,
+              conversion.originalCurrency,
+              i18n.language
+            )}
+          </span>
+        ) : null}
       </div>
       </Card>
   );
@@ -497,6 +559,7 @@ export function TransactionCardList({
   bulkEditDisabled = false,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
+  const { t: tCurrency } = useTranslation("currency-features");
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
   const { platform } = usePlatform();
@@ -688,6 +751,10 @@ export function TransactionCardList({
     );
   }
 
+  const selectedConversion = selectedTransaction
+    ? storedConversion(selectedTransaction)
+    : null;
+
   return (
     <>
       {inSelectionMode && onClearSelection && onSelectionEdit && onSelectionDelete && 
@@ -805,6 +872,7 @@ export function TransactionCardList({
               <div
                 className={cn(
                   "mt-2 text-2xl font-bold",
+                  selectedConversion && "flex items-center justify-center gap-1",
                   PH_SENSITIVE_PROPS.className
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -818,7 +886,11 @@ export function TransactionCardList({
                   conversionDate={selectedTransaction.conversion_date}
                   rateSource={selectedTransaction.rate_source}
                   mode="static"
+                  showConversionIcon={!selectedConversion}
                 />
+                {selectedConversion ? (
+                  <Coins className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                ) : null}
               </div>
             )}
             <DrawerDescription className="sr-only">
@@ -859,6 +931,46 @@ export function TransactionCardList({
                     })()}
                   </span>
                 </div>
+
+                {selectedConversion && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{tCurrency("row.tooltip.original")}</span>
+                      <span
+                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {formatCurrency(
+                          selectedConversion.originalAmount,
+                          selectedConversion.originalCurrency,
+                          i18n.language
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{tCurrency("row.tooltip.rate")}</span>
+                      <span
+                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {selectedConversion.rate?.toFixed(2) || "-"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{tCurrency("row.tooltip.converted")}</span>
+                      <span
+                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {formatCurrency(
+                          selectedTransaction.amount,
+                          selectedTransaction.currency,
+                          i18n.language
+                        )}
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("columns.type")}</span>
@@ -971,7 +1083,7 @@ export function TransactionCardList({
                     selectedTransaction.recurring_info?.status === "completed"
                   }
                 >
-                  <Repeat className="me-2 h-4 w-4" />
+                  <CalendarClock className="me-2 h-4 w-4" />
                   {isFetchingRec
                     ? t("messages.loading")
                     : t("actions.editRecurring")}

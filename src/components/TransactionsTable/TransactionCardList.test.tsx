@@ -2,7 +2,8 @@
 
 import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { render, screen, fireEvent, waitFor, cleanup, act } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
+import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { prefersReducedMotion } from "motion-dom";
 import { TransactionCardList } from "./TransactionCardList";
@@ -41,6 +42,9 @@ vi.mock("react-i18next", () => ({
       if (key === "messages.loading") return "Loading...";
       if (key === "modal.editDescription") return "Update transaction details";
       if (key === "drawer.detailsDescription") return "Transaction details and actions";
+      if (key === "row.tooltip.original") return "Original Amount";
+      if (key === "row.tooltip.rate") return "Exchange Rate";
+      if (key === "row.tooltip.converted") return "Converted Amount";
       return key;
     },
     i18n: {
@@ -1884,7 +1888,7 @@ describe("TransactionCardList PostHog masking", () => {
     renderList([mockTransactions[2]]);
 
     const card = screen.getByRole("button", { name: /Charity/ });
-    const icon = card.querySelector(".lucide-repeat");
+    const icon = card.querySelector(".lucide-calendar-clock");
     expect(icon).toBeTruthy();
     expectPostHogMask(icon?.closest("[data-ph-mask]"));
     expect(icon?.getAttribute("aria-hidden")).toBe("true");
@@ -1957,6 +1961,68 @@ describe("TransactionCardList PostHog masking", () => {
 
     const recurringBadge = screen.getByText("Recurring Badge");
     expectPostHogMask(recurringBadge.closest("[data-ph-mask]"));
+  });
+
+  it("uses distinct recurring and conversion icons on a converted recurring card", async () => {
+    renderList([convertedRecurringTransaction]);
+
+    const card = screen.getByRole("button", { name: /Charity/ });
+    const recurringIcon = card.querySelector(".lucide-calendar-clock");
+    const conversionIcon = card.querySelector(".lucide-coins");
+    expect(recurringIcon).toBeTruthy();
+    expect(conversionIcon).toBeTruthy();
+    expect(conversionIcon?.getAttribute("class")).toContain("h-4");
+    expect(conversionIcon?.getAttribute("class")).toContain("w-4");
+    expect(conversionIcon?.getAttribute("class")).toContain("text-muted-foreground");
+    expect(recurringIcon).not.toBe(conversionIcon);
+    expect(card.querySelector(".lucide-repeat")).toBeNull();
+    expect(card.querySelector(".lucide-refresh-cw")).toBeNull();
+
+    await openCard("Charity");
+    const drawer = screen.getByRole("dialog");
+    expect(drawer.querySelector(".lucide-calendar-clock")).toBeTruthy();
+    expect(drawer.querySelector(".lucide-coins")).toBeTruthy();
+    expect(drawer.querySelector(".lucide-repeat")).toBeNull();
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeNull();
+  });
+
+  it("shows the masked original amount under a converted card and omits it otherwise", () => {
+    renderList([convertedRecurringTransaction, mockTransactions[1]]);
+
+    const convertedCard = screen.getByRole("button", { name: /Charity/ });
+    const originalAmount = within(convertedCard).getByText(originalUsd);
+    expectPostHogMask(originalAmount);
+    expect(originalAmount.className).toContain("text-xs");
+    expect(originalAmount.className).toContain("text-muted-foreground");
+
+    const plainCard = screen.getByRole("button", { name: /Groceries/ });
+    expect(within(plainCard).queryByText(originalUsd)).not.toBeInTheDocument();
+    expect(plainCard.querySelector(".lucide-coins")).toBeNull();
+  });
+
+  it("renders masked conversion rows for a converted transaction and hides them otherwise", async () => {
+    renderList([convertedRecurringTransaction]);
+    await openCard("Charity");
+
+    expect(screen.getByText("Original Amount")).toBeInTheDocument();
+    expect(screen.getByText("Exchange Rate")).toBeInTheDocument();
+    expect(screen.getByText("Converted Amount")).toBeInTheDocument();
+
+    const originalValues = screen.getAllByText(originalUsd);
+    expect(originalValues.length).toBeGreaterThanOrEqual(2);
+    originalValues.forEach((value) => expectPostHogMask(value));
+
+    expectPostHogMask(screen.getByText("3.70"));
+    expectPostHogMask(screen.getByText(convertedIls));
+
+    cleanup();
+    renderList([mockTransactions[1]]);
+    await openCard("Groceries");
+
+    expect(screen.queryByText("Original Amount")).not.toBeInTheDocument();
+    expect(screen.queryByText("Exchange Rate")).not.toBeInTheDocument();
+    expect(screen.queryByText("Converted Amount")).not.toBeInTheDocument();
+    expect(screen.queryByText(originalUsd)).not.toBeInTheDocument();
   });
 
   describe("swipe actions", () => {
@@ -2542,3 +2608,17 @@ describe("TransactionCardList PostHog masking", () => {
     });
   });
 });
+
+const convertedRecurringTransaction: TransactionForTable = {
+  ...mockTransactions[2],
+  amount: 370,
+  currency: "ILS",
+  original_amount: 100,
+  original_currency: "USD",
+  conversion_rate: 3.7,
+  conversion_date: "2026-11-10",
+  rate_source: "manual",
+};
+
+const originalUsd = formatCurrency(100, "USD", "en");
+const convertedIls = formatCurrency(370, "ILS", "en");

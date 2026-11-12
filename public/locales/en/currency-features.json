@@ -23,6 +23,7 @@
       "conversionDetails": "Conversion Details",
       "original": "Original Amount",
       "rate": "Exchange Rate",
+      "converted": "Converted Amount",
       "date": "Rate Date",
       "source": "Conversion Source",
       "target": "Target Currency",
