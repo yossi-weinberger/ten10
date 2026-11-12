@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_SELECTION_CLEARANCE_CLASS } from "@/lib/responsive";
 import { decideSortMenuPlacement } from "@/components/sortMenuPlacement";
 import { TransactionsTableDisplay } from "./TransactionsTableDisplay";
 
@@ -13,7 +14,8 @@ const {
   api,
   filters,
   pagination,
-  transactions,
+  rows,
+  flags,
   setLoadMorePagination,
   deleteTransaction,
   deleteTransactionsBulk,
@@ -42,7 +44,16 @@ const {
     totalCount: 0,
     hasMore: false,
   },
-  transactions: [] as never[],
+  rows: {
+    current: [] as Array<{
+      id: string;
+      type: string;
+      description: string;
+      date: string;
+      amount: number;
+    }>,
+  },
+  flags: { bulkLoading: false },
   setLoadMorePagination: vi.fn(),
   deleteTransaction: vi.fn(),
   deleteTransactionsBulk: vi.fn(),
@@ -85,7 +96,18 @@ vi.mock("@/lib/supabaseClient", () => ({
 }));
 
 vi.mock("./TransactionRow", () => ({
-  TransactionRow: () => null,
+  TransactionRow: (props: {
+    transaction: { id: string };
+    onToggleSelected?: (id: string) => void;
+  }) => (
+    <tr>
+      <td>
+        <button type="button" onClick={() => props.onToggleSelected?.(props.transaction.id)}>
+          {`row-${props.transaction.id}`}
+        </button>
+      </td>
+    </tr>
+  ),
 }));
 
 vi.mock("@/lib/store", () => ({
@@ -114,7 +136,7 @@ vi.mock("@/lib/store", () => ({
 vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
   useTableTransactionsStore: (selector: unknown) => {
     const state = {
-      transactions,
+      transactions: rows.current,
       loading: false,
       error: null,
       fetchTransactions: api.fetchTransactions,
@@ -126,7 +148,7 @@ vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
       deleteTransaction,
       deleteTransactionsBulk,
       updateTransactionsBulk,
-      bulkLoading: false,
+      bulkLoading: flags.bulkLoading,
     };
     return typeof selector === "function"
       ? (selector as (value: typeof state) => unknown)(state)
@@ -146,15 +168,25 @@ vi.mock("./TransactionCardList", () => ({
   TransactionCardList: (props: {
     showMonthSeparators?: boolean;
     sortControl?: unknown;
+    selectedIds?: Set<string>;
+    transactions?: Array<{ id: string }>;
+    onToggleSelected?: (id: string) => void;
   }) => {
     cardListProps.showMonthSeparators = props.showMonthSeparators;
     cardListProps.hasSortControl = props.sortControl != null;
+    const firstId = props.transactions?.[0]?.id;
     return (
       <div
         data-testid="transaction-card-list"
         data-show-month-separators={String(props.showMonthSeparators)}
+        data-selected-count={props.selectedIds?.size ?? 0}
       >
         {props.sortControl as ReactNode}
+        {firstId ? (
+          <button type="button" onClick={() => props.onToggleSelected?.(firstId)}>
+            {`card-${firstId}`}
+          </button>
+        ) : null}
       </div>
     );
   },
@@ -218,6 +250,10 @@ beforeEach(() => {
   api.sorting = { field: "date", direction: "desc" };
   api.setSorting.mockClear();
   api.fetchTransactions.mockClear();
+  rows.current = [];
+  pagination.hasMore = false;
+  pagination.totalCount = 0;
+  flags.bulkLoading = false;
   i18nDir.mockReset();
   i18nDir.mockReturnValue("ltr");
   vi.mocked(useMediaQuery).mockReturnValue(false);
@@ -440,5 +476,78 @@ describe("TransactionsTableDisplay table path", () => {
     );
     expect(api.setSorting).toHaveBeenCalledTimes(1);
     expect(api.setSorting).toHaveBeenCalledWith("amount");
+  });
+});
+
+describe("TransactionsTableDisplay reactive card layout", () => {
+  const sample = {
+    id: "tx-1",
+    type: "expense",
+    description: "Groceries",
+    date: "2026-01-02",
+    amount: 10,
+  };
+
+  it("keeps the selected id and shows it on the card list", async () => {
+    rows.current = [sample, { ...sample, id: "tx-missing", description: "Gone" }];
+    const user = userEvent.setup();
+    const view = renderDisplay();
+    await user.click(screen.getByRole("button", { name: "row-tx-1" }));
+    await user.click(screen.getByRole("button", { name: "row-tx-missing" }));
+    rows.current = [sample];
+    view.rerender(<TransactionsTableDisplay />);
+
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+    view.rerender(<TransactionsTableDisplay />);
+
+    expect(screen.getByTestId("transaction-card-list")).toHaveAttribute("data-selected-count", "1");
+    expect(api.fetchTransactions).toHaveBeenCalledTimes(1);
+  });
+
+  it("defers the switch while bulk work is pending and reapplies the live query", () => {
+    rows.current = [sample];
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+    const view = renderDisplay();
+    expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
+
+    flags.bulkLoading = true;
+    view.rerender(<TransactionsTableDisplay />);
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+    view.rerender(<TransactionsTableDisplay />);
+    expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+    view.rerender(<TransactionsTableDisplay />);
+    expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+    view.rerender(<TransactionsTableDisplay />);
+    expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
+
+    flags.bulkLoading = false;
+    view.rerender(<TransactionsTableDisplay />);
+    expect(screen.getByTestId("transaction-card-list")).toBeInTheDocument();
+    expect(api.fetchTransactions).toHaveBeenCalledTimes(1);
+  });
+
+  it("pads the list and Load More while the mobile selection bar is showing", async () => {
+    rows.current = [sample];
+    pagination.hasMore = true;
+    pagination.totalCount = 2;
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+    const user = userEvent.setup();
+    const view = renderDisplay();
+
+    expect(screen.getByRole("button", { name: "pagination.loadMore" }).closest("div.space-y-4")?.className).not.toContain(
+      "max-md:pb-",
+    );
+
+    await user.click(screen.getByRole("button", { name: "card-tx-1" }));
+    const loadMore = screen.getByRole("button", { name: "pagination.loadMore" });
+    expect(loadMore.closest("div.space-y-4")?.className).toContain(MOBILE_SELECTION_CLEARANCE_CLASS);
+
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+    view.rerender(<TransactionsTableDisplay />);
+    expect(screen.getByRole("button", { name: "pagination.loadMore" }).closest("div.space-y-4")?.className).not.toContain(
+      MOBILE_SELECTION_CLEARANCE_CLASS,
+    );
   });
 });

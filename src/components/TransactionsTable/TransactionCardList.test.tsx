@@ -2,7 +2,9 @@
 
 import "@testing-library/jest-dom/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { useEffect, useReducer } from "react";
 import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
+import { COARSE_POINTER_QUERY } from "@/lib/responsive";
 import { formatCurrency } from "@/lib/utils/currency";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
@@ -112,8 +114,35 @@ vi.mock("@/lib/ai/ai-undo-eligibility", () => ({
     transaction.origin === "ai" || transaction.origin === "ai_auto",
 }));
 
+const aiIntakeGate = vi.hoisted(() => {
+  let enabled = true;
+  const listeners = new Set<() => void>();
+  return {
+    isEnabled: () => enabled,
+    setEnabled(next: boolean) {
+      enabled = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+});
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { id: "user-1" } }),
+}));
+
 vi.mock("@/lib/ai/flags", () => ({
-  isAiIntakeEnabled: () => true,
+  isAiIntakeEnabled: () => aiIntakeGate.isEnabled(),
+  useAiIntakeUi: () => {
+    const [, rerender] = useReducer((count: number) => count + 1, 0);
+    useEffect(() => aiIntakeGate.subscribe(() => rerender()), []);
+    return aiIntakeGate.isEnabled();
+  },
 }));
 
 vi.mock("@/lib/ai/open-receipt", () => ({
@@ -209,6 +238,7 @@ describe("TransactionCardList", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
@@ -1082,6 +1112,129 @@ describe("TransactionCardList", () => {
     expect(screen.queryByText("Undo AI")).not.toBeInTheDocument();
   });
 
+  it.each([
+    ["ai", "filters.originAi"],
+    ["ai_auto", "filters.originAuto"],
+  ] as const)(
+    "shows the AI origin indicator on the card and in the drawer for %s",
+    async (origin, label) => {
+      const transaction: TransactionForTable = {
+        ...mockTransactions[0],
+        description: "Salary",
+        origin,
+      };
+
+      render(
+        <TransactionCardList
+          transactions={[transaction]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((item) =>
+        item.textContent?.includes("Salary"),
+      );
+      expect(card).toBeTruthy();
+      const cardIcon = within(card!).getByRole("img", { name: label });
+      expect(cardIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(cardIcon.parentElement?.className).toContain("ph-mask");
+      const cardSvg = cardIcon.querySelector("svg");
+      expect(cardSvg?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(cardSvg).toHaveAttribute("aria-hidden", "true");
+
+      fireEvent.click(card!);
+      const drawer = await screen.findByRole("dialog");
+      const drawerIcon = within(drawer).getByRole("img", { name: label });
+      expect(drawerIcon.parentElement).toHaveAttribute("data-ph-mask", "");
+      expect(drawerIcon.parentElement?.className).toContain("ph-mask");
+      const drawerSvg = drawerIcon.querySelector("svg");
+      expect(drawerSvg?.getAttribute("class")).toContain(
+        "h-3.5 w-3.5 shrink-0 text-muted-foreground",
+      );
+      expect(drawerSvg).toHaveAttribute("aria-hidden", "true");
+      expect(drawer.textContent).toContain("Salary");
+    },
+  );
+
+  it("does not show an AI origin indicator for a manual transaction", async () => {
+    const transaction: TransactionForTable = {
+      ...mockTransactions[0],
+      origin: null,
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes("Salary"),
+    );
+    expect(card).toBeTruthy();
+    expect(card!.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(card!.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const description = card!.querySelector(".font-medium");
+    expect(description?.className).toContain("truncate");
+    expect(description?.className).not.toContain("flex");
+    expect(description).toHaveAttribute("data-ph-mask", "");
+    expect(description?.textContent).toBe("Salary");
+
+    fireEvent.click(card!);
+    const drawer = await screen.findByRole("dialog");
+    expect(drawer.querySelector("[aria-label='filters.originAi']")).toBeNull();
+    expect(drawer.querySelector("[aria-label='filters.originAuto']")).toBeNull();
+    const title = within(drawer).getByRole("heading", { name: "Salary" });
+    expect(title.className).toContain("line-clamp-2");
+    expect(title).toHaveAttribute("data-ph-mask", "");
+  });
+
+  it("shows the AI origin icon after the intake flag turns on without remounting the card", () => {
+    aiIntakeGate.setEnabled(false);
+    const transaction: TransactionForTable = {
+      ...mockTransactions[0],
+      description: "Salary",
+      origin: "ai",
+    };
+
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />
+    );
+
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes("Salary"),
+    );
+    expect(card).toBeTruthy();
+    expect(within(card!).queryByRole("img", { name: "filters.originAi" })).toBeNull();
+
+    act(() => {
+      aiIntakeGate.setEnabled(true);
+    });
+
+    expect(within(card!).getByRole("img", { name: "filters.originAi" })).toBeTruthy();
+    expect(
+      screen.getAllByRole("button").find((item) => item.textContent?.includes("Salary")),
+    ).toBe(card);
+  });
+
   describe("selection mode and long-press", () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -1218,6 +1371,94 @@ describe("TransactionCardList", () => {
 
       expect(onToggleSelected).toHaveBeenCalledWith("1");
       expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("tap does not select a card while selection is disabled", () => {
+      const onToggleSelected = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set(["2"])}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled
+          onClearSelection={vi.fn()}
+          onSelectionEdit={vi.fn()}
+          onSelectionDelete={vi.fn()}
+        />
+      );
+
+      const cards = screen.getAllByRole("button");
+      const card = cards.find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+      fireEvent.keyDown(card!, { key: "Enter" });
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("keeps the drawer closed outside selection mode while a bulk action is pending", () => {
+      const onToggleSelected = vi.fn();
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+          selectedIds={new Set()}
+          onToggleSelected={onToggleSelected}
+          selectionDisabled
+          bulkPending
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((c) => c.textContent?.includes("Salary"));
+
+      fireEvent.click(card!);
+      fireEvent.keyDown(card!, { key: "Enter" });
+
+      act(() => {
+        fireEvent.pointerDown(card!, { clientX: 100, clientY: 100 });
+      });
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      act(() => {
+        fireEvent.pointerUp(card!);
+      });
+      fireEvent.click(card!);
+
+      expect(onToggleSelected).not.toHaveBeenCalled();
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("opens the drawer while loading when rows are already shown", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading
+          selectedIds={new Set()}
+          selectionDisabled
+        />
+      );
+
+      const card = screen.getAllByRole("button").find((c) => c.textContent?.includes("Salary"));
+      fireEvent.click(card!);
+
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
     });
 
     it("selected card shows aria-selected and aria-pressed attributes", () => {
@@ -1970,6 +2211,7 @@ describe("TransactionCardList PostHog masking", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
@@ -2165,12 +2407,43 @@ describe("TransactionCardList PostHog masking", () => {
     expect(screen.getByRole("dialog").querySelector(".lucide-refresh-cw")).toBeNull();
   });
 
+  type SwipeViewport = { width: number; height: number; pointer: "fine" | "coarse" };
+
+  function viewportFeatureMatches(feature: string, viewport: SwipeViewport): boolean {
+    const body = feature.replace(/[()]/g, "").trim();
+    if (body.startsWith("pointer:")) {
+      return body.slice("pointer:".length).trim() === viewport.pointer;
+    }
+    const maxWidth = /^max-width:\s*(\d+)px$/.exec(body);
+    if (maxWidth) return viewport.width <= Number(maxWidth[1]);
+    const maxHeight = /^max-height:\s*(\d+)px$/.exec(body);
+    if (maxHeight) return viewport.height <= Number(maxHeight[1]);
+    return false;
+  }
+
+  function viewportMatchMedia(viewport: SwipeViewport) {
+    return (query: string) => ({
+      matches: query.split(",").some((clause) =>
+        clause.split(/\band\b/).every((feature) => viewportFeatureMatches(feature, viewport)),
+      ),
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => false,
+    });
+  }
+
   describe("swipe actions", () => {
     beforeEach(() => {
       vi.useFakeTimers();
       reducedMotion.current = false;
       vi.stubGlobal("matchMedia", (query: string) => ({
-        matches: query.includes("max-width: 767px") && query.includes("pointer: coarse"),
+        matches:
+          query === COARSE_POINTER_QUERY ||
+          (query.includes("max-width: 767px") && query.includes("pointer: coarse")),
         media: query,
         addEventListener: () => undefined,
         removeEventListener: () => undefined,
@@ -2276,8 +2549,8 @@ describe("TransactionCardList PostHog masking", () => {
       expect(markup).toContain("end-0");
       expect(markup).toContain("ps-2");
       expect(markup).toContain("min-w-0");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:touch-pan-y");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-0");
+      expect(markup).toContain("mobile-card:touch-pan-y");
+      expect(markup).toContain("mobile-card:z-0");
       expect(markup).toContain("relative z-10");
       expect(markup).toContain('tabindex="-1"');
       expect(markup).not.toContain("z-[1]");
@@ -2300,9 +2573,9 @@ describe("TransactionCardList PostHog masking", () => {
       const row = actions.parentElement as HTMLElement;
       expect(actions).toHaveAttribute("aria-hidden", "true");
       expect(actions.classList.contains("pointer-events-none")).toBe(true);
-      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(true);
+      expect(actions.classList.contains("mobile-card:invisible")).toBe(true);
       expect(row).toHaveAttribute("data-swipe-row", mockTransactions[0].id);
-      expect(row.classList.contains("max-md:[@media(pointer:coarse)]:isolate")).toBe(true);
+      expect(row.classList.contains("mobile-card:isolate")).toBe(true);
     });
 
     function cardTitled(title: string): HTMLElement {
@@ -2623,7 +2896,7 @@ describe("TransactionCardList PostHog masking", () => {
       expect(actions.className).toContain("z-0");
       expect(contentLayer(card).className).toContain("z-10");
       expect(actions.classList.contains("pointer-events-none")).toBe(false);
-      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(false);
+      expect(actions.classList.contains("mobile-card:invisible")).toBe(false);
       expect(actions.getAttribute("aria-hidden")).not.toBe("true");
       expect(readTranslateX(card)).toBe(-70);
       const openingEdit = screen.getByRole("button", { name: "Edit" });
@@ -2842,7 +3115,7 @@ describe("TransactionCardList PostHog masking", () => {
     });
 
     it("closes from the painted offset and hides the strip only after the release settles", () => {
-      const hiddenClass = "max-md:[@media(pointer:coarse)]:invisible";
+      const hiddenClass = "mobile-card:invisible";
       const closers = [
         () => {
           act(() => {
@@ -3056,6 +3329,80 @@ describe("TransactionCardList PostHog masking", () => {
       unmount();
       expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
     });
+
+    it("gives a fine pointer at 390px no swipe strip, and a click opens the drawer", async () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 390, height: 844, pointer: "fine" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      expect(screen.queryByRole("button", { name: "Edit", hidden: true })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Delete", hidden: true })).not.toBeInTheDocument();
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeNull();
+      expect(card.parentElement).toHaveAttribute("data-swipe-row");
+      swipeCard(card, "open");
+      expect(readTranslateX(card)).toBe(0);
+      expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+      vi.useRealTimers();
+      fireEvent.click(card);
+      expect(await screen.findByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    it("swipes on a coarse pointer at 390px", () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 390, height: 844, pointer: "coarse" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "open");
+      expectOpen(card);
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
+    });
+
+    it("swipes on a coarse landscape viewport at 844x390", () => {
+      vi.stubGlobal(
+        "matchMedia",
+        viewportMatchMedia({ width: 844, height: 390, pointer: "coarse" }),
+      );
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />,
+      );
+
+      const card = cardTitled("Salary");
+      swipeCard(card, "open");
+      expectOpen(card);
+      expect(card.closest("[data-swipe-row]")?.querySelector("[class*='end-0']")).toBeTruthy();
+    });
   });
 });
 
@@ -3098,6 +3445,7 @@ describe("transaction details drawer", () => {
   beforeEach(() => {
     displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
+    aiIntakeGate.setEnabled(true);
   });
 
   afterEach(() => {
@@ -3302,5 +3650,52 @@ describe("transaction details drawer", () => {
     const plain = await openDrawer(sameCurrency);
     expect(plain.querySelector(".lucide-refresh-cw")).toBeNull();
     expect(within(plain).queryByText(detail)).not.toBeInTheDocument();
+  });
+
+  it("shows two decimals inside the LTR conversion pill for a fractional original amount", async () => {
+    const converted: TransactionForTable = {
+      ...mockTransactions[0],
+      amount: 38.25,
+      currency: "ILS",
+      original_amount: 12.3,
+      original_currency: "USD",
+      conversion_rate: 3.11,
+    };
+    const drawer = await openDrawer(converted);
+    const pill = within(drawer).getByText("$12.30 × 3.11");
+    expect(pill.tagName).toBe("BDI");
+    expect(pill).toHaveAttribute("dir", "ltr");
+    expectPostHogMask(pill);
+    expect(drawer.textContent).toContain("Converted · ");
+  });
+});
+
+describe("TransactionCardList overlay cleanup", () => {
+  it("restores body pointer events and overflow when the drawer unmounts open", async () => {
+    mockUseDonationStore.mockReturnValue(false);
+    const view = render(
+      <TransactionCardList
+        transactions={[mockTransactions[1]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+    fireEvent.click(screen.getByText("Groceries").closest("[role='button']")!);
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+    document.body.style.pointerEvents = "none";
+    document.body.style.overflow = "hidden";
+    document.body.setAttribute("data-scroll-locked", "1");
+
+    view.unmount();
+
+    expect(document.body.style.pointerEvents).not.toBe("none");
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(document.body.hasAttribute("data-scroll-locked")).toBe(false);
+    expect(document.querySelector("[aria-modal='true']")).toBeNull();
   });
 });
