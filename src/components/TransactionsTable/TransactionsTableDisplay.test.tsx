@@ -268,7 +268,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(api.setSorting).toHaveBeenCalledWith("payment_method");
   });
 
-  it("calls setSorting with the current field when that field is selected again", async () => {
+  it("does not call setSorting when the current field is selected again", async () => {
     const user = userEvent.setup();
     api.sorting = { field: "amount", direction: "asc" };
     renderDisplay();
@@ -278,8 +278,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     );
     await user.click(screen.getByRole("menuitem", { name: "columns.amount" }));
 
-    expect(api.setSorting).toHaveBeenCalledTimes(1);
-    expect(api.setSorting).toHaveBeenCalledWith("amount");
+    expect(api.setSorting).not.toHaveBeenCalled();
   });
 
   it("toggles direction through setSorting and reflects the active direction", async () => {

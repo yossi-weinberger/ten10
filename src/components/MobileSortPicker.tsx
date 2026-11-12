@@ -73,7 +73,10 @@ export function MobileSortPicker<Field extends string>({
             <DropdownMenuItem
               key={option.field}
               className="min-h-11"
-              onSelect={() => onChange(option.field)}
+              onSelect={() => {
+                if (option.field === field) return;
+                onChange(option.field);
+              }}
             >
               {option.label}
             </DropdownMenuItem>
