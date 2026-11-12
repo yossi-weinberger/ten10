@@ -64,6 +64,9 @@ interface TransactionCardListProps {
   onSelectionDelete?: () => void;
   bulkPending?: boolean;
   bulkEditDisabled?: boolean;
+  showMonthSeparators?: boolean;
+  /** Date sorts place this on the first month row. Other sorts use a compact row. */
+  sortControl?: React.ReactNode;
 }
 
 const isSpecialType = (type: TransactionType): boolean => {
@@ -742,6 +745,8 @@ export function TransactionCardList({
   onSelectionDelete,
   bulkPending = false,
   bulkEditDisabled = false,
+  showMonthSeparators = true,
+  sortControl,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
   const formatDisplayDate = useDisplayDate();
@@ -802,6 +807,13 @@ export function TransactionCardList({
   }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
+    if (!showMonthSeparators) {
+      return transactions.map((transaction) => ({
+        type: "transaction" as const,
+        transaction,
+      }));
+    }
+
     const result: Array<
       | { type: "transaction"; transaction: TransactionForTable }
       | { type: "separator"; monthKey: string; monthLabel: string }
@@ -843,7 +855,21 @@ export function TransactionCardList({
     });
 
     return result;
-  }, [transactions, i18n.language, calendarType]);
+  }, [transactions, i18n.language, calendarType, showMonthSeparators]);
+
+  let firstSeparatorKey: string | undefined;
+  for (const item of transactionsWithSeparators) {
+    if (item.type === "separator") {
+      firstSeparatorKey = item.monthKey;
+      break;
+    }
+  }
+  const chipOnFirstSeparator = sortControl != null && firstSeparatorKey !== undefined;
+  const sortRow = sortControl ? (
+    <div data-sort-chip-slot="row" className="flex h-11 items-center">
+      <div className="ms-auto max-w-full">{sortControl}</div>
+    </div>
+  ) : null;
 
   const handleCardClick = useCallback((transaction: TransactionForTable) => {
     if (longPressTriggeredRef.current) {
@@ -917,6 +943,7 @@ export function TransactionCardList({
   if (loading && transactions.length === 0) {
     return (
       <div className="space-y-2">
+        {sortRow}
         {Array.from({ length: 10 }).map((_, index) => (
           <Card
             key={`skeleton-${index}`}
@@ -929,8 +956,11 @@ export function TransactionCardList({
 
   if (!loading && transactions.length === 0) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        {t("messages.noData")}
+      <div>
+        {sortRow}
+        <div className="py-12 text-center text-muted-foreground">
+          {t("messages.noData")}
+        </div>
       </div>
     );
   }
@@ -962,19 +992,33 @@ export function TransactionCardList({
         />
       )}
       <div className={cn("space-y-2", inSelectionMode && "max-md:pb-24")}>
+        {chipOnFirstSeparator ? null : sortRow}
         {transactionsWithSeparators.map((item) => {
           if (item.type === "separator") {
+            const placeChip =
+              chipOnFirstSeparator && item.monthKey === firstSeparatorKey;
             return (
               <div
                 key={`month-separator-${item.monthKey}`}
-                className="sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
+                data-sort-chip-slot={placeChip ? "separator" : undefined}
+                className={cn(
+                  "sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground",
+                )}
               >
                 <span
-                  className={cn(PH_SENSITIVE_PROPS.className)}
+                  className={cn(
+                    PH_SENSITIVE_PROPS.className,
+                    placeChip && "me-48 block max-w-[calc(100%-12rem)] truncate",
+                  )}
                   data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                 >
                   {item.monthLabel}
                 </span>
+                {placeChip ? (
+                  <div className="absolute end-0 top-1/2 z-10 -translate-y-1/2">
+                    {sortControl}
+                  </div>
+                ) : null}
               </div>
             );
           }

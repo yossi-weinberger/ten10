@@ -258,6 +258,20 @@
   "accessibility": {
     "openMenu": "Open menu"
   },
+  "sort": {
+    "sortBy": "Sort by",
+    "ascending": "Sort ascending",
+    "descending": "Sort descending",
+    "chip": "Sort: {{field}} · {{direction}}",
+    "directions": {
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "High to low",
+      "amountAsc": "Low to high",
+      "textAsc": "A–Z",
+      "textDesc": "Z–A"
+    }
+  },
   "recurring": {
     "status": "Status",
     "frequency": "Frequency",

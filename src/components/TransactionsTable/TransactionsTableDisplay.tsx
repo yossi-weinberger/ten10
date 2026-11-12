@@ -16,6 +16,7 @@ import { TransactionEditModal } from "./TransactionEditModal";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import { TransactionRow } from "./TransactionRow";
 import { TransactionCardList } from "./TransactionCardList";
+import { MobileSortPicker } from "@/components/MobileSortPicker";
 import {
   TransactionsTableHeader,
   SortableField,
@@ -75,10 +76,14 @@ export function TransactionsTableDisplay() {
   const [useMobileCards] = useState(isSmallNow);
 
   // sortableColumns definition with translations
-  const sortableColumns: { label: string; field: SortableField }[] = [
-    { label: t("columns.date"), field: "date" },
+  const sortableColumns: {
+    label: string;
+    field: SortableField;
+    directionKind?: "date" | "amount" | "text";
+  }[] = [
+    { label: t("columns.date"), field: "date", directionKind: "date" },
     { label: t("columns.description"), field: "description" },
-    { label: t("columns.amount"), field: "amount" },
+    { label: t("columns.amount"), field: "amount", directionKind: "amount" },
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
@@ -636,41 +641,52 @@ export function TransactionsTableDisplay() {
         </p>
       )}
       {useMobileCards ? (
-        <TransactionCardList
-          transactions={transactions as TransactionForTable[]}
-          onEdit={handleEditInitiate}
-          onDelete={handleDeleteInitiate}
-          onEditRecurring={handleEditRecurringInitiate}
-          onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
-          isFetchingRec={isFetchingRec}
-          loading={loading}
-          selectedIds={selection.selectedIds}
-          onToggleSelected={selection.toggle}
-          onClearSelection={clearSelection}
-          selectionDisabled={bulkPending || loading}
-          selectedCountLabel={t("bulkToolbar.selectedCount", {
-            count: selection.selectedCount,
-          })}
-          editLabel={
-            selectionActionMode === "single"
-              ? t("actions.edit")
-              : t("bulkToolbar.edit")
-          }
-          deleteLabel={
-            selectionActionMode === "single"
-              ? t("actions.delete")
-              : t("bulkToolbar.delete")
-          }
-          clearLabel={t("bulkToolbar.clear")}
-          bulkToolbarAriaLabel={t("bulkToolbar.ariaLabel")}
-          onSelectionEdit={handleSelectionEdit}
-          onSelectionDelete={handleSelectionDelete}
-          bulkPending={bulkPending}
-          bulkEditDisabled={
-            selectionActionMode === "bulk" &&
-            !Object.values(bulkFieldAvailability).some(Boolean)
-          }
-        />
+        <>
+          <TransactionCardList
+            transactions={transactions as TransactionForTable[]}
+            showMonthSeparators={sorting.field === "date"}
+            sortControl={
+              <MobileSortPicker
+                fields={sortableColumns}
+                field={sorting.field}
+                direction={sorting.direction}
+                onChange={handleSort}
+              />
+            }
+            onEdit={handleEditInitiate}
+            onDelete={handleDeleteInitiate}
+            onEditRecurring={handleEditRecurringInitiate}
+            onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
+            isFetchingRec={isFetchingRec}
+            loading={loading}
+            selectedIds={selection.selectedIds}
+            onToggleSelected={selection.toggle}
+            onClearSelection={clearSelection}
+            selectionDisabled={bulkPending || loading}
+            selectedCountLabel={t("bulkToolbar.selectedCount", {
+              count: selection.selectedCount,
+            })}
+            editLabel={
+              selectionActionMode === "single"
+                ? t("actions.edit")
+                : t("bulkToolbar.edit")
+            }
+            deleteLabel={
+              selectionActionMode === "single"
+                ? t("actions.delete")
+                : t("bulkToolbar.delete")
+            }
+            clearLabel={t("bulkToolbar.clear")}
+            bulkToolbarAriaLabel={t("bulkToolbar.ariaLabel")}
+            onSelectionEdit={handleSelectionEdit}
+            onSelectionDelete={handleSelectionDelete}
+            bulkPending={bulkPending}
+            bulkEditDisabled={
+              selectionActionMode === "bulk" &&
+              !Object.values(bulkFieldAvailability).some(Boolean)
+            }
+          />
+        </>
       ) : (
         <Card>
           <CardContent className="p-0">
