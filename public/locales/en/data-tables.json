@@ -44,7 +44,18 @@
     "filterByFrequency": "Filter by frequency",
     "resetFilters": "Reset Filters",
     "showFilters": "Filters",
-    "hideFilters": "Hide Filters"
+    "hideFilters": "Hide Filters",
+    "compactTitle": "Filters",
+    "compactSearchPlaceholder": "Search description, recipient, category…",
+    "compactClearSearch": "Clear search",
+    "compactDate": "Date",
+    "compactType": "Type",
+    "compactPayment": "Payment",
+    "compactRecurring": "Recurring",
+    "compactSource": "Source",
+    "compactStatus": "Status",
+    "compactFrequency": "Frequency",
+    "compactReset": "Reset filters"
   },
   "columns": {
     "select": "Select",
@@ -297,6 +308,7 @@
   "recurringFilters": {
     "title": "Filter Recurring Transactions",
     "searchPlaceholder": "Search by description...",
+    "compactSearchPlaceholder": "Search by description…",
     "filterByStatus": "Filter by status",
     "statusesSelected": "{{count}} statuses selected"
   },

@@ -18,6 +18,16 @@ import { ListFilter } from "lucide-react";
 import { transactionTypes } from "@/types/transaction";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
+import {
+  CompactFilterCell,
+  CompactFilterGrid,
+  CompactFilterHeader,
+  CompactFilterPanel,
+  CompactFilterSearch,
+  CompactFilterTrigger,
+} from "./mobile-filter-controls";
 
 // Moved to translation files - no longer needed
 
@@ -72,6 +82,9 @@ export function RecurringTransactionsFilters() {
   };
 
   const handleReset = () => {
+    setLocalSearch("");
+    setLocalTypes([]);
+    setLocalFrequencies([]);
     resetFilters();
   };
 
@@ -85,11 +98,173 @@ export function RecurringTransactionsFilters() {
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
+    if (localSearch.trim().length > 0) count++;
     if (localTypes.length > 0) count++;
     if (filters.statuses.length > 0) count++;
     if (localFrequencies.length > 0) count++;
     return count;
-  }, [localTypes, filters.statuses, localFrequencies]);
+  }, [localSearch, localTypes, filters.statuses, localFrequencies]);
+
+  const compactTypeValue =
+    localTypes.length === 0
+      ? t("filters.all")
+      : localTypes.length === 1
+        ? t(`types.${localTypes[0]}`)
+        : t("filters.typesSelected", { count: localTypes.length });
+  const compactStatusValue =
+    filters.statuses.length === 0
+      ? t("filters.all")
+      : filters.statuses.length === 1
+        ? t(`recurring.statuses.${filters.statuses[0]}`)
+        : t("recurringFilters.statusesSelected", {
+            count: filters.statuses.length,
+          });
+  const compactFrequencyValue =
+    localFrequencies.length === 0
+      ? t("filters.all")
+      : localFrequencies.length === 1
+        ? t(`recurring.frequencies.${localFrequencies[0]}`)
+        : t("filters.frequenciesSelected", {
+            count: localFrequencies.length,
+          });
+
+  if (isMobile && isExpanded) {
+    return (
+      <CompactFilterPanel>
+        <CompactFilterHeader
+          title={t("filters.compactTitle")}
+          count={activeFiltersCount}
+          resetLabel={t("filters.compactReset")}
+          closeLabel={t("filters.hideFilters")}
+          onReset={handleReset}
+          onClose={() => setIsExpanded(false)}
+        />
+        <CompactFilterSearch
+          id="recurring-search"
+          value={localSearch}
+          onChange={setLocalSearch}
+          onClear={() => setLocalSearch("")}
+          placeholder={t("recurringFilters.compactSearchPlaceholder")}
+          ariaLabel={t("filters.freeSearch")}
+          clearLabel={t("filters.compactClearSearch")}
+        />
+        <CompactFilterGrid>
+          <CompactFilterCell>
+            <DropdownMenu
+              open={typesDropdownOpen}
+              onOpenChange={setTypesDropdownOpen}
+              dir={dropdownDir}
+            >
+              <DropdownMenuTrigger asChild>
+                <CompactFilterTrigger
+                  label={t("filters.compactType")}
+                  value={compactTypeValue}
+                  active={localTypes.length > 0}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                align={dropdownAlign}
+                onClick={stopPropagation}
+              >
+                <DropdownMenuLabel>
+                  {t("filters.selectTransactionTypes")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {transactionTypes.map((type) => (
+                  <DropdownMenuCheckboxItem
+                    key={type}
+                    checked={localTypes.includes(type)}
+                    onCheckedChange={(checked) =>
+                      handleTypeChange(type, !!checked)
+                    }
+                    onClick={stopPropagation}
+                  >
+                    {t(`types.${type}`)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CompactFilterCell>
+          <CompactFilterCell>
+            <DropdownMenu
+              open={statusDropdownOpen}
+              onOpenChange={setStatusDropdownOpen}
+              dir={dropdownDir}
+            >
+              <DropdownMenuTrigger asChild>
+                <CompactFilterTrigger
+                  label={t("filters.compactStatus")}
+                  value={compactStatusValue}
+                  active={filters.statuses.length > 0}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                align={dropdownAlign}
+                onClick={stopPropagation}
+              >
+                <DropdownMenuLabel>{t("recurring.status")}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {["active", "paused", "completed", "cancelled"].map((status) => (
+                  <DropdownMenuCheckboxItem
+                    key={status}
+                    checked={filters.statuses.includes(status)}
+                    onCheckedChange={(checked) => {
+                      const newSelection = checked
+                        ? Array.from(new Set([...filters.statuses, status]))
+                        : filters.statuses.filter((item) => item !== status);
+                      handleStatusChange(newSelection);
+                    }}
+                    onClick={stopPropagation}
+                  >
+                    {t(`recurring.statuses.${status}`)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CompactFilterCell>
+          <CompactFilterCell>
+            <DropdownMenu
+              open={frequencyDropdownOpen}
+              onOpenChange={setFrequencyDropdownOpen}
+              dir={dropdownDir}
+            >
+              <DropdownMenuTrigger asChild>
+                <CompactFilterTrigger
+                  label={t("filters.compactFrequency")}
+                  value={compactFrequencyValue}
+                  active={localFrequencies.length > 0}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                align={dropdownAlign}
+                onClick={stopPropagation}
+              >
+                <DropdownMenuLabel>
+                  {t("filters.filterByFrequency")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {["daily", "weekly", "monthly", "yearly"].map((frequency) => (
+                  <DropdownMenuCheckboxItem
+                    key={frequency}
+                    checked={localFrequencies.includes(frequency)}
+                    onCheckedChange={(checked) =>
+                      handleFrequencyChange(frequency, !!checked)
+                    }
+                    onClick={stopPropagation}
+                  >
+                    {t(`recurring.frequencies.${frequency}`)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CompactFilterCell>
+        </CompactFilterGrid>
+      </CompactFilterPanel>
+    );
+  }
 
   if (isMobile && !isExpanded) {
     return (
@@ -101,7 +276,11 @@ export function RecurringTransactionsFilters() {
                 placeholder={t("recurringFilters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11"
+                className={cn(
+                  "h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                 aria-label={t("filters.freeSearch")}
               />
             </div>
@@ -132,37 +311,27 @@ export function RecurringTransactionsFilters() {
 
   return (
     <Card className="mb-4">
-      <CardHeader className={isMobile ? "pb-2" : ""}>
+      <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{t("recurringFilters.title")}</CardTitle>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              onClick={() => setIsExpanded(false)}
-              className="h-8 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 text-sm"
-              aria-expanded="true"
-            >
-              {t("filters.hideFilters")}
-            </Button>
-          )}
         </div>
       </CardHeader>
-      <CardContent className={isMobile ? "p-3 pt-0" : ""}>
-        <div className={isMobile ? "grid grid-cols-2 gap-3" : "flex flex-wrap items-end gap-4"}>
-          <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
-            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
+      <CardContent>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <Label className="mb-2 block text-sm font-medium">
               {t("filters.freeSearch")}
             </Label>
             <Input
               placeholder={t("recurringFilters.searchPlaceholder")}
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className={isMobile ? "h-9 w-full" : "w-full"}
+              className="w-full"
             />
           </div>
 
-          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
-            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
+          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <Label className="mb-2 block text-sm font-medium">
               {t("filters.transactionTypes")}
             </Label>
             <DropdownMenu
@@ -171,8 +340,8 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className={isMobile ? "truncate" : ""}>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
                     {localTypes.length === 0
                       ? t("filters.allTypes")
                       : localTypes.length === 1
@@ -181,7 +350,7 @@ export function RecurringTransactionsFilters() {
                           count: localTypes.length,
                         })}
                   </span>
-                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -209,8 +378,8 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
-            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
+          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <Label className="mb-2 block text-sm font-medium">
               {t("recurringFilters.filterByStatus")}
             </Label>
             <DropdownMenu
@@ -219,8 +388,8 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className={isMobile ? "truncate" : ""}>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
                     {filters.statuses.length === 0
                       ? t("filters.allStatuses")
                       : filters.statuses.length === 1
@@ -229,7 +398,7 @@ export function RecurringTransactionsFilters() {
                           count: filters.statuses.length,
                         })}
                   </span>
-                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -260,8 +429,8 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className={isMobile ? "" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
-            <Label className={isMobile ? "mb-1 block text-sm font-medium" : "mb-2 block text-sm font-medium"}>
+          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <Label className="mb-2 block text-sm font-medium">
               {t("filters.recurringFrequency")}
             </Label>
             <DropdownMenu
@@ -270,15 +439,15 @@ export function RecurringTransactionsFilters() {
               dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className={isMobile ? "h-9 w-full justify-between text-sm" : "w-full justify-between"}>
-                  <span className={isMobile ? "truncate" : ""}>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
                     {localFrequencies.length === 0
                       ? t("filters.allFrequencies")
                       : t("filters.frequenciesSelected", {
                           count: localFrequencies.length,
                         })}
                   </span>
-                  <ListFilter className={isMobile ? "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50 shrink-0" : "ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50"} />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -306,13 +475,11 @@ export function RecurringTransactionsFilters() {
             </DropdownMenu>
           </div>
 
-          <div className={isMobile ? "col-span-2" : "flex-grow sm:flex-grow-0 sm:w-auto"}>
-            {!isMobile && (
-              <Label className="mb-2 block text-sm font-medium opacity-0">
-                {t("filters.resetFilters")}
-              </Label>
-            )}
-            <Button onClick={handleReset} variant="outline" className={isMobile ? "h-9 w-full" : "w-full"}>
+          <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+            <Label className="mb-2 block text-sm font-medium opacity-0">
+              {t("filters.resetFilters")}
+            </Label>
+            <Button onClick={handleReset} variant="outline" className="w-full">
               {t("filters.resetFilters")}
             </Button>
           </div>

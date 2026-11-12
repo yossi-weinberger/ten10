@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { TransactionsFilters } from "./TransactionsFilters";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -19,7 +20,9 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@/components/ui/date-range-picker", () => ({
-  DatePickerWithRange: () => <div data-testid="date-range-picker">Date Range Picker</div>,
+  DatePickerWithRange: ({ triggerButton }: { triggerButton?: ReactNode }) => (
+    <div data-testid="date-range-picker">{triggerButton ?? "Date Range Picker"}</div>
+  ),
 }));
 
 vi.mock("@/lib/ai/flags", () => ({
@@ -155,10 +158,10 @@ describe("TransactionsFilters", () => {
 
       await user.click(showButton);
 
-      expect(screen.getByText("filters.hideFilters")).toBeInTheDocument();
-      const hideButton = screen.getByText("filters.hideFilters");
+      const hideButton = screen.getByRole("button", { name: "filters.hideFilters" });
       expect(hideButton).toHaveAttribute("aria-expanded", "true");
-      expect(screen.getByText("filters.dateRange")).toBeInTheDocument();
+      expect(screen.getByText("filters.compactDate:")).toBeInTheDocument();
+      expect(screen.queryByText("filters.dateRange")).not.toBeInTheDocument();
     });
 
     it("collapses filters when Hide button is clicked", async () => {
@@ -166,11 +169,15 @@ describe("TransactionsFilters", () => {
       render(<TransactionsFilters />);
 
       await user.click(screen.getByText("filters.showFilters"));
-      expect(screen.getByText("filters.hideFilters")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "filters.hideFilters" }),
+      ).toBeInTheDocument();
 
-      await user.click(screen.getByText("filters.hideFilters"));
+      await user.click(screen.getByRole("button", { name: "filters.hideFilters" }));
 
-      expect(screen.queryByText("filters.hideFilters")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "filters.hideFilters" }),
+      ).not.toBeInTheDocument();
       expect(screen.getByText("filters.showFilters")).toBeInTheDocument();
     });
 
@@ -184,7 +191,7 @@ describe("TransactionsFilters", () => {
       await user.click(screen.getByText("filters.showFilters"));
       expect(screen.getByDisplayValue("test search")).toBeInTheDocument();
 
-      await user.click(screen.getByText("filters.hideFilters"));
+      await user.click(screen.getByRole("button", { name: "filters.hideFilters" }));
       const collapsedSearch = screen.getByPlaceholderText("filters.searchPlaceholder");
       expect(collapsedSearch).toHaveValue("test search");
     });
@@ -263,6 +270,22 @@ describe("TransactionsFilters", () => {
       const badge = screen.queryByText(/^\d+$/);
       expect(badge).not.toBeInTheDocument();
     });
+
+    it("keeps the desktop markup unchanged", () => {
+      render(<TransactionsFilters />);
+
+      expect(screen.queryByTestId("mobile-filters-panel")).not.toBeInTheDocument();
+      expect(screen.queryByText("filters.compactTitle")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "filters.compactReset" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "filters.resetFilters" })).toBeInTheDocument();
+      expect(screen.getByTestId("date-range-picker")).toHaveTextContent("Date Range Picker");
+
+      const searchInput = screen.getByPlaceholderText("filters.searchPlaceholder");
+      expect(searchInput).toHaveClass("w-full");
+      expect(searchInput).not.toHaveAttribute("data-ph-mask");
+      expect(searchInput).not.toHaveClass("h-11");
+      expect(searchInput).not.toHaveClass("border-0");
+    });
   });
 
   describe("Landscape mobile behavior", () => {
@@ -319,10 +342,153 @@ describe("TransactionsFilters", () => {
 
       await user.click(screen.getByText("filters.showFilters"));
 
-      const hideButton = screen.getByText("filters.hideFilters");
-      expect(hideButton).toHaveClass("h-8");
-      expect(hideButton).toHaveClass("max-md:h-11");
-      expect(hideButton).toHaveClass("[@media(pointer:coarse)_and_(max-height:500px)]:h-11");
+      const hideButton = screen.getByRole("button", { name: "filters.hideFilters" });
+      expect(hideButton).toHaveClass("h-11");
+      expect(hideButton).toHaveClass("w-11");
+    });
+  });
+
+  describe("Compact panel", () => {
+    const resetFiltersState = vi.fn();
+
+    beforeEach(async () => {
+      vi.clearAllMocks();
+      const { useMediaQuery } = await import("@/hooks/use-media-query");
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+      vi.mocked(usePlatform).mockReturnValue({ platform: "web" as const });
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: defaultFilters,
+            setFilters: vi.fn(),
+            resetFiltersState,
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        },
+      );
+    });
+
+    async function openPanel() {
+      const user = userEvent.setup();
+      render(<TransactionsFilters />);
+      await user.click(screen.getByText("filters.showFilters"));
+      return user;
+    }
+
+    it("hides the reset link and badge when nothing is active", async () => {
+      await openPanel();
+      const panel = screen.getByTestId("mobile-filters-panel");
+      expect(within(panel).queryByRole("button", { name: "filters.compactReset" })).not.toBeInTheDocument();
+      expect(within(panel).queryByText(/^\d+$/)).not.toBeInTheDocument();
+    });
+
+    it("counts search text in the badge and shows the reset link", async () => {
+      const user = await openPanel();
+      const search = screen.getByPlaceholderText("filters.compactSearchPlaceholder");
+      await user.type(search, "rent");
+
+      const panel = screen.getByTestId("mobile-filters-panel");
+      expect(within(panel).getByText("1")).toBeInTheDocument();
+      expect(
+        within(panel).getByRole("button", { name: "filters.compactReset" }),
+      ).toBeInTheDocument();
+      expect(search).toHaveAttribute("data-ph-mask", "");
+      expect(search.parentElement).toHaveClass("border-primary/40");
+      expect(search.parentElement).toHaveClass("bg-primary/10");
+      expect(
+        screen.getByRole("button", { name: "filters.compactClearSearch" }),
+      ).toBeInTheDocument();
+    });
+
+    it("clears search, date, and type when reset is clicked", async () => {
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: {
+              ...defaultFilters,
+              search: "rent",
+              dateRange: { from: "2026-11-01", to: "2026-11-15" },
+              types: ["donation"],
+            },
+            setFilters: vi.fn(),
+            resetFiltersState,
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        },
+      );
+      const user = await openPanel();
+      const panel = screen.getByTestId("mobile-filters-panel");
+      expect(within(panel).getByText("3")).toBeInTheDocument();
+
+      await user.click(within(panel).getByRole("button", { name: "filters.compactReset" }));
+
+      expect(screen.getByPlaceholderText("filters.compactSearchPlaceholder")).toHaveValue("");
+      expect(within(panel).queryByRole("button", { name: "filters.compactReset" })).not.toBeInTheDocument();
+      expect(within(panel).queryByText("3")).not.toBeInTheDocument();
+      expect(resetFiltersState).toHaveBeenCalled();
+    });
+
+    it("shows idle, whole-month, and custom date labels", async () => {
+      await openPanel();
+      const idleDate = screen.getByText("filters.compactDate:").closest("button");
+      expect(idleDate).toHaveTextContent("filters.all");
+      cleanup();
+
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: {
+              ...defaultFilters,
+              dateRange: { from: "2026-11-01", to: "2026-11-30" },
+            },
+            setFilters: vi.fn(),
+            resetFiltersState: vi.fn(),
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        },
+      );
+      render(<TransactionsFilters />);
+      await userEvent.click(screen.getByText("filters.showFilters"));
+      expect(screen.getByText("November")).toBeInTheDocument();
+      cleanup();
+
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: {
+              ...defaultFilters,
+              dateRange: { from: "2026-11-01", to: "2026-11-15" },
+            },
+            setFilters: vi.fn(),
+            resetFiltersState: vi.fn(),
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        },
+      );
+      render(<TransactionsFilters />);
+      await userEvent.click(screen.getByText("filters.showFilters"));
+      const value = screen.getByText(`1${"\u2013"}15.11`);
+      expect(value).toHaveAttribute("dir", "ltr");
+    });
+
+    it("keeps source as a half-width cell after recurring", async () => {
+      await openPanel();
+      const panel = screen.getByTestId("mobile-filters-panel");
+      const grid = panel.querySelector(".grid");
+      expect(grid).not.toBeNull();
+      const labels = Array.from(grid?.querySelectorAll("button") ?? []).map(
+        (button) => button.textContent,
+      );
+      expect(labels[0]).toContain("filters.compactDate:");
+      expect(labels[1]).toContain("filters.compactType:");
+      expect(labels[2]).toContain("filters.compactPayment:");
+      expect(labels[3]).toContain("filters.compactRecurring:");
+      expect(labels[4]).toContain("filters.compactSource:");
+      expect(grid?.querySelector("[class*='col-span']")).toBeNull();
     });
   });
 });

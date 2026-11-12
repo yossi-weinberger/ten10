@@ -304,11 +304,23 @@
     "filterByFrequency": "סינון לפי תדירות",
     "resetFilters": "אפס סינונים",
     "showFilters": "סינון",
-    "hideFilters": "הסתר סינונים"
+    "hideFilters": "הסתר סינונים",
+    "compactTitle": "סינון",
+    "compactSearchPlaceholder": "חיפוש תיאור, נמען, קטגוריה…",
+    "compactClearSearch": "נקה חיפוש",
+    "compactDate": "תאריך",
+    "compactType": "סוג",
+    "compactPayment": "תשלום",
+    "compactRecurring": "הוראת קבע",
+    "compactSource": "מקור",
+    "compactStatus": "סטטוס",
+    "compactFrequency": "תדירות",
+    "compactReset": "אפס סינונים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",
     "searchPlaceholder": "חיפוש לפי תיאור...",
+    "compactSearchPlaceholder": "חיפוש לפי תיאור…",
     "filterByStatus": "סנן לפי סטטוס",
     "statusesSelected": "{{count}} סטטוסים נבחרו"
   },
