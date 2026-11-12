@@ -53,7 +53,7 @@ export function DataAnswer({
   const reduce = useReducedMotion();
   const amountLabel = formatCurrency(reply.total, (reply.currency ?? defaultCurrency) as CurrencyCode, language);
   const symbol = amountLabel.replace(/[0-9.,\s]/g, "");
-  // The same decimals as the sentence below, which formatCurrency writes (6,289.1, not 6,289.10).
+  // The same decimals as the sentence below, which formatCurrency writes (6,289.10, not 6,289.1).
   const digits = currencyFractionDigits(reply.total);
   const Icon = BASE_TYPE_ICON[reply.type];
 
