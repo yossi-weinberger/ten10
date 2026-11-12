@@ -218,6 +218,10 @@ describe("TransactionsTableDisplay mobile sort", () => {
       name: "sort.sortBy: columns.date",
     });
     expect(sortField).toBeInTheDocument();
+    const sortLabel = screen.getByText("sort.sortBy");
+    expect(sortLabel).toBeInTheDocument();
+    expect(sortLabel.className).toContain("whitespace-nowrap");
+    expect(sortLabel.parentElement?.className).toContain("overflow-x-hidden");
     expect(
       screen.getByRole("button", { name: "sort.ascending" }),
     ).toBeInTheDocument();

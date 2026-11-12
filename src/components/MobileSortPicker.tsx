@@ -50,7 +50,13 @@ export function MobileSortPicker<Field extends string>({
   const directionAction = t(actionLabelKey);
 
   return (
-    <div className="flex w-full min-w-0 items-center gap-2" dir={textDirection}>
+    <div
+      className="flex w-full min-w-0 items-center gap-2 overflow-x-hidden"
+      dir={textDirection}
+    >
+      <span className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">
+        {t("sort.sortBy")}
+      </span>
       <DropdownMenu dir={textDirection}>
         <DropdownMenuTrigger asChild>
           <Button
