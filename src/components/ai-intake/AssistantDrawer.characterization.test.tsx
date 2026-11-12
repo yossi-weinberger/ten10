@@ -1105,6 +1105,19 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
   });
 
+  it("masks the shared filename so session replay cannot read it", async () => {
+    setup();
+    await act(async () => {
+      receiveRef.current?.receive(new File(["x"], "private-receipt.jpg", { type: "image/jpeg" }));
+    });
+    const filename = screen.getByText("aiIntake.sharedFile");
+    expect(filename).toHaveAttribute("data-ph-mask", "");
+    expect(filename).toHaveClass("ph-mask", "ph-sensitive", "truncate");
+    expect(filename.parentElement).not.toHaveAttribute("data-ph-mask");
+    expect(screen.getByRole("button", { name: "aiIntake.sharedRead" })).not.toHaveAttribute("data-ph-mask");
+    expect(screen.getByRole("button", { name: "aiIntake.sharedDismiss" })).not.toHaveAttribute("data-ph-mask");
+  });
+
   it("reads a shared file only after the user's OK, and drops it on dismiss", async () => {
     setup();
     await act(async () => {

@@ -35,6 +35,7 @@ import AppLoader from "./components/layout/AppLoader";
 import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
 import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
 import { APP_MAIN_SHELL_CLASS } from "./components/layout/appMainShellClass";
+import { MOBILE_SCREEN_TITLE_KEYS } from "./components/layout/mobileScreenTitles";
 import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
@@ -417,17 +418,7 @@ function App() {
               </Sheet>
               <span className="flex-1 text-center text-base font-semibold truncate px-2">
                 {(() => {
-                  const pathToKey: Record<string, string> = {
-                    "/": "home",
-                    "/add-transaction": "addTransaction",
-                    "/analytics": "analytics",
-                    "/transactions-table": "transactionsTable",
-                    "/halacha": "halacha",
-                    "/settings": "settings",
-                    "/about": "about",
-                    "/profile": "profile",
-                  };
-                  const key = pathToKey[currentPath];
+                  const key = MOBILE_SCREEN_TITLE_KEYS[currentPath];
                   return key ? t(`menu.${key}`, { ns: "navigation" }) : "";
                 })()}
               </span>

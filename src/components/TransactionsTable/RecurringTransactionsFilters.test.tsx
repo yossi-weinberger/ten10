@@ -114,7 +114,7 @@ describe("RecurringTransactionsFilters", () => {
       expect(screen.queryByText("recurringFilters.title")).not.toBeInTheDocument();
 
       const grid = screen.getByTestId("mobile-filters-panel").querySelector(".grid");
-      expect(grid).toHaveClass("grid-cols-1", "min-[321px]:grid-cols-2");
+      expect(grid).toHaveClass("grid-cols-1", "min-[377px]:grid-cols-2");
       expect(grid).not.toHaveClass("grid-cols-2");
     });
 

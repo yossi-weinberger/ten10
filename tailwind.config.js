@@ -228,6 +228,11 @@ export default {
       addVariant('short', '@media (min-width: 1024px) and (max-height: 799px) { &:is(&) }');
       // Mobile landscape: coarse pointer (touch) and short height
       addVariant('mobile-landscape', '@media (pointer: coarse) and (max-height: 500px) { &:is(&) }');
+      // Keep in sync with MOBILE_CARD_QUERY in src/lib/responsive.ts.
+      addVariant(
+        'mobile-card',
+        '@media (max-width: 767px), (pointer: coarse) and (max-height: 500px) { &:is(&) }',
+      );
     },
   ],
 };
