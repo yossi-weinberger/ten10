@@ -480,6 +480,42 @@ describe("TransactionsFilters", () => {
       await userEvent.click(screen.getByText("filters.showFilters"));
       const value = screen.getByText(`1${"\u2013"}15.11`);
       expect(value).toHaveAttribute("dir", "ltr");
+      expect(value).toHaveAttribute("data-ph-mask", "");
+    });
+
+    it("masks the date and payment values without masking their labels", async () => {
+      vi.mocked(useTableTransactionsStore).mockImplementation(
+        (selector: unknown) => {
+          const state = {
+            filters: {
+              ...defaultFilters,
+              dateRange: { from: "2026-11-01", to: "2026-11-15" },
+              paymentMethods: ["cash"],
+            },
+            setFilters: vi.fn(),
+            resetFiltersState: vi.fn(),
+            fetchTransactions: vi.fn(),
+          };
+          return typeof selector === "function" ? selector(state) : state;
+        },
+      );
+      await openPanel();
+
+      const dateValue = screen.getByText(`1${"\u2013"}15.11`);
+      const paymentValue = screen.getByText("cash");
+      expect(dateValue).toHaveAttribute("data-ph-mask", "");
+      expect(paymentValue).toHaveAttribute("data-ph-mask", "");
+      expect(dateValue).toHaveClass("ph-mask", "ph-sensitive");
+      expect(paymentValue).toHaveClass("ph-mask", "ph-sensitive");
+
+      const dateLabel = screen.getByText("filters.compactDate:");
+      const paymentLabel = screen.getByText("filters.compactPayment:");
+      const typeLabel = screen.getByText("filters.compactType:");
+      expect(dateLabel).not.toHaveAttribute("data-ph-mask");
+      expect(paymentLabel).not.toHaveAttribute("data-ph-mask");
+      expect(dateLabel.closest("button")).not.toHaveAttribute("data-ph-mask");
+      expect(paymentLabel.closest("button")).not.toHaveAttribute("data-ph-mask");
+      expect(typeLabel.nextElementSibling).not.toHaveAttribute("data-ph-mask");
     });
 
     function expectHalfWidthGrid(panel: HTMLElement) {

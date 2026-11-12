@@ -20,20 +20,24 @@ function CompactFilterBody({
   value,
   active,
   valueDir,
+  maskValue = false,
 }: {
   label: string;
   value: string;
   active: boolean;
   valueDir?: "ltr" | "rtl";
+  maskValue?: boolean;
 }) {
   return (
     <div className="flex min-w-0 flex-1 items-baseline gap-0.5 overflow-hidden">
       <span className="shrink-0 font-medium text-muted-foreground">{label}:</span>
       <span
         dir={valueDir}
+        {...(maskValue ? PH_SENSITIVE_PROPS : {})}
         className={cn(
           "min-w-0 truncate font-semibold",
           active && "text-primary",
+          maskValue && PH_SENSITIVE_PROPS.className,
         )}
       >
         {value}
@@ -61,9 +65,10 @@ export const CompactFilterTrigger = React.forwardRef<
     value: string;
     active: boolean;
     valueDir?: "ltr" | "rtl";
+    maskValue?: boolean;
   }
 >(function CompactFilterTrigger(
-  { label, value, active, valueDir, className, ...props },
+  { label, value, active, valueDir, maskValue = false, className, ...props },
   ref,
 ) {
   return (
@@ -79,6 +84,7 @@ export const CompactFilterTrigger = React.forwardRef<
         value={value}
         active={active}
         valueDir={valueDir}
+        maskValue={maskValue}
       />
       <CompactFilterChevron active={active} />
     </Button>

@@ -414,6 +414,7 @@ export function TransactionsFilters() {
                   value={compactDateValue}
                   active={compactDateActive}
                   valueDir={compactDateDir}
+                  maskValue
                 />
               }
             />
@@ -466,6 +467,7 @@ export function TransactionsFilters() {
                   label={tTables("filters.compactPayment")}
                   value={compactPaymentValue}
                   active={localPaymentMethods.length > 0}
+                  maskValue
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
