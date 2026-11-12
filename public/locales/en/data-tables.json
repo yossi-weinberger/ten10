@@ -251,7 +251,9 @@
     "noRecurringSelected": "No recurring transaction selected for editing."
   },
   "drawer": {
-    "detailsDescription": "Transaction details and actions"
+    "detailsDescription": "Transaction details and actions",
+    "editRecurring": "Edit",
+    "convertedPrefix": "Converted · "
   },
   "accessibility": {
     "openMenu": "Open menu"

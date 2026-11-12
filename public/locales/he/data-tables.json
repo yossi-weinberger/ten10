@@ -229,7 +229,9 @@
     "noRecurringSelected": "לא נבחרה הוראה לעריכה."
   },
   "drawer": {
-    "detailsDescription": "פרטי התנועה ופעולות זמינות"
+    "detailsDescription": "פרטי התנועה ופעולות זמינות",
+    "editRecurring": "ערוך",
+    "convertedPrefix": "הומר · "
   },
   "accessibility": {
     "openMenu": "פתח תפריט"
