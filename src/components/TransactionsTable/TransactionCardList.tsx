@@ -42,6 +42,7 @@ import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useLongPress } from "@/hooks/use-long-press";
 import { useSwipe } from "@/hooks/use-swipe";
+import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
@@ -760,13 +761,12 @@ export function TransactionCardList({
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
-  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
-
   const inSelectionMode = selectedIds.size > 0;
-  if (inSelectionMode && swipeOpenId !== null) {
-    setSwipeOpenId(null);
-  }
-  const computedSwipeOpenId = inSelectionMode ? null : swipeOpenId;
+  const {
+    openId: computedSwipeOpenId,
+    open: handleSwipeOpen,
+    close: handleSwipeClose,
+  } = useSwipeOpenRow(inSelectionMode);
 
   React.useEffect(() => {
     if (inSelectionMode) {
@@ -778,34 +778,6 @@ export function TransactionCardList({
       delete document.body.dataset.mobileSelectionActive;
     };
   }, [inSelectionMode]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (!computedSwipeOpenId) return;
-      const target = e.target;
-      if (target instanceof Element) {
-        const row = target.closest("[data-swipe-row]");
-        if (row?.getAttribute("data-swipe-row") === computedSwipeOpenId) return;
-      }
-      setSwipeOpenId(null);
-    };
-
-    const handleScroll = () => {
-      if (computedSwipeOpenId) {
-        setSwipeOpenId(null);
-      }
-    };
-
-    if (computedSwipeOpenId) {
-      document.addEventListener("click", handleClickOutside, true);
-      window.addEventListener("scroll", handleScroll, true);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside, true);
-      window.removeEventListener("scroll", handleScroll, true);
-    };
-  }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(
     () =>
@@ -898,14 +870,6 @@ export function TransactionCardList({
     }
     setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }, [selectedTransaction, t]);
-
-  const handleSwipeOpen = useCallback((id: string) => {
-    setSwipeOpenId(id);
-  }, []);
-
-  const handleSwipeClose = useCallback(() => {
-    setSwipeOpenId(null);
-  }, []);
 
   if (loading && transactions.length === 0) {
     return (
