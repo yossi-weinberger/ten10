@@ -878,12 +878,14 @@ export function TransactionCardList({
     }
 
     if (inSelectionMode && onToggleSelected) {
-      onToggleSelected(transaction.id);
+      if (!selectionDisabled) {
+        onToggleSelected(transaction.id);
+      }
       return;
     }
 
     setSelectedTransaction(transaction);
-  }, [inSelectionMode, onToggleSelected]);
+  }, [inSelectionMode, onToggleSelected, selectionDisabled]);
 
   const handleCloseDrawer = useCallback(() => {
     setSelectedTransaction(null);
