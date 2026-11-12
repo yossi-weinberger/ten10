@@ -441,55 +441,63 @@ export function RecurringCardList({
             >
               <TypeIconChip type={row.type} />
               <div className="min-w-0 flex-1 overflow-hidden">
-                <MaskedText className="block truncate font-medium">
+                <MaskedText className="block truncate text-[13px] font-medium leading-tight">
                   {row.description || "-"}
                 </MaskedText>
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-xs leading-tight text-muted-foreground">
-                  <MaskedText className="min-w-0 truncate">
-                    {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
-                  </MaskedText>
-                  {row.calendar_type === "hebrew" ? (
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        "h-4 shrink-0 px-1 py-0 text-[10px] font-normal leading-none",
-                        PH_SENSITIVE_PROPS.className,
-                      )}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      {t("recurring.calendars.hebrew")}
-                    </Badge>
-                  ) : null}
-                  <MaskedText className="min-w-0 truncate">{nextDueLabel}</MaskedText>
-                  {secondaryDue ? (
-                    <MaskedText className="min-w-0 truncate">{secondaryDue}</MaskedText>
-                  ) : null}
-                  <span className="shrink-0">
-                    <RecurringProgressBadge
-                      status={row.status}
-                      type={row.type}
-                      executionCount={row.execution_count}
-                      totalOccurrences={row.total_occurrences}
-                      frequency={row.frequency}
-                      dayOfMonth={row.day_of_month}
-                      className="h-4 px-1 py-0 text-[10px] leading-none"
-                    />
-                  </span>
+                <div className="mt-0.5 space-y-0 text-[10px] leading-tight text-muted-foreground">
+                  <div className="flex flex-nowrap items-center gap-1">
+                    <MaskedText className="shrink-0 whitespace-nowrap">
+                      {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
+                    </MaskedText>
+                    <MaskedText className="shrink-0 whitespace-nowrap">
+                      {nextDueLabel}
+                    </MaskedText>
+                    {secondaryDue ? (
+                      <MaskedText className="shrink-0 whitespace-nowrap">
+                        {secondaryDue}
+                      </MaskedText>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-nowrap items-center gap-1 overflow-hidden">
+                    {row.calendar_type === "hebrew" ? (
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "h-3 shrink-0 px-1 py-0 text-[9px] font-normal leading-none",
+                          PH_SENSITIVE_PROPS.className,
+                        )}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {t("recurring.calendars.hebrew")}
+                      </Badge>
+                    ) : null}
+                    <span className="shrink-0">
+                      <RecurringProgressBadge
+                        status={row.status}
+                        type={row.type}
+                        executionCount={row.execution_count}
+                        totalOccurrences={row.total_occurrences}
+                        frequency={row.frequency}
+                        dayOfMonth={row.day_of_month}
+                        className="h-3 px-1 py-0 text-[9px] leading-none"
+                      />
+                    </span>
+                  </div>
                 </div>
               </div>
               <AmountPanel
                 type={row.type}
                 conversion={
                   conversion ? (
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="inline-flex items-center gap-0.5 leading-none">
                       <Coins
-                        className="h-3 w-3 opacity-70"
+                        className="h-2.5 w-2.5 shrink-0 opacity-70"
                         aria-hidden="true"
                       />
-                      <MaskedText className="text-[10px] font-normal text-muted-foreground">
+                      <MaskedText className="text-[10px] font-normal leading-none text-muted-foreground">
                         {formatCurrency(
                           conversion.originalAmount,
                           conversion.originalCurrency,
@@ -502,7 +510,7 @@ export function RecurringCardList({
                       <Tooltip delayDuration={300}>
                         <TooltipTrigger asChild>
                           <RefreshCw
-                            className="h-3 w-3 text-muted-foreground cursor-help"
+                            className="h-2.5 w-2.5 text-muted-foreground cursor-help"
                             aria-label={tCurrency("row.tooltip.conversionDetails")}
                           />
                         </TooltipTrigger>

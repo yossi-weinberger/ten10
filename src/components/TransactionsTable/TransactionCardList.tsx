@@ -303,8 +303,8 @@ const TransactionCard = memo(function TransactionCard({
         <div
           className={cn(
             showAiOrigin
-              ? "flex min-w-0 items-center gap-1 font-medium"
-              : "truncate font-medium",
+              ? "flex min-w-0 items-center gap-1 text-[13px] font-medium leading-tight"
+              : "truncate text-[13px] font-medium leading-tight",
             !transaction.description && "text-muted-foreground",
             PH_SENSITIVE_PROPS.className
           )}
@@ -322,7 +322,7 @@ const TransactionCard = memo(function TransactionCard({
             className="shrink-0"
           />
         </div>
-        <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-xs leading-tight text-muted-foreground">
+        <div className="mt-0.5 flex flex-nowrap items-center gap-1 overflow-hidden text-[11px] leading-tight text-muted-foreground">
           <span
             className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
             data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -390,15 +390,15 @@ const TransactionCard = memo(function TransactionCard({
           conversion ? (
             <div
               className={cn(
-                "flex flex-col items-center gap-0.5",
+                "inline-flex items-center gap-0.5 leading-none",
                 PH_SENSITIVE_PROPS.className,
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <Coins className="h-3 w-3 opacity-70" aria-hidden="true" />
+              <Coins className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />
               <span
                 className={cn(
-                  "text-[10px] font-normal text-muted-foreground",
+                  "text-[10px] font-normal leading-none text-muted-foreground",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
