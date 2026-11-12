@@ -1,10 +1,13 @@
 /** 24px assistant-button offset + 56px button + 8px gap. */
 export const SORT_MENU_FAB_CLEARANCE = 88;
-/** About 1.5 min-h-11 rows. Less usable space than this opens upward. */
-export const SORT_MENU_MIN_DOWN_SPACE = 56;
-/** Gap between an upward menu and the viewport edge, before the header. */
+/** Three min-h-11 rows. A side with less usable space than this is the fallback. */
+export const SORT_MENU_MIN_SIDE_SPACE = 132;
+/** Gap between an upward menu and the top bar. */
 export const SORT_MENU_VIEWPORT_GAP = 8;
-/** Mobile top bar (`--mobile-topbar-h` without the safe-area inset). */
+/**
+ * Fallback when `--mobile-topbar-h` is unset.
+ * That variable already includes the safe-area inset.
+ */
 export const SORT_MENU_HEADER_CLEARANCE = 52;
 
 export interface SortMenuPlacementInput {
@@ -13,7 +16,7 @@ export interface SortMenuPlacementInput {
   viewportHeight: number;
   /** `env(safe-area-inset-bottom)`, in pixels. */
   safeAreaBottom?: number;
-  /** Resolved mobile top-bar height, in pixels. */
+  /** Resolved `--mobile-topbar-h`, in pixels. */
   headerClearance?: number;
 }
 
@@ -23,29 +26,35 @@ export interface SortMenuPlacement {
 }
 
 /**
- * Pick a side from the trigger rect. Radix flip is not used: a tall minimum
- * height was flipping the at-rest menu over the header.
+ * Open downward when three rows fit under the trigger.
+ * Otherwise open under the top bar when that side fits three rows.
+ * When neither side fits, use the side with more room.
  */
 export function decideSortMenuPlacement(
   input: SortMenuPlacementInput,
 ): SortMenuPlacement {
   const safeAreaBottom = input.safeAreaBottom ?? 0;
   const headerClearance = input.headerClearance ?? SORT_MENU_HEADER_CLEARANCE;
-  const spaceBelow =
+  const spaceBelow = Math.max(
+    0,
     input.viewportHeight -
-    input.triggerBottom -
-    SORT_MENU_FAB_CLEARANCE -
-    safeAreaBottom;
+      input.triggerBottom -
+      SORT_MENU_FAB_CLEARANCE -
+      safeAreaBottom,
+  );
+  const spaceAbove = Math.max(
+    0,
+    input.triggerTop - SORT_MENU_VIEWPORT_GAP - headerClearance,
+  );
 
-  if (spaceBelow >= SORT_MENU_MIN_DOWN_SPACE) {
+  if (spaceBelow >= SORT_MENU_MIN_SIDE_SPACE) {
     return { side: "bottom", maxHeight: spaceBelow };
   }
-
-  return {
-    side: "top",
-    maxHeight: Math.max(
-      0,
-      input.triggerTop - SORT_MENU_VIEWPORT_GAP - headerClearance,
-    ),
-  };
+  if (spaceAbove >= SORT_MENU_MIN_SIDE_SPACE) {
+    return { side: "top", maxHeight: spaceAbove };
+  }
+  if (spaceAbove > spaceBelow) {
+    return { side: "top", maxHeight: spaceAbove };
+  }
+  return { side: "bottom", maxHeight: spaceBelow };
 }

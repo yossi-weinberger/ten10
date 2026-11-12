@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -15,9 +15,12 @@ import {
   type SortMenuPlacement,
 } from "@/components/sortMenuPlacement";
 
+export type MobileSortDirectionKind = "date" | "amount" | "text";
+
 export interface MobileSortOption<Field extends string = string> {
   field: Field;
   label: string;
+  directionKind?: MobileSortDirectionKind;
 }
 
 export interface MobileSortPickerProps<Field extends string = string> {
@@ -31,6 +34,42 @@ export interface MobileSortPickerProps<Field extends string = string> {
 const SORT_MENU_AVOID_COLLISIONS = false;
 /** Above the assistant button (z-50). Applied to the portalled popper wrapper. */
 const SORT_MENU_Z_INDEX = "60";
+const SORT_RADIO_ITEM_CLASS =
+  "min-h-11 rtl:pl-2 rtl:pr-8 [&>span]:rtl:left-auto [&>span]:rtl:right-2";
+
+type DirectionLabelKey =
+  | "sort.directions.dateDesc"
+  | "sort.directions.dateAsc"
+  | "sort.directions.amountDesc"
+  | "sort.directions.amountAsc"
+  | "sort.directions.textAsc"
+  | "sort.directions.textDesc";
+
+function directionChoices(
+  kind: MobileSortDirectionKind,
+): readonly { value: "asc" | "desc"; key: DirectionLabelKey }[] {
+  switch (kind) {
+    case "date":
+      return [
+        { value: "desc", key: "sort.directions.dateDesc" },
+        { value: "asc", key: "sort.directions.dateAsc" },
+      ];
+    case "amount":
+      return [
+        { value: "desc", key: "sort.directions.amountDesc" },
+        { value: "asc", key: "sort.directions.amountAsc" },
+      ];
+    case "text":
+      return [
+        { value: "asc", key: "sort.directions.textAsc" },
+        { value: "desc", key: "sort.directions.textDesc" },
+      ];
+    default: {
+      const exhaustive: never = kind;
+      return exhaustive;
+    }
+  }
+}
 
 function readCssPx(length: string, fallback: number): number {
   if (typeof document === "undefined") return fallback;
@@ -59,22 +98,6 @@ function raiseMenuAboveFab(node: HTMLElement | null) {
   });
 }
 
-function sortDirectionPresentation(direction: "asc" | "desc"): {
-  actionLabelKey: "sort.ascending" | "sort.descending";
-  Icon: typeof ArrowUp;
-} {
-  switch (direction) {
-    case "asc":
-      return { actionLabelKey: "sort.descending", Icon: ArrowUp };
-    case "desc":
-      return { actionLabelKey: "sort.ascending", Icon: ArrowDown };
-    default: {
-      const exhaustive: never = direction;
-      return exhaustive;
-    }
-  }
-}
-
 export function MobileSortPicker<Field extends string>({
   fields,
   field,
@@ -83,10 +106,14 @@ export function MobileSortPicker<Field extends string>({
 }: MobileSortPickerProps<Field>) {
   const { t, i18n } = useTranslation("data-tables");
   const textDirection = i18n.dir() === "rtl" ? "rtl" : "ltr";
-  const currentLabel =
-    fields.find((option) => option.field === field)?.label ?? field;
-  const { actionLabelKey, Icon } = sortDirectionPresentation(direction);
-  const directionAction = t(actionLabelKey);
+  const current = fields.find((option) => option.field === field);
+  const currentLabel = current?.label ?? field;
+  const directionKind = current?.directionKind ?? "text";
+  const choices = directionChoices(directionKind);
+  const directionLabel = t(
+    choices.find((choice) => choice.value === direction)?.key ??
+      choices[0].key,
+  );
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [placement, setPlacement] = useState<SortMenuPlacement>({
@@ -118,27 +145,19 @@ export function MobileSortPicker<Field extends string>({
   }
 
   return (
-    <div
-      className="flex w-full min-w-0 max-w-full items-center gap-2"
-      dir={textDirection}
-    >
-      <span className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">
-        {t("sort.sortBy")}
-      </span>
+    <div className="inline-flex max-w-full" dir={textDirection}>
       <DropdownMenu dir={textDirection} open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             ref={triggerRef}
             type="button"
             variant="outline"
-            className="h-11 min-w-0 flex-1 justify-between gap-2 px-3 font-normal"
+            className="h-9 min-h-11 w-fit max-w-full rounded-full px-3 text-sm font-normal"
             aria-label={`${t("sort.sortBy")}: ${currentLabel}`}
           >
-            <span className="min-w-0 truncate text-start">{currentLabel}</span>
-            <ChevronDown
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 opacity-50"
-            />
+            <span className="truncate">
+              {t("sort.chip", { field: currentLabel, direction: directionLabel })}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -146,10 +165,29 @@ export function MobileSortPicker<Field extends string>({
           avoidCollisions={SORT_MENU_AVOID_COLLISIONS}
           data-avoid-collisions={String(SORT_MENU_AVOID_COLLISIONS)}
           ref={raiseMenuAboveFab}
-          align="start"
+          align="end"
           style={{ maxHeight: `${placement.maxHeight}px`, zIndex: SORT_MENU_Z_INDEX }}
-          className="relative z-[60] w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+          className="relative z-[60] w-[min(16rem,calc(100vw-32px))] overflow-y-auto"
         >
+          <DropdownMenuRadioGroup
+            value={direction}
+            onValueChange={(value) => {
+              if (value !== "asc" && value !== "desc") return;
+              if (value === direction) return;
+              onChange(field);
+            }}
+          >
+            {choices.map((choice) => (
+              <DropdownMenuRadioItem
+                key={choice.value}
+                value={choice.value}
+                className={SORT_RADIO_ITEM_CLASS}
+              >
+                {t(choice.key)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
           <DropdownMenuRadioGroup
             value={field}
             onValueChange={(value) => {
@@ -162,7 +200,7 @@ export function MobileSortPicker<Field extends string>({
               <DropdownMenuRadioItem
                 key={option.field}
                 value={option.field}
-                className="min-h-11 rtl:pl-2 rtl:pr-8 [&>span]:rtl:left-auto [&>span]:rtl:right-2"
+                className={SORT_RADIO_ITEM_CLASS}
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -170,17 +208,6 @@ export function MobileSortPicker<Field extends string>({
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-11 w-11 shrink-0 hover:bg-background hover:text-foreground [@media(hover:hover)]:hover:bg-accent [@media(hover:hover)]:hover:text-accent-foreground"
-        aria-label={directionAction}
-        title={directionAction}
-        onClick={() => onChange(field)}
-      >
-        <Icon aria-hidden="true" />
-      </Button>
     </div>
   );
 }

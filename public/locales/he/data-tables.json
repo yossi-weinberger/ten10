@@ -237,7 +237,16 @@
   "sort": {
     "sortBy": "מיון לפי",
     "ascending": "מיון עולה",
-    "descending": "מיון יורד"
+    "descending": "מיון יורד",
+    "chip": "מיון: {{field}} · {{direction}}",
+    "directions": {
+      "dateDesc": "חדש לישן",
+      "dateAsc": "ישן לחדש",
+      "amountDesc": "גבוה לנמוך",
+      "amountAsc": "נמוך לגבוה",
+      "textAsc": "א׳–ת׳",
+      "textDesc": "ת׳–א׳"
+    }
   },
   "recurring": {
     "status": "סטטוס",

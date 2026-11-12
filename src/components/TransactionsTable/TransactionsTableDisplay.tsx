@@ -76,10 +76,14 @@ export function TransactionsTableDisplay() {
   const [useMobileCards] = useState(isSmallNow);
 
   // sortableColumns definition with translations
-  const sortableColumns: { label: string; field: SortableField }[] = [
-    { label: t("columns.date"), field: "date" },
+  const sortableColumns: {
+    label: string;
+    field: SortableField;
+    directionKind?: "date" | "amount" | "text";
+  }[] = [
+    { label: t("columns.date"), field: "date", directionKind: "date" },
     { label: t("columns.description"), field: "description" },
-    { label: t("columns.amount"), field: "amount" },
+    { label: t("columns.amount"), field: "amount", directionKind: "amount" },
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
@@ -638,15 +642,17 @@ export function TransactionsTableDisplay() {
       )}
       {useMobileCards ? (
         <>
-          <MobileSortPicker
-            fields={sortableColumns}
-            field={sorting.field}
-            direction={sorting.direction}
-            onChange={handleSort}
-          />
           <TransactionCardList
             transactions={transactions as TransactionForTable[]}
             showMonthSeparators={sorting.field === "date"}
+            sortControl={
+              <MobileSortPicker
+                fields={sortableColumns}
+                field={sorting.field}
+                direction={sorting.direction}
+                onChange={handleSort}
+              />
+            }
             onEdit={handleEditInitiate}
             onDelete={handleDeleteInitiate}
             onEditRecurring={handleEditRecurringInitiate}

@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { decideSortMenuPlacement } from "@/components/sortMenuPlacement";
@@ -46,7 +47,10 @@ const {
   deleteTransaction: vi.fn(),
   deleteTransactionsBulk: vi.fn(),
   updateTransactionsBulk: vi.fn(),
-  cardListProps: { showMonthSeparators: undefined as boolean | undefined },
+  cardListProps: {
+    showMonthSeparators: undefined as boolean | undefined,
+    hasSortControl: false,
+  },
 }));
 
 vi.mock("react-i18next", () => ({
@@ -139,13 +143,19 @@ vi.mock("./ExportButton", () => ({
 }));
 
 vi.mock("./TransactionCardList", () => ({
-  TransactionCardList: (props: { showMonthSeparators?: boolean }) => {
+  TransactionCardList: (props: {
+    showMonthSeparators?: boolean;
+    sortControl?: unknown;
+  }) => {
     cardListProps.showMonthSeparators = props.showMonthSeparators;
+    cardListProps.hasSortControl = props.sortControl != null;
     return (
       <div
         data-testid="transaction-card-list"
         data-show-month-separators={String(props.showMonthSeparators)}
-      />
+      >
+        {props.sortControl as ReactNode}
+      </div>
     );
   },
 }));
@@ -222,34 +232,29 @@ describe("TransactionsTableDisplay mobile sort", () => {
     vi.mocked(useMediaQuery).mockReturnValue(true);
   });
 
-  it("renders the sort control only above the card list", () => {
+  it("renders one sort chip inside the card list", () => {
     renderDisplay();
 
     const sortField = screen.getByRole("button", {
       name: "sort.sortBy: columns.date",
     });
-    expect(sortField).toBeInTheDocument();
-    const sortLabel = screen.getByText("sort.sortBy");
-    expect(sortLabel).toBeInTheDocument();
-    expect(sortLabel.className).toContain("whitespace-nowrap");
-    expect(sortLabel.parentElement?.className).toContain("min-w-0");
-    expect(sortLabel.parentElement?.className).not.toContain("overflow-x-hidden");
-    expect(
-      screen.getByRole("button", { name: "sort.ascending" }),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("transaction-card-list")).toBeInTheDocument();
+    expect(sortField).toHaveTextContent("sort.chip");
+    expect(sortField.className).toContain("h-9");
+    expect(sortField.className).toContain("min-h-11");
+    expect(sortField.className).toContain("rounded-full");
+    expect(sortField.className).toContain("text-sm");
+    expect(sortField.className).toContain("w-fit");
+    expect(screen.getAllByRole("button", { name: /sort\.sortBy/ })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "sort.ascending" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("transaction-card-list")).toContainElement(sortField);
+    expect(cardListProps.hasSortControl).toBe(true);
     expect(
       screen.queryByRole("columnheader", { name: "columns.date" }),
     ).not.toBeInTheDocument();
 
     const sortRow = sortField.parentElement;
     expect(sortRow).toHaveAttribute("dir", "ltr");
-    expect(sortRow?.className).not.toContain("sticky");
-    expect(sortRow?.className).not.toContain("mobile-topbar");
-    expect(
-      sortField.compareDocumentPosition(screen.getByTestId("transaction-card-list")) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(sortRow?.className).not.toContain("overflow-x-hidden");
   });
 
   it("uses rtl on the sort row and menu when the language is rtl", async () => {
@@ -288,12 +293,22 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(popper).toBeInstanceOf(HTMLElement);
     expect((popper as HTMLElement).style.zIndex).toBe("60");
     expect(menu.className).toContain("overflow-y-auto");
+    expect(menu.className).toContain("w-[min(16rem,calc(100vw-32px))]");
+    expect(menu.className).not.toContain("trigger-width");
     expect(menu.style.maxHeight).toBe(`${expectedPlacement.maxHeight}px`);
     expect(menu.style.maxHeight).not.toContain("select");
     expect(
       menu.style.getPropertyValue("--radix-dropdown-menu-content-available-height"),
     ).toContain("--radix-popper-available-height");
     expect(menu).toHaveAttribute("data-avoid-collisions", "false");
+
+    expect(screen.getByRole("separator")).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitemradio", { name: "sort.directions.dateDesc" }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen.getByRole("menuitemradio", { name: "sort.directions.dateAsc" }),
+    ).toHaveAttribute("aria-checked", "false");
 
     for (const label of SORTABLE_LABELS) {
       const item = screen.getByRole("menuitemradio", { name: label });
@@ -334,32 +349,55 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(api.setSorting).not.toHaveBeenCalled();
   });
 
-  it("toggles direction through setSorting and reflects the active direction", async () => {
+  it("toggles direction through the menu radios and leaves the active direction alone", async () => {
     const user = userEvent.setup();
     api.sorting = { field: "category", direction: "asc" };
     const view = renderDisplay();
 
-    const sortDescending = screen.getByRole("button", { name: "sort.descending" });
-    expect(sortDescending).toHaveAttribute("title", "sort.descending");
-    expect(sortDescending.className).toContain("[@media(hover:hover)]:hover:bg-accent");
-    expect(sortDescending.className.split(" ")).not.toContain("hover:bg-accent");
-    expect(sortDescending.querySelector(".lucide-arrow-up")).toBeInTheDocument();
-    expect(sortDescending.querySelector(".lucide-arrow-down")).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "sort.sortBy: columns.category" }),
+    );
+    const textAscending = screen.getByRole("menuitemradio", {
+      name: "sort.directions.textAsc",
+    });
+    const textDescending = screen.getByRole("menuitemradio", {
+      name: "sort.directions.textDesc",
+    });
+    expect(textAscending).toHaveAttribute("aria-checked", "true");
+    expect(textDescending).toHaveAttribute("aria-checked", "false");
+    expect(screen.queryByRole("button", { name: "sort.descending" })).not.toBeInTheDocument();
 
-    await user.click(sortDescending);
+    await user.click(textDescending);
     expect(api.setSorting).toHaveBeenCalledTimes(1);
     expect(api.setSorting).toHaveBeenCalledWith("category");
 
     view.unmount();
     api.setSorting.mockClear();
-    api.sorting = { field: "category", direction: "desc" };
+    api.sorting = { field: "category", direction: "asc" };
+    renderDisplay();
+    await user.click(
+      screen.getByRole("button", { name: "sort.sortBy: columns.category" }),
+    );
+    await user.click(
+      screen.getByRole("menuitemradio", { name: "sort.directions.textAsc" }),
+    );
+    expect(api.setSorting).not.toHaveBeenCalled();
+
+    view.unmount();
+    api.setSorting.mockClear();
+    api.sorting = { field: "amount", direction: "desc" };
     renderDisplay();
 
-    const sortAscending = screen.getByRole("button", { name: "sort.ascending" });
-    expect(sortAscending).toHaveAttribute("title", "sort.ascending");
-    expect(sortAscending.querySelector(".lucide-arrow-down")).toBeInTheDocument();
-    await user.click(sortAscending);
-    expect(api.setSorting).toHaveBeenCalledWith("category");
+    await user.click(
+      screen.getByRole("button", { name: "sort.sortBy: columns.amount" }),
+    );
+    expect(
+      screen.getByRole("menuitemradio", { name: "sort.directions.amountDesc" }),
+    ).toHaveAttribute("aria-checked", "true");
+    await user.click(
+      screen.getByRole("menuitemradio", { name: "sort.directions.amountAsc" }),
+    );
+    expect(api.setSorting).toHaveBeenCalledWith("amount");
   });
 
   it("passes showMonthSeparators only while sorting by date", () => {
@@ -390,9 +428,7 @@ describe("TransactionsTableDisplay table path", () => {
     expect(
       screen.queryByRole("button", { name: /sort\.sortBy/ }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "sort.ascending" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("sort.chip")).not.toBeInTheDocument();
     expect(screen.queryByTestId("transaction-card-list")).not.toBeInTheDocument();
 
     for (const label of SORTABLE_LABELS) {
