@@ -266,9 +266,10 @@ export function Sidebar({
       <Button
         variant="ghost"
         className={cn(
-          "w-full h-12 z-10 overflow-hidden max-w-full",
+          "w-full z-10 overflow-hidden max-w-full",
           "transition-all duration-300",
           "justify-start px-4",
+          inSheet ? "min-h-11" : "h-12",
           isActive
             ? "text-secondary-foreground hover:bg-transparent"
             : "text-foreground",
@@ -339,8 +340,9 @@ export function Sidebar({
       <div
         ref={listRef}
         className={cn(
-          "relative flex-1 p-1 overflow-x-hidden", // not scrollable
-          "flex flex-col min-h-0 gap-1"
+          "relative flex-1 p-1 overflow-x-hidden",
+          "flex flex-col min-h-0 gap-1",
+          inSheet ? "overflow-y-auto" : ""
         )}
       >
         {/* Slider overlay over the whole wrapper */}
@@ -369,7 +371,10 @@ export function Sidebar({
         {/* Scrollable NAV area */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden min-w-0"
+          className={cn(
+            "overflow-x-hidden min-w-0",
+            inSheet ? "flex-none" : "flex-1 min-h-0 overflow-y-auto"
+          )}
         >
           <nav className="flex flex-col gap-1 min-w-0">
             <NavLink to="/" icon={Home}>
@@ -443,11 +448,13 @@ export function Sidebar({
         </div>
 
         {/* Divider spans the padded width */}
-        <div className="my-2 h-px bg-border/20" />
+        <div className={cn("my-2 h-px bg-border/20", inSheet ? "shrink-0" : "")} />
 
         {/* Feedback (above profile) — web + PostHog only; hides after submit */}
         {platform === "web" && session?.user && (
-          <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          <div className={inSheet ? "shrink-0" : ""}>
+            <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          </div>
         )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
@@ -459,7 +466,8 @@ export function Sidebar({
             aria-label={t("menu.profile")}
             className={cn(
               "flex items-center rounded-md transition-all duration-300 relative z-10 min-w-0 overflow-hidden",
-              "hover:bg-muted/50 justify-start px-3 h-14"
+              "hover:bg-muted/50 justify-start px-3 h-14",
+              inSheet ? "shrink-0" : ""
             )}
           >
             {authLoading || profileLoading ? (
@@ -541,7 +549,7 @@ export function Sidebar({
       </div>
 
       {/* Bottom area (separate): platform indicator & border */}
-      <div className="mt-auto pt-4 border-t border-border/20 px-1">
+      <div className={cn("mt-auto pt-4 border-t border-border/20 px-1", inSheet ? "shrink-0" : "")}>
         <PlatformIndicator expanded={expanded} />
       </div>
       {/* Only the persistent sidebar holds the drawer; the floating button opens it on every screen size. */}

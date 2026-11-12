@@ -5,7 +5,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Resolver, useForm } from "react-hook-form";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AmountCurrencyDateFields } from "@/components/forms/transaction-form-parts/AmountCurrencyDateFields";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -18,6 +18,8 @@ import { useDonationStore } from "@/lib/store";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import enTransactions from "../../../public/locales/en/transactions.json";
 import heTransactions from "../../../public/locales/he/transactions.json";
+import enDashboard from "../../../public/locales/en/dashboard.json";
+import heDashboard from "../../../public/locales/he/dashboard.json";
 
 const EN_REQUIRED = enTransactions.transactionForm.validation.date.required;
 const HE_REQUIRED = heTransactions.transactionForm.validation.date.required;
@@ -27,10 +29,23 @@ const EN_MIN = enTransactions.transactionForm.validation.date.min;
 let locale: "en" | "he" = "en";
 
 function lookup(key: string): string {
-  const messages = locale === "he" ? heTransactions : enTransactions;
-  const path = key.replace(/^transactions:/, "").split(".");
-  let current: unknown = messages;
-  for (const part of path) {
+  const namespaces = {
+    en: { transactions: enTransactions, dashboard: enDashboard },
+    he: { transactions: heTransactions, dashboard: heDashboard },
+  };
+  
+  const messages = namespaces[locale];
+  let path = key;
+  let currentNs: Record<string, unknown> = messages.dashboard;
+  
+  if (key.startsWith("transactions:")) {
+    path = key.replace(/^transactions:/, "");
+    currentNs = messages.transactions;
+  }
+  
+  const parts = path.split(".");
+  let current: unknown = currentNs;
+  for (const part of parts) {
     if (current && typeof current === "object" && part in current) {
       current = (current as Record<string, unknown>)[part];
     } else {
@@ -57,6 +72,22 @@ vi.mock("@/components/ui/CurrencyPicker", () => ({
 }));
 
 const initialSettings = useDonationStore.getState().settings;
+
+beforeEach(() => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+});
 
 afterEach(() => {
   cleanup();

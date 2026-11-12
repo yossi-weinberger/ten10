@@ -15,6 +15,8 @@ import { logger } from "@/lib/logger";
 import { TransactionEditModal } from "./TransactionEditModal";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import { TransactionRow } from "./TransactionRow";
+import { TransactionCardList } from "./TransactionCardList";
+import { MobileSortPicker } from "@/components/MobileSortPicker";
 import {
   TransactionsTableHeader,
   SortableField,
@@ -58,6 +60,7 @@ import {
   getCalendarMonthKey,
   isCalendarMonthTransition,
 } from "@/lib/calendar/calendar-period";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 // sortableColumns definition - will be defined inside the component to use t()
 
@@ -69,12 +72,18 @@ export function TransactionsTableDisplay() {
     (state) => state.settings.trackChomeshSeparately,
   );
   const calendarType = useEffectiveCalendarType();
+  const isSmallNow = useMediaQuery("(max-width: 767px), (pointer: coarse) and (max-height: 500px)");
+  const [useMobileCards] = useState(isSmallNow);
 
   // sortableColumns definition with translations
-  const sortableColumns: { label: string; field: SortableField }[] = [
-    { label: t("columns.date"), field: "date" },
+  const sortableColumns: {
+    label: string;
+    field: SortableField;
+    directionKind?: "date" | "amount" | "text";
+  }[] = [
+    { label: t("columns.date"), field: "date", directionKind: "date" },
     { label: t("columns.description"), field: "description" },
-    { label: t("columns.amount"), field: "amount" },
+    { label: t("columns.amount"), field: "amount", directionKind: "amount" },
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
@@ -595,33 +604,35 @@ export function TransactionsTableDisplay() {
             </span>
           </Button>
         </div>
-        <BulkActionsToolbar
-          selectedCount={selection.selectedCount}
-          selectedCountLabel={t("bulkToolbar.selectedCount", {
-            count: selection.selectedCount,
-          })}
-          editLabel={
-            selectionActionMode === "single"
-              ? t("actions.edit")
-              : t("bulkToolbar.edit")
-          }
-          deleteLabel={
-            selectionActionMode === "single"
-              ? t("actions.delete")
-              : t("bulkToolbar.delete")
-          }
-          clearLabel={t("bulkToolbar.clear")}
-          onEdit={handleSelectionEdit}
-          onDelete={handleSelectionDelete}
-          onClear={clearSelection}
-          ariaLabel={t("bulkToolbar.ariaLabel")}
-          pending={bulkPending}
-          editDisabled={
-            selectionActionMode === "bulk" &&
-            !Object.values(bulkFieldAvailability).some(Boolean)
-          }
-          dir={i18n.dir()}
-        />
+        {!useMobileCards && (
+          <BulkActionsToolbar
+            selectedCount={selection.selectedCount}
+            selectedCountLabel={t("bulkToolbar.selectedCount", {
+              count: selection.selectedCount,
+            })}
+            editLabel={
+              selectionActionMode === "single"
+                ? t("actions.edit")
+                : t("bulkToolbar.edit")
+            }
+            deleteLabel={
+              selectionActionMode === "single"
+                ? t("actions.delete")
+                : t("bulkToolbar.delete")
+            }
+            clearLabel={t("bulkToolbar.clear")}
+            onEdit={handleSelectionEdit}
+            onDelete={handleSelectionDelete}
+            onClear={clearSelection}
+            ariaLabel={t("bulkToolbar.ariaLabel")}
+            pending={bulkPending}
+            editDisabled={
+              selectionActionMode === "bulk" &&
+              !Object.values(bulkFieldAvailability).some(Boolean)
+            }
+            dir={i18n.dir()}
+          />
+        )}
       </div>
 
       {error && (
@@ -629,95 +640,144 @@ export function TransactionsTableDisplay() {
           {t("messages.loadingError", { error })}
         </p>
       )}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TransactionsTableHeader
-                sorting={sorting}
-                handleSort={handleSort}
-                sortableColumns={sortableColumns}
-                selectionChecked={selection.checked}
-                onToggleAllLoaded={selection.toggleAllLoaded}
-                selectAllLoadedLabel={t("bulkSelection.selectAllLoaded", {
-                  count: selection.loadedCount,
-                })}
-                selectionDisabled={
-                  loading || bulkPending || transactions.length === 0
-                }
+      {useMobileCards ? (
+        <>
+          <TransactionCardList
+            transactions={transactions as TransactionForTable[]}
+            showMonthSeparators={sorting.field === "date"}
+            sortControl={
+              <MobileSortPicker
+                fields={sortableColumns}
+                field={sorting.field}
+                direction={sorting.direction}
+                onChange={handleSort}
               />
-              <TableBody>
-                {loading && transactions.length === 0 && (
-                  <>
-                    {Array.from({ length: 20 }).map((_, rowIndex) => (
-                      <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: TOTAL_TABLE_COLUMNS }).map(
-                          (_, cellIndex) => (
-                            <TableCell
-                              key={`skeleton-cell-${rowIndex}-${cellIndex}`}
-                              className="text-right whitespace-nowrap"
-                            >
-                              <Skeleton className="h-6 w-full" />
-                            </TableCell>
-                          )
-                        )}
-                      </TableRow>
-                    ))}
-                  </>
-                )}
-                {!loading && !error && transactions.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={TOTAL_TABLE_COLUMNS}
-                      className="h-24 text-center"
-                    >
-                      {t("messages.noData")}
-                    </TableCell>
-                  </TableRow>
-                )}
-                {transactionsWithSeparators.map((item) => {
-                  if (item.type === "separator") {
-                    return (
-                      <TableRow
-                        key={`month-separator-${item.monthKey}`}
-                        className="border-t-2 border-border hover:bg-transparent"
-                      >
-                        <TableCell
-                          colSpan={TOTAL_TABLE_COLUMNS}
-                          className="py-1 px-4 relative"
-                        >
-                          <span className="absolute rtl:right-4 ltr:left-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-background px-2">
-                            {item.monthLabel}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
+            }
+            onEdit={handleEditInitiate}
+            onDelete={handleDeleteInitiate}
+            onEditRecurring={handleEditRecurringInitiate}
+            onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
+            isFetchingRec={isFetchingRec}
+            loading={loading}
+            selectedIds={selection.selectedIds}
+            onToggleSelected={selection.toggle}
+            onClearSelection={clearSelection}
+            selectionDisabled={bulkPending || loading}
+            selectedCountLabel={t("bulkToolbar.selectedCount", {
+              count: selection.selectedCount,
+            })}
+            editLabel={
+              selectionActionMode === "single"
+                ? t("actions.edit")
+                : t("bulkToolbar.edit")
+            }
+            deleteLabel={
+              selectionActionMode === "single"
+                ? t("actions.delete")
+                : t("bulkToolbar.delete")
+            }
+            clearLabel={t("bulkToolbar.clear")}
+            bulkToolbarAriaLabel={t("bulkToolbar.ariaLabel")}
+            onSelectionEdit={handleSelectionEdit}
+            onSelectionDelete={handleSelectionDelete}
+            bulkPending={bulkPending}
+            bulkEditDisabled={
+              selectionActionMode === "bulk" &&
+              !Object.values(bulkFieldAvailability).some(Boolean)
+            }
+          />
+        </>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TransactionsTableHeader
+                  sorting={sorting}
+                  handleSort={handleSort}
+                  sortableColumns={sortableColumns}
+                  selectionChecked={selection.checked}
+                  onToggleAllLoaded={selection.toggleAllLoaded}
+                  selectAllLoadedLabel={t("bulkSelection.selectAllLoaded", {
+                    count: selection.loadedCount,
+                  })}
+                  selectionDisabled={
+                    loading || bulkPending || transactions.length === 0
                   }
-                  return (
-                    <TransactionRow
-                      key={item.transaction.id}
-                      transaction={item.transaction as TransactionForTable}
-                      onEdit={handleEditInitiate}
-                      onDelete={handleDeleteInitiate}
-                      onEditRecurring={handleEditRecurringInitiate}
-                      onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
-                      isFetchingRec={isFetchingRec}
-                      selected={selection.selectedIds.has(item.transaction.id)}
-                      onToggleSelected={selection.toggle}
-                      selectLabel={t("bulkSelection.selectRow", {
-                        description:
-                          item.transaction.description ||
-                          t("messages.defaultTransactionName"),
-                      })}
-                      selectionDisabled={bulkPending}
-                    />
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                />
+                <TableBody>
+                  {loading && transactions.length === 0 && (
+                    <>
+                      {Array.from({ length: 20 }).map((_, rowIndex) => (
+                        <TableRow key={`skeleton-row-${rowIndex}`}>
+                          {Array.from({ length: TOTAL_TABLE_COLUMNS }).map(
+                            (_, cellIndex) => (
+                              <TableCell
+                                key={`skeleton-cell-${rowIndex}-${cellIndex}`}
+                                className="text-right whitespace-nowrap"
+                              >
+                                <Skeleton className="h-6 w-full" />
+                              </TableCell>
+                            )
+                          )}
+                        </TableRow>
+                      ))}
+                    </>
+                  )}
+                  {!loading && !error && transactions.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={TOTAL_TABLE_COLUMNS}
+                        className="h-24 text-center"
+                      >
+                        {t("messages.noData")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {transactionsWithSeparators.map((item) => {
+                    if (item.type === "separator") {
+                      return (
+                        <TableRow
+                          key={`month-separator-${item.monthKey}`}
+                          className="border-t-2 border-border hover:bg-transparent"
+                        >
+                          <TableCell
+                            colSpan={TOTAL_TABLE_COLUMNS}
+                            className="py-1 px-4 relative"
+                          >
+                            <span className="absolute rtl:right-4 ltr:left-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-background px-2">
+                              {item.monthLabel}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    return (
+                      <TransactionRow
+                        key={item.transaction.id}
+                        transaction={item.transaction as TransactionForTable}
+                        onEdit={handleEditInitiate}
+                        onDelete={handleDeleteInitiate}
+                        onEditRecurring={handleEditRecurringInitiate}
+                        onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
+                        isFetchingRec={isFetchingRec}
+                        selected={selection.selectedIds.has(item.transaction.id)}
+                        onToggleSelected={selection.toggle}
+                        selectLabel={t("bulkSelection.selectRow", {
+                          description:
+                            item.transaction.description ||
+                            t("messages.defaultTransactionName"),
+                        })}
+                        selectionDisabled={bulkPending}
+                      />
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <TransactionsTableFooter
         loading={loading}
         pagination={pagination}

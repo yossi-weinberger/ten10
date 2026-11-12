@@ -54,6 +54,7 @@ import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import {
   assertBulkPatch,
   buildBulkPatch,
@@ -490,17 +491,26 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell
+                        className={cn("text-start", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         {rec.description || "-"}
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell
+                        className={cn("text-start", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         {formatPaymentMethod(
                           rec.payment_method,
                           i18n.language,
                           "-"
                         )}
                       </TableCell>
-                      <TableCell className="text-center font-medium whitespace-nowrap">
+                      <TableCell
+                        className={cn("text-center font-medium whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <CurrencyConversionInfo
                           amount={rec.amount}
                           currency={rec.currency}
@@ -512,7 +522,10 @@ export function RecurringTransactionsTableDisplay() {
                           mode="live"
                         />
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell
+                        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <span className="block">
                           {t(
                             `recurring.frequencies.${rec.frequency}`,
@@ -528,7 +541,10 @@ export function RecurringTransactionsTableDisplay() {
                           )}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell
+                        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         <span>{nextDueDate.primary}</span>
                         {nextDueDate.secondary && (
                           <span className="block text-xs text-muted-foreground">

@@ -26,6 +26,7 @@ import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -82,7 +83,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
-      <TableCell className="text-start whitespace-nowrap">
+      <TableCell
+        className={cn("text-start whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <span>{displayDate.primary}</span>
         {displayDate.secondary && (
           <span className="block text-xs text-muted-foreground">
@@ -91,7 +95,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         )}
       </TableCell>
       <TableCell className="text-start">
-        <span className="inline-flex items-center gap-1">
+        <span
+          className={cn("inline-flex items-center gap-1", PH_SENSITIVE_PROPS.className)}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
           {transaction.description || "-"}
           {platform === "web" &&
           isAiIntakeEnabled() &&
@@ -115,7 +122,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         ) : null}
         {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
-      <TableCell className="text-center font-medium whitespace-nowrap">
+      <TableCell
+        className={cn("text-center font-medium whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <CurrencyConversionInfo
           amount={transaction.amount}
           currency={transaction.currency}
@@ -138,7 +148,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           {t(`types.${transaction.type}`, transaction.type)}
         </Badge>
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatCategory(
           transaction.type === "income" || transaction.type === "exempt-income" ? "income"
             : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
@@ -148,30 +161,44 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           "-"
         )}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {transaction.recipient || "-"}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatPaymentMethod(
           transaction.payment_method,
           i18n.language,
           "-"
         )}
       </TableCell>
-      <TableCell className="text-center whitespace-nowrap">
+      <TableCell
+        className={cn("text-center whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatBoolean(transaction.is_chomesh)}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {transaction.recurring_info ? (
-          <RecurringProgressBadge
-            status={transaction.recurring_info.status}
-            type={transaction.type}
-            executionCount={transaction.recurring_info.execution_count}
-            totalOccurrences={transaction.recurring_info.total_occurrences}
-            occurrenceNumber={transaction.occurrence_number}
-            frequency={transaction.recurring_info.frequency}
-            dayOfMonth={transaction.recurring_info.day_of_month}
-          />
+          <span
+            className={PH_SENSITIVE_PROPS.className}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            <RecurringProgressBadge
+              status={transaction.recurring_info.status}
+              type={transaction.type}
+              executionCount={transaction.recurring_info.execution_count}
+              totalOccurrences={transaction.recurring_info.total_occurrences}
+              occurrenceNumber={transaction.occurrence_number}
+              frequency={transaction.recurring_info.frequency}
+              dayOfMonth={transaction.recurring_info.day_of_month}
+            />
+          </span>
         ) : (
           "-"
         )}
