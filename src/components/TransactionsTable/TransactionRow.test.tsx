@@ -45,8 +45,13 @@ vi.mock("@/lib/calendar/use-display-date", () => ({
   }),
 }));
 
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { id: "user-1" } }),
+}));
+
 vi.mock("@/lib/ai/flags", () => ({
   isAiIntakeEnabled: () => false,
+  useAiIntakeUi: () => false,
 }));
 
 vi.mock("@/lib/ai/receipt-action", () => ({

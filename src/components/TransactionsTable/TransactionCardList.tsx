@@ -35,14 +35,17 @@ import { groupWithSeparators } from "@/components/card-list/group-with-separator
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
-import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform, type Platform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { isAiIntakeEnabled, useAiIntakeUi } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useMobileSelectionBodyFlag } from "@/hooks/useMobileSelectionBodyFlag";
 import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
+import { shouldShowAiOriginIndicator } from "./ai-origin";
+import { AiOriginIndicator } from "./AiOriginIndicator";
 
 interface TransactionCardListProps {
   transactions: TransactionForTable[];
@@ -220,6 +223,8 @@ interface TransactionCardProps {
   swipeOpenId: string | null;
   onSwipeOpen: (id: string) => void;
   onSwipeClose: () => void;
+  platform: Platform;
+  aiIntakeEnabled: boolean;
 }
 
 const TransactionCard = memo(function TransactionCard({
@@ -243,8 +248,15 @@ const TransactionCard = memo(function TransactionCard({
   swipeOpenId,
   onSwipeOpen,
   onSwipeClose,
+  platform,
+  aiIntakeEnabled,
 }: TransactionCardProps) {
   const { i18n } = useTranslation("data-tables");
+  const showAiOrigin = shouldShowAiOriginIndicator(
+    platform,
+    transaction.origin,
+    aiIntakeEnabled,
+  );
   const conversion = storedConversion(transaction);
   return (
     <SwipeableCardRow
@@ -279,13 +291,25 @@ const TransactionCard = memo(function TransactionCard({
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
-            "truncate font-medium",
+            showAiOrigin
+              ? "flex min-w-0 items-center gap-1 font-medium"
+              : "truncate font-medium",
             !transaction.description && "text-muted-foreground",
             PH_SENSITIVE_PROPS.className
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          {cardTitle}
+          {showAiOrigin ? (
+            <span className="block min-w-0 truncate">{cardTitle}</span>
+          ) : (
+            cardTitle
+          )}
+          <AiOriginIndicator
+            origin={transaction.origin}
+            platform={platform}
+            aiIntakeEnabled={aiIntakeEnabled}
+            className="shrink-0"
+          />
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span
@@ -431,7 +455,9 @@ export function TransactionCardList({
   const { t, i18n } = useTranslation("data-tables");
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
+  const { user } = useAuth();
   const { platform } = usePlatform();
+  const aiIntakeEnabled = useAiIntakeUi(platform, Boolean(user));
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
@@ -550,6 +576,15 @@ export function TransactionCardList({
   const selectedConversion = selectedTransaction
     ? storedConversion(selectedTransaction)
     : null;
+  const drawerTitle =
+    selectedTransaction?.description || t("messages.defaultTransactionName");
+  const showDrawerAiOrigin =
+    selectedTransaction != null &&
+    shouldShowAiOriginIndicator(
+      platform,
+      selectedTransaction.origin,
+      aiIntakeEnabled,
+    );
 
   return (
     <>
@@ -580,7 +615,17 @@ export function TransactionCardList({
             return (
               <StickyGroupHeader
                 key={`month-separator-${item.key}`}
-                label={formatCalendarMonthLabel(item.key, calendarType, i18n.language)}
+                label={
+                  <span
+                    className={cn(
+                      PH_SENSITIVE_PROPS.className,
+                      placeChip && "me-48 block max-w-[calc(100%-12rem)] truncate",
+                    )}
+                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                  >
+                    {formatCalendarMonthLabel(item.key, calendarType, i18n.language)}
+                  </span>
+                }
                 placeChip={placeChip}
                 chip={sortControl}
               />
@@ -646,6 +691,8 @@ export function TransactionCardList({
               swipeOpenId={computedSwipeOpenId}
               onSwipeOpen={handleSwipeOpen}
               onSwipeClose={handleSwipeClose}
+              platform={platform}
+              aiIntakeEnabled={aiIntakeEnabled}
             />
           );
         })}
@@ -657,12 +704,24 @@ export function TransactionCardList({
             <div className="flex min-w-0 items-center justify-between gap-2">
               <DrawerTitle
                 className={cn(
-                  "min-w-0 flex-1 break-words text-start font-semibold leading-[1.2] tracking-[-0.01em] line-clamp-2",
+                  showDrawerAiOrigin
+                    ? "flex min-w-0 flex-1 items-center gap-1 text-start font-semibold leading-[1.2] tracking-[-0.01em]"
+                    : "min-w-0 flex-1 break-words text-start font-semibold leading-[1.2] tracking-[-0.01em] line-clamp-2",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
-                {selectedTransaction?.description || t("messages.defaultTransactionName")}
+                {showDrawerAiOrigin ? (
+                  <span className="min-w-0 break-words line-clamp-2">{drawerTitle}</span>
+                ) : (
+                  drawerTitle
+                )}
+                <AiOriginIndicator
+                  origin={selectedTransaction?.origin}
+                  platform={platform}
+                  aiIntakeEnabled={aiIntakeEnabled}
+                  className="shrink-0"
+                />
               </DrawerTitle>
               {selectedTransaction ? (
                 <Badge

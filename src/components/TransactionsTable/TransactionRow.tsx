@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles, Undo2, Receipt } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Undo2, Receipt } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -21,12 +21,14 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { isAiIntakeEnabled, useAiIntakeUi } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { AiOriginIndicator } from "./AiOriginIndicator";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -54,7 +56,9 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const { user } = useAuth();
   const { platform } = usePlatform();
+  const aiIntakeEnabled = useAiIntakeUi(platform, Boolean(user));
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
   const receiptVisible = showReceiptAction({
@@ -99,20 +103,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
           {transaction.description || "-"}
-          {platform === "web" &&
-          isAiIntakeEnabled() &&
-          (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
-            <span
-              className="inline-flex"
-              aria-label={t(
-                transaction.origin === "ai_auto"
-                  ? "filters.originAuto"
-                  : "filters.originAi",
-              )}
-            >
-              <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </span>
-          ) : null}
+          <AiOriginIndicator
+            origin={transaction.origin}
+            platform={platform}
+            aiIntakeEnabled={aiIntakeEnabled}
+          />
         </span>
         {receiptLink ? (
           <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">
