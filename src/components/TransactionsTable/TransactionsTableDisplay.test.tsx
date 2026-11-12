@@ -16,6 +16,7 @@ const {
   deleteTransaction,
   deleteTransactionsBulk,
   updateTransactionsBulk,
+  cardListProps,
 } = vi.hoisted(() => ({
   i18nDir: vi.fn(() => "ltr" as "ltr" | "rtl"),
   api: {
@@ -44,6 +45,7 @@ const {
   deleteTransaction: vi.fn(),
   deleteTransactionsBulk: vi.fn(),
   updateTransactionsBulk: vi.fn(),
+  cardListProps: { showMonthSeparators: undefined as boolean | undefined },
 }));
 
 vi.mock("react-i18next", () => ({
@@ -136,7 +138,15 @@ vi.mock("./ExportButton", () => ({
 }));
 
 vi.mock("./TransactionCardList", () => ({
-  TransactionCardList: () => <div data-testid="transaction-card-list" />,
+  TransactionCardList: (props: { showMonthSeparators?: boolean }) => {
+    cardListProps.showMonthSeparators = props.showMonthSeparators;
+    return (
+      <div
+        data-testid="transaction-card-list"
+        data-show-month-separators={String(props.showMonthSeparators)}
+      />
+    );
+  },
 }));
 
 vi.mock("./TransactionEditModal", () => ({
@@ -323,6 +333,25 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(sortAscending.querySelector(".lucide-arrow-down")).toBeInTheDocument();
     await user.click(sortAscending);
     expect(api.setSorting).toHaveBeenCalledWith("category");
+  });
+
+  it("passes showMonthSeparators only while sorting by date", () => {
+    api.sorting = { field: "date", direction: "desc" };
+    const view = renderDisplay();
+    expect(cardListProps.showMonthSeparators).toBe(true);
+    expect(screen.getByTestId("transaction-card-list")).toHaveAttribute(
+      "data-show-month-separators",
+      "true",
+    );
+
+    view.unmount();
+    api.sorting = { field: "amount", direction: "desc" };
+    renderDisplay();
+    expect(cardListProps.showMonthSeparators).toBe(false);
+    expect(screen.getByTestId("transaction-card-list")).toHaveAttribute(
+      "data-show-month-separators",
+      "false",
+    );
   });
 });
 
