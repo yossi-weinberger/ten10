@@ -10,6 +10,7 @@ import type { TransactionForTable } from "@/types/transaction";
 
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
 const reducedMotion = vi.hoisted(() => ({ current: false }));
+const displayDateSecondary = vi.hoisted(() => ({ current: null as string | null }));
 
 vi.mock("framer-motion", () => ({
   useReducedMotion: () => reducedMotion.current,
@@ -46,6 +47,8 @@ vi.mock("react-i18next", () => ({
       if (key === "messages.loading") return "Loading...";
       if (key === "modal.editDescription") return "Update transaction details";
       if (key === "drawer.detailsDescription") return "Transaction details and actions";
+      if (key === "drawer.editRecurring") return "Edit link";
+      if (key === "drawer.convertedPrefix") return "Converted · ";
       if (key === "row.tooltip.original") return "Original Amount";
       if (key === "row.tooltip.rate") return "Exchange Rate";
       if (key === "row.tooltip.converted") return "Converted Amount";
@@ -96,7 +99,7 @@ vi.mock("@/lib/utils/formatting", () => ({
 vi.mock("@/lib/calendar/use-display-date", () => ({
   useDisplayDate: () => (date: string) => ({
     primary: date,
-    secondary: null,
+    secondary: displayDateSecondary.current,
   }),
 }));
 
@@ -204,6 +207,7 @@ const mockTransactions: TransactionForTable[] = [
 
 describe("TransactionCardList", () => {
   beforeEach(() => {
+    displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
   });
 
@@ -1796,8 +1800,11 @@ describe("TransactionCardList", () => {
     // The recurring badge wrapper should have masking
     const recurringBadge = screen.getByText("Recurring Badge");
     const parent = recurringBadge.parentElement;
+    expect(parent?.tagName).toBe("SPAN");
     expect(parent).toHaveAttribute("data-ph-mask", "");
     expect(parent?.className).toContain("ph-mask");
+    const editRow = recurringBadge.closest("button");
+    expect(editRow?.querySelector("div")).toBeNull();
   });
 });
 
@@ -1834,6 +1841,7 @@ describe("TransactionCardList PostHog masking", () => {
   };
 
   beforeEach(() => {
+    displayDateSecondary.current = null;
     mockUseDonationStore.mockReturnValue(false);
   });
 
@@ -1984,10 +1992,10 @@ describe("TransactionCardList PostHog masking", () => {
 
     await openCard("Charity");
     const drawer = screen.getByRole("dialog");
-    expect(drawer.querySelector(".lucide-calendar-clock")).toBeTruthy();
-    expect(drawer.querySelector(".lucide-coins")).toBeTruthy();
+    expect(drawer.querySelector(".lucide-calendar-clock")).toBeNull();
+    expect(drawer.querySelector(".lucide-coins")).toBeNull();
     expect(drawer.querySelector(".lucide-repeat")).toBeNull();
-    expect(drawer.querySelector(".lucide-refresh-cw")).toBeNull();
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeTruthy();
   });
 
   it("shows the masked original amount under a converted card and omits it otherwise", () => {
@@ -2004,29 +2012,30 @@ describe("TransactionCardList PostHog masking", () => {
     expect(plainCard.querySelector(".lucide-coins")).toBeNull();
   });
 
-  it("renders masked conversion rows for a converted transaction and hides them otherwise", async () => {
+  it("renders one masked conversion pill for a converted transaction and hides it otherwise", async () => {
     renderList([convertedRecurringTransaction]);
     await openCard("Charity");
 
-    expect(screen.getByText("Original Amount")).toBeInTheDocument();
-    expect(screen.getByText("Exchange Rate")).toBeInTheDocument();
-    expect(screen.getByText("Converted Amount")).toBeInTheDocument();
-
-    const originalValues = screen.getAllByText(originalUsd);
-    expect(originalValues.length).toBeGreaterThanOrEqual(2);
-    originalValues.forEach((value) => expectPostHogMask(value));
-
-    expectPostHogMask(screen.getByText("3.70"));
-    expectPostHogMask(screen.getByText(convertedIls));
+    const drawer = screen.getByRole("dialog");
+    const detail = `${originalUsd} × 3.70`;
+    const pillDetail = within(drawer).getByText(detail);
+    expect(pillDetail.tagName).toBe("BDI");
+    expect(pillDetail).toHaveAttribute("dir", "ltr");
+    expectPostHogMask(pillDetail);
+    expect(pillDetail.closest("div")?.textContent).toContain("Converted · ");
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeTruthy();
+    expect(screen.queryByText("Original Amount")).not.toBeInTheDocument();
+    expect(screen.queryByText("Exchange Rate")).not.toBeInTheDocument();
+    expect(screen.queryByText("Converted Amount")).not.toBeInTheDocument();
+    expect(screen.queryByText("Type")).not.toBeInTheDocument();
 
     cleanup();
     renderList([mockTransactions[1]]);
     await openCard("Groceries");
 
-    expect(screen.queryByText("Original Amount")).not.toBeInTheDocument();
-    expect(screen.queryByText("Exchange Rate")).not.toBeInTheDocument();
-    expect(screen.queryByText("Converted Amount")).not.toBeInTheDocument();
+    expect(screen.queryByText("Converted · ", { exact: false })).not.toBeInTheDocument();
     expect(screen.queryByText(originalUsd)).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog").querySelector(".lucide-refresh-cw")).toBeNull();
   });
 
   describe("swipe actions", () => {
@@ -2935,4 +2944,236 @@ const convertedRecurringTransaction: TransactionForTable = {
 };
 
 const originalUsd = formatCurrency(100, "USD", "en");
-const convertedIls = formatCurrency(370, "ILS", "en");
+
+describe("transaction details drawer", () => {
+  const openDrawer = async (transaction: TransactionForTable, trackChomesh = false) => {
+    mockUseDonationStore.mockReturnValue(trackChomesh);
+    render(
+      <TransactionCardList
+        transactions={[transaction]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+    const card = screen.getAllByRole("button").find((item) =>
+      item.textContent?.includes(transaction.description || "this transaction"),
+    );
+    fireEvent.click(card!);
+    await waitFor(() => {
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+    return screen.getByRole("dialog");
+  };
+
+  beforeEach(() => {
+    displayDateSecondary.current = null;
+    mockUseDonationStore.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders conditional rows in desktop column order and omits the type row", async () => {
+    const full: TransactionForTable = {
+      ...mockTransactions[0],
+      recipient: "Employer",
+      is_chomesh: true,
+      recurring_info: mockTransactions[2].recurring_info,
+      source_recurring_id: "rec-full",
+    };
+
+    const drawer = await openDrawer(full, true);
+    const text = drawer.textContent ?? "";
+    const labels = ["Date", "Category", "Recipient", "Payment Method", "Chomesh", "Recurring"];
+    let lastIndex = -1;
+    for (const label of labels) {
+      const index = text.indexOf(label);
+      expect(index).toBeGreaterThan(lastIndex);
+      lastIndex = index;
+    }
+    expect(within(drawer).queryByText("Type")).not.toBeInTheDocument();
+    expect(within(drawer).getByText("Income").className).toContain("bg-green-100");
+    expect(within(drawer).getByText("Edit link")).toBeInTheDocument();
+    expect(within(drawer).queryByText("Edit Recurring")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("-")).not.toBeInTheDocument();
+  });
+
+  it("places the title at the start and the type pill at the end", async () => {
+    const drawer = await openDrawer(mockTransactions[0]);
+    const title = within(drawer).getByRole("heading", { name: "Salary" });
+    expect(title.className).toContain("min-w-0");
+    expect(title.className).toContain("line-clamp-2");
+    expect(title.className).toContain("break-words");
+    expect(title.className).not.toContain("truncate");
+    expectPostHogMask(title);
+    expect(title.parentElement?.className).toContain("justify-between");
+    const pill = within(title.parentElement as HTMLElement).getByText("Income");
+    expect(pill.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
+  });
+
+  it("omits empty, whitespace, and non income or expense rows without leaving a gap marker", async () => {
+    const sparse: TransactionForTable = {
+      ...mockTransactions[1],
+      category: "   ",
+      recipient: "  ",
+      payment_method: "Credit Card",
+      is_chomesh: false,
+      description: "Groceries",
+    };
+
+    const drawer = await openDrawer(sparse, true);
+    expect(within(drawer).getByText("Date")).toBeInTheDocument();
+    expect(within(drawer).getByText("Credit Card")).toBeInTheDocument();
+    expect(within(drawer).queryByText("Category")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("Recipient")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("Chomesh")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("Recurring")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("-")).not.toBeInTheDocument();
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeNull();
+  });
+
+  it("shows a category row only for income and expense families", async () => {
+    const donation = await openDrawer(mockTransactions[2]);
+    expect(within(donation).queryByText("Category")).not.toBeInTheDocument();
+    cleanup();
+
+    const exempt = await openDrawer({
+      ...mockTransactions[0],
+      type: "exempt-income",
+      category: "Salary",
+    });
+    expect(within(exempt).getByText("Category")).toBeInTheDocument();
+    expect(within(exempt).getAllByText("Salary").length).toBeGreaterThanOrEqual(2);
+    cleanup();
+
+    const opening = await openDrawer({
+      ...mockTransactions[0],
+      type: "initial_balance",
+      category: "Salary",
+      description: "Opening",
+    });
+    expect(within(opening).queryByText("Category")).not.toBeInTheDocument();
+  });
+
+  it("stacks the secondary date under the primary date and masks both", async () => {
+    displayDateSecondary.current = "ט׳ בחשוון תשפ״ז";
+    const drawer = await openDrawer(mockTransactions[0]);
+    const primary = within(drawer).getByText("2026-11-01");
+    const secondary = within(drawer).getByText("ט׳ בחשוון תשפ״ז");
+    expect(secondary.className).toContain("block");
+    expect(primary.compareDocumentPosition(secondary) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expectPostHogMask(primary);
+    expectPostHogMask(secondary);
+  });
+
+  it("makes the recurring row the edit target and hides the link when it cannot be edited", async () => {
+    const onEditRecurring = vi.fn();
+    mockUseDonationStore.mockReturnValue(false);
+    render(
+      <TransactionCardList
+        transactions={[mockTransactions[2]]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={onEditRecurring}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Charity/ }));
+    const drawer = await screen.findByRole("dialog");
+    fireEvent.click(within(drawer).getByText("Recurring"));
+    expect(onEditRecurring).toHaveBeenCalledWith("rec1");
+    cleanup();
+
+    const completed: TransactionForTable = {
+      ...mockTransactions[2],
+      recurring_info: {
+        ...mockTransactions[2].recurring_info!,
+        status: "completed",
+      },
+    };
+    render(
+      <TransactionCardList
+        transactions={[completed]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={onEditRecurring}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Charity/ }));
+    const completedDrawer = await screen.findByRole("dialog");
+    expect(within(completedDrawer).queryByText("Edit link")).not.toBeInTheDocument();
+    const completedLabel = within(completedDrawer).getByText("Recurring");
+    expect(completedLabel.closest("button")).toBeNull();
+    const completedBadge = within(completedDrawer).getByText("Recurring Badge");
+    expect(completedBadge.parentElement?.tagName).toBe("SPAN");
+    expect(completedBadge.parentElement).toHaveAttribute("data-ph-mask", "");
+
+    cleanup();
+    const withoutSeries: TransactionForTable = {
+      ...mockTransactions[2],
+      source_recurring_id: null,
+    };
+    const plain = await openDrawer(withoutSeries);
+    expect(within(plain).getByText("Recurring Badge")).toBeInTheDocument();
+    expect(within(plain).queryByText("Edit link")).not.toBeInTheDocument();
+  });
+
+  it("wraps a long title onto two lines and keeps the type pill at the inline end", async () => {
+    const longTitle = "Annual synagogue membership and building fund contribution for the family";
+    const drawer = await openDrawer({
+      ...mockTransactions[0],
+      description: longTitle,
+    });
+    const title = within(drawer).getByRole("heading", { name: longTitle });
+    expect(title.textContent).toBe(longTitle);
+    expect(title.className).toContain("line-clamp-2");
+    expect(title.className).toContain("break-words");
+    expectPostHogMask(title);
+    const pill = within(title.parentElement as HTMLElement).getByText("Income");
+    expect(title.parentElement?.className).toContain("justify-between");
+    expect(pill.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
+  });
+
+  it("shows the conversion pill only when a stored conversion exists", async () => {
+    const converted: TransactionForTable = {
+      ...mockTransactions[0],
+      amount: 77.8,
+      currency: "ILS",
+      original_amount: 25,
+      original_currency: "USD",
+      conversion_rate: 3.11,
+    };
+    const drawer = await openDrawer(converted);
+    const detail = `${formatCurrency(25, "USD", "en")} × 3.11`;
+    const pill = within(drawer).getByText(detail);
+    expect(pill.tagName).toBe("BDI");
+    expect(pill).toHaveAttribute("dir", "ltr");
+    expect(pill.textContent).toBe("$25 × 3.11");
+    expectPostHogMask(pill);
+    expect(drawer.textContent).toContain("Converted · ");
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeTruthy();
+    cleanup();
+
+    const sameCurrency: TransactionForTable = {
+      ...converted,
+      original_currency: "ILS",
+      original_amount: 77.8,
+    };
+    const plain = await openDrawer(sameCurrency);
+    expect(plain.querySelector(".lucide-refresh-cw")).toBeNull();
+    expect(within(plain).queryByText(detail)).not.toBeInTheDocument();
+  });
+});

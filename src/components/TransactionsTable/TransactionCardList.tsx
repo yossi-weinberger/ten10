@@ -13,7 +13,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { BadgeCheck, CalendarClock, Coins, Edit3, Receipt, Trash2, Undo2 } from "lucide-react";
+import { BadgeCheck, CalendarClock, ChevronRight, Coins, Edit3, Receipt, RefreshCw, Trash2, Undo2 } from "lucide-react";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
 import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
@@ -142,6 +142,103 @@ function storedConversion(transaction: TransactionForTable): {
     originalCurrency: transaction.original_currency,
     rate: transaction.conversion_rate,
   };
+}
+
+function categoryFamilyOf(type: TransactionType): "income" | "expense" | null {
+  if (type === "income" || type === "exempt-income") return "income";
+  if (type === "expense" || type === "recognized-expense") return "expense";
+  return null;
+}
+
+function nonEmptyText(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function formatConversionDetail(
+  originalAmount: number,
+  originalCurrency: CurrencyCode,
+  rate: number | null | undefined,
+): string {
+  // en formatting keeps the symbol and amount in one LTR run. he-IL inserts RLM marks that split them.
+  const original = formatCurrency(originalAmount, originalCurrency, "en");
+  if (typeof rate !== "number" || !Number.isFinite(rate)) return original;
+  return `${original} × ${rate.toFixed(2)}`;
+}
+
+const drawerRowClass =
+  "flex min-h-11 w-full items-center justify-between gap-3 py-2 text-start";
+const drawerValueClass =
+  "min-w-0 truncate text-end text-[15px] font-medium leading-[1.3]";
+
+function DrawerField({
+  label,
+  children,
+  maskLabel = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  maskLabel?: boolean;
+}) {
+  return (
+    <div className={drawerRowClass}>
+      <span
+        className={cn(
+          "shrink-0 text-[13px] leading-[1.3] text-muted-foreground",
+          maskLabel && PH_SENSITIVE_PROPS.className,
+        )}
+        data-ph-mask={maskLabel ? PH_SENSITIVE_PROPS["data-ph-mask"] : undefined}
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function maskedDrawerValue(value: string) {
+  return (
+    <div
+      className={cn(drawerValueClass, PH_SENSITIVE_PROPS.className)}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+    >
+      {value}
+    </div>
+  );
+}
+
+function drawerDateValue(primary: string, secondary?: string) {
+  if (!secondary) {
+    return (
+      <bdi
+        className={cn(drawerValueClass, PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        {primary}
+      </bdi>
+    );
+  }
+
+  return (
+    <span className="min-w-0 text-end text-[15px] font-medium leading-[1.3]">
+      <bdi
+        className={PH_SENSITIVE_PROPS.className}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        {primary}
+      </bdi>
+      <bdi
+        className={cn(
+          "mt-0.5 block text-[13px] font-normal leading-[1.3] text-muted-foreground",
+          PH_SENSITIVE_PROPS.className,
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
+        {secondary}
+      </bdi>
+    </span>
+  );
 }
 
 interface TransactionCardProps {
@@ -647,7 +744,6 @@ export function TransactionCardList({
   bulkEditDisabled = false,
 }: TransactionCardListProps) {
   const { t, i18n } = useTranslation("data-tables");
-  const { t: tCurrency } = useTranslation("currency-features");
   const formatDisplayDate = useDisplayDate();
   const calendarType = useEffectiveCalendarType();
   const { platform } = usePlatform();
@@ -949,38 +1045,74 @@ export function TransactionCardList({
 
       <Drawer open={!!selectedTransaction} onOpenChange={(open) => !open && handleCloseDrawer()}>
         <DrawerContent dir={i18n.dir()}>
-          <DrawerHeader className="text-start">
-            <DrawerTitle
-              className={cn(PH_SENSITIVE_PROPS.className)}
-              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-            >
-              {selectedTransaction?.description || t("messages.defaultTransactionName")}
-            </DrawerTitle>
-            {selectedTransaction && (
-              <div
+          <DrawerHeader className="flex flex-col gap-0 p-4 pb-3 text-start sm:text-start">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <DrawerTitle
                 className={cn(
-                  "mt-2 text-2xl font-bold",
-                  selectedConversion && "flex items-center justify-center gap-1",
-                  PH_SENSITIVE_PROPS.className
+                  "min-w-0 flex-1 break-words text-start font-semibold leading-[1.2] tracking-[-0.01em] line-clamp-2",
+                  PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
-                <CurrencyConversionInfo
-                  amount={selectedTransaction.amount}
-                  currency={selectedTransaction.currency}
-                  originalAmount={selectedTransaction.original_amount}
-                  originalCurrency={selectedTransaction.original_currency}
-                  conversionRate={selectedTransaction.conversion_rate}
-                  conversionDate={selectedTransaction.conversion_date}
-                  rateSource={selectedTransaction.rate_source}
-                  mode="static"
-                  showConversionIcon={!selectedConversion}
-                />
+                {selectedTransaction?.description || t("messages.defaultTransactionName")}
+              </DrawerTitle>
+              {selectedTransaction ? (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "shrink-0 whitespace-nowrap border",
+                    typeBadgeColors[selectedTransaction.type],
+                  )}
+                >
+                  {t(`types.${selectedTransaction.type}`, selectedTransaction.type)}
+                </Badge>
+              ) : null}
+            </div>
+            {selectedTransaction ? (
+              <div className="mt-3 text-center">
+                <div
+                  className={cn(
+                    "text-[32px] font-bold leading-[1.15]",
+                    PH_SENSITIVE_PROPS.className,
+                  )}
+                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                >
+                  <CurrencyConversionInfo
+                    amount={selectedTransaction.amount}
+                    currency={selectedTransaction.currency}
+                    originalAmount={selectedTransaction.original_amount}
+                    originalCurrency={selectedTransaction.original_currency}
+                    conversionRate={selectedTransaction.conversion_rate}
+                    conversionDate={selectedTransaction.conversion_date}
+                    rateSource={selectedTransaction.rate_source}
+                    mode="static"
+                    showConversionIcon={false}
+                  />
+                </div>
                 {selectedConversion ? (
-                  <Coins className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                  <Badge
+                    variant="outline"
+                    className="mt-2 gap-[5px] whitespace-nowrap border-[hsl(182_30%_78%)] bg-[hsl(182_40%_93%)] py-[3px] pe-2 ps-2.5 text-[13px] font-semibold leading-[1.3] text-primary hover:bg-[hsl(182_40%_93%)]"
+                  >
+                    <RefreshCw className="size-[13px] shrink-0" aria-hidden="true" />
+                    <span>
+                      {t("drawer.convertedPrefix")}
+                      <bdi
+                        dir="ltr"
+                        className={PH_SENSITIVE_PROPS.className}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {formatConversionDetail(
+                          selectedConversion.originalAmount,
+                          selectedConversion.originalCurrency,
+                          selectedConversion.rate,
+                        )}
+                      </bdi>
+                    </span>
+                  </Badge>
                 ) : null}
               </div>
-            )}
+            ) : null}
             <DrawerDescription className="sr-only">
               {t("drawer.detailsDescription")}
             </DrawerDescription>
@@ -1001,183 +1133,125 @@ export function TransactionCardList({
               onUndoAi &&
               canUndoAiTransaction(selectedTransaction) &&
               (selectedTransaction.origin === "ai" || selectedTransaction.origin === "ai_auto");
+            const displayDate = formatDisplayDate(selectedTransaction.date, "numeric");
+            const categoryFamily = categoryFamilyOf(selectedTransaction.type);
+            const categoryLabel = categoryFamily
+              ? nonEmptyText(
+                  formatCategory(
+                    categoryFamily,
+                    selectedTransaction.category,
+                    i18n.language,
+                    "",
+                  ),
+                )
+              : null;
+            const recipient = nonEmptyText(selectedTransaction.recipient);
+            const paymentLabel = selectedTransaction.payment_method
+              ? nonEmptyText(
+                  formatPaymentMethod(
+                    selectedTransaction.payment_method,
+                    i18n.language,
+                    "",
+                  ),
+                )
+              : null;
+            const showChomesh = trackChomeshSeparately && !!selectedTransaction.is_chomesh;
+            const recurring = selectedTransaction.recurring_info;
+            const canEditRecurring = Boolean(selectedTransaction.source_recurring_id);
+            const recurringBadge = recurring ? (
+              <span
+                className={cn("inline-flex [&_svg]:!size-3", PH_SENSITIVE_PROPS.className)}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <RecurringProgressBadge
+                  status={recurring.status}
+                  type={selectedTransaction.type}
+                  executionCount={recurring.execution_count}
+                  totalOccurrences={recurring.total_occurrences}
+                  occurrenceNumber={selectedTransaction.occurrence_number}
+                  frequency={recurring.frequency}
+                  dayOfMonth={recurring.day_of_month}
+                />
+              </span>
+            ) : null;
+            const hasExtraActions = Boolean(
+              receiptVisible || receiptLink || receiptNote || showUndoAi,
+            );
 
             return (
-            <div className="space-y-3 px-4 pb-4">
-              <div className="grid gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.date")}</span>
-                  <span
-                    className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {(() => {
-                      const displayDate = formatDisplayDate(selectedTransaction.date, "numeric");
-                      return displayDate.secondary
-                        ? `${displayDate.primary} (${displayDate.secondary})`
-                        : displayDate.primary;
-                    })()}
-                  </span>
-                </div>
+            <div className="px-4">
+              <div className="[&>*]:border-t [&>*]:border-border [&>*:last-child]:border-b">
+                <DrawerField label={t("columns.date")}>
+                  {drawerDateValue(displayDate.primary, displayDate.secondary)}
+                </DrawerField>
 
-                {selectedConversion && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{tCurrency("row.tooltip.original")}</span>
-                      <span
-                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
-                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                      >
-                        {formatCurrency(
-                          selectedConversion.originalAmount,
-                          selectedConversion.originalCurrency,
-                          i18n.language
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{tCurrency("row.tooltip.rate")}</span>
-                      <span
-                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
-                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                      >
-                        {selectedConversion.rate?.toFixed(2) || "-"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{tCurrency("row.tooltip.converted")}</span>
-                      <span
-                        className={cn("font-medium", PH_SENSITIVE_PROPS.className)}
-                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                      >
-                        {formatCurrency(
-                          selectedTransaction.amount,
-                          selectedTransaction.currency,
-                          i18n.language
-                        )}
-                      </span>
-                    </div>
-                  </>
-                )}
+                {categoryLabel ? (
+                  <DrawerField label={t("columns.category")}>
+                    {maskedDrawerValue(categoryLabel)}
+                  </DrawerField>
+                ) : null}
 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("columns.type")}</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "border",
-                      typeBadgeColors[selectedTransaction.type]
-                    )}
-                  >
-                    {t(`types.${selectedTransaction.type}`, selectedTransaction.type)}
-                  </Badge>
-                </div>
+                {recipient ? (
+                  <DrawerField label={t("columns.recipient")}>
+                    {maskedDrawerValue(recipient)}
+                  </DrawerField>
+                ) : null}
 
-                {selectedTransaction.category && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.category")}</span>
-                    <span
-                      className={cn(PH_SENSITIVE_PROPS.className)}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      {formatCategory(
-                        selectedTransaction.type === "income" || selectedTransaction.type === "exempt-income" ? "income"
-                          : selectedTransaction.type === "expense" || selectedTransaction.type === "recognized-expense" ? "expense"
-                          : undefined,
-                        selectedTransaction.category,
-                        i18n.language,
-                        ""
-                      )}
-                    </span>
-                  </div>
-                )}
+                {paymentLabel ? (
+                  <DrawerField label={t("columns.paymentMethod")}>
+                    {maskedDrawerValue(paymentLabel)}
+                  </DrawerField>
+                ) : null}
 
-                {selectedTransaction.recipient && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.recipient")}</span>
-                    <span
-                      className={cn(PH_SENSITIVE_PROPS.className)}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      {selectedTransaction.recipient}
-                    </span>
-                  </div>
-                )}
-
-                {selectedTransaction.payment_method && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.paymentMethod")}</span>
-                    <span
-                      className={cn(PH_SENSITIVE_PROPS.className)}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      {formatPaymentMethod(
-                        selectedTransaction.payment_method,
-                        i18n.language,
-                        ""
-                      )}
-                    </span>
-                  </div>
-                )}
-
-                {trackChomeshSeparately && selectedTransaction.is_chomesh && (
-                  <div className="flex justify-between">
-                    <span
+                {showChomesh ? (
+                  <DrawerField label={t("cards.chomesh")} maskLabel>
+                    <div
                       className={cn(
-                        "text-muted-foreground",
-                        PH_SENSITIVE_PROPS.className
+                        "flex shrink-0 justify-end",
+                        PH_SENSITIVE_PROPS.className,
                       )}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      {t("columns.chomesh")}
-                    </span>
-                    <span
-                      className={cn(PH_SENSITIVE_PROPS.className)}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                     >
                       {formatBoolean(selectedTransaction.is_chomesh)}
-                    </span>
-                  </div>
-                )}
+                    </div>
+                  </DrawerField>
+                ) : null}
 
-                {selectedTransaction.recurring_info && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("columns.recurring")}</span>
-                    <span
-                      className={cn(PH_SENSITIVE_PROPS.className)}
-                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                    >
-                      <RecurringProgressBadge
-                        status={selectedTransaction.recurring_info.status}
-                        type={selectedTransaction.type}
-                        executionCount={selectedTransaction.recurring_info.execution_count}
-                        totalOccurrences={selectedTransaction.recurring_info.total_occurrences}
-                        occurrenceNumber={selectedTransaction.occurrence_number}
-                        frequency={selectedTransaction.recurring_info.frequency}
-                        dayOfMonth={selectedTransaction.recurring_info.day_of_month}
-                      />
+                {recurring && canEditRecurring && recurring.status !== "completed" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={cn(
+                      drawerRowClass,
+                      "h-auto min-w-0 rounded-none px-0 font-normal shadow-none hover:bg-transparent hover:text-foreground",
+                    )}
+                    onClick={handleEditRecurring}
+                    disabled={isFetchingRec}
+                  >
+                    <span className="shrink-0 text-[13px] font-normal leading-[1.3] text-muted-foreground">
+                      {t("columns.recurring")}
                     </span>
-                  </div>
-                )}
+                    <span className="flex min-w-0 items-center justify-end gap-2">
+                      {recurringBadge}
+                      <span className="inline-flex shrink-0 items-center gap-0.5 text-[15px] font-semibold leading-none text-primary">
+                        {isFetchingRec ? t("messages.loading") : t("drawer.editRecurring")}
+                        {isFetchingRec ? null : (
+                          <ChevronRight className="size-4 rtl:rotate-180" aria-hidden="true" />
+                        )}
+                      </span>
+                    </span>
+                  </Button>
+                ) : null}
+
+                {recurring && (!canEditRecurring || recurring.status === "completed") ? (
+                  <DrawerField label={t("columns.recurring")}>
+                    {recurringBadge}
+                  </DrawerField>
+                ) : null}
               </div>
 
-              {selectedTransaction.source_recurring_id && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleEditRecurring}
-                  disabled={
-                    isFetchingRec ||
-                    selectedTransaction.recurring_info?.status === "completed"
-                  }
-                >
-                  <CalendarClock className="me-2 h-4 w-4" />
-                  {isFetchingRec
-                    ? t("messages.loading")
-                    : t("actions.editRecurring")}
-                </Button>
-              )}
-
+              {hasExtraActions ? (
+              <div className="mt-3 space-y-3 pb-4">
               {receiptVisible && (
                 <Button
                   variant="outline"
@@ -1222,11 +1296,13 @@ export function TransactionCardList({
                   {t("actions.undoAi")}
                 </Button>
               )}
+              </div>
+              ) : null}
             </div>
             );
           })()}
 
-          <DrawerFooter className="flex-row gap-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <DrawerFooter className="flex-row gap-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <Button variant="default" onClick={handleEdit} className="h-11 flex-1">
               <Edit3 className="me-2 h-4 w-4" />
               {t("actions.edit")}
