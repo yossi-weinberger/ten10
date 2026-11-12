@@ -20,6 +20,11 @@ export interface MobileSortPickerProps<Field extends string = string> {
   onChange: (field: Field) => void;
 }
 
+/** False keeps the menu on side="bottom"; collision detection must not flip it upward. */
+const SORT_MENU_AVOID_COLLISIONS = false;
+/** Keeps a bottom-placed menu above the assistant button (24px offset + 56px button + 8px gap). */
+const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 88 } as const;
+
 function sortDirectionPresentation(direction: "asc" | "desc"): {
   actionLabelKey: "sort.ascending" | "sort.descending";
   Icon: typeof ArrowUp;
@@ -74,10 +79,11 @@ export function MobileSortPicker<Field extends string>({
         </DropdownMenuTrigger>
         <DropdownMenuContent
           side="bottom"
-          avoidCollisions
-          collisionPadding={8}
+          avoidCollisions={SORT_MENU_AVOID_COLLISIONS}
+          data-avoid-collisions={String(SORT_MENU_AVOID_COLLISIONS)}
+          collisionPadding={SORT_MENU_COLLISION_PADDING}
           align="start"
-          className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
+          className="z-[60] w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
         >
           {fields.map((option) => {
             const selected = option.field === field;
