@@ -5,6 +5,8 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileSortPicker } from "@/components/MobileSortPicker";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 import {
   COARSE_POINTER_QUERY,
   MOBILE_CARD_QUERY,
@@ -16,6 +18,10 @@ import { RecurringCardList } from "./RecurringCardList";
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
 const i18nLanguage = vi.hoisted(() => ({ current: "en" }));
 const trackChomesh = vi.hoisted(() => ({ current: false }));
+const displayCalendar = vi.hoisted(() => ({
+  calendarType: "gregorian" as "gregorian" | "hebrew",
+  showSecondaryDate: false,
+}));
 
 vi.mock("framer-motion", () => ({
   useReducedMotion: () => false,
@@ -38,12 +44,21 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@/lib/store", () => ({
   useDonationStore: (
-    selector: (state: { settings: { trackChomeshSeparately: boolean } }) => unknown,
-  ) => selector({ settings: { trackChomeshSeparately: trackChomesh.current } }),
-}));
-
-vi.mock("@/lib/calendar/use-display-date", () => ({
-  useDisplayDate: () => (date: string) => ({ primary: date, secondary: null }),
+    selector: (state: {
+      settings: {
+        trackChomeshSeparately: boolean;
+        calendarType: "gregorian" | "hebrew";
+        showSecondaryDate: boolean;
+      };
+    }) => unknown,
+  ) =>
+    selector({
+      settings: {
+        trackChomeshSeparately: trackChomesh.current,
+        calendarType: displayCalendar.calendarType,
+        showSecondaryDate: displayCalendar.showSecondaryDate,
+      },
+    }),
 }));
 
 vi.mock("@/components/Currency/CurrencyConversionInfo", () => ({
@@ -202,6 +217,9 @@ beforeEach(() => {
   i18nDir.current = "ltr";
   i18nLanguage.current = "en";
   trackChomesh.current = false;
+  displayCalendar.calendarType = "gregorian";
+  displayCalendar.showSecondaryDate = false;
+  useCalendarPreview.getState().clearPreview();
   vi.stubGlobal("matchMedia", phoneMatchMedia(false));
   vi.setSystemTime(new Date("2026-11-12T12:00:00Z"));
 });
@@ -232,8 +250,11 @@ describe("RecurringCardList", () => {
     expectMasked(screen.getByText("100 ILS").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("recurring.frequencies.monthly").closest("[data-ph-mask]"));
     expect(screen.queryByText("recurring.calendars.gregorian")).not.toBeInTheDocument();
-    expectMasked(screen.getByText("cards.nextShort:2/1").closest("[data-ph-mask]"));
-    expect(card.textContent).not.toContain("recurring.statuses.active");
+    expectMasked(screen.getByText("cards.nextShort:01/02").closest("[data-ph-mask]"));
+    const cardStatus = within(card).getByText("recurring.statuses.active");
+    expect(cardStatus).toHaveClass("sr-only");
+    expect(cardStatus.closest("[data-ph-mask]")).toBeNull();
+    expect(card).toHaveAccessibleName(expect.stringContaining("recurring.statuses.active"));
 
     const statuses = screen.getAllByText("recurring.statuses.active");
     expect(statuses.length).toBeGreaterThan(0);
@@ -269,7 +290,62 @@ describe("RecurringCardList", () => {
     const card = cardTitled("Rent");
     expect(card.className).toContain("bg-green-50");
     expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
-    expectMasked(screen.getByText("cards.nextShort:5/3/2027").closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("cards.nextShort:05/03/2027").closest("[data-ph-mask]"));
+  });
+
+  it("follows the Gregorian display calendar and a masked Hebrew secondary date", () => {
+    displayCalendar.showSecondaryDate = true;
+    render(
+      <RecurringCardList
+        recurring={[recurringRow({ id: "rent", next_due_date: "2026-02-01" })]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const secondary = formatDisplayDate("2026-02-01", {
+      calendarType: "gregorian",
+      showSecondaryDate: true,
+      language: "en",
+      style: "numeric",
+    }).secondary;
+    expectMasked(screen.getByText("cards.nextShort:01/02").closest("[data-ph-mask]"));
+    expect(secondary).toBeTruthy();
+    expectMasked(screen.getByText(secondary ?? "").closest("[data-ph-mask]"));
+  });
+
+  it("follows the Hebrew display calendar and shortens a Gregorian secondary date", () => {
+    displayCalendar.calendarType = "hebrew";
+    displayCalendar.showSecondaryDate = true;
+    i18nLanguage.current = "en";
+    render(
+      <RecurringCardList
+        recurring={[
+          recurringRow({ id: "rent", next_due_date: "2026-02-01" }),
+          recurringRow({ id: "later", description: "Later", next_due_date: "2027-03-05" }),
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const current = formatDisplayDate("2026-02-01", {
+      calendarType: "hebrew",
+      showSecondaryDate: true,
+      language: "en",
+      style: "numeric",
+    });
+    const later = formatDisplayDate("2027-03-05", {
+      calendarType: "hebrew",
+      showSecondaryDate: true,
+      language: "en",
+      style: "numeric",
+    });
+    expectMasked(screen.getByText(`cards.nextShort:${current.primary}`).closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("01/02").closest("[data-ph-mask]"));
+    expect(screen.queryByText("01/02/2026")).not.toBeInTheDocument();
+    expectMasked(screen.getByText(`cards.nextShort:${later.primary}`).closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("05/03/2027").closest("[data-ph-mask]"));
   });
 
   it("keeps chomesh and category in the drawer only, and masks every sensitive drawer value", async () => {
@@ -301,7 +377,7 @@ describe("RecurringCardList", () => {
     expectMasked(within(drawer).getByText("School fees").closest("[data-ph-mask]"));
     expectMasked(within(drawer).getByText("Ada").closest("[data-ph-mask]"));
     expectMasked(within(drawer).getByText("family-card").closest("[data-ph-mask]"));
-    expectMasked(within(drawer).getByText("2026-01-01").closest("[data-ph-mask]"));
+    expectMasked(within(drawer).getByText("01/01/2026").closest("[data-ph-mask]"));
     expectMasked(within(drawer).getByText("cards.chomesh").closest("[data-ph-mask]"));
     const chomeshIcon = drawer.querySelector(".lucide-badge-check");
     expect(chomeshIcon).not.toBeNull();

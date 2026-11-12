@@ -422,11 +422,19 @@ export function RecurringTransactionsTableDisplay() {
     }
   }, [clearSelection, selectionScopeKey]);
 
+  const [cardNextDueDirection, setCardNextDueDirection] = useState<"asc" | "desc">("asc");
   const handleSort = useCallback(
     (field: SortableField) => {
+      // Cards hide status. Keep the desktop status sort, and apply next-due locally.
+      if (useMobileCards && sorting.field === "status") {
+        if (field === "next_due_date") {
+          setCardNextDueDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+          return;
+        }
+      }
       setSorting(field);
     },
-    [setSorting]
+    [setSorting, sorting.field, useMobileCards]
   );
 
   const sortableColumns = useMemo(
@@ -475,9 +483,16 @@ export function RecurringTransactionsTableDisplay() {
     [sortableColumns]
   );
   const cardSort =
-    sorting.field === "status"
-      ? { field: "next_due_date" as const, direction: "asc" as const }
+    useMobileCards && sorting.field === "status"
+      ? { field: "next_due_date" as const, direction: cardNextDueDirection }
       : sorting;
+  const visibleRecurring = useMemo(() => {
+    if (!(useMobileCards && sorting.field === "status")) return recurring;
+    const factor = cardNextDueDirection === "asc" ? 1 : -1;
+    return [...recurring].sort(
+      (a, b) => a.next_due_date.localeCompare(b.next_due_date) * factor,
+    );
+  }, [cardNextDueDirection, recurring, sorting.field, useMobileCards]);
 
   const sortControl = (
     <MobileSortPicker
@@ -496,7 +511,7 @@ export function RecurringTransactionsTableDisplay() {
 
       {useMobileCards ? (
         <RecurringCardList
-          recurring={recurring}
+          recurring={visibleRecurring}
           loading={loading}
           error={error}
           sortControl={sortControl}

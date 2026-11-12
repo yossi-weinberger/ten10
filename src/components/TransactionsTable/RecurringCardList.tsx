@@ -150,18 +150,14 @@ function formatConversionDetail(
   return `${original} × ${rate.toFixed(2)}`;
 }
 
-/** Month/day for English, day/month for Hebrew. The year is kept only outside the current year. */
-function formatCardDue(isoDate: string, language: string, today: Date): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
-  if (!match) return isoDate;
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return isoDate;
-  const hebrew = language.toLowerCase().startsWith("he");
-  const core = hebrew ? `${day}/${month}` : `${month}/${day}`;
-  if (year === today.getFullYear()) return core;
-  return `${core}/${year}`;
+const GREGORIAN_NUMERIC = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+/** Gregorian numeric dates drop the year inside the current year. Hebrew text stays as formatted. */
+function shortenGregorianYear(value: string, today: Date): string {
+  const match = GREGORIAN_NUMERIC.exec(value);
+  if (!match) return value;
+  if (Number(match[3]) !== today.getFullYear()) return value;
+  return `${match[1]}/${match[2]}`;
 }
 
 function MaskedText({
@@ -385,9 +381,14 @@ export function RecurringCardList({
           }
 
           const row = item.item;
+          const displayDue = formatDisplayDate(row.next_due_date, "numeric");
+          const today = new Date();
           const nextDueLabel = t("cards.nextShort", {
-            date: formatCardDue(row.next_due_date, i18n.language, new Date()),
+            date: shortenGregorianYear(displayDue.primary, today),
           });
+          const secondaryDue = displayDue.secondary
+            ? shortenGregorianYear(displayDue.secondary, today)
+            : null;
           const isSelected = selectedIds.has(row.id);
           const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;
@@ -431,6 +432,9 @@ export function RecurringCardList({
                 <MaskedText className="block truncate font-medium">
                   {row.description || "-"}
                 </MaskedText>
+                <span className="sr-only">
+                  {t(`recurring.statuses.${row.status}`, row.status)}
+                </span>
                 <div className="mt-0.5 flex flex-nowrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
                   <MaskedText className="min-w-0 truncate">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
@@ -448,6 +452,9 @@ export function RecurringCardList({
                     </Badge>
                   ) : null}
                   <MaskedText className="shrink-0">{nextDueLabel}</MaskedText>
+                  {secondaryDue ? (
+                    <MaskedText className="min-w-0 truncate">{secondaryDue}</MaskedText>
+                  ) : null}
                   <span className="shrink-0">
                     <RecurringProgressBadge
                       status={row.status}

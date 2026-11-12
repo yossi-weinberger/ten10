@@ -408,7 +408,10 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
 
   it("hides status in the mobile sort picker and keeps a status sort on the desktop table", async () => {
     api.sorting = { field: "status", direction: "desc" };
-    api.recurring = [recurringRow({ id: "active-1", description: "Rent" })];
+    api.recurring = [
+      recurringRow({ id: "late", description: "Later", next_due_date: "2026-05-01" }),
+      recurringRow({ id: "early", description: "Earlier", next_due_date: "2026-01-01" }),
+    ];
     const user = userEvent.setup();
     render(<RecurringTransactionsTableDisplay />);
 
@@ -422,6 +425,14 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
 
     setCardMatches(true);
 
+    const cardTitles = () =>
+      screen
+        .getAllByRole("button")
+        .map((button) => button.textContent ?? "")
+        .filter((text) => text.includes("Earlier") || text.includes("Later"));
+    expect(cardTitles()[0]).toContain("Earlier");
+    expect(cardTitles()[1]).toContain("Later");
+
     const trigger = screen.getByRole("button", { name: "sort.sortBy: recurringColumns.nextDueDate" });
     await user.click(trigger);
     const menu = await screen.findByRole("menu");
@@ -434,6 +445,9 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
       "aria-checked",
       "true",
     );
+    await user.click(within(menu).getByRole("menuitemradio", { name: "sort.directions.dateDesc" }));
+    expect(cardTitles()[0]).toContain("Later");
+    expect(cardTitles()[1]).toContain("Earlier");
     expect(api.setSorting).not.toHaveBeenCalled();
     expect(api.sorting).toEqual({ field: "status", direction: "desc" });
 
