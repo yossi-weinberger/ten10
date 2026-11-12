@@ -75,6 +75,7 @@ const isSpecialType = (type: TransactionType): boolean => {
 
 const SWIPE_ACTION_FALLBACK_WIDTH = 128;
 const SWIPE_OPEN_THRESHOLD = 50;
+const SWIPE_RELEASE_MS = 200;
 
 function clampOpenOffset(value: number, width: number): number {
   return Math.min(Math.max(value, 0), width);
@@ -84,6 +85,26 @@ function clampOpenOffset(value: number, width: number): number {
 // RTL content moves right, so the same offset is mirrored.
 function contentTranslateX(openOffset: number, isRTL: boolean): number {
   return isRTL ? openOffset : -openOffset;
+}
+
+function parseTranslateX(transform: string): number | null {
+  if (!transform || transform === "none") return null;
+  const translate = /translate(?:3d|X)\(\s*([-\d.]+)px/.exec(transform);
+  if (translate) return Number(translate[1]);
+  const matrix = /matrix(?:3d)?\(([^)]+)\)/.exec(transform);
+  if (!matrix) return null;
+  const parts = matrix[1].split(",").map((part) => Number(part.trim()));
+  const value = parts.length === 16 ? parts[12] : parts[4];
+  return Number.isFinite(value) ? value : null;
+}
+
+// Prefer the painted position. Falling back to the specified transform covers
+// environments that do not interpolate transitions.
+function visualOpenOffset(el: HTMLElement, isRTL: boolean, width: number): number {
+  const painted = parseTranslateX(window.getComputedStyle(el).transform);
+  const specified = parseTranslateX(el.style.transform);
+  const x = painted ?? specified ?? 0;
+  return clampOpenOffset(isRTL ? x : -x, width);
 }
 
 function storedConversion(transaction: TransactionForTable): {
@@ -183,10 +204,13 @@ const TransactionCard = memo(function TransactionCard({
       : 0;
   const targetX = isMobileSwipeEnabled ? contentTranslateX(logicalOffset, isRTL) : 0;
   const contentRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const renderedXRef = useRef(targetX);
+  const actionsConcealed = !isDragging && !isSwipeOpen;
 
   // A transition added in the same commit as translateX does not run. Rewind
-  // to the previous offset, flush layout, then let the class ease to targetX.
+  // to the previous offset, flush layout, then ease. Clear the inline
+  // transition once the release has settled so the next drag is not eased.
   useLayoutEffect(() => {
     const from = renderedXRef.current;
     renderedXRef.current = targetX;
@@ -194,14 +218,18 @@ const TransactionCard = memo(function TransactionCard({
     if (!el) return;
     const shouldEase = !isDragging && reduceMotion === false && from !== targetX;
     if (!shouldEase) {
-      el.style.transition = "none";
+      el.style.transition = isDragging || reduceMotion !== false ? "none" : "";
       return;
     }
     el.style.transition = "none";
     el.style.transform = `translateX(${from}px)`;
     void el.getBoundingClientRect();
-    el.style.transition = "";
+    el.style.transition = `transform ${SWIPE_RELEASE_MS}ms ease-out`;
     el.style.transform = `translateX(${targetX}px)`;
+    const timer = window.setTimeout(() => {
+      el.style.transition = "";
+    }, SWIPE_RELEASE_MS);
+    return () => window.clearTimeout(timer);
   }, [isDragging, reduceMotion, targetX]);
 
   useEffect(() => {
@@ -229,7 +257,18 @@ const TransactionCard = memo(function TransactionCard({
 
   const swipeHandlers = useSwipe({
     onSwipeStart: () => {
-      dragBaseRef.current = isSwipeOpen ? swipeOffset : 0;
+      const el = contentRef.current;
+      const visualOffset = el
+        ? visualOpenOffset(el, isRTL, actionButtonsWidth)
+        : (isSwipeOpen ? swipeOffset : 0);
+      const pinnedX = contentTranslateX(visualOffset, isRTL);
+      dragBaseRef.current = visualOffset;
+      renderedXRef.current = pinnedX;
+      if (el) {
+        el.style.transition = "none";
+        el.style.transform = `translateX(${pinnedX}px)`;
+      }
+      setSwipeOffset(visualOffset);
       setIsDragging(true);
       swipeTriggeredRef.current = true;
     },
@@ -322,11 +361,19 @@ const TransactionCard = memo(function TransactionCard({
     onCardClick(transaction);
   };
 
+  const releaseStripFocus = () => {
+    const active = document.activeElement;
+    if (active instanceof Node && actionsRef.current?.contains(active)) {
+      cardRef.current?.focus();
+    }
+  };
+
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (actionsInert) return;
     onEdit(transaction);
     onSwipeClose();
+    releaseStripFocus();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -334,10 +381,12 @@ const TransactionCard = memo(function TransactionCard({
     if (actionsInert) return;
     onDelete(transaction);
     onSwipeClose();
+    releaseStripFocus();
   };
 
   const card = (
       <Card
+        ref={cardRef}
         role="button"
         tabIndex={0}
         aria-selected={inSelectionMode ? isSelected : undefined}
@@ -491,6 +540,7 @@ const TransactionCard = memo(function TransactionCard({
         ref={actionsRef}
         className={cn(
           "hidden max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2",
+          actionsConcealed && "max-md:[@media(pointer:coarse)]:invisible",
           actionsInert && "pointer-events-none"
         )}
         aria-hidden={actionsInert}
