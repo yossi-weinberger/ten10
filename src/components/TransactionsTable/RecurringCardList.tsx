@@ -462,8 +462,6 @@ export function RecurringCardList({
                   {row.calendar_type === "hebrew" ? (
                     <Badge
                       variant="secondary"
-                      title={t("recurring.calendars.hebrew")}
-                      aria-label={t("recurring.calendars.hebrew")}
                       className={cn(
                         "h-3 min-w-0 max-w-[5rem] shrink truncate px-1 py-0 text-[9px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,

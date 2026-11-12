@@ -15,6 +15,30 @@ import {
 import type { RecurringTransaction } from "@/types/transaction";
 import { RecurringCardList } from "./RecurringCardList";
 
+/** PostHog masks text nodes, not attributes — masked values must not leak into attrs. */
+function assertMaskedValuesStayOutOfAttributes(root: ParentNode) {
+  const ATTRS = new Set(["title", "aria-label"]);
+  root.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
+    const maskedValue = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (maskedValue.length < 2) return;
+    const nodes = [el, ...el.querySelectorAll("*")];
+    for (const node of nodes) {
+      for (const attr of node.attributes) {
+        if (attr.name === "class" || attr.name === "data-ph-mask") continue;
+        const isDataAttr =
+          attr.name.startsWith("data-") &&
+          attr.name !== "data-state" &&
+          attr.name !== "data-swipe-row";
+        if (!ATTRS.has(attr.name) && !isDataAttr) continue;
+        expect(
+          attr.value,
+          `${attr.name} on <${node.tagName.toLowerCase()}> must not contain masked "${maskedValue}"`,
+        ).not.toContain(maskedValue);
+      }
+    }
+  });
+}
+
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
 const i18nLanguage = vi.hoisted(() => ({ current: "en" }));
 const trackChomesh = vi.hoisted(() => ({ current: false }));
@@ -311,8 +335,43 @@ describe("RecurringCardList", () => {
     expect(card.innerHTML).not.toContain("min-w-fit");
     expect(card.className).not.toContain("bg-green-50");
     expect(card.querySelector(".bg-green-100")).toBeTruthy();
-    expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
+    const hebrewBadge = screen.getByText("recurring.calendars.hebrew");
+    expectMasked(hebrewBadge.closest("[data-ph-mask]"));
+    expect(hebrewBadge.closest("[title]")).toBeNull();
+    expect(hebrewBadge.closest("[aria-label]")).toBeNull();
+    expect(hebrewBadge.getAttribute("title")).toBeNull();
+    expect(hebrewBadge.getAttribute("aria-label")).toBeNull();
     expectMasked(screen.getByText("cards.nextShort:05/03/2027").closest("[data-ph-mask]"));
+    assertMaskedValuesStayOutOfAttributes(document.body);
+  });
+
+  it("does not put masked recurring values into title, aria-label, or data-* attributes", () => {
+    i18nLanguage.current = "he";
+    const { container } = render(
+      <RecurringCardList
+        recurring={[
+          recurringRow({
+            id: "rent",
+            description: "Secret rent description",
+            calendar_type: "hebrew",
+            next_due_date: "2027-03-05",
+            type: "income",
+            amount: 1234.56,
+          }),
+          recurringRow({
+            id: "usd",
+            description: "Secret usd donation",
+            type: "donation",
+            amount: 100,
+            currency: "USD",
+          }),
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    assertMaskedValuesStayOutOfAttributes(container);
   });
 
   it("follows the Gregorian display calendar and a masked Hebrew secondary date", () => {

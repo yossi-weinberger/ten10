@@ -333,39 +333,32 @@ const TransactionCard = memo(function TransactionCard({
             {displayDate.primary}
           </span>
           {categoryText && (
-            <>
-              <span className="shrink-0" aria-hidden="true">
-                ·
-              </span>
-              <span
-                className={cn(
-                  "min-w-0 flex-1 truncate",
-                  PH_SENSITIVE_PROPS.className,
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                {categoryText}
-              </span>
-            </>
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <span aria-hidden="true">· </span>
+              {categoryText}
+            </span>
           )}
           {transaction.recurring_info && (
-            <>
-              <span className="shrink-0" aria-hidden="true">
-                ·
-              </span>
-              <span
-                className={cn("shrink-0", PH_SENSITIVE_PROPS.className)}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
-              </span>
-            </>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-px",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <span aria-hidden="true">·</span>
+              <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
+            </span>
           )}
           {isSpecialType(transaction.type) && (
             <Badge
               variant="outline"
-              title={t(`types.${transaction.type}`, transaction.type)}
-              aria-label={t(`types.${transaction.type}`, transaction.type)}
               className={cn(
                 "h-3 min-w-0 max-w-[7.5rem] shrink truncate border px-1 py-0 text-[9px] leading-none",
                 typeBadgeColors[transaction.type as TransactionType],

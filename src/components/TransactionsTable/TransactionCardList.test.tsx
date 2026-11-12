@@ -10,6 +10,30 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
 
+/** PostHog masks text nodes, not attributes — masked values must not leak into attrs. */
+function assertMaskedValuesStayOutOfAttributes(root: ParentNode) {
+  const ATTRS = new Set(["title", "aria-label"]);
+  root.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
+    const maskedValue = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (maskedValue.length < 2) return;
+    const nodes = [el, ...el.querySelectorAll("*")];
+    for (const node of nodes) {
+      for (const attr of node.attributes) {
+        if (attr.name === "class" || attr.name === "data-ph-mask") continue;
+        const isDataAttr =
+          attr.name.startsWith("data-") &&
+          attr.name !== "data-state" &&
+          attr.name !== "data-swipe-row";
+        if (!ATTRS.has(attr.name) && !isDataAttr) continue;
+        expect(
+          attr.value,
+          `${attr.name} on <${node.tagName.toLowerCase()}> must not contain masked "${maskedValue}"`,
+        ).not.toContain(maskedValue);
+      }
+    }
+  });
+}
+
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
 const reducedMotion = vi.hoisted(() => ({ current: false }));
 const displayDateSecondary = vi.hoisted(() => ({ current: null as string | null }));
@@ -299,13 +323,49 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("min-w-0 flex-1 truncate");
     expect(markup).toContain("min-w-0 max-w-[7.5rem] shrink truncate");
-    expect(markup).toContain('title="Recognized Expense"');
-    expect(markup).toContain('aria-label="Recognized Expense"');
+    expect(markup).not.toContain('title="Recognized Expense"');
+    expect(markup).not.toContain('aria-label="Recognized Expense"');
     expect(markup).toContain(
       "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[9px]",
     );
     expect(markup).toContain("shrink-0 whitespace-nowrap");
     expect(markup).toContain("Chomesh");
+  });
+
+  it("does not put masked card values into title, aria-label, or data-* attributes", () => {
+    mockUseDonationStore.mockReturnValue(true);
+    const { container } = render(
+      <TransactionCardList
+        transactions={[
+          {
+            ...mockTransactions[1],
+            description: "Secret recognized description",
+            category: "Secret Category Name",
+            is_chomesh: true,
+            type: "recognized-expense",
+            amount: 1234.56,
+            date: "2026-11-04",
+          },
+          {
+            ...mockTransactions[2],
+            description: "Secret donation",
+            category: "Secret Tzedakah",
+            original_amount: 100,
+            original_currency: "USD",
+            conversion_rate: 3.7,
+            conversion_date: "2026-11-08",
+            rate_source: "auto",
+          },
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+
+    assertMaskedValuesStayOutOfAttributes(container);
   });
 
 
