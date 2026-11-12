@@ -99,7 +99,9 @@ export async function generateAnalyticsPdf(params: AnalyticsPdfParams): Promise<
 
   // ─── Page state ────────────────────────────────────────────────────────────
   const margin = 20;
-  const fmt    = (v: number) => formatCurrency(v, defaultCurrency, language);
+  // Keep the previous one-decimal amount text in the PDF.
+  const fmt = (v: number) =>
+    formatCurrency(v, defaultCurrency, language, { fractionalDigits: 1 });
 
   const state = { page: pdfDoc.addPage(), y: 0, width: 0, height: 0 };
   ({ width: state.width, height: state.height } = state.page.getSize());
