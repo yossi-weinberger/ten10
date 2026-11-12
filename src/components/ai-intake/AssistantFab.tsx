@@ -11,17 +11,18 @@ export function AssistantFab() {
   const [hidden, setHidden] = React.useState(false);
 
   React.useEffect(() => {
-    const checkSelectionMode = () => {
+    const syncHidden = () => {
       const isSelectionActive = document.body.dataset.mobileSelectionActive === "true";
-      setHidden(isSelectionActive);
+      const isSwipeOpen = document.body.dataset.mobileSwipeOpen === "true";
+      setHidden(isSelectionActive || isSwipeOpen);
     };
 
-    checkSelectionMode();
+    syncHidden();
 
-    const observer = new MutationObserver(checkSelectionMode);
+    const observer = new MutationObserver(syncHidden);
     observer.observe(document.body, {
       attributes: true,
-      attributeFilter: ["data-mobile-selection-active"],
+      attributeFilter: ["data-mobile-selection-active", "data-mobile-swipe-open"],
     });
 
     return () => observer.disconnect();

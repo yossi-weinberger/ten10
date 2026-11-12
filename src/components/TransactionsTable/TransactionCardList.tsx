@@ -77,6 +77,18 @@ const SWIPE_ACTION_FALLBACK_WIDTH = 128;
 const SWIPE_OPEN_THRESHOLD = 50;
 const SWIPE_RELEASE_MS = 200;
 
+// More than one strip can be revealed during a handoff between cards.
+let revealedSwipeStrips = 0;
+
+function setSwipeStripCover(active: boolean): void {
+  revealedSwipeStrips = Math.max(0, revealedSwipeStrips + (active ? 1 : -1));
+  if (revealedSwipeStrips > 0) {
+    document.body.dataset.mobileSwipeOpen = "true";
+  } else {
+    delete document.body.dataset.mobileSwipeOpen;
+  }
+}
+
 function clampOpenOffset(value: number, width: number): number {
   return Math.min(Math.max(value, 0), width);
 }
@@ -214,6 +226,12 @@ const TransactionCard = memo(function TransactionCard({
     setActionsHidden(false);
   }
   const actionsConcealed = actionsHidden && rowClosed;
+
+  useEffect(() => {
+    if (actionsConcealed) return;
+    setSwipeStripCover(true);
+    return () => setSwipeStripCover(false);
+  }, [actionsConcealed]);
 
   // A transition added in the same commit as translateX does not run. Rewind
   // to the painted offset, flush layout, then ease. The no-ease branch still
