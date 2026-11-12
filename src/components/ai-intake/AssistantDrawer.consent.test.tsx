@@ -9,6 +9,7 @@ import { AssistantFab } from "./AssistantFab";
 import { onAssistantOpenRequest, requestAssistantOpen, setAssistantConsentCover } from "./assistant-open";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { createRef, useEffect, useState, type ReactNode } from "react";
 
 const mockRpc = vi.hoisted(() => vi.fn());
@@ -249,6 +250,39 @@ describe("AssistantDrawer consent gate", () => {
     await waitFor(() => {
       expect(mockRpc).toHaveBeenCalledWith("ai_beta_consent_status");
     });
+  });
+
+  it("reopens the beta terms dialog when an AI call requires consent", async () => {
+    cleanup();
+    mockRpc.mockResolvedValue({
+      data: {
+        accepted: true,
+        version: AI_BETA_TERMS_VERSION,
+        current: AI_BETA_TERMS_VERSION,
+      },
+      error: null,
+    });
+
+    const view = render(
+      <AssistantDrawer
+        open={true}
+        onOpenChange={mockOnOpenChange}
+        receiveRef={receiveRef}
+        onNavigate={mockOnNavigate}
+        userName="Test User"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("textbox", { name: "aiIntake.placeholder" })).toBeEnabled();
+    });
+
+    await claimBetaConsentRequired({ context: { code: "beta_consent_required" } }, null);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.title" })).toBeInTheDocument();
+    });
+    view.unmount();
   });
 
   it("shows beta terms dialog when user opted out (accepted=false)", async () => {

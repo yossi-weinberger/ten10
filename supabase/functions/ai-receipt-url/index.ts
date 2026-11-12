@@ -16,17 +16,6 @@ function json(origin: string | null, body: unknown, status: number): Response {
 }
 
 Deno.serve(async (req: Request) => {
-  const setup = await requireAiUser(req, {
-    methodNotAllowedBody: { url: null },
-    skipEnabledCheck: true,
-    skipAllowedCheck: true,
-  });
-  if (!setup.ok) return setup.response;
-  const { userId, origin } = setup;
-
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
-
   const body = await req.json().catch(() => null) as {
     transaction_id?: unknown;
     artifact_id?: unknown;
@@ -34,7 +23,20 @@ Deno.serve(async (req: Request) => {
   const transactionId = typeof body?.transaction_id === "string" ? body.transaction_id : "";
   const artifactId = typeof body?.artifact_id === "string" ? body.artifact_id : "";
   // A receipt already saved on a transaction stays viewable when AI is off or the trial ends.
+  // Draft artifact URLs are an AI call and still require current beta consent.
   const savedReceipt = transactionId !== "" && artifactId === "";
+  const setup = await requireAiUser(req, {
+    methodNotAllowedBody: { url: null },
+    skipEnabledCheck: true,
+    skipAllowedCheck: true,
+    skipConsentCheck: savedReceipt,
+  });
+  if (!setup.ok) return setup.response;
+  const { userId, origin } = setup;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+
   if ((!savedReceipt && (!isAiIntakeEnabled() || !(await aiUserAllowed(userId)))) || !serviceKey || !supabaseUrl) {
     return json(origin, { url: null, reason: "unavailable" }, 200);
   }

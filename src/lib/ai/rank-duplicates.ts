@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 
 export interface DuplicateRankScore {
   id: string;
@@ -17,6 +18,7 @@ export async function rankDuplicateCandidates(input: {
   const { data, error } = await supabase.functions.invoke("ai-rank-duplicates", {
     body: input,
   });
+  if (await claimBetaConsentRequired(error, data)) return null;
   if (error || !data || typeof data !== "object") return null;
   const payload = data as { ranked?: unknown; scores?: unknown };
   if (payload.ranked !== true || !Array.isArray(payload.scores)) return null;

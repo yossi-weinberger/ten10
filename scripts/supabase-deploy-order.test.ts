@@ -68,6 +68,7 @@ describe("Supabase production deployment ordering", () => {
       "20261110100000_ai_plans.sql",
       "20261110120000_admin_ai_user_plans.sql",
       "20261112140000_ai_beta_consents.sql",
+      "20261112140100_ai_has_current_beta_consent.sql",
     ]);
   });
 });

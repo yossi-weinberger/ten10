@@ -16,6 +16,11 @@ export interface RequireAiUserOptions {
    */
   skipAllowedCheck?: boolean;
   /**
+   * Skip the current beta-consent check. Used only for a receipt already saved
+   * on a transaction, which stays viewable when AI intake is off.
+   */
+  skipConsentCheck?: boolean;
+  /**
    * Custom response body for the method-not-allowed case (defaults to { [key]: null }).
    */
   methodNotAllowedBody?: Record<string, unknown>;
@@ -52,8 +57,40 @@ function json(origin: string | null, body: unknown, status: number): JsonRespons
   }) as JsonResponse;
 }
 
+const BETA_CONSENT_REQUIRED_BODY = {
+  error: "beta_consent_required",
+  code: "beta_consent_required",
+} as const;
+
+function envValue(name: string): string {
+  try {
+    return Deno.env.get(name) ?? "";
+  } catch (error) {
+    if (error instanceof Deno.errors.NotCapable) return "";
+    throw error;
+  }
+}
+
 /**
- * Common setup block for AI edge functions: CORS preflight, method check, enabled check, auth user lookup, and access check.
+ * Service-role check through public.ai_has_current_beta_consent.
+ * That wrapper calls ai.has_beta_consent with ai.current_beta_terms_version(),
+ * which stays the SQL source of truth. PostgREST does not expose the ai schema.
+ * Any RPC error, missing function, or non-true result denies.
+ */
+async function hasCurrentBetaConsent(userId: string): Promise<boolean> {
+  const serviceKey = envValue("SUPABASE_SERVICE_ROLE_KEY").trim();
+  const supabaseUrl = envValue("SUPABASE_URL");
+  if (!serviceKey || !supabaseUrl) return false;
+  const admin = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const consent = await admin.rpc("ai_has_current_beta_consent", { p_user_id: userId });
+  if (consent.error) return false;
+  return consent.data === true;
+}
+
+/**
+ * Common setup block for AI edge functions: CORS preflight, method check, enabled check, auth user lookup, access check, and current beta consent.
  * Returns user data on success, or an early Response on failure.
  *
  * @example
@@ -109,6 +146,10 @@ export async function requireAiUser(
   if (!options.skipAllowedCheck && !(await aiUserAllowed(userData.user.id))) {
     const body = options.notAllowedBody ?? options.methodNotAllowedBody ?? { error: "Not allowed" };
     return { ok: false, response: json(origin, body, 200) };
+  }
+
+  if (!options.skipConsentCheck && !(await hasCurrentBetaConsent(userData.user.id))) {
+    return { ok: false, response: json(origin, BETA_CONSENT_REQUIRED_BODY, 403) };
   }
 
   return {

@@ -250,4 +250,35 @@ describe("useAssistantDrawerIntent handleSubmit", () => {
     await submit(result, "קניתי מאפים", "voice", true, true);
     expect(trackAiTurnStarted).not.toHaveBeenCalled();
   });
+
+  it("stays silent when intent returns BETA_CONSENT", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: false, reason: "BETA_CONSENT" });
+    ai.splitItems.mockResolvedValue(expenseSplit);
+    const { result } = renderHook(() => useHarness());
+
+    await submit(result, "קניתי מאפים ב-15 שח");
+
+    expect(trackAiTurnStarted).toHaveBeenCalledWith("text");
+    expect(trackAiTurnFailed).not.toHaveBeenCalled();
+    expect(result.current.state.status).toBeNull();
+    expect(result.current.state.intent).toBeNull();
+    expect(result.current.state.askIntent).toBe(false);
+    expect(result.current.state.draft).toBeNull();
+    expect(result.current.state.limitInfo).toBeNull();
+  });
+
+  it("stays silent when split returns BETA_CONSENT", async () => {
+    ai.classifyIntentFallback.mockResolvedValue(intentOk);
+    ai.splitItems.mockResolvedValue({ ok: false, reason: "BETA_CONSENT" });
+    const { result } = renderHook(() => useHarness());
+
+    await submit(result, "קניתי מאפים ב-15 שח");
+
+    expect(trackAiTurnFailed).not.toHaveBeenCalled();
+    expect(result.current.state.status).toBeNull();
+    expect(result.current.state.intent).toBeNull();
+    expect(result.current.state.askIntent).toBe(false);
+    expect(result.current.state.draft).toBeNull();
+    expect(result.current.state.limitInfo).toBeNull();
+  });
 });

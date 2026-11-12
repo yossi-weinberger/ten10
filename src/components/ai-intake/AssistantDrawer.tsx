@@ -20,6 +20,7 @@ import {
 import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
+import { onBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import { setAssistantConsentCover } from "./assistant-open";
 
 /** A hung consent check on a phone must end. Long enough for a slow network, short enough to leave. */
@@ -130,6 +131,12 @@ export function AssistantDrawer({
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
   }, [open, userId, isCompactViewport]);
+
+  useEffect(() => {
+    return onBetaConsentRequired(() => {
+      setConsentState({ checking: false, accepted: false, showDialog: true });
+    });
+  }, []);
 
   // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
   useEffect(() => {

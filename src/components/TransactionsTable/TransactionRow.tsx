@@ -81,6 +81,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       setReceiptLink(result.url);
       return;
     }
+    if (result.status === "beta_consent") return;
     setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }
 

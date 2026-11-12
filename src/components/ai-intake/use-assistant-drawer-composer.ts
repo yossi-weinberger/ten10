@@ -114,6 +114,7 @@ export function useAssistantDrawerComposer(
       setReceiptLink(result.url);
       return;
     }
+    if (result.status === "beta_consent") return;
     setStatus(openReceiptFailureStatus(result));
   }
 
@@ -131,13 +132,15 @@ export function useAssistantDrawerComposer(
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!result.ok) {
-      trackAiTurnFailed("receipt", "receipt", mapErrorToFailureReason(result.reason));
+      if (result.reason !== "BETA_CONSENT") {
+        trackAiTurnFailed("receipt", "receipt", mapErrorToFailureReason(result.reason));
+      }
       memoryRef.current = rememberClosed(turnStart.current);
       setReceiptArtifactId(null);
       state.setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setStatus(receiptFailureStatus(result));
+      if (result.reason !== "BETA_CONSENT") setStatus(receiptFailureStatus(result));
       return;
     }
     if (!isSingleReceipt(result)) {
@@ -201,9 +204,11 @@ export function useAssistantDrawerComposer(
     setTranscribing(false);
     setChecking(false);
     if (!heard.ok) {
-      trackAiTurnFailed("voice", "speech", mapErrorToFailureReason(heard.reason));
-      setStatus(voiceFailureStatus(heard));
-      state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
+      if (heard.reason !== "BETA_CONSENT") {
+        trackAiTurnFailed("voice", "speech", mapErrorToFailureReason(heard.reason));
+        setStatus(voiceFailureStatus(heard));
+        state.setLimitInfo(heard.reason === "LIMIT" && "limit" in heard ? heard.limit : null);
+      }
       return;
     }
     const voiceTurn: UserTurn = { kind: "voice", text: heard.text };
@@ -299,6 +304,7 @@ export function useAssistantDrawerComposer(
     }).then((split) => {
       if (requestRef.current !== request) return;
       setChecking(false);
+      if (!split.ok && split.reason === "BETA_CONSENT") return;
       splitRef.current = split;
       intent.showIntent(source, "add_transaction", false, trimmed);
     });

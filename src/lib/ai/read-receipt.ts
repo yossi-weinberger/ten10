@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { blobToBase64 } from "@/lib/ai/blob-base64";
 import { aiCallsAllowed } from "@/lib/ai/flags";
+import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import {
   readReceiptArtifactId,
@@ -19,7 +20,7 @@ export type ReadReceiptResult =
   | { ok: true; route: "receipt"; fields: ReceiptFields; artifactId: string | null }
   | { ok: true; route: "several_receipts" | "statement" }
   | { ok: false; reason: "LIMIT"; limit: LimitInfo }
-  | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" };
+  | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" | "BETA_CONSENT" };
 
 async function shrinkReceiptImage(file: File): Promise<File | null> {
   if (typeof document === "undefined" || typeof createImageBitmap !== "function") return null;
@@ -75,6 +76,7 @@ export async function readReceiptImage(file: File, defaultCurrency?: string): Pr
       ...(defaultCurrency ? { default_currency: defaultCurrency } : {}),
     },
   });
+  if (await claimBetaConsentRequired(error, payload)) return { ok: false, reason: "BETA_CONSENT" };
   if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNAVAILABLE" };
   const limit = readLimitInfo(payload);
   if (limit) return { ok: false, reason: "LIMIT", limit };
