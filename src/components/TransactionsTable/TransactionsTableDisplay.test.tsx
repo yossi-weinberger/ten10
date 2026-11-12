@@ -73,6 +73,14 @@ vi.mock("@/lib/ai/flags", () => ({
   isAiIntakeEnabled: () => false,
 }));
 
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
+
+vi.mock("./TransactionRow", () => ({
+  TransactionRow: () => null,
+}));
+
 vi.mock("@/lib/store", () => ({
   useDonationStore: (
     selector?: (state: {
