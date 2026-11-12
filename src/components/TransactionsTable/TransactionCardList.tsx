@@ -456,7 +456,7 @@ const TransactionCard = memo(function TransactionCard({
               mode="static"
               showConversionIcon={false}
             />
-            <Coins className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+            <Coins className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </div>
         ) : (
           <CurrencyConversionInfo

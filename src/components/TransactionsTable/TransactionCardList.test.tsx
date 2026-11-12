@@ -1970,6 +1970,9 @@ describe("TransactionCardList PostHog masking", () => {
     const conversionIcon = card.querySelector(".lucide-coins");
     expect(recurringIcon).toBeTruthy();
     expect(conversionIcon).toBeTruthy();
+    expect(conversionIcon?.getAttribute("class")).toContain("h-4");
+    expect(conversionIcon?.getAttribute("class")).toContain("w-4");
+    expect(conversionIcon?.getAttribute("class")).toContain("text-muted-foreground");
     expect(recurringIcon).not.toBe(conversionIcon);
     expect(card.querySelector(".lucide-repeat")).toBeNull();
     expect(card.querySelector(".lucide-refresh-cw")).toBeNull();
