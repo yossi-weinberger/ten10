@@ -53,7 +53,8 @@
     "initial_balance": "יתרת פתיחה"
   },
   "cards": {
-    "chomesh": "חומש"
+    "chomesh": "חומש",
+    "nextShort": "הבא: {{date}}"
   },
   "actions": {
     "title": "פעולות",
@@ -332,7 +333,8 @@
     "frequency": "תדירות",
     "nextDueDate": "תאריך ביצוע הבא",
     "status": "סטטוס",
-    "progress": "התקדמות"
+    "progress": "התקדמות",
+    "startDate": "תאריך התחלה"
   },
   "recurringTable": {
     "title": "הוראות קבע",

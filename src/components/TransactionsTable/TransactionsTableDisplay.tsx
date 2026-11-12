@@ -60,7 +60,9 @@ import {
   getCalendarMonthKey,
   isCalendarMonthTransition,
 } from "@/lib/calendar/calendar-period";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useMobileCardLayout } from "@/hooks/useMobileCardLayout";
+import { MOBILE_SELECTION_CLEARANCE_CLASS } from "@/lib/responsive";
+import { cn } from "@/lib/utils";
 
 // sortableColumns definition - will be defined inside the component to use t()
 
@@ -72,9 +74,6 @@ export function TransactionsTableDisplay() {
     (state) => state.settings.trackChomeshSeparately,
   );
   const calendarType = useEffectiveCalendarType();
-  const isSmallNow = useMediaQuery("(max-width: 767px), (pointer: coarse) and (max-height: 500px)");
-  const [useMobileCards] = useState(isSmallNow);
-
   // sortableColumns definition with translations
   const sortableColumns: {
     label: string;
@@ -181,6 +180,7 @@ export function TransactionsTableDisplay() {
   const bulkChomeshType = getBulkChomeshType(selectedTransactions);
   const sharedBulkValues = getSharedBulkValues(selectedTransactions);
   const bulkPending = bulkLoading;
+  const useMobileCards = useMobileCardLayout(bulkPending);
 
   const bulkFieldAvailability = {
     description: getBulkEditAvailability({
@@ -640,6 +640,12 @@ export function TransactionsTableDisplay() {
           {t("messages.loadingError", { error })}
         </p>
       )}
+      <div
+        className={cn(
+          "space-y-4",
+          useMobileCards && selection.selectedCount > 0 && MOBILE_SELECTION_CLEARANCE_CLASS,
+        )}
+      >
       {useMobileCards ? (
         <>
           <TransactionCardList
@@ -784,6 +790,7 @@ export function TransactionsTableDisplay() {
         transactionsLength={transactions.length}
         handleLoadMore={handleLoadMore}
       />
+      </div>
       <BulkEditDialog
         open={isBulkEditOpen}
         onOpenChange={handleBulkEditOpenChange}
