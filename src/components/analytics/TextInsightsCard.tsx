@@ -14,6 +14,8 @@ import {
   Info,
   Lightbulb,
 } from "lucide-react";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 
 const INSIGHTS_CARD_HEIGHT = "h-[170px] sm:h-[192px]";
 
@@ -220,7 +222,17 @@ export function TextInsightsCard({
                     dir={i18n.dir()}
                   >
                     <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${className}`} />
-                    <span className="text-[15px] sm:text-sm text-foreground leading-snug">
+                    <span
+                      className={cn(
+                        "text-[15px] sm:text-sm text-foreground leading-snug",
+                        insight.id !== "no-categories" && PH_SENSITIVE_PROPS.className,
+                      )}
+                      data-ph-mask={
+                        insight.id !== "no-categories"
+                          ? PH_SENSITIVE_PROPS["data-ph-mask"]
+                          : undefined
+                      }
+                    >
                       {insight.text}
                     </span>
                   </motion.li>
