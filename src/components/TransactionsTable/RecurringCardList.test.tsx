@@ -52,6 +52,7 @@ vi.mock("@/lib/store", () => ({
         trackChomeshSeparately: boolean;
         calendarType: "gregorian" | "hebrew";
         showSecondaryDate: boolean;
+        defaultCurrency: string;
       };
     }) => unknown,
   ) =>
@@ -60,6 +61,7 @@ vi.mock("@/lib/store", () => ({
         trackChomeshSeparately: trackChomesh.current,
         calendarType: displayCalendar.calendarType,
         showSecondaryDate: displayCalendar.showSecondaryDate,
+        defaultCurrency: "ILS",
       },
     }),
 }));
@@ -298,6 +300,7 @@ describe("RecurringCardList", () => {
 
     const card = cardTitled("Rent");
     expect(card.className).toContain("bg-white");
+    expect(card.className).toContain("h-[96px]");
     expect(card.className).not.toContain("bg-green-50");
     expect(card.querySelector(".bg-green-100")).toBeTruthy();
     expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));

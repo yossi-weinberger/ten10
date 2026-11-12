@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Edit3, RefreshCw, Trash2 } from "lucide-react";
+import { Coins, Edit3, RefreshCw, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +12,23 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { CardListStates } from "@/components/card-list/CardListStates";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
-import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
+import {
+  AmountPanel,
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  TypeIconChip,
+} from "@/components/card-list/TypeVisual";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatCategory } from "@/lib/category-registry";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -37,7 +47,10 @@ import { RecurringProgressBadge } from "./RecurringProgressBadge";
 
 const STATUS_ORDER = ["active", "paused", "completed", "cancelled"] as const;
 
-const CARD_SURFACE_CLASS = "overflow-hidden bg-white dark:bg-card";
+const CARD_SURFACE_CLASS = cn(
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  "overflow-hidden bg-white dark:bg-card",
+);
 
 const drawerRowClass =
   "flex min-h-11 w-full items-center justify-between gap-3 border-t border-border py-2 text-start";
@@ -220,6 +233,10 @@ export function RecurringCardList({
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency,
+  );
+  const { t: tCurrency } = useTranslation("currency-features");
   const [selected, setSelected] = useState<RecurringTransaction | null>(null);
   useRestoreOverlayOnUnmount(selected != null);
   const longPressTriggeredRef = useRef(false);
@@ -379,6 +396,9 @@ export function RecurringCardList({
           });
           const secondaryDue = displayDue.secondary ?? null;
           const isSelected = selectedIds.has(row.id);
+          const conversion = storedConversion(row);
+          const showLiveRateIcon =
+            !conversion && row.currency !== defaultCurrency;
           const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;
             event.preventDefault();
@@ -457,7 +477,46 @@ export function RecurringCardList({
                   </span>
                 </div>
               </div>
-              <AmountPanel type={row.type}>
+              <AmountPanel
+                type={row.type}
+                conversion={
+                  conversion ? (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Coins
+                        className="h-3.5 w-3.5 opacity-70"
+                        aria-hidden="true"
+                      />
+                      <MaskedText className="text-[11px] font-normal text-muted-foreground">
+                        {formatCurrency(
+                          conversion.originalAmount,
+                          conversion.originalCurrency,
+                          i18n.language,
+                        )}
+                      </MaskedText>
+                    </div>
+                  ) : showLiveRateIcon ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <RefreshCw
+                            className="h-3.5 w-3.5 text-muted-foreground cursor-help"
+                            aria-label={tCurrency("row.tooltip.conversionDetails")}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          className={cn(
+                            "text-xs bg-popover text-popover-foreground border shadow-md p-2",
+                            PH_SENSITIVE_PROPS.className,
+                          )}
+                          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                        >
+                          {tCurrency("row.tooltip.estimated")}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : undefined
+                }
+              >
                 <MaskedText>
                   <CurrencyConversionInfo
                     amount={row.amount}
@@ -468,6 +527,7 @@ export function RecurringCardList({
                     conversionDate={row.conversion_date}
                     rateSource={row.rate_source}
                     mode="live"
+                    showConversionIcon={false}
                   />
                 </MaskedText>
               </AmountPanel>

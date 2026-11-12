@@ -27,11 +27,19 @@ describe("transaction type visuals", () => {
     expect(TYPE_ICON.initial_balance).toBe(Landmark);
   });
 
-  it("reuses typeBadgeColors hues for panel and chip surfaces", () => {
+  it("uses base-family hues for panel/chip; initial_balance stays gray", () => {
+    const familyHue: Record<(typeof transactionTypes)[number], string> = {
+      income: "green",
+      "exempt-income": "green",
+      expense: "red",
+      "recognized-expense": "red",
+      donation: "yellow",
+      non_tithe_donation: "yellow",
+      initial_balance: "gray",
+    };
+
     for (const type of transactionTypes) {
-      const badge = typeBadgeColors[type];
-      const hue = badge.match(/bg-([a-z]+)-100/)?.[1];
-      expect(hue).toBeTruthy();
+      const hue = familyHue[type];
       expect(TYPE_PANEL[type]).toContain(`bg-${hue}-100`);
       expect(TYPE_PANEL[type]).toContain(`text-${hue}-800`);
       expect(TYPE_PANEL[type]).toContain(`dark:bg-${hue}-900/40`);
@@ -41,5 +49,11 @@ describe("transaction type visuals", () => {
       expect(TYPE_CHIP[type]).toContain(`dark:bg-${hue}-900/40`);
       expect(TYPE_CHIP[type]).toContain(`dark:text-${hue}-300`);
     }
+
+    // Sub-type badges keep their distinct hues (panel/chip do not).
+    expect(typeBadgeColors["exempt-income"]).toContain("bg-blue-100");
+    expect(typeBadgeColors["recognized-expense"]).toContain("bg-rose-100");
+    expect(typeBadgeColors.non_tithe_donation).toContain("bg-orange-100");
+    expect(typeBadgeColors.initial_balance).toContain("bg-gray-100");
   });
 });

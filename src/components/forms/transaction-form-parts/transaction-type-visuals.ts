@@ -48,25 +48,37 @@ export const TYPE_ICON: Record<TransactionType, LucideIcon> = {
   initial_balance: Landmark,
 };
 
-/** Chip background + icon color for mobile card type visuals. */
-export const TYPE_CHIP: Record<TransactionType, string> = {
+const FAMILY_CHIP: Record<BaseTransactionType, string> = {
   income: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  "exempt-income": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
   expense: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-  "recognized-expense": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
   donation: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
-  non_tithe_donation: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+};
+
+const FAMILY_PANEL: Record<BaseTransactionType, string> = {
+  income: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  expense: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+  donation: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
+};
+
+/** Chip colors: base family, except initial_balance which stays neutral gray. */
+export const TYPE_CHIP: Record<TransactionType, string> = {
+  income: FAMILY_CHIP.income,
+  "exempt-income": FAMILY_CHIP.income,
+  expense: FAMILY_CHIP.expense,
+  "recognized-expense": FAMILY_CHIP.expense,
+  donation: FAMILY_CHIP.donation,
+  non_tithe_donation: FAMILY_CHIP.donation,
   initial_balance: "bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-300",
 };
 
-/** Amount panel background + amount text color for mobile card type visuals. */
+/** Amount panel colors: base family, except initial_balance which stays neutral gray. */
 export const TYPE_PANEL: Record<TransactionType, string> = {
-  income: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  "exempt-income": "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  expense: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  "recognized-expense": "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
-  donation: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-  non_tithe_donation: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
+  income: FAMILY_PANEL.income,
+  "exempt-income": FAMILY_PANEL.income,
+  expense: FAMILY_PANEL.expense,
+  "recognized-expense": FAMILY_PANEL.expense,
+  donation: FAMILY_PANEL.donation,
+  non_tithe_donation: FAMILY_PANEL.donation,
   initial_balance: "bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-300",
 };
 

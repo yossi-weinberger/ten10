@@ -258,6 +258,7 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("overflow-hidden bg-white dark:bg-card");
+    expect(markup).toContain("h-[96px]");
     expect(markup).not.toContain("bg-green-50");
     expect(markup).toContain("bg-green-100");
     expect(markup).toContain("text-green-800");
@@ -618,6 +619,9 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("Exempt Income");
     expect(markup).toContain("bg-blue-100");
+    // Panel/chip use income-family green; badge keeps blue.
+    expect(markup).toContain("bg-green-100");
+    expect(markup).toContain("text-green-800");
   });
 
   it("shows special type badge for recognized-expense on card", () => {
@@ -639,6 +643,9 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("Recognized Expense");
     expect(markup).toContain("bg-rose-100");
+    // Panel/chip use expense-family red; badge keeps rose.
+    expect(markup).toContain("bg-red-100");
+    expect(markup).toContain("text-red-800");
   });
 
   it("shows special type badge for non_tithe_donation on card", () => {
@@ -660,6 +667,9 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("Non-Tithe Donation");
     expect(markup).toContain("bg-orange-100");
+    // Panel/chip use donation-family yellow; badge keeps orange.
+    expect(markup).toContain("bg-yellow-100");
+    expect(markup).toContain("text-yellow-800");
   });
 
   it("shows special type badge for initial_balance on card", () => {
@@ -681,6 +691,9 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("Opening Balance");
     expect(markup).toContain("bg-gray-100");
+    expect(markup).toContain("text-gray-800");
+    // Neutral gray panel — not income-family green.
+    expect(markup).not.toContain("text-green-800");
   });
 
   it("does not show badge for plain income type", () => {
@@ -2354,8 +2367,8 @@ describe("TransactionCardList PostHog masking", () => {
     const conversionIcon = card.querySelector(".lucide-coins");
     expect(recurringIcon).toBeTruthy();
     expect(conversionIcon).toBeTruthy();
-    expect(conversionIcon?.getAttribute("class")).toContain("h-4");
-    expect(conversionIcon?.getAttribute("class")).toContain("w-4");
+    expect(conversionIcon?.getAttribute("class")).toContain("h-3.5");
+    expect(conversionIcon?.getAttribute("class")).toContain("w-3.5");
     expect(conversionIcon?.getAttribute("class")).toContain("opacity-70");
     expect(recurringIcon).not.toBe(conversionIcon);
     expect(card.querySelector(".lucide-repeat")).toBeNull();
@@ -2375,7 +2388,7 @@ describe("TransactionCardList PostHog masking", () => {
     const convertedCard = screen.getByRole("button", { name: /Charity/ });
     const originalAmount = within(convertedCard).getByText(originalUsd);
     expectPostHogMask(originalAmount);
-    expect(originalAmount.className).toContain("text-xs");
+    expect(originalAmount.className).toContain("text-[11px]");
     expect(originalAmount.className).toContain("text-muted-foreground");
 
     const plainCard = screen.getByRole("button", { name: /Groceries/ });

@@ -208,7 +208,8 @@ export function CurrencyConversionInfo({
                 {liveConverted ? formatCurrency(liveConverted, defaultCurrency as CurrencyCode, i18n.language) : "..."}
             </span>
         )}
-        
+
+        {showConversionIcon ? (
         <TooltipProvider>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
@@ -253,6 +254,7 @@ export function CurrencyConversionInfo({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        ) : null}
       </div>
     );
   }

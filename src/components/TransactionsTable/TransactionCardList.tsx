@@ -34,7 +34,11 @@ import { groupWithSeparators } from "@/components/card-list/group-with-separator
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
-import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
+import {
+  AmountPanel,
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  TypeIconChip,
+} from "@/components/card-list/TypeVisual";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform, type Platform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
@@ -203,7 +207,10 @@ function drawerDateValue(primary: string, secondary?: string) {
   );
 }
 
-const CARD_SURFACE_CLASS = "overflow-hidden bg-white dark:bg-card";
+const CARD_SURFACE_CLASS = cn(
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  "overflow-hidden bg-white dark:bg-card",
+);
 
 interface TransactionCardProps {
   transaction: TransactionForTable;
@@ -375,54 +382,50 @@ const TransactionCard = memo(function TransactionCard({
           )}
         </div>
       </div>
-      <AmountPanel type={transaction.type}>
-        <div
-          className={cn(
-            "flex flex-col items-center gap-0.5",
-            PH_SENSITIVE_PROPS.className
-          )}
-          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-        >
-          {conversion ? (
-            <>
-              <CurrencyConversionInfo
-                amount={transaction.amount}
-                currency={transaction.currency}
-                originalAmount={transaction.original_amount}
-                originalCurrency={transaction.original_currency}
-                conversionRate={transaction.conversion_rate}
-                conversionDate={transaction.conversion_date}
-                rateSource={transaction.rate_source}
-                mode="static"
-                showConversionIcon={false}
-              />
-              <Coins className="h-4 w-4 opacity-70" aria-hidden="true" />
+      <AmountPanel
+        type={transaction.type}
+        conversion={
+          conversion ? (
+            <div
+              className={cn(
+                "flex flex-col items-center gap-0.5",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <Coins className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
               <span
                 className={cn(
-                  "text-xs font-normal text-muted-foreground",
-                  PH_SENSITIVE_PROPS.className
+                  "text-[11px] font-normal text-muted-foreground",
+                  PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
                 {formatCurrency(
                   conversion.originalAmount,
                   conversion.originalCurrency,
-                  i18n.language
+                  i18n.language,
                 )}
               </span>
-            </>
-          ) : (
-            <CurrencyConversionInfo
-              amount={transaction.amount}
-              currency={transaction.currency}
-              originalAmount={transaction.original_amount}
-              originalCurrency={transaction.original_currency}
-              conversionRate={transaction.conversion_rate}
-              conversionDate={transaction.conversion_date}
-              rateSource={transaction.rate_source}
-              mode="static"
-            />
-          )}
+            </div>
+          ) : undefined
+        }
+      >
+        <div
+          className={cn(PH_SENSITIVE_PROPS.className)}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
+          <CurrencyConversionInfo
+            amount={transaction.amount}
+            currency={transaction.currency}
+            originalAmount={transaction.original_amount}
+            originalCurrency={transaction.original_currency}
+            conversionRate={transaction.conversion_rate}
+            conversionDate={transaction.conversion_date}
+            rateSource={transaction.rate_source}
+            mode="static"
+            showConversionIcon={false}
+          />
         </div>
       </AmountPanel>
     </SwipeableCardRow>
