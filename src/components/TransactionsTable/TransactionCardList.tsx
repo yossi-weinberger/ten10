@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState, useRef, memo } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -31,6 +30,7 @@ import {
   formatCalendarMonthLabel,
   getCalendarMonthKey,
 } from "@/lib/calendar/calendar-period";
+import { CardListStates } from "@/components/card-list/CardListStates";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
@@ -540,28 +540,11 @@ export function TransactionCardList({
   }, [selectedTransaction, t]);
 
   if (loading && transactions.length === 0) {
-    return (
-      <div className="space-y-2">
-        {sortRow}
-        {Array.from({ length: 10 }).map((_, index) => (
-          <Card
-            key={`skeleton-${index}`}
-            className="h-16 animate-pulse bg-muted"
-          />
-        ))}
-      </div>
-    );
+    return <CardListStates status="loading" header={sortRow} />;
   }
 
   if (!loading && transactions.length === 0) {
-    return (
-      <div>
-        {sortRow}
-        <div className="py-12 text-center text-muted-foreground">
-          {t("messages.noData")}
-        </div>
-      </div>
-    );
+    return <CardListStates status="empty" text={t("messages.noData")} header={sortRow} />;
   }
 
   const selectedConversion = selectedTransaction
