@@ -2,7 +2,7 @@
 -- Consent is irreversible: once accepted, it cannot be un-accepted (but a newer version may be accepted later).
 -- is_active: admin can revoke access by setting is_active=false (keeps plan + beta columns for audit).
 --
--- Rollback: supabase/migrations/rollback/20261111002200_ai_beta_consents_down.sql
+-- Rollback: supabase/migrations/rollback/20261112140000_ai_beta_consents_down.sql
 
 SET check_function_bodies = false;
 
