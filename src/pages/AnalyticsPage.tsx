@@ -179,8 +179,9 @@ export function AnalyticsPage() {
           ? t("dateRange.all")
           : `${fmtDatePdf(rangeStart)} – ${fmtDatePdf(activeDateRangeObject.endDate)}`;
 
-      // Build text insights for PDF
-      const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
+      // Sentences embedded in the analytics PDF. On-screen cards use the default two decimals.
+      const fmt = (v: number) =>
+        formatCurrency(v, defaultCurrency, i18n.language, { fractionalDigits: 1 });
       const income = serverTotalIncome ?? 0;
       const expenses = serverTotalExpenses ?? 0;
       const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : null;
