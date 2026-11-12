@@ -19,15 +19,24 @@ export function hasStoredCurrencyConversion(input: {
   );
 }
 
-/** Decimals the app shows for an amount: none for a whole number, otherwise one. */
-export function currencyFractionDigits(amount: number): 0 | 1 {
-  return amount % 1 === 0 ? 0 : 1;
+/** Decimals the app shows for an amount: none for a whole number, otherwise two. */
+export function currencyFractionDigits(amount: number): 0 | 2 {
+  return amount % 1 === 0 ? 0 : 2;
 }
+
+export type FormatCurrencyOptions = {
+  /**
+   * Digits for a non-whole amount. Display uses 2.
+   * PDF export passes 1 so existing document text stays unchanged.
+   */
+  fractionalDigits?: 1 | 2;
+};
 
 export function formatCurrency(
   amount: number,
   currencyCode: CurrencyCode = "ILS",
-  lang: string = "he"
+  lang: string = "he",
+  options?: FormatCurrencyOptions,
 ): string {
   // Map currency codes to their appropriate locales for correct formatting.
   const localeMap: Record<string, Record<CurrencyCode, string>> = {
@@ -45,14 +54,19 @@ export function formatCurrency(
 
   const locale = localeMap[lang]?.[currencyCode] || "he-IL"; // Fallback to Hebrew locale
 
-  const digits = currencyFractionDigits(amount);
-  const options: Intl.NumberFormatOptions = {
+  let digits: 0 | 1 | 2;
+  if (options?.fractionalDigits === 1) {
+    digits = amount % 1 === 0 ? 0 : 1;
+  } else {
+    digits = currencyFractionDigits(amount);
+  }
+  const formatOptions: Intl.NumberFormatOptions = {
     style: "currency",
     currency: currencyCode,
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   };
 
-  return new Intl.NumberFormat(locale, options).format(amount);
+  return new Intl.NumberFormat(locale, formatOptions).format(amount);
 }
 
