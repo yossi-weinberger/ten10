@@ -230,7 +230,7 @@ export function CompactFilterSearch({
         placeholder={placeholder}
         aria-label={ariaLabel}
         className={cn(
-          "h-full min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0",
+          "h-full min-w-0 flex-1 truncate border-0 bg-transparent px-0 py-0 shadow-none placeholder:truncate focus-visible:ring-0 focus-visible:ring-offset-0",
           hasText && "font-semibold text-primary",
           PH_SENSITIVE_PROPS.className,
         )}
@@ -253,10 +253,14 @@ export function CompactFilterSearch({
 
 export function CompactFilterGrid({
   children,
+  className,
 }: {
   children: React.ReactNode;
+  className?: string;
 }) {
-  return <div className="grid grid-cols-2 gap-2">{children}</div>;
+  return (
+    <div className={cn("grid gap-2", className ?? "grid-cols-2")}>{children}</div>
+  );
 }
 
 export function CompactFilterCell({

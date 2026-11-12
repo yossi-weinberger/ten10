@@ -401,6 +401,7 @@ describe("TransactionsFilters", () => {
         within(panel).getByRole("button", { name: "filters.compactReset" }),
       ).toBeInTheDocument();
       expect(search).toHaveAttribute("data-ph-mask", "");
+      expect(search).toHaveClass("truncate", "placeholder:truncate");
       expect(search.parentElement).toHaveClass("border-primary/40");
       expect(search.parentElement).toHaveClass("bg-primary/10");
       expect(
@@ -529,6 +530,19 @@ describe("TransactionsFilters", () => {
       }
       return cells;
     }
+
+    it("keeps the type menu inside the viewport with an inner scroll", async () => {
+      const user = await openPanel();
+      await user.click(screen.getByText("filters.compactType:").closest("button")!);
+      const menu = await screen.findByRole("menu");
+      expect(menu.className).toContain(
+        "max-h-[var(--radix-dropdown-menu-content-available-height)]",
+      );
+      expect(menu).toHaveClass("!overflow-y-auto");
+      expect(screen.getByText("filters.compactType:").closest("button")).not.toHaveAttribute(
+        "data-ph-mask",
+      );
+    });
 
     it("hides source when AI intake is off and keeps the last cell half width", async () => {
       aiIntakeState.enabled = false;

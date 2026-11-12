@@ -18,6 +18,9 @@ import { ListFilter } from "lucide-react";
 import { transactionTypes } from "@/types/transaction";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
+
+const compactMenuClassName =
+  "w-56 max-h-[var(--radix-dropdown-menu-content-available-height)] !overflow-y-auto";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { cn } from "@/lib/utils";
 import {
@@ -151,7 +154,7 @@ export function RecurringTransactionsFilters() {
           ariaLabel={t("filters.freeSearch")}
           clearLabel={t("filters.compactClearSearch")}
         />
-        <CompactFilterGrid>
+        <CompactFilterGrid className="grid-cols-1 min-[321px]:grid-cols-2">
           <CompactFilterCell>
             <DropdownMenu
               open={typesDropdownOpen}
@@ -166,8 +169,10 @@ export function RecurringTransactionsFilters() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56"
+                className={compactMenuClassName}
                 align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>
@@ -203,8 +208,10 @@ export function RecurringTransactionsFilters() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56"
+                className={compactMenuClassName}
                 align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>{t("recurring.status")}</DropdownMenuLabel>
@@ -241,8 +248,10 @@ export function RecurringTransactionsFilters() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56"
+                className={compactMenuClassName}
                 align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>

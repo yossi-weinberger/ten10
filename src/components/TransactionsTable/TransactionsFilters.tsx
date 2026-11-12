@@ -34,6 +34,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+
+const compactMenuClassName =
+  "w-56 max-h-[var(--radix-dropdown-menu-content-available-height)] !overflow-y-auto";
 import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { formatCompactDateFilterValue } from "./transactions-filter-date.utils";
@@ -433,8 +436,10 @@ export function TransactionsFilters() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56"
+                className={compactMenuClassName}
                 align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>
@@ -471,8 +476,10 @@ export function TransactionsFilters() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56"
+                className={compactMenuClassName}
                 align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>
@@ -559,8 +566,10 @@ export function TransactionsFilters() {
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56"
+                  className={compactMenuClassName}
                   align={dropdownAlign}
+                  avoidCollisions
+                  collisionPadding={16}
                   onClick={stopPropagation}
                 >
                   <DropdownMenuLabel>

@@ -112,6 +112,10 @@ describe("RecurringTransactionsFilters", () => {
       expect(hideButton).toHaveClass("w-11");
       expect(screen.getByText("filters.compactTitle")).toBeInTheDocument();
       expect(screen.queryByText("recurringFilters.title")).not.toBeInTheDocument();
+
+      const grid = screen.getByTestId("mobile-filters-panel").querySelector(".grid");
+      expect(grid).toHaveClass("grid-cols-1", "min-[321px]:grid-cols-2");
+      expect(grid).not.toHaveClass("grid-cols-2");
     });
 
     it("counts search text and shows the reset link only when active", async () => {
@@ -132,6 +136,9 @@ describe("RecurringTransactionsFilters", () => {
       await user.type(search, "rent");
       expect(within(panel).getByText("1")).toHaveAttribute("aria-hidden", "true");
       expect(within(panel).getByText("filters.compactActiveCount")).toHaveClass("sr-only");
+      expect(
+        screen.getByPlaceholderText("recurringFilters.compactSearchPlaceholder"),
+      ).toHaveClass("truncate", "placeholder:truncate");
       expect(search).toHaveAttribute("data-ph-mask", "");
       await user.click(
         within(panel).getByRole("button", { name: "filters.compactReset" }),
