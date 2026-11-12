@@ -231,7 +231,8 @@ describe("TransactionsTableDisplay mobile sort", () => {
     const sortLabel = screen.getByText("sort.sortBy");
     expect(sortLabel).toBeInTheDocument();
     expect(sortLabel.className).toContain("whitespace-nowrap");
-    expect(sortLabel.parentElement?.className).toContain("overflow-x-hidden");
+    expect(sortLabel.parentElement?.className).toContain("min-w-0");
+    expect(sortLabel.parentElement?.className).not.toContain("overflow-x-hidden");
     expect(
       screen.getByRole("button", { name: "sort.ascending" }),
     ).toBeInTheDocument();
