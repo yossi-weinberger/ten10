@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils/formatting";
 import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
 import type { CurrencyCode } from "@/lib/currencies";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
-import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { formatCategory } from "@/lib/category-registry";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatBoolean } from "@/lib/utils/formatting";
@@ -35,6 +34,12 @@ import { groupWithSeparators } from "@/components/card-list/group-with-separator
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
+import {
+  AmountPanel,
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
+  TypeIconChip,
+} from "@/components/card-list/TypeVisual";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform, type Platform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
@@ -203,12 +208,17 @@ function drawerDateValue(primary: string, secondary?: string) {
   );
 }
 
+const CARD_SURFACE_CLASS = cn(
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
+  "overflow-hidden bg-white dark:bg-card",
+);
+
 interface TransactionCardProps {
   transaction: TransactionForTable;
   displayDate: { primary: string | null };
   categoryText: string;
   cardTitle: string;
-  surfaceClasses: string;
   isSelected: boolean;
   inSelectionMode: boolean;
   onCardClick: (transaction: TransactionForTable) => void;
@@ -233,7 +243,6 @@ const TransactionCard = memo(function TransactionCard({
   displayDate,
   categoryText,
   cardTitle,
-  surfaceClasses,
   isSelected,
   inSelectionMode,
   onCardClick,
@@ -262,7 +271,7 @@ const TransactionCard = memo(function TransactionCard({
   return (
     <SwipeableCardRow
       id={transaction.id}
-      surfaceClassName={surfaceClasses}
+      surfaceClassName={CARD_SURFACE_CLASS}
       isSelected={isSelected}
       inSelectionMode={inSelectionMode}
       selectionDisabled={selectionDisabled}
@@ -289,12 +298,13 @@ const TransactionCard = memo(function TransactionCard({
         },
       ]}
     >
+      <TypeIconChip type={transaction.type} />
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
             showAiOrigin
-              ? "flex min-w-0 items-center gap-1 font-medium"
-              : "truncate font-medium",
+              ? "flex min-w-0 items-center gap-1 text-[12px] font-medium leading-none"
+              : "truncate text-[12px] font-medium leading-none",
             !transaction.description && "text-muted-foreground",
             PH_SENSITIVE_PROPS.className
           )}
@@ -312,60 +322,72 @@ const TransactionCard = memo(function TransactionCard({
             className="shrink-0"
           />
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span
-            className={cn(PH_SENSITIVE_PROPS.className)}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-          >
-            {displayDate.primary}
-          </span>
-          {categoryText && (
-            <>
-              <span>·</span>
-              <span
-                className={cn(
-                  "truncate",
-                  PH_SENSITIVE_PROPS.className
-                )}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                {categoryText}
-              </span>
-            </>
-          )}
-          {transaction.recurring_info && (
-            <>
-              <span>·</span>
-              <span
-                className={cn(PH_SENSITIVE_PROPS.className)}
-                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-              >
-                <CalendarClock className="h-3 w-3" aria-hidden="true" />
-              </span>
-            </>
-          )}
-          {isSpecialType(transaction.type) && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 border px-1.5 py-0 text-[10px]",
-                typeBadgeColors[transaction.type as TransactionType]
-              )}
-            >
-              {t(`types.${transaction.type}`, transaction.type)}
-            </Badge>
-          )}
-          {trackChomeshSeparately && transaction.is_chomesh && (
+        <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
+          <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-x-1 overflow-hidden">
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 text-[10px]",
-                PH_SENSITIVE_PROPS.className
+                "shrink-0 whitespace-nowrap",
+                PH_SENSITIVE_PROPS.className,
               )}
               data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
             >
-              <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+              {displayDate.primary}
+            </span>
+            {categoryText && (
               <span
-                className={cn(PH_SENSITIVE_PROPS.className)}
+                className={cn(
+                  "min-w-[2.5rem] flex-1 truncate",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <span aria-hidden="true">· </span>
+                {categoryText}
+              </span>
+            )}
+            {transaction.recurring_info && (
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-px",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <span aria-hidden="true">·</span>
+                <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
+              </span>
+            )}
+            {isSpecialType(transaction.type) && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-3 min-w-0 max-w-[7.5rem] shrink overflow-hidden border px-1 py-0 text-[9px] leading-none",
+                  typeBadgeColors[transaction.type as TransactionType],
+                )}
+              >
+                <span className="block min-w-0 truncate">
+                  {t(`types.${transaction.type}`, transaction.type)}
+                </span>
+              </Badge>
+            )}
+          </div>
+          {trackChomeshSeparately && transaction.is_chomesh && (
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[9px]",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <BadgeCheck
+                className="h-3 w-3 shrink-0 text-green-600"
+                aria-hidden="true"
+              />
+              <span
+                className={cn(
+                  "shrink-0 whitespace-nowrap",
+                  PH_SENSITIVE_PROPS.className,
+                )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
                 {t("cards.chomesh")}
@@ -374,30 +396,39 @@ const TransactionCard = memo(function TransactionCard({
           )}
         </div>
       </div>
-      <div
-        className={cn(
-          "shrink-0 text-end font-bold",
-          conversion && "flex flex-col items-end",
-          PH_SENSITIVE_PROPS.className
-        )}
-        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      <AmountPanel
+        type={transaction.type}
+        conversion={
+          conversion ? (
+            <div
+              className={cn(
+                "inline-flex items-center gap-0.5 leading-none",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              <Coins className="h-2 w-2 shrink-0 opacity-70" aria-hidden="true" />
+              <span
+                className={cn(
+                  "text-[9px] font-normal leading-none text-muted-foreground",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                {formatCurrency(
+                  conversion.originalAmount,
+                  conversion.originalCurrency,
+                  i18n.language,
+                )}
+              </span>
+            </div>
+          ) : undefined
+        }
       >
-        {conversion ? (
-          <div className="flex items-center justify-end gap-1">
-            <CurrencyConversionInfo
-              amount={transaction.amount}
-              currency={transaction.currency}
-              originalAmount={transaction.original_amount}
-              originalCurrency={transaction.original_currency}
-              conversionRate={transaction.conversion_rate}
-              conversionDate={transaction.conversion_date}
-              rateSource={transaction.rate_source}
-              mode="static"
-              showConversionIcon={false}
-            />
-            <Coins className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          </div>
-        ) : (
+        <div
+          className={cn(PH_SENSITIVE_PROPS.className)}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
           <CurrencyConversionInfo
             amount={transaction.amount}
             currency={transaction.currency}
@@ -407,24 +438,10 @@ const TransactionCard = memo(function TransactionCard({
             conversionDate={transaction.conversion_date}
             rateSource={transaction.rate_source}
             mode="static"
+            showConversionIcon={false}
           />
-        )}
-        {conversion ? (
-          <span
-            className={cn(
-              "text-xs font-normal text-muted-foreground",
-              PH_SENSITIVE_PROPS.className
-            )}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-          >
-            {formatCurrency(
-              conversion.originalAmount,
-              conversion.originalCurrency,
-              i18n.language
-            )}
-          </span>
-        ) : null}
-      </div>
+        </div>
+      </AmountPanel>
     </SwipeableCardRow>
   );
 });
@@ -635,8 +652,6 @@ export function TransactionCardList({
           }
 
           const transaction = item.item;
-          const baseType = baseTypeOf(transaction.type);
-          const surfaceClasses = BASE_TYPE_SURFACE[baseType];
           const displayDate = formatDisplayDate(transaction.date, "numeric");
           
           const cardTitle = transaction.description
@@ -677,7 +692,6 @@ export function TransactionCardList({
               displayDate={displayDate}
               categoryText={categoryText}
               cardTitle={cardTitle}
-              surfaceClasses={surfaceClasses}
               isSelected={isSelected}
               inSelectionMode={inSelectionMode}
               onCardClick={handleCardClick}

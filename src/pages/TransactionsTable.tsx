@@ -6,11 +6,15 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TransactionsTableDisplay } from "@/components/TransactionsTable/TransactionsTableDisplay";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_CARD_QUERY, MOBILE_PAGE_NAV_BUTTON_CLASS } from "@/lib/responsive";
+import { cn } from "@/lib/utils";
 
 export function TransactionsTable() {
   const { t } = useTranslation("data-tables");
   const { platform } = usePlatform();
   const navigate = useNavigate();
+  const compactHeader = useMediaQuery(MOBILE_CARD_QUERY);
 
   if (platform === "loading") {
     return (
@@ -34,6 +38,8 @@ export function TransactionsTable() {
           {t("transactionsTable.pageTitle")}
         </h1>
         <Button
+          variant={compactHeader ? "outline" : "default"}
+          className={cn(compactHeader && MOBILE_PAGE_NAV_BUTTON_CLASS)}
           onClick={() =>
             navigate({ to: "/transactions-table/recurring-transactions" })
           }

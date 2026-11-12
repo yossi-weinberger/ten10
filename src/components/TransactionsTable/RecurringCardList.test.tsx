@@ -15,6 +15,30 @@ import {
 import type { RecurringTransaction } from "@/types/transaction";
 import { RecurringCardList } from "./RecurringCardList";
 
+/** PostHog masks text nodes, not attributes — masked values must not leak into attrs. */
+function assertMaskedValuesStayOutOfAttributes(root: ParentNode) {
+  const ATTRS = new Set(["title", "aria-label"]);
+  root.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
+    const maskedValue = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (maskedValue.length < 2) return;
+    const nodes = [el, ...el.querySelectorAll("*")];
+    for (const node of nodes) {
+      for (const attr of node.attributes) {
+        if (attr.name === "class" || attr.name === "data-ph-mask") continue;
+        const isDataAttr =
+          attr.name.startsWith("data-") &&
+          attr.name !== "data-state" &&
+          attr.name !== "data-swipe-row";
+        if (!ATTRS.has(attr.name) && !isDataAttr) continue;
+        expect(
+          attr.value,
+          `${attr.name} on <${node.tagName.toLowerCase()}> must not contain masked "${maskedValue}"`,
+        ).not.toContain(maskedValue);
+      }
+    }
+  });
+}
+
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
 const i18nLanguage = vi.hoisted(() => ({ current: "en" }));
 const trackChomesh = vi.hoisted(() => ({ current: false }));
@@ -30,7 +54,10 @@ vi.mock("framer-motion", () => ({
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string, params?: { count?: number; date?: string }) => {
+    t: (key: string, params?: { count?: number; date?: string; field?: string; direction?: string }) => {
+      if (key === "sort.chip" && params?.field) {
+        return `Sort: ${params.field} · ${params.direction ?? ""}`;
+      }
       if (params && typeof params.count === "number") return `${key}:${params.count}`;
       if (params && typeof params.date === "string") return `${key}:${params.date}`;
       return key;
@@ -49,6 +76,7 @@ vi.mock("@/lib/store", () => ({
         trackChomeshSeparately: boolean;
         calendarType: "gregorian" | "hebrew";
         showSecondaryDate: boolean;
+        defaultCurrency: string;
       };
     }) => unknown,
   ) =>
@@ -57,6 +85,7 @@ vi.mock("@/lib/store", () => ({
         trackChomeshSeparately: trackChomesh.current,
         calendarType: displayCalendar.calendarType,
         showSecondaryDate: displayCalendar.showSecondaryDate,
+        defaultCurrency: "ILS",
       },
     }),
 }));
@@ -232,7 +261,7 @@ afterEach(() => {
 });
 
 describe("RecurringCardList", () => {
-  it("masks description, amount, frequency, and the short next date on a type-tinted card", () => {
+  it("masks description, amount, frequency, and the short next date on a neutral card", () => {
     render(
       <RecurringCardList
         recurring={[recurringRow({ id: "rent", description: "Rent" })]}
@@ -242,14 +271,22 @@ describe("RecurringCardList", () => {
     );
 
     const card = cardTitled("Rent");
-    expect(card.className).toContain("bg-red-50");
-    expect(card.className).toContain("border-red-200/70");
-    expect(card.querySelector(".flex-nowrap")).toBeTruthy();
+    expect(card.className).toContain("overflow-hidden");
+    expect(card.className).toContain("bg-white");
+    expect(card.className).not.toContain("bg-red-50");
+    expect(card.querySelector(".bg-red-100")).toBeTruthy();
+    expect(card.querySelector(".size-6.rounded-full")).toBeTruthy();
+    const frequency = screen.getByText("recurring.frequencies.monthly");
+    const nextDue = screen.getByText("cards.nextShort:01/02/2026");
+    expect(frequency.className).toContain("whitespace-nowrap");
+    expect(frequency.className.split(/\s+/)).not.toContain("truncate");
+    expect(nextDue.className).toContain("whitespace-nowrap");
+    expect(nextDue.className.split(/\s+/)).not.toContain("truncate");
     expectMasked(screen.getByText("Rent").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("100 ILS").closest("[data-ph-mask]"));
-    expectMasked(screen.getByText("recurring.frequencies.monthly").closest("[data-ph-mask]"));
+    expectMasked(frequency.closest("[data-ph-mask]"));
     expect(screen.queryByText("recurring.calendars.gregorian")).not.toBeInTheDocument();
-    expectMasked(screen.getByText("cards.nextShort:01/02/2026").closest("[data-ph-mask]"));
+    expectMasked(nextDue.closest("[data-ph-mask]"));
     const cardStatus = within(card).getByText("recurring.statuses.active");
     expect(cardStatus).toHaveClass("sr-only");
     expect(cardStatus.closest("[data-ph-mask]")).toBeNull();
@@ -266,6 +303,45 @@ describe("RecurringCardList", () => {
     expect(screen.queryByText("family-card")).not.toBeInTheDocument();
     expect(screen.queryByText("cards.chomesh")).not.toBeInTheDocument();
     expect(document.querySelector(".ph-no-capture")).toBeNull();
+  });
+
+  it("keeps frequency and next-date labels separated (not glued) in the meta row", () => {
+    for (const language of ["en", "he"] as const) {
+      cleanup();
+      i18nLanguage.current = language;
+      i18nDir.current = language === "he" ? "rtl" : "ltr";
+      render(
+        <RecurringCardList
+          recurring={[
+            recurringRow({
+              id: `rent-${language}`,
+              description: `Rent ${language}`,
+              amount: 1234567.5,
+            }),
+          ]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />,
+      );
+
+      const frequency = screen.getByText("recurring.frequencies.monthly");
+      const nextDue = screen.getByText("cards.nextShort:01/02/2026");
+      expect(frequency).not.toBe(nextDue);
+      expect(frequency.parentElement).toBe(nextDue.parentElement);
+      expect(frequency.parentElement?.className).toMatch(/\bgap-x-1\b/);
+      expect(frequency.parentElement?.className).not.toMatch(/\bgap-px\b/);
+      const siblings = [...(frequency.parentElement?.children ?? [])];
+      const freqIdx = siblings.indexOf(frequency);
+      const nextIdx = siblings.indexOf(nextDue);
+      expect(freqIdx).toBeGreaterThanOrEqual(0);
+      expect(nextIdx).toBeGreaterThan(freqIdx);
+      const between = siblings.slice(freqIdx + 1, nextIdx);
+      expect(between.some((el) => (el.textContent || "").includes("·"))).toBe(
+        true,
+      );
+      expect(frequency.contains(nextDue)).toBe(false);
+      expect(nextDue.contains(frequency)).toBe(false);
+    }
   });
 
   it("shows a masked Hebrew calendar badge and the full next date", () => {
@@ -287,9 +363,54 @@ describe("RecurringCardList", () => {
     );
 
     const card = cardTitled("Rent");
-    expect(card.className).toContain("bg-green-50");
-    expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
+    expect(card.className).toContain("bg-white");
+    expect(card.className).toContain("h-[54px]");
+    expect(card.className).toContain("!min-h-[54px]");
+    expect(card.className).toContain("!p-1");
+    expect(card.className).not.toContain("w-[22%]");
+    expect(card.innerHTML).toContain("w-auto");
+    expect(card.innerHTML).toContain("min-w-[72px]");
+    expect(card.innerHTML).toContain("max-[359px]:min-w-[64px]");
+    expect(card.innerHTML).not.toContain("min-w-fit");
+    expect(card.className).not.toContain("bg-green-50");
+    expect(card.querySelector(".bg-green-100")).toBeTruthy();
+    const hebrewBadge = screen.getByText("recurring.calendars.hebrew");
+    expectMasked(hebrewBadge.closest("[data-ph-mask]"));
+    expect(hebrewBadge.closest("[title]")).toBeNull();
+    expect(hebrewBadge.closest("[aria-label]")).toBeNull();
+    expect(hebrewBadge.getAttribute("title")).toBeNull();
+    expect(hebrewBadge.getAttribute("aria-label")).toBeNull();
     expectMasked(screen.getByText("cards.nextShort:05/03/2027").closest("[data-ph-mask]"));
+    assertMaskedValuesStayOutOfAttributes(document.body);
+  });
+
+  it("does not put masked recurring values into title, aria-label, or data-* attributes", () => {
+    i18nLanguage.current = "he";
+    const { container } = render(
+      <RecurringCardList
+        recurring={[
+          recurringRow({
+            id: "rent",
+            description: "Secret rent description",
+            calendar_type: "hebrew",
+            next_due_date: "2027-03-05",
+            type: "income",
+            amount: 1234.56,
+          }),
+          recurringRow({
+            id: "usd",
+            description: "Secret usd donation",
+            type: "donation",
+            amount: 100,
+            currency: "USD",
+          }),
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    assertMaskedValuesStayOutOfAttributes(container);
   });
 
   it("follows the Gregorian display calendar and a masked Hebrew secondary date", () => {
@@ -497,7 +618,8 @@ describe("RecurringCardList", () => {
       />,
     );
 
-    const trigger = screen.getByRole("button", { name: "sort.sortBy: recurring-next-due" });
+    const trigger = screen.getByRole("button", { name: /^Sort: recurring-next-due/ });
+    expect(trigger).toHaveClass("h-9", "rounded-full", "px-2.5", "text-[13px]");
     expect(trigger.closest("[data-sort-chip-slot]")).toHaveAttribute("data-sort-chip-slot", "separator");
     await user.click(trigger);
     await user.click(screen.getByRole("menuitemradio", { name: "recurring-amount" }));

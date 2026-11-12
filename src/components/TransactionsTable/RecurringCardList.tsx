@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Edit3, RefreshCw, Trash2 } from "lucide-react";
+import { Coins, Edit3, RefreshCw, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +12,24 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
-import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { CardListStates } from "@/components/card-list/CardListStates";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
+import {
+  AmountPanel,
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
+  TypeIconChip,
+} from "@/components/card-list/TypeVisual";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatCategory } from "@/lib/category-registry";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -36,6 +47,12 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 
 const STATUS_ORDER = ["active", "paused", "completed", "cancelled"] as const;
+
+const CARD_SURFACE_CLASS = cn(
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
+  "overflow-hidden bg-white dark:bg-card",
+);
 
 const drawerRowClass =
   "flex min-h-11 w-full items-center justify-between gap-3 border-t border-border py-2 text-start";
@@ -218,6 +235,10 @@ export function RecurringCardList({
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency,
+  );
+  const { t: tCurrency } = useTranslation("currency-features");
   const [selected, setSelected] = useState<RecurringTransaction | null>(null);
   useRestoreOverlayOnUnmount(selected != null);
   const longPressTriggeredRef = useRef(false);
@@ -377,6 +398,9 @@ export function RecurringCardList({
           });
           const secondaryDue = displayDue.secondary ?? null;
           const isSelected = selectedIds.has(row.id);
+          const conversion = storedConversion(row);
+          const showLiveRateIcon =
+            !conversion && row.currency !== defaultCurrency;
           const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;
             event.preventDefault();
@@ -387,7 +411,7 @@ export function RecurringCardList({
             <SwipeableCardRow
               key={row.id}
               id={row.id}
-              surfaceClassName={BASE_TYPE_SURFACE[baseTypeOf(row.type)]}
+              surfaceClassName={CARD_SURFACE_CLASS}
               isSelected={isSelected}
               inSelectionMode={inSelectionMode}
               selectionDisabled={selectionDisabled}
@@ -415,32 +439,42 @@ export function RecurringCardList({
                 },
               ]}
             >
+              <TypeIconChip type={row.type} />
               <div className="min-w-0 flex-1 overflow-hidden">
-                <MaskedText className="block truncate font-medium">
+                <MaskedText className="block truncate text-[12px] font-medium leading-none">
                   {row.description || "-"}
                 </MaskedText>
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex flex-nowrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
-                  <MaskedText className="min-w-0 truncate">
+                <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
+                  <MaskedText className="shrink-0 whitespace-nowrap">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
+                  <span className="shrink-0" aria-hidden="true">
+                    ·
+                  </span>
+                  <MaskedText className="shrink-0 whitespace-nowrap">
+                    {nextDueLabel}
+                  </MaskedText>
+                  {secondaryDue ? (
+                    <MaskedText className="min-w-0 flex-1 truncate">
+                      {secondaryDue}
+                    </MaskedText>
+                  ) : null}
                   {row.calendar_type === "hebrew" ? (
                     <Badge
                       variant="secondary"
                       className={cn(
-                        "shrink-0 px-1.5 py-0 text-[10px] font-normal",
+                        "h-3 min-w-0 max-w-[5rem] shrink overflow-hidden px-1 py-0 text-[9px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,
                       )}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                     >
-                      {t("recurring.calendars.hebrew")}
+                      <span className="block min-w-0 truncate">
+                        {t("recurring.calendars.hebrew")}
+                      </span>
                     </Badge>
-                  ) : null}
-                  <MaskedText className="shrink-0">{nextDueLabel}</MaskedText>
-                  {secondaryDue ? (
-                    <MaskedText className="min-w-0 truncate">{secondaryDue}</MaskedText>
                   ) : null}
                   <span className="shrink-0">
                     <RecurringProgressBadge
@@ -450,22 +484,65 @@ export function RecurringCardList({
                       totalOccurrences={row.total_occurrences}
                       frequency={row.frequency}
                       dayOfMonth={row.day_of_month}
+                      className="h-3 shrink-0 whitespace-nowrap px-1 py-0 text-[9px] leading-none"
                     />
                   </span>
                 </div>
               </div>
-              <MaskedText className="shrink-0 text-end font-bold">
-                <CurrencyConversionInfo
-                  amount={row.amount}
-                  currency={row.currency}
-                  originalAmount={row.original_amount}
-                  originalCurrency={row.original_currency}
-                  conversionRate={row.conversion_rate}
-                  conversionDate={row.conversion_date}
-                  rateSource={row.rate_source}
-                  mode="live"
-                />
-              </MaskedText>
+              <AmountPanel
+                type={row.type}
+                conversion={
+                  conversion ? (
+                    <div className="inline-flex items-center gap-0.5 leading-none">
+                      <Coins
+                        className="h-2 w-2 shrink-0 opacity-70"
+                        aria-hidden="true"
+                      />
+                      <MaskedText className="text-[9px] font-normal leading-none text-muted-foreground">
+                        {formatCurrency(
+                          conversion.originalAmount,
+                          conversion.originalCurrency,
+                          i18n.language,
+                        )}
+                      </MaskedText>
+                    </div>
+                  ) : showLiveRateIcon ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <RefreshCw
+                            className="h-2 w-2 text-muted-foreground cursor-help"
+                            aria-label={tCurrency("row.tooltip.conversionDetails")}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          className={cn(
+                            "text-xs bg-popover text-popover-foreground border shadow-md p-2",
+                            PH_SENSITIVE_PROPS.className,
+                          )}
+                          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                        >
+                          {tCurrency("row.tooltip.estimated")}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : undefined
+                }
+              >
+                <MaskedText>
+                  <CurrencyConversionInfo
+                    amount={row.amount}
+                    currency={row.currency}
+                    originalAmount={row.original_amount}
+                    originalCurrency={row.original_currency}
+                    conversionRate={row.conversion_rate}
+                    conversionDate={row.conversion_date}
+                    rateSource={row.rate_source}
+                    mode="live"
+                    showConversionIcon={false}
+                  />
+                </MaskedText>
+              </AmountPanel>
             </SwipeableCardRow>
           );
         })}
