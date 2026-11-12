@@ -314,7 +314,11 @@
       "declineButton": "Not Now",
       "accepting": "Enabling…",
       "acceptSuccess": "The assistant is now available",
-      "acceptError": "Could not confirm. Please try again."
+      "acceptError": "Could not confirm. Please try again.",
+      "checkingTitle": "Checking consent",
+      "checkingDescription": "Checking whether you have accepted the beta terms.",
+      "cancelCheck": "Close",
+      "checkTimeout": "Could not check consent. Please try again."
     }
   },
   "user": {
