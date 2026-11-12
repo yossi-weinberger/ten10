@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef, memo } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, memo } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
@@ -39,6 +39,7 @@ import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useSwipe } from "@/hooks/use-swipe";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
@@ -111,6 +112,12 @@ interface TransactionCardProps {
   longPressTriggeredRef: React.MutableRefObject<boolean>;
   trackChomeshSeparately: boolean;
   t: (key: string, defaultValue?: string) => string;
+  isRTL: boolean;
+  onEdit: (transaction: TransactionForTable) => void;
+  onDelete: (transaction: TransactionForTable) => void;
+  swipeOpenId: string | null;
+  onSwipeOpen: (id: string) => void;
+  onSwipeClose: () => void;
 }
 
 const TransactionCard = memo(function TransactionCard({
@@ -128,9 +135,43 @@ const TransactionCard = memo(function TransactionCard({
   longPressTriggeredRef,
   trackChomeshSeparately,
   t,
+  isRTL,
+  onEdit,
+  onDelete,
+  swipeOpenId,
+  onSwipeOpen,
+  onSwipeClose,
 }: TransactionCardProps) {
   const { i18n } = useTranslation("data-tables");
   const conversion = storedConversion(transaction);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const swipeTriggeredRef = useRef(false);
+  const dragBaseRef = useRef(0);
+  if (inSelectionMode && isDragging) {
+    setIsDragging(false);
+  }
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [actionButtonsWidth, setActionButtonsWidth] = useState(128);
+  const isSwipeOpen = swipeOpenId === transaction.id;
+  const actionsInteractive = isSwipeOpen && !inSelectionMode;
+
+  const SWIPE_THRESHOLD = 50;
+
+  const isMobileSwipeEnabled = typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+
+  useEffect(() => {
+    if (isMobileSwipeEnabled && actionsRef.current) {
+      const width = actionsRef.current.offsetWidth;
+      if (width > 0) {
+        setActionButtonsWidth(width);
+      }
+    }
+  }, [isMobileSwipeEnabled]);
+
   const longPressHandlers = useLongPress({
     onLongPress: () => {
       if (!selectionDisabled && onToggleSelected) {
@@ -145,44 +186,183 @@ const TransactionCard = memo(function TransactionCard({
     movementThreshold: 10,
   });
 
+  const swipeHandlers = useSwipe({
+    onSwipeStart: () => {
+      setIsDragging(true);
+      dragBaseRef.current = isSwipeOpen ? swipeOffset : 0;
+      swipeTriggeredRef.current = true;
+      setIsAnimating(false);
+    },
+    onSwipeMove: (delta) => {
+      const next = Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
+      setSwipeOffset(next);
+    },
+    onSwipeEnd: (delta) => {
+      setIsDragging(false);
+      setIsAnimating(true);
+      const blocked = inSelectionMode || !isMobileSwipeEnabled;
+      const next = blocked
+        ? 0
+        : Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
+      if (!blocked && next >= SWIPE_THRESHOLD) {
+        setSwipeOffset(actionButtonsWidth);
+        onSwipeOpen(transaction.id);
+      } else {
+        setSwipeOffset(0);
+        if (isSwipeOpen) {
+          onSwipeClose();
+        }
+      }
+      setTimeout(() => {
+        swipeTriggeredRef.current = false;
+      }, 100);
+    },
+    threshold: SWIPE_THRESHOLD,
+    movementThreshold: 10,
+    isRTL,
+    disabled: inSelectionMode || !isMobileSwipeEnabled,
+  });
+
+  const effectiveSwipeOffset =
+    isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
+      ? swipeOffset
+      : 0;
+
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
+    swipeTriggeredRef.current = false;
     longPressHandlers.onPointerDown(e);
+    swipeHandlers.onPointerDown(e);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    longPressHandlers.onPointerMove(e);
+    swipeHandlers.onPointerMove(e);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const wasSwipeActive = swipeTriggeredRef.current;
+    longPressHandlers.onPointerUp(e);
+    swipeHandlers.onPointerUp(e);
+
+    if (wasSwipeActive && inSelectionMode) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   const handlePointerCancel = () => {
     longPressTriggeredRef.current = false;
+    const wasSwipeActive = swipeTriggeredRef.current;
+    swipeTriggeredRef.current = false;
+    setIsDragging(false);
     longPressHandlers.onPointerCancel();
+    swipeHandlers.onPointerCancel();
+
+    if (wasSwipeActive) {
+      setSwipeOffset(0);
+      setIsAnimating(true);
+      if (isSwipeOpen) {
+        onSwipeClose();
+      }
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch") 
+    const isTouch = (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === "touch")
       || window.matchMedia("(pointer: coarse)").matches;
     if (isTouch) {
       e.preventDefault();
     }
   };
 
+  const handleCardClick = () => {
+    if (swipeTriggeredRef.current || longPressTriggeredRef.current) {
+      swipeTriggeredRef.current = false;
+      longPressTriggeredRef.current = false;
+      return;
+    }
+    onCardClick(transaction);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!actionsInteractive) return;
+    onEdit(transaction);
+    onSwipeClose();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!actionsInteractive) return;
+    onDelete(transaction);
+    onSwipeClose();
+  };
+
   return (
-    <Card
-      role="button"
-      tabIndex={0}
-      aria-selected={inSelectionMode ? isSelected : undefined}
-      aria-pressed={inSelectionMode ? isSelected : undefined}
-      className={cn(
-        "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 transition-all hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none]",
-        surfaceClasses,
-        isSelected && "ring-2 ring-primary ring-offset-2"
-      )}
-      onClick={() => onCardClick(transaction)}
-      onKeyDown={onKeyDown}
-      onContextMenu={handleContextMenu}
-      onPointerDown={handlePointerDown}
-      onPointerMove={longPressHandlers.onPointerMove}
-      onPointerUp={longPressHandlers.onPointerUp}
-      onPointerCancel={handlePointerCancel}
+    <div
+      className="relative max-md:[@media(pointer:coarse)]:overflow-hidden"
+      data-swipe-row={transaction.id}
     >
-      <div className="flex-1 overflow-hidden">
+      <div
+        ref={actionsRef}
+        className={cn(
+          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-[2] max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2 hidden",
+          effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible",
+          !actionsInteractive && "pointer-events-none"
+        )}
+        aria-hidden={!actionsInteractive}
+      >
+        <Button
+          variant="default"
+          size="icon"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
+          onClick={handleEditClick}
+          tabIndex={actionsInteractive ? 0 : -1}
+          disabled={!actionsInteractive}
+          aria-label={t("actions.edit")}
+        >
+          <Edit3 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.edit")}</span>
+        </Button>
+        <Button
+          variant="destructive"
+          size="icon"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
+          onClick={handleDeleteClick}
+          tabIndex={actionsInteractive ? 0 : -1}
+          disabled={!actionsInteractive}
+          aria-label={t("actions.delete")}
+        >
+          <Trash2 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.delete")}</span>
+        </Button>
+      </div>
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-selected={inSelectionMode ? isSelected : undefined}
+        aria-pressed={inSelectionMode ? isSelected : undefined}
+        className={cn(
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y max-md:[@media(pointer:coarse)]:relative max-md:[@media(pointer:coarse)]:z-[1]",
+          surfaceClasses,
+          isSelected && "ring-2 ring-primary ring-offset-2"
+        )}
+        style={{
+          marginInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0
+            ? `${effectiveSwipeOffset}px`
+            : undefined,
+          transition: isAnimating ? "margin 0.3s ease-out" : "none",
+        }}
+        onClick={handleCardClick}
+        onKeyDown={onKeyDown}
+        onContextMenu={handleContextMenu}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
             "truncate font-medium",
@@ -306,7 +486,8 @@ const TransactionCard = memo(function TransactionCard({
           </span>
         ) : null}
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 });
 
@@ -344,8 +525,13 @@ export function TransactionCardList({
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
 
   const inSelectionMode = selectedIds.size > 0;
+  if (inSelectionMode && swipeOpenId !== null) {
+    setSwipeOpenId(null);
+  }
+  const computedSwipeOpenId = inSelectionMode ? null : swipeOpenId;
 
   React.useEffect(() => {
     if (inSelectionMode) {
@@ -357,6 +543,34 @@ export function TransactionCardList({
       delete document.body.dataset.mobileSelectionActive;
     };
   }, [inSelectionMode]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!computedSwipeOpenId) return;
+      const target = e.target;
+      if (target instanceof Element) {
+        const row = target.closest("[data-swipe-row]");
+        if (row?.getAttribute("data-swipe-row") === computedSwipeOpenId) return;
+      }
+      setSwipeOpenId(null);
+    };
+
+    const handleScroll = () => {
+      if (computedSwipeOpenId) {
+        setSwipeOpenId(null);
+      }
+    };
+
+    if (computedSwipeOpenId) {
+      document.addEventListener("click", handleClickOutside, true);
+      window.addEventListener("scroll", handleScroll, true);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside, true);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [computedSwipeOpenId]);
 
   const transactionsWithSeparators = useMemo(() => {
     const result: Array<
@@ -463,6 +677,14 @@ export function TransactionCardList({
     setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }, [selectedTransaction, t]);
 
+  const handleSwipeOpen = useCallback((id: string) => {
+    setSwipeOpenId(id);
+  }, []);
+
+  const handleSwipeClose = useCallback(() => {
+    setSwipeOpenId(null);
+  }, []);
+
   if (loading && transactions.length === 0) {
     return (
       <div className="space-y-2">
@@ -516,7 +738,7 @@ export function TransactionCardList({
             return (
               <div
                 key={`month-separator-${item.monthKey}`}
-                className="sticky top-0 z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
+                className="sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground"
               >
                 <span
                   className={cn(PH_SENSITIVE_PROPS.className)}
@@ -581,6 +803,12 @@ export function TransactionCardList({
               longPressTriggeredRef={longPressTriggeredRef}
               trackChomeshSeparately={trackChomeshSeparately}
               t={t}
+              isRTL={i18n.dir() === "rtl"}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              swipeOpenId={computedSwipeOpenId}
+              onSwipeOpen={handleSwipeOpen}
+              onSwipeClose={handleSwipeClose}
             />
           );
         })}
