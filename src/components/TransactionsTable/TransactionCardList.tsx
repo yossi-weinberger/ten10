@@ -323,50 +323,54 @@ const TransactionCard = memo(function TransactionCard({
           />
         </div>
         <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
-          <span
-            className={cn(
-              "shrink-0 whitespace-nowrap",
-              PH_SENSITIVE_PROPS.className,
+          <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-x-1 overflow-hidden">
+            <span
+              className={cn(
+                "shrink-0 whitespace-nowrap",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              {displayDate.primary}
+            </span>
+            {categoryText && (
+              <span
+                className={cn(
+                  "min-w-[2.5rem] flex-1 truncate",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <span aria-hidden="true">· </span>
+                {categoryText}
+              </span>
             )}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-          >
-            {displayDate.primary}
-          </span>
-          {categoryText && (
-            <span
-              className={cn(
-                "min-w-0 flex-1 truncate",
-                PH_SENSITIVE_PROPS.className,
-              )}
-              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-            >
-              <span aria-hidden="true">· </span>
-              {categoryText}
-            </span>
-          )}
-          {transaction.recurring_info && (
-            <span
-              className={cn(
-                "inline-flex shrink-0 items-center gap-px",
-                PH_SENSITIVE_PROPS.className,
-              )}
-              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-            >
-              <span aria-hidden="true">·</span>
-              <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
-            </span>
-          )}
-          {isSpecialType(transaction.type) && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-3 min-w-0 max-w-[7.5rem] shrink truncate border px-1 py-0 text-[9px] leading-none",
-                typeBadgeColors[transaction.type as TransactionType],
-              )}
-            >
-              {t(`types.${transaction.type}`, transaction.type)}
-            </Badge>
-          )}
+            {transaction.recurring_info && (
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-px",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
+                <span aria-hidden="true">·</span>
+                <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
+              </span>
+            )}
+            {isSpecialType(transaction.type) && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-3 min-w-0 max-w-[7.5rem] shrink overflow-hidden border px-1 py-0 text-[9px] leading-none",
+                  typeBadgeColors[transaction.type as TransactionType],
+                )}
+              >
+                <span className="block min-w-0 truncate">
+                  {t(`types.${transaction.type}`, transaction.type)}
+                </span>
+              </Badge>
+            )}
+          </div>
           {trackChomeshSeparately && transaction.is_chomesh && (
             <span
               className={cn(

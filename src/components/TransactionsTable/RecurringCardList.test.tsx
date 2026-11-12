@@ -305,7 +305,7 @@ describe("RecurringCardList", () => {
     expect(document.querySelector(".ph-no-capture")).toBeNull();
   });
 
-  it("keeps frequency and next-date labels as separate meta siblings with gap-x-1", () => {
+  it("keeps frequency and next-date labels separated (not glued) in the meta row", () => {
     for (const language of ["en", "he"] as const) {
       cleanup();
       i18nLanguage.current = language;
@@ -330,14 +330,17 @@ describe("RecurringCardList", () => {
       expect(frequency.parentElement).toBe(nextDue.parentElement);
       expect(frequency.parentElement?.className).toMatch(/\bgap-x-1\b/);
       expect(frequency.parentElement?.className).not.toMatch(/\bgap-px\b/);
-      // Adjacent flex items — must not live in one text node (glued חודשיהבא:)
+      const siblings = [...(frequency.parentElement?.children ?? [])];
+      const freqIdx = siblings.indexOf(frequency);
+      const nextIdx = siblings.indexOf(nextDue);
+      expect(freqIdx).toBeGreaterThanOrEqual(0);
+      expect(nextIdx).toBeGreaterThan(freqIdx);
+      const between = siblings.slice(freqIdx + 1, nextIdx);
+      expect(between.some((el) => (el.textContent || "").includes("·"))).toBe(
+        true,
+      );
       expect(frequency.contains(nextDue)).toBe(false);
       expect(nextDue.contains(frequency)).toBe(false);
-      expect(
-        [...(frequency.parentElement?.children ?? [])].indexOf(frequency),
-      ).toBeLessThan(
-        [...(frequency.parentElement?.children ?? [])].indexOf(nextDue),
-      );
     }
   });
 

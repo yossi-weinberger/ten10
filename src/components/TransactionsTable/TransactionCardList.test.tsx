@@ -321,10 +321,19 @@ describe("TransactionCardList", () => {
       />,
     );
 
-    expect(markup).toContain("min-w-0 flex-1 truncate");
-    expect(markup).toContain("min-w-0 max-w-[7.5rem] shrink truncate");
+    expect(markup).toContain("min-w-[2.5rem] flex-1 truncate");
+    expect(markup).toContain(
+      "min-w-0 max-w-[7.5rem] shrink overflow-hidden",
+    );
+    expect(markup).toContain("block min-w-0 truncate");
     expect(markup).toContain(
       "mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden",
+    );
+    expect(markup).toContain(
+      "flex min-w-0 flex-1 flex-nowrap items-center gap-x-1 overflow-hidden",
+    );
+    expect(markup).not.toContain(
+      "min-w-0 max-w-[7.5rem] shrink truncate border",
     );
     expect(markup).not.toContain(
       "mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden",

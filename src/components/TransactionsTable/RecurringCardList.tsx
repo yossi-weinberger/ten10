@@ -451,6 +451,9 @@ export function RecurringCardList({
                   <MaskedText className="shrink-0 whitespace-nowrap">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
+                  <span className="shrink-0" aria-hidden="true">
+                    ·
+                  </span>
                   <MaskedText className="shrink-0 whitespace-nowrap">
                     {nextDueLabel}
                   </MaskedText>
@@ -463,12 +466,14 @@ export function RecurringCardList({
                     <Badge
                       variant="secondary"
                       className={cn(
-                        "h-3 min-w-0 max-w-[5rem] shrink truncate px-1 py-0 text-[9px] font-normal leading-none",
+                        "h-3 min-w-0 max-w-[5rem] shrink overflow-hidden px-1 py-0 text-[9px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,
                       )}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
                     >
-                      {t("recurring.calendars.hebrew")}
+                      <span className="block min-w-0 truncate">
+                        {t("recurring.calendars.hebrew")}
+                      </span>
                     </Badge>
                   ) : null}
                   <span className="shrink-0">
