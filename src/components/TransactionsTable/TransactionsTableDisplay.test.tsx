@@ -258,8 +258,15 @@ describe("TransactionsTableDisplay mobile sort", () => {
       screen.getByRole("button", { name: "sort.sortBy: columns.date" }),
     );
 
+    const menu = await screen.findByRole("menu");
+    expect(menu).toHaveAttribute("data-side", "bottom");
+    expect(menu.className).toContain(
+      "max-h-[var(--radix-dropdown-menu-content-available-height)]",
+    );
+    expect(menu.className).toContain("overflow-y-auto");
+
     for (const label of SORTABLE_LABELS) {
-      expect(await screen.findByRole("menuitem", { name: label })).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: label })).toBeInTheDocument();
     }
 
     await user.click(screen.getByRole("menuitem", { name: "columns.paymentMethod" }));

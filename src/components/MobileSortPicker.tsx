@@ -66,8 +66,11 @@ export function MobileSortPicker<Field extends string>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
+          side="bottom"
+          avoidCollisions
+          collisionPadding={8}
           align="start"
-          className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[min(20rem,50vh)] overflow-y-auto"
+          className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
         >
           {fields.map((option) => (
             <DropdownMenuItem
