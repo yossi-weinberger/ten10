@@ -13,6 +13,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
+import { BASE_TYPE_SURFACE, baseTypeOf } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
 import { CardListStates } from "@/components/card-list/CardListStates";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
@@ -111,6 +112,20 @@ function nonEmptyText(value: string | null | undefined): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+/** Month/day for English, day/month for Hebrew. The year is kept only outside the current year. */
+function formatCardDue(isoDate: string, language: string, today: Date): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) return isoDate;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return isoDate;
+  const hebrew = language.toLowerCase().startsWith("he");
+  const core = hebrew ? `${day}/${month}` : `${month}/${day}`;
+  if (year === today.getFullYear()) return core;
+  return `${core}/${year}`;
 }
 
 function MaskedText({
@@ -332,7 +347,9 @@ export function RecurringCardList({
           }
 
           const row = item.item;
-          const nextDue = formatDisplayDate(row.next_due_date, "numeric");
+          const nextDueLabel = t("cards.nextShort", {
+            date: formatCardDue(row.next_due_date, i18n.language, new Date()),
+          });
           const isSelected = selectedIds.has(row.id);
           const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;
@@ -344,6 +361,7 @@ export function RecurringCardList({
             <SwipeableCardRow
               key={row.id}
               id={row.id}
+              surfaceClassName={BASE_TYPE_SURFACE[baseTypeOf(row.type)]}
               isSelected={isSelected}
               inSelectionMode={inSelectionMode}
               selectionDisabled={selectionDisabled}
@@ -375,38 +393,33 @@ export function RecurringCardList({
                 <MaskedText className="block truncate font-medium">
                   {row.description || "-"}
                 </MaskedText>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  <MaskedText>
+                <div className="mt-0.5 flex flex-nowrap items-center gap-1.5 overflow-hidden text-xs text-muted-foreground">
+                  <MaskedText className="min-w-0 truncate">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      "px-1.5 py-0 text-[10px] font-normal",
-                      PH_SENSITIVE_PROPS.className,
-                    )}
-                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                  >
-                    {t(`recurring.calendars.${row.calendar_type ?? "gregorian"}`)}
-                  </Badge>
-                  <MaskedText>{nextDue.primary}</MaskedText>
-                  {nextDue.secondary ? (
-                    <MaskedText>{nextDue.secondary}</MaskedText>
+                  {row.calendar_type === "hebrew" ? (
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "shrink-0 px-1.5 py-0 text-[10px] font-normal",
+                        PH_SENSITIVE_PROPS.className,
+                      )}
+                      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                    >
+                      {t("recurring.calendars.hebrew")}
+                    </Badge>
                   ) : null}
-                  <Badge
-                    variant="outline"
-                    className={cn("border", recurringStatusBadgeColors[row.status])}
-                  >
-                    {t(`recurring.statuses.${row.status}`, row.status)}
-                  </Badge>
-                  <RecurringProgressBadge
-                    status={row.status}
-                    type={row.type}
-                    executionCount={row.execution_count}
-                    totalOccurrences={row.total_occurrences}
-                    frequency={row.frequency}
-                    dayOfMonth={row.day_of_month}
-                  />
+                  <MaskedText className="shrink-0">{nextDueLabel}</MaskedText>
+                  <span className="shrink-0">
+                    <RecurringProgressBadge
+                      status={row.status}
+                      type={row.type}
+                      executionCount={row.execution_count}
+                      totalOccurrences={row.total_occurrences}
+                      frequency={row.frequency}
+                      dayOfMonth={row.day_of_month}
+                    />
+                  </span>
                 </div>
               </div>
               <MaskedText className="shrink-0 text-end font-bold">

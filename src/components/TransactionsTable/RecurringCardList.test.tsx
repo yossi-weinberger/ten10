@@ -14,6 +14,7 @@ import type { RecurringTransaction } from "@/types/transaction";
 import { RecurringCardList } from "./RecurringCardList";
 
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
+const i18nLanguage = vi.hoisted(() => ({ current: "en" }));
 const trackChomesh = vi.hoisted(() => ({ current: false }));
 
 vi.mock("framer-motion", () => ({
@@ -23,11 +24,14 @@ vi.mock("framer-motion", () => ({
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string, params?: { count?: number }) =>
-      params && typeof params.count === "number" ? `${key}:${params.count}` : key,
+    t: (key: string, params?: { count?: number; date?: string }) => {
+      if (params && typeof params.count === "number") return `${key}:${params.count}`;
+      if (params && typeof params.date === "string") return `${key}:${params.date}`;
+      return key;
+    },
     i18n: {
       dir: () => i18nDir.current,
-      language: "en",
+      language: i18nLanguage.current,
     },
   }),
 }));
@@ -196,8 +200,10 @@ beforeAll(() => {
 
 beforeEach(() => {
   i18nDir.current = "ltr";
+  i18nLanguage.current = "en";
   trackChomesh.current = false;
   vi.stubGlobal("matchMedia", phoneMatchMedia(false));
+  vi.setSystemTime(new Date("2026-11-12T12:00:00Z"));
 });
 
 afterEach(() => {
@@ -209,7 +215,7 @@ afterEach(() => {
 });
 
 describe("RecurringCardList", () => {
-  it("masks description, amount, frequency, calendar, and next due date on the card", () => {
+  it("masks description, amount, frequency, and the short next date on a type-tinted card", () => {
     render(
       <RecurringCardList
         recurring={[recurringRow({ id: "rent", description: "Rent" })]}
@@ -218,11 +224,16 @@ describe("RecurringCardList", () => {
       />,
     );
 
+    const card = cardTitled("Rent");
+    expect(card.className).toContain("bg-red-50");
+    expect(card.className).toContain("border-red-200/70");
+    expect(card.querySelector(".flex-nowrap")).toBeTruthy();
     expectMasked(screen.getByText("Rent").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("100 ILS").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("recurring.frequencies.monthly").closest("[data-ph-mask]"));
-    expectMasked(screen.getByText("recurring.calendars.gregorian").closest("[data-ph-mask]"));
-    expectMasked(screen.getByText("2026-02-01").closest("[data-ph-mask]"));
+    expect(screen.queryByText("recurring.calendars.gregorian")).not.toBeInTheDocument();
+    expectMasked(screen.getByText("cards.nextShort:2/1").closest("[data-ph-mask]"));
+    expect(card.textContent).not.toContain("recurring.statuses.active");
 
     const statuses = screen.getAllByText("recurring.statuses.active");
     expect(statuses.length).toBeGreaterThan(0);
@@ -235,6 +246,30 @@ describe("RecurringCardList", () => {
     expect(screen.queryByText("family-card")).not.toBeInTheDocument();
     expect(screen.queryByText("cards.chomesh")).not.toBeInTheDocument();
     expect(document.querySelector(".ph-no-capture")).toBeNull();
+  });
+
+  it("shows a masked Hebrew calendar badge and keeps the year outside the current year", () => {
+    i18nLanguage.current = "he";
+    render(
+      <RecurringCardList
+        recurring={[
+          recurringRow({
+            id: "rent",
+            description: "Rent",
+            calendar_type: "hebrew",
+            next_due_date: "2027-03-05",
+            type: "income",
+          }),
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const card = cardTitled("Rent");
+    expect(card.className).toContain("bg-green-50");
+    expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("cards.nextShort:5/3/2027").closest("[data-ph-mask]"));
   });
 
   it("keeps chomesh and category in the drawer only, and masks every sensitive drawer value", async () => {

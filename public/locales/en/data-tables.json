@@ -92,7 +92,8 @@
     "initial_balance": "Opening Balance"
   },
   "cards": {
-    "chomesh": "Chomesh"
+    "chomesh": "Chomesh",
+    "nextShort": "Next: {{date}}"
   },
   "actions": {
     "title": "Actions",
