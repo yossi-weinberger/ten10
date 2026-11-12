@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
@@ -42,6 +41,13 @@ import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
+const RECURRING_EDIT_STATUSES = [
+  "active",
+  "paused",
+  "completed",
+  "cancelled",
+] as const satisfies readonly RecurringTransaction["status"][];
+
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
   onSubmit: (values: RecurringEditFormValues) => Promise<void>;
@@ -54,6 +60,7 @@ export function RecurringTransactionEditForm({
   onCancel,
 }: RecurringTransactionEditFormProps) {
   const { t, i18n } = useTranslation("transactions");
+  const { t: tDataTables } = useTranslation("data-tables");
   const [isSuccess, setIsSuccess] = React.useState(false);
 
   const defaultCurrency = useDonationStore(
@@ -260,10 +267,7 @@ export function RecurringTransactionEditForm({
                       placeholder={
                         initialData.type === "income" ||
                         initialData.type === "exempt-income"
-                          ? t(
-                              "transactionForm.category.incomePlaceholder",
-                              "קטגוריית הכנסה (אופציונלי)",
-                            )
+                          ? t("transactionForm.category.incomePlaceholder")
                           : t("transactionForm.category.placeholder")
                       }
                     />
@@ -296,13 +300,11 @@ export function RecurringTransactionEditForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {Object.entries(recurringStatusLabels).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ),
-                    )}
+                    {RECURRING_EDIT_STATUSES.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {tDataTables(`recurring.statuses.${value}`, value)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <div className="h-5">
