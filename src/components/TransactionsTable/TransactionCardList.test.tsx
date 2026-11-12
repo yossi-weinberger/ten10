@@ -9,6 +9,11 @@ import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
 
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
+const reducedMotion = vi.hoisted(() => ({ current: false }));
+
+vi.mock("framer-motion", () => ({
+  useReducedMotion: () => reducedMotion.current,
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -2027,6 +2032,7 @@ describe("TransactionCardList PostHog masking", () => {
   describe("swipe actions", () => {
     beforeEach(() => {
       vi.useFakeTimers();
+      reducedMotion.current = false;
       vi.stubGlobal("matchMedia", (query: string) => ({
         matches: query.includes("max-width: 767px") && query.includes("pointer: coarse"),
         media: query,
@@ -2041,6 +2047,7 @@ describe("TransactionCardList PostHog masking", () => {
 
     afterEach(() => {
       i18nDir.current = "ltr";
+      reducedMotion.current = false;
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
       vi.useRealTimers();
@@ -2081,6 +2088,7 @@ describe("TransactionCardList PostHog masking", () => {
       expect(onDelete).not.toHaveBeenCalled();
       expect(onToggleSelected).not.toHaveBeenCalled();
       expect((card as HTMLElement).style.marginInlineEnd).toBe("");
+      expect((card as HTMLElement).style.transform).toBe("");
     });
 
     it("a horizontal swipe does not fire the long-press selection", () => {
@@ -2128,15 +2136,37 @@ describe("TransactionCardList PostHog masking", () => {
       expect(markup).toContain("h-full");
       expect(markup).toContain("w-14");
       expect(markup).toContain("min-w-[44px]");
+      expect(markup).toContain("rounded-lg");
       expect(markup).toContain("end-0");
       expect(markup).toContain("ps-2");
-      expect(markup).not.toContain("translateX");
-      expect(markup).not.toContain("transform:");
       expect(markup).toContain("min-w-0");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:relative");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[1]");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-[2]");
-      expect(markup).toContain("max-md:[@media(pointer:coarse)]:invisible");
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:touch-pan-y");
+      expect(markup).toContain("max-md:[@media(pointer:coarse)]:z-0");
+      expect(markup).toContain("relative z-10");
+      expect(markup).toContain('tabindex="-1"');
+      expect(markup).not.toContain("z-[1]");
+      expect(markup).not.toContain("z-[2]");
+      expect(markup).not.toContain("marginInlineEnd");
+      expect(markup).not.toContain("disabled=");
+
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+      const edit = screen.getByRole("button", { name: "Edit", hidden: true });
+      const actions = edit.parentElement as HTMLElement;
+      const row = actions.parentElement as HTMLElement;
+      expect(actions).toHaveAttribute("aria-hidden", "true");
+      expect(actions.classList.contains("pointer-events-none")).toBe(true);
+      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(true);
+      expect(row).toHaveAttribute("data-swipe-row", mockTransactions[0].id);
+      expect(row.classList.contains("max-md:[@media(pointer:coarse)]:isolate")).toBe(true);
     });
 
     function cardTitled(title: string): HTMLElement {
@@ -2163,6 +2193,51 @@ describe("TransactionCardList PostHog masking", () => {
       swipeCard(card, "open");
     }
 
+    function contentLayer(card: HTMLElement): HTMLElement {
+      const parent = card.parentElement;
+      if (parent && !parent.hasAttribute("data-swipe-row")) {
+        return parent;
+      }
+      return card;
+    }
+
+    function readTranslateX(card: HTMLElement): number {
+      const transform = contentLayer(card).style.transform;
+      if (!transform || transform === "none") return 0;
+      const match = /translate(?:3d|X)\(\s*([-\d.]+)px/.exec(transform);
+      if (!match) {
+        throw new Error(`unexpected transform: ${transform}`);
+      }
+      return Number(match[1]);
+    }
+
+    function settleSwipe() {
+      act(() => {
+        vi.advanceTimersByTime(220);
+      });
+    }
+
+    function expectClosed(card: HTMLElement) {
+      settleSwipe();
+      expect(card.style.marginInlineEnd).toBe("");
+      expect(readTranslateX(card)).toBe(0);
+    }
+
+    function expectOpen(card: HTMLElement) {
+      settleSwipe();
+      expect(card.style.marginInlineEnd).toBe("");
+      const expected = i18nDir.current === "rtl" ? 128 : -128;
+      expect(readTranslateX(card)).toBe(expected);
+    }
+
+    function tapCard(card: HTMLElement) {
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 40, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerUp(card, { clientX: 40, clientY: 40, pointerType: "touch" });
+        fireEvent.click(card);
+      });
+    }
+
     it("outside tap closes an open card and its actions are not clickable", () => {
       const onDelete = vi.fn();
 
@@ -2179,17 +2254,20 @@ describe("TransactionCardList PostHog masking", () => {
 
       const card = cardTitled("Salary");
       swipeCardOpen(card);
-      expect(card.style.marginInlineEnd).toBe("128px");
+      expectOpen(card);
 
       const topBar = document.createElement("button");
       topBar.setAttribute("aria-label", "Menu");
       document.body.appendChild(topBar);
       fireEvent.click(topBar);
 
-      expect(card.style.marginInlineEnd).toBe("");
+      expectClosed(card);
       topBar.remove();
       const deleteButton = screen.getByRole("button", { name: "Delete", hidden: true });
+      expect(deleteButton).toBeEnabled();
+      expect(deleteButton).not.toHaveClass("opacity-50");
       expect(deleteButton).toHaveAttribute("tabindex", "-1");
+      expect(deleteButton.closest("[aria-hidden='true']")).toBeTruthy();
       fireEvent.click(deleteButton);
       expect(onDelete).not.toHaveBeenCalled();
     });
@@ -2209,12 +2287,12 @@ describe("TransactionCardList PostHog masking", () => {
       const first = cardTitled("Salary");
       const second = cardTitled("Groceries");
       swipeCardOpen(first);
-      expect(first.style.marginInlineEnd).toBe("128px");
+      expectOpen(first);
 
       swipeCardOpen(second);
 
-      expect(first.style.marginInlineEnd).toBe("");
-      expect(second.style.marginInlineEnd).toBe("128px");
+      expectClosed(first);
+      expectOpen(second);
     });
 
     it("entering selection mode closes an open card and that card can be selected", () => {
@@ -2244,18 +2322,20 @@ describe("TransactionCardList PostHog masking", () => {
 
       const salary = cardTitled("Salary");
       swipeCardOpen(salary);
-      expect(salary.style.marginInlineEnd).toBe("128px");
+      expectOpen(salary);
 
       rerender(
         <TransactionCardList {...listProps} selectedIds={new Set(["2"])} />
       );
 
-      expect(salary.style.marginInlineEnd).toBe("");
+      expectClosed(salary);
       swipeCard(salary, "open");
-      expect(salary.style.marginInlineEnd).toBe("");
+      expectClosed(salary);
       const deleteButtons = screen.getAllByRole("button", { name: "Delete", hidden: true });
       deleteButtons.forEach((button) => {
+        expect(button).toBeEnabled();
         expect(button).toHaveAttribute("tabindex", "-1");
+        expect(button.closest("[aria-hidden='true']")).toBeTruthy();
       });
       fireEvent.click(deleteButtons[0]);
       expect(onDelete).not.toHaveBeenCalled();
@@ -2283,17 +2363,22 @@ describe("TransactionCardList PostHog masking", () => {
 
       const card = cardTitled("Salary");
       swipeCardOpen(card);
-      expect(card.style.marginInlineEnd).toBe("128px");
+      expectOpen(card);
 
       const actions = card.closest("[data-swipe-row]")?.firstElementChild;
-      expect(actions?.className).toContain("z-[2]");
+      expect(actions?.className).toContain("z-0");
+      expect(actions?.className).not.toContain("z-[2]");
+      expect(contentLayer(card).className).toContain("z-10");
       expect(actions?.className).not.toContain("pointer-events-none");
       const editButton = screen.getByRole("button", { name: "Edit" });
       expect(editButton).toBeEnabled();
+      expect(editButton).not.toHaveClass("opacity-50");
+      editButton.focus();
       fireEvent.click(editButton);
 
       expect(onEdit).toHaveBeenCalledWith(mockTransactions[0]);
-      expect(card.style.marginInlineEnd).toBe("");
+      expect(document.activeElement).toBe(card);
+      expectClosed(card);
     });
 
     it("opens on a finger-left swipe in LTR, ignores finger-right, and closes on finger-right", () => {
@@ -2311,15 +2396,16 @@ describe("TransactionCardList PostHog masking", () => {
 
       const card = cardTitled("Salary");
       swipeCard(card, "close");
-      expect(card.style.marginInlineEnd).toBe("");
-      expect(card.style.transform).toBe("");
+      expectClosed(card);
 
       swipeCard(card, "open");
-      expect(card.style.marginInlineEnd).toBe("128px");
+      expectOpen(card);
+      expect(contentLayer(card).className).toContain("transition-transform");
+      expect(contentLayer(card).style.transition).toBe("");
       expect(card.closest("[data-swipe-row]")?.firstElementChild?.className).toContain("end-0");
 
       swipeCard(card, "close");
-      expect(card.style.marginInlineEnd).toBe("");
+      expectClosed(card);
     });
 
     it("opens on a finger-right swipe in RTL, ignores finger-left, and closes on finger-left", () => {
@@ -2337,14 +2423,14 @@ describe("TransactionCardList PostHog masking", () => {
 
       const card = cardTitled("Salary");
       swipeCard(card, "close");
-      expect(card.style.marginInlineEnd).toBe("");
+      expectClosed(card);
 
       swipeCard(card, "open");
-      expect(card.style.marginInlineEnd).toBe("128px");
+      expectOpen(card);
       expect(card.closest("[data-swipe-row]")?.firstElementChild?.className).toContain("end-0");
 
       swipeCard(card, "close");
-      expect(card.style.marginInlineEnd).toBe("");
+      expectClosed(card);
     });
 
     it("does not open when the viewport is wider than the phone query", () => {
@@ -2373,6 +2459,349 @@ describe("TransactionCardList PostHog masking", () => {
       const card = cardTitled("Salary");
       swipeCard(card, "open");
       expect(card.style.marginInlineEnd).toBe("");
+      expect(card.style.transform).toBe("");
+      expect(card.parentElement?.hasAttribute("data-swipe-row")).toBe(true);
+    });
+
+    it("keeps Edit and Delete opaque and enabled while the row is opening and when it is open", () => {
+      const onDelete = vi.fn();
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={onDelete}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 160, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+
+      const actions = card.closest("[data-swipe-row]")?.firstElementChild as HTMLElement;
+      expect(actions.className).toContain("z-0");
+      expect(contentLayer(card).className).toContain("z-10");
+      expect(actions.classList.contains("pointer-events-none")).toBe(false);
+      expect(actions.classList.contains("max-md:[@media(pointer:coarse)]:invisible")).toBe(false);
+      expect(actions.getAttribute("aria-hidden")).not.toBe("true");
+      expect(readTranslateX(card)).toBe(-70);
+      const openingEdit = screen.getByRole("button", { name: "Edit" });
+      const openingDelete = screen.getByRole("button", { name: "Delete" });
+      expect(openingEdit).toBeEnabled();
+      expect(openingDelete).toBeEnabled();
+      expect(openingEdit).not.toHaveClass("opacity-50");
+      expect(openingDelete).not.toHaveClass("opacity-50");
+      expect(openingEdit.className).toContain("rounded-lg");
+
+      act(() => {
+        fireEvent.pointerUp(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+      expect(contentLayer(card).style.transition).toBe("transform 200ms ease-out");
+      expectOpen(card);
+      expect(contentLayer(card).style.transition).toBe("");
+      expect(screen.getByRole("button", { name: "Edit" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Delete" })).toBeEnabled();
+
+      const deleteButton = screen.getByRole("button", { name: "Delete" });
+      deleteButton.focus();
+      fireEvent.click(deleteButton);
+      expect(onDelete).toHaveBeenCalledWith(mockTransactions[0]);
+      expect(document.activeElement).toBe(card);
+      expectClosed(card);
+    });
+
+    it("closes an open card when the page scrolls", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expectOpen(card);
+
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+
+      expectClosed(card);
+    });
+
+    it("closes an open card when another card is tapped", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0], mockTransactions[1]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const first = cardTitled("Salary");
+      const second = cardTitled("Groceries");
+      swipeCardOpen(first);
+      expectOpen(first);
+
+      tapCard(second);
+
+      expectClosed(first);
+      expect(readTranslateX(second)).toBe(0);
+    });
+
+    it("a tap on a closed card opens the drawer", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      tapCard(cardTitled("Salary"));
+      expect(screen.getByText("Transaction details and actions")).toBeInTheDocument();
+    });
+
+    it("a tap on an open card closes it without opening the drawer", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expectOpen(card);
+      tapCard(card);
+      expectClosed(card);
+      expect(screen.queryByText("Transaction details and actions")).not.toBeInTheDocument();
+    });
+
+    it("a drag during the release continues from the painted offset", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 160, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerUp(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+      const layer = contentLayer(card);
+      const originalGetComputedStyle = window.getComputedStyle.bind(window);
+      const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+        if (element === layer) {
+          return { transform: "matrix(1, 0, 0, 1, -80, 0)" } as CSSStyleDeclaration;
+        }
+        return originalGetComputedStyle(element);
+      });
+
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 100, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 80, clientY: 40, pointerType: "touch" });
+      });
+
+      expect(readTranslateX(card)).toBe(-100);
+      computed.mockRestore();
+    });
+
+    it("a drag during the release continues from the painted offset in RTL", () => {
+      i18nDir.current = "rtl";
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 20, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerUp(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+      });
+      const layer = contentLayer(card);
+      const originalGetComputedStyle = window.getComputedStyle.bind(window);
+      const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+        if (element === layer) {
+          return { transform: "matrix(1, 0, 0, 1, 80, 0)" } as CSSStyleDeclaration;
+        }
+        return originalGetComputedStyle(element);
+      });
+
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 100, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 120, clientY: 40, pointerType: "touch" });
+      });
+
+      expect(readTranslateX(card)).toBe(100);
+      computed.mockRestore();
+    });
+
+    it("a drag that lands on the release target is not left at the painted offset", () => {
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expectOpen(card);
+      swipeCard(card, "close");
+
+      const layer = contentLayer(card);
+      const originalGetComputedStyle = window.getComputedStyle.bind(window);
+      const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+        if (element === layer) {
+          return { transform: "matrix(1, 0, 0, 1, -10, 0)" } as CSSStyleDeclaration;
+        }
+        return originalGetComputedStyle(element);
+      });
+
+      act(() => {
+        fireEvent.pointerDown(card, { clientX: 100, clientY: 40, pointerType: "touch" });
+        fireEvent.pointerMove(card, { clientX: 112, clientY: 40, pointerType: "touch" });
+      });
+
+      expect(readTranslateX(card)).toBe(0);
+      computed.mockRestore();
+    });
+
+    it("closes from the painted offset and hides the strip only after the release settles", () => {
+      const hiddenClass = "max-md:[@media(pointer:coarse)]:invisible";
+      const closers = [
+        () => {
+          act(() => {
+            window.dispatchEvent(new Event("scroll"));
+          });
+        },
+        (card: HTMLElement) => {
+          tapCard(card);
+        },
+        () => {
+          const topBar = document.createElement("button");
+          topBar.setAttribute("aria-label", "Menu");
+          document.body.appendChild(topBar);
+          fireEvent.click(topBar);
+          topBar.remove();
+        },
+      ];
+
+      closers.forEach((close) => {
+        cleanup();
+        render(
+          <TransactionCardList
+            transactions={[mockTransactions[0]]}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+            onEditRecurring={vi.fn()}
+            isFetchingRec={false}
+            loading={false}
+          />
+        );
+
+        const card = cardTitled("Salary");
+        act(() => {
+          fireEvent.pointerDown(card, { clientX: 160, clientY: 40, pointerType: "touch" });
+          fireEvent.pointerMove(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+          fireEvent.pointerUp(card, { clientX: 90, clientY: 40, pointerType: "touch" });
+        });
+
+        const layer = contentLayer(card);
+        const rewind: string[] = [];
+        const rect = vi.spyOn(layer, "getBoundingClientRect").mockImplementation(() => {
+          rewind.push(layer.style.transform);
+          return new DOMRect();
+        });
+        const originalGetComputedStyle = window.getComputedStyle.bind(window);
+        const computed = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+          if (element === layer) {
+            return { transform: "matrix(1, 0, 0, 1, -40, 0)" } as CSSStyleDeclaration;
+          }
+          return originalGetComputedStyle(element);
+        });
+
+        close(card);
+
+        expect(rewind).toContain("translateX(-40px)");
+        expect(rewind).not.toContain("translateX(-128px)");
+        expect(readTranslateX(card)).toBe(0);
+        const actions = card.closest("[data-swipe-row]")?.firstElementChild as HTMLElement;
+        expect(actions).toHaveAttribute("aria-hidden", "true");
+        expect(actions.classList.contains(hiddenClass)).toBe(false);
+
+        act(() => {
+          vi.advanceTimersByTime(220);
+        });
+        expect(actions.classList.contains(hiddenClass)).toBe(true);
+        rect.mockRestore();
+        computed.mockRestore();
+      });
+    });
+
+    it("jumps the card shut when reduced motion is preferred", () => {
+      reducedMotion.current = true;
+      render(
+        <TransactionCardList
+          transactions={[mockTransactions[0]]}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditRecurring={vi.fn()}
+          isFetchingRec={false}
+          loading={false}
+        />
+      );
+
+      const card = cardTitled("Salary");
+      swipeCardOpen(card);
+      expect(readTranslateX(card)).toBe(-128);
+      expect(contentLayer(card).className).not.toContain("transition-transform");
+
+      const topBar = document.createElement("button");
+      topBar.setAttribute("aria-label", "Menu");
+      document.body.appendChild(topBar);
+      fireEvent.click(topBar);
+      topBar.remove();
+
+      expect(card.style.marginInlineEnd).toBe("");
+      expect(readTranslateX(card)).toBe(0);
     });
   });
 });
