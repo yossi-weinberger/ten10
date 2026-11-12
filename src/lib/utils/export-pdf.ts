@@ -673,7 +673,9 @@ export async function exportTransactionsToPDF(
         gregorianPdfDate,
         i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
           t.type,
-        formatCurrency(t.amount, t.currency, currentLanguage),
+        formatCurrency(t.amount, t.currency, currentLanguage, {
+          fractionalDigits: 1,
+        }),
         t.description || "-",
         formatCategory(
           t.type === "income" || t.type === "exempt-income" ? "income"

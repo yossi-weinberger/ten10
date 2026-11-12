@@ -3391,4 +3391,21 @@ describe("transaction details drawer", () => {
     expect(plain.querySelector(".lucide-refresh-cw")).toBeNull();
     expect(within(plain).queryByText(detail)).not.toBeInTheDocument();
   });
+
+  it("shows two decimals inside the LTR conversion pill for a fractional original amount", async () => {
+    const converted: TransactionForTable = {
+      ...mockTransactions[0],
+      amount: 38.25,
+      currency: "ILS",
+      original_amount: 12.3,
+      original_currency: "USD",
+      conversion_rate: 3.11,
+    };
+    const drawer = await openDrawer(converted);
+    const pill = within(drawer).getByText("$12.30 × 3.11");
+    expect(pill.tagName).toBe("BDI");
+    expect(pill).toHaveAttribute("dir", "ltr");
+    expectPostHogMask(pill);
+    expect(drawer.textContent).toContain("Converted · ");
+  });
 });
