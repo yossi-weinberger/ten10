@@ -8,6 +8,7 @@ export const PUBLIC_ROUTES = [
   "/landing",
   "/privacy",
   "/terms",
+  "/beta-terms",
   "/accessibility",
 ];
 

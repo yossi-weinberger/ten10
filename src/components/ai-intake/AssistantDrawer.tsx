@@ -1,5 +1,6 @@
-import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type Ref } from "react";
 import { Paperclip, SquarePen } from "lucide-react";
+import { toast } from "sonner";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { loadTitheBalance } from "@/lib/ai/assistant-extras";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -8,9 +9,25 @@ import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
+import { supabase } from "@/lib/supabaseClient";
+import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
+import { setAssistantConsentCover } from "./assistant-open";
+
+/** A hung consent check on a phone must end. Long enough for a slow network, short enough to leave. */
+export const CONSENT_CHECK_TIMEOUT_MS = 9_000;
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
+import { BetaTermsDialog } from "./BetaTermsDialog";
 import { conversationStarted } from "./assistant-drawer-state";
 import { useAssistantDrawerState } from "./use-assistant-drawer-state";
 import { useAssistantDrawerIntent } from "./use-assistant-drawer-intent";
@@ -47,6 +64,73 @@ export function AssistantDrawer({
   const defaultCurrency = useDonationStore((store) => store.settings.defaultCurrency);
   const [openingBalance, setOpeningBalance] = useState<number | null>(null);
   const userId = state.user?.id ?? null;
+  const isCompactViewport = useMediaQuery(COMPACT_VIEWPORT_QUERY);
+
+  // Beta consent gate - fail closed: start checking when drawer opens with a userId
+  const [consentState, setConsentState] = useState<{
+    checking: boolean;
+    accepted: boolean | null;
+    showDialog: boolean;
+  }>(() => ({ checking: open && !!userId, accepted: null, showDialog: false }));
+  const consentEpoch = useRef(0);
+  const closeRef = useRef<(next: boolean) => void>(onOpenChange);
+  const translateRef = useRef(state.t);
+
+  useEffect(() => {
+    translateRef.current = state.t;
+  }, [state.t]);
+
+  // Check consent status when drawer opens. One check per open; a second tap does not start another.
+  useEffect(() => {
+    if (!open || !userId) return;
+
+    const epoch = ++consentEpoch.current;
+    const stillCurrent = () => consentEpoch.current === epoch;
+
+    const timeoutId = isCompactViewport
+      ? window.setTimeout(() => {
+          if (!stillCurrent()) return;
+          consentEpoch.current += 1;
+          setConsentState({ checking: false, accepted: false, showDialog: false });
+          toast.error(translateRef.current("aiIntake.betaTerms.checkTimeout"));
+          closeRef.current(false);
+        }, CONSENT_CHECK_TIMEOUT_MS)
+      : undefined;
+
+    const checkConsent = async () => {
+      setConsentState({ checking: true, accepted: null, showDialog: false });
+
+      try {
+        const { data, error } = await supabase.rpc("ai_beta_consent_status");
+
+        if (!stillCurrent()) return;
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+
+        if (error) {
+          console.error("Failed to check AI beta consent:", error);
+          setConsentState({ checking: false, accepted: false, showDialog: true });
+        } else if (data) {
+          const accepted = data.accepted === true && data.version === AI_BETA_TERMS_VERSION;
+          setConsentState({ checking: false, accepted, showDialog: !accepted });
+        } else {
+          setConsentState({ checking: false, accepted: false, showDialog: true });
+        }
+      } catch (err) {
+        if (!stillCurrent()) return;
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+        console.error("Unexpected error checking consent:", err);
+        setConsentState({ checking: false, accepted: false, showDialog: true });
+      }
+    };
+
+    void checkConsent();
+
+    return () => {
+      consentEpoch.current += 1;
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, [open, userId, isCompactViewport]);
+
   // The opening speaks from the user's own data: the dashboard's balance, read each time it opens.
   useEffect(() => {
     if (!open) return;
@@ -80,6 +164,7 @@ export function AssistantDrawer({
   useEffect(() => {
     setTextRef.current = state.setText;
     disposeRef.current = state.disposeAssistant;
+    closeRef.current = handleOpenChange;
   });
   useEffect(() => {
     return () => {
@@ -95,7 +180,38 @@ export function AssistantDrawer({
     },
   }), []);
 
+  const consentCoversFab = state.platform === "web"
+    && isCompactViewport
+    && open
+    && (consentState.checking || consentState.showDialog);
+
+  useLayoutEffect(() => {
+    setAssistantConsentCover(consentCoversFab);
+    return () => setAssistantConsentCover(false);
+  }, [consentCoversFab]);
+
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
+
+  // Derive consent OK: fail closed unless explicitly accepted
+  const consentOk = !!userId && !consentState.checking && consentState.accepted === true;
+  // On a phone, keep the assistant closed until this terms version is accepted.
+  // Desktop still opens immediately and shows the dialog over the drawer.
+  const assistantOpen = isCompactViewport ? open && consentOk : open;
+
+  const handleBetaAccept = () => {
+    setConsentState({ checking: false, accepted: true, showDialog: false });
+  };
+
+  const handleBetaDecline = () => {
+    setConsentState((prev) => ({ ...prev, showDialog: false }));
+    handleOpenChange(false); // Use handleOpenChange to stop recording and clear conversation
+  };
+
+  const cancelConsentCheck = () => {
+    consentEpoch.current += 1;
+    setConsentState({ checking: false, accepted: false, showDialog: false });
+    handleOpenChange(false);
+  };
 
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
   const firstName = userName?.trim().split(/\s+/)[0] || null;
@@ -107,9 +223,37 @@ export function AssistantDrawer({
       })
       : state.t("aiIntake.openingCovered");
 
+  // On a phone the assistant stays unmounted until consent is in, so its drawer
+  // cannot sit behind the consent drawer.
+  const mountAssistant = !isCompactViewport || assistantOpen;
+
   return (
-    <AssistantShell
-      open={open}
+    <>
+      {isCompactViewport && open && consentState.checking ? (
+        <Drawer open onOpenChange={() => {}} dismissible={false}>
+          <DrawerContent dir={state.i18n.dir()}>
+            <DrawerHeader className="text-start">
+              <DrawerTitle>{state.t("aiIntake.betaTerms.checkingTitle")}</DrawerTitle>
+              <DrawerDescription role="status">
+                {state.t("aiIntake.betaTerms.checkingDescription")}
+              </DrawerDescription>
+            </DrawerHeader>
+            <DrawerFooter className="pb-[max(16px,calc(env(safe-area-inset-bottom)+12px))]">
+              <Button type="button" variant="outline" className="h-11 w-full" onClick={cancelConsentCheck}>
+                {state.t("aiIntake.betaTerms.cancelCheck")}
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : null}
+      <BetaTermsDialog
+        open={consentState.showDialog}
+        onAccept={handleBetaAccept}
+        onDecline={handleBetaDecline}
+      />
+      {mountAssistant ? (
+      <AssistantShell
+      open={assistantOpen}
       onOpenChange={handleOpenChange}
       title={state.t("aiIntake.title")}
       description={state.t("aiIntake.emptyDescription")}
@@ -131,9 +275,9 @@ export function AssistantDrawer({
           <SquarePen aria-hidden />
         </Button>
       )}
-      onReceipt={(file) => {
+      onReceipt={consentOk ? (file) => {
         void composer.handleReceipt(file);
-      }}
+      } : undefined}
       footer={(
         <>
         {sharedFile ? (
@@ -155,7 +299,9 @@ export function AssistantDrawer({
               <Button
                 type="button"
                 className="h-10"
+                disabled={!consentOk}
                 onClick={() => {
+                  if (!consentOk) return;
                   setSharedFile(null);
                   void composer.handleReceipt(sharedFile);
                 }}
@@ -170,21 +316,25 @@ export function AssistantDrawer({
           onChange={state.setText}
           textareaRef={state.textareaRef}
           busy={composer.wiring.busyKey !== undefined}
+          disabled={!consentOk}
           recording={composer.wiring.recording}
           transcribing={composer.wiring.transcribing}
           mediaStream={state.mediaStream.current}
           elapsed={composer.wiring.elapsed}
           mode={composer.wiring.mode}
           onReceipt={(file) => {
+            if (!consentOk) return;
             void composer.handleReceipt(file);
           }}
           onToggleVoice={() => {
+            if (!consentOk) return;
             void composer.toggleRecording();
           }}
           onCancelRecording={() => {
             composer.cancelRecording();
           }}
           onSubmit={() => {
+            if (!consentOk) return;
             if (state.clarification === "amount") composer.handleAmountReply(state.text);
             else void intent.handleSubmit();
           }}
@@ -203,16 +353,20 @@ export function AssistantDrawer({
           history={thread.history}
           active={thread.active}
           activeBlocks={thread.blocks}
-          interactiveActive
+          interactiveActive={consentOk}
+          disabled={!consentOk}
           transcribing={composer.wiring.transcribing}
-          opening={{ name: firstName, line: openingLine }}
+          opening={consentOk ? { name: firstName, line: openingLine } : undefined}
           onSuggestion={(suggestion) => {
+            if (!consentOk) return;
             void intent.handleSubmit(suggestion);
           }}
           onReceipt={(file) => {
+            if (!consentOk) return;
             void composer.handleReceipt(file);
           }}
           onVoice={() => {
+            if (!consentOk) return;
             void composer.toggleRecording();
           }}
           handlers={thread.handlers}
@@ -220,5 +374,7 @@ export function AssistantDrawer({
         />
       </div>
     </AssistantShell>
+      ) : null}
+    </>
   );
 }

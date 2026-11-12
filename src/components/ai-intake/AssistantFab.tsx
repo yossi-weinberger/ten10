@@ -1,16 +1,25 @@
-import * as React from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { BotMessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { requestAssistantOpen } from "./assistant-open";
+import {
+  getAssistantConsentCover,
+  requestAssistantOpen,
+  subscribeAssistantConsentCover,
+} from "./assistant-open";
 
 /** The floating button for the assistant, where the contact button was. Contact moved into the menu. */
 export function AssistantFab() {
   const { t } = useTranslation("navigation");
-  const [hidden, setHidden] = React.useState(false);
+  const consentCovered = useSyncExternalStore(
+    subscribeAssistantConsentCover,
+    getAssistantConsentCover,
+    () => false,
+  );
+  const [hidden, setHidden] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const syncHidden = () => {
       const isSelectionActive = document.body.dataset.mobileSelectionActive === "true";
       const isSwipeOpen = document.body.dataset.mobileSwipeOpen === "true";
@@ -28,7 +37,7 @@ export function AssistantFab() {
     return () => observer.disconnect();
   }, []);
 
-  if (hidden) {
+  if (hidden || consentCovered) {
     return null;
   }
 

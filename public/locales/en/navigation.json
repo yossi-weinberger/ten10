@@ -310,7 +310,22 @@
     "halachaPersonal": "For a personal question, ask a rabbi.",
     "rabbiTag": "Question for a rabbi",
     "rabbiIntro": "Ten10's halacha pages don't answer this question. You can send it to a rabbi, and the answer will come by email.",
-    "duplicateTag": "Duplicate"
+    "duplicateTag": "Duplicate",
+    "betaTerms": {
+      "title": "Beta Terms Consent",
+      "description": "To use the AI assistant, you must agree to the unique terms of the beta version.",
+      "shortDescription": "Using the assistant requires consent to beta terms. Your data is protected and you can delete it anytime.",
+      "readFullTerms": "Read the full terms",
+      "acceptButton": "Enable",
+      "declineButton": "Not Now",
+      "accepting": "Enabling…",
+      "acceptSuccess": "The assistant is now available",
+      "acceptError": "Could not confirm. Please try again.",
+      "checkingTitle": "Checking consent",
+      "checkingDescription": "Checking whether you have accepted the beta terms.",
+      "cancelCheck": "Close",
+      "checkTimeout": "Could not check consent. Please try again."
+    }
   },
   "user": {
     "loading": "Loading...",

@@ -326,7 +326,22 @@
     "halachaPersonal": "לשאלה אישית, פנה לרב.",
     "rabbiTag": "שאלה לרב",
     "rabbiIntro": "אין לשאלה הזו תשובה בדפי ההלכה. אפשר לשלוח אותה לרב, והתשובה תגיע אליך במייל.",
-    "duplicateTag": "כפילות"
+    "duplicateTag": "כפילות",
+    "betaTerms": {
+      "title": "הסכמה לשימוש בבטא",
+      "description": "כדי להשתמש בעוזר ה-AI, עליך להסכים לתנאי השימוש הייחודיים של גרסת הבטא.",
+      "shortDescription": "השימוש בעוזר דורש הסכמה לתנאי הבטא. הנתונים שלך מוגנים ותוכל למחוק אותם בכל עת.",
+      "readFullTerms": "קרא את התנאים המלאים",
+      "acceptButton": "הפעל",
+      "declineButton": "לא עכשיו",
+      "accepting": "מפעיל…",
+      "acceptSuccess": "העוזר זמין עכשיו",
+      "acceptError": "לא הצלחנו לאשר. נסה שוב.",
+      "checkingTitle": "בודקים את ההסכמה",
+      "checkingDescription": "בודקים אם אישרת את תנאי הבטא.",
+      "cancelCheck": "סגור",
+      "checkTimeout": "לא הצלחנו לבדוק את ההסכמה. נסה שוב."
+    }
   },
   "user": {
     "loading": "טוען...",
