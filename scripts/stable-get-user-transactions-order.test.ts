@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const migration = readFileSync(
-  "supabase/migrations/20261112100000_stable_get_user_transactions_order.sql",
+  "supabase/migrations/20261112083635_stable_get_user_transactions_order.sql",
   "utf8",
 );
 
