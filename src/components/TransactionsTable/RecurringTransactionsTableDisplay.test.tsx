@@ -6,7 +6,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { COARSE_POINTER_QUERY, MOBILE_CARD_QUERY } from "@/lib/responsive";
 import type { RecurringTransaction } from "@/types/transaction";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { RecurringTransactionsTableDisplay } from "./RecurringTransactionsTableDisplay";
+import { RECURRING_HOW_IT_WORKS_OPEN_KEY, RecurringTransactionsTableDisplay } from "./RecurringTransactionsTableDisplay";
 
 const api = vi.hoisted(() => ({
   fetchRecurring: vi.fn(),
@@ -174,6 +174,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   cardMatches = false;
+  window.localStorage.removeItem(RECURRING_HOW_IT_WORKS_OPEN_KEY);
   api.recurring = [];
   api.loading = false;
   api.error = null;
@@ -442,5 +443,35 @@ describe("RecurringTransactionsTableDisplay card layout", () => {
       "descending",
     );
     expect(api.setSorting).not.toHaveBeenCalled();
+  });
+
+  it("keeps the how-it-works note open on the desktop table", () => {
+    render(<RecurringTransactionsTableDisplay />);
+    expect(screen.getByRole("heading", { name: "recurringTable.howItWorks.title" })).toBeInTheDocument();
+    expect(screen.getByText("recurringTable.howItWorks.descriptionWeb")).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "recurringTable.howItWorks.title" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("collapses how-it-works to one row on cards and remembers the choice", async () => {
+    const user = userEvent.setup();
+    const view = renderCards();
+    const toggle = screen.getByRole("button", { name: "recurringTable.howItWorks.title" });
+    expect(toggle).toHaveClass("h-11");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("recurringTable.howItWorks.descriptionWeb")).not.toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(screen.getByText("recurringTable.howItWorks.descriptionWeb")).toBeVisible();
+    expect(window.localStorage.getItem(RECURRING_HOW_IT_WORKS_OPEN_KEY)).toBe("1");
+
+    view.unmount();
+    renderCards();
+    expect(screen.getByRole("button", { name: "recurringTable.howItWorks.title" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(screen.getByText("recurringTable.howItWorks.descriptionWeb")).toBeVisible();
   });
 });

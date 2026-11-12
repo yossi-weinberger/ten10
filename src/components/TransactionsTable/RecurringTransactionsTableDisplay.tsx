@@ -11,6 +11,11 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import {
@@ -23,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import {
+  ChevronDown,
   InfoIcon,
   MoreHorizontal,
 } from "lucide-react";
@@ -71,6 +77,77 @@ import {
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+
+export const RECURRING_HOW_IT_WORKS_OPEN_KEY = "ten10.recurringHowItWorksOpen";
+
+function readHowItWorksOpen(): boolean {
+  try {
+    return window.localStorage.getItem(RECURRING_HOW_IT_WORKS_OPEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeHowItWorksOpen(open: boolean): void {
+  try {
+    window.localStorage.setItem(RECURRING_HOW_IT_WORKS_OPEN_KEY, open ? "1" : "0");
+  } catch {
+    // Private mode can reject storage. The row still toggles for this visit.
+  }
+}
+
+function HowItWorksNote({ compact }: { compact: boolean }) {
+  const { t } = useTranslation("data-tables");
+  const { platform } = usePlatform();
+  const [open, setOpen] = useState(readHowItWorksOpen);
+  const description =
+    platform === "desktop"
+      ? t("recurringTable.howItWorks.descriptionDesktop")
+      : t("recurringTable.howItWorks.descriptionWeb");
+
+  if (!compact) {
+    return (
+      <div className="mt-4 rounded-lg border border-info/30 bg-info/10 p-4 text-info flex items-start gap-3">
+        <InfoIcon className="h-5 w-5 mt-0.5 shrink-0" />
+        <div>
+          <h4 className="font-semibold text-sm">
+            {t("recurringTable.howItWorks.title")}
+          </h4>
+          <p className="text-sm mt-1 opacity-90">
+            {description}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        writeHowItWorksOpen(next);
+      }}
+      className="mt-4 rounded-lg border border-info/30 bg-info/10 text-info"
+    >
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-11 w-full justify-between rounded-lg px-3 text-info hover:bg-info/15 hover:text-info"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold">
+            <InfoIcon className="h-5 w-5" />
+            {t("recurringTable.howItWorks.title")}
+          </span>
+          <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-3 pb-3 text-sm opacity-90">
+        {description}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 
 export function RecurringTransactionsTableDisplay() {
@@ -416,19 +493,7 @@ export function RecurringTransactionsTableDisplay() {
     <>
       <RecurringTransactionsFilters />
 
-      <div className="mt-4 rounded-lg border border-info/30 bg-info/10 p-4 text-info flex items-start gap-3">
-        <InfoIcon className="h-5 w-5 mt-0.5 shrink-0" />
-        <div>
-          <h4 className="font-semibold text-sm">
-            {t("recurringTable.howItWorks.title")}
-          </h4>
-          <p className="text-sm mt-1 opacity-90">
-            {platform === "desktop"
-              ? t("recurringTable.howItWorks.descriptionDesktop")
-              : t("recurringTable.howItWorks.descriptionWeb")}
-          </p>
-        </div>
-      </div>
+      <HowItWorksNote compact={useMobileCards} />
 
       {useMobileCards ? (
         <RecurringCardList
