@@ -15,28 +15,31 @@ import {
 import type { RecurringTransaction } from "@/types/transaction";
 import { RecurringCardList } from "./RecurringCardList";
 
-/** PostHog masks text nodes, not attributes — masked values must not leak into attrs. */
-function assertMaskedValuesStayOutOfAttributes(root: ParentNode) {
-  const ATTRS = new Set(["title", "aria-label"]);
-  root.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
+/** PostHog masks text nodes, not attributes — masked values must not leak into any attrs. */
+function assertMaskedValuesStayOutOfAttributes(cardRoot: ParentNode) {
+  const maskedValues: string[] = [];
+  cardRoot.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
     const maskedValue = (el.textContent || "").replace(/\s+/g, " ").trim();
-    if (maskedValue.length < 2) return;
-    const nodes = [el, ...el.querySelectorAll("*")];
-    for (const node of nodes) {
-      for (const attr of node.attributes) {
-        if (attr.name === "class" || attr.name === "data-ph-mask") continue;
-        const isDataAttr =
-          attr.name.startsWith("data-") &&
-          attr.name !== "data-state" &&
-          attr.name !== "data-swipe-row";
-        if (!ATTRS.has(attr.name) && !isDataAttr) continue;
+    if (maskedValue.length >= 2) maskedValues.push(maskedValue);
+  });
+  if (maskedValues.length === 0) return;
+
+  const nodes =
+    cardRoot instanceof Element
+      ? [cardRoot, ...cardRoot.querySelectorAll("*")]
+      : [...cardRoot.querySelectorAll("*")];
+
+  for (const node of nodes) {
+    for (const attr of Array.from(node.attributes)) {
+      if (attr.name === "class" || attr.name === "data-ph-mask") continue;
+      for (const maskedValue of maskedValues) {
         expect(
           attr.value,
           `${attr.name} on <${node.tagName.toLowerCase()}> must not contain masked "${maskedValue}"`,
         ).not.toContain(maskedValue);
       }
     }
-  });
+  }
 }
 
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
@@ -369,8 +372,8 @@ describe("RecurringCardList", () => {
     expect(card.className).toContain("!p-1");
     expect(card.className).not.toContain("w-[22%]");
     expect(card.innerHTML).toContain("w-auto");
-    expect(card.innerHTML).toContain("min-w-[72px]");
-    expect(card.innerHTML).toContain("max-[359px]:min-w-[64px]");
+    expect(card.innerHTML).toContain("min-w-[88px]");
+    expect(card.innerHTML).toContain("max-[359px]:min-w-[72px]");
     expect(card.innerHTML).not.toContain("min-w-fit");
     expect(card.className).not.toContain("bg-green-50");
     expect(card.querySelector(".bg-green-100")).toBeTruthy();
@@ -381,10 +384,10 @@ describe("RecurringCardList", () => {
     expect(hebrewBadge.getAttribute("title")).toBeNull();
     expect(hebrewBadge.getAttribute("aria-label")).toBeNull();
     expectMasked(screen.getByText("cards.nextShort:05/03/2027").closest("[data-ph-mask]"));
-    assertMaskedValuesStayOutOfAttributes(document.body);
+    assertMaskedValuesStayOutOfAttributes(card);
   });
 
-  it("does not put masked recurring values into title, aria-label, or data-* attributes", () => {
+  it("does not put masked recurring values into any attributes on the card", () => {
     i18nLanguage.current = "he";
     const { container } = render(
       <RecurringCardList
@@ -410,7 +413,9 @@ describe("RecurringCardList", () => {
       />,
     );
 
-    assertMaskedValuesStayOutOfAttributes(container);
+    container.querySelectorAll('[role="button"]').forEach((cardEl) => {
+      assertMaskedValuesStayOutOfAttributes(cardEl);
+    });
   });
 
   it("follows the Gregorian display calendar and a masked Hebrew secondary date", () => {

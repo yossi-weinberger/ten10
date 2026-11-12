@@ -10,28 +10,31 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { TransactionCardList } from "./TransactionCardList";
 import type { TransactionForTable } from "@/types/transaction";
 
-/** PostHog masks text nodes, not attributes — masked values must not leak into attrs. */
-function assertMaskedValuesStayOutOfAttributes(root: ParentNode) {
-  const ATTRS = new Set(["title", "aria-label"]);
-  root.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
+/** PostHog masks text nodes, not attributes — masked values must not leak into any attrs. */
+function assertMaskedValuesStayOutOfAttributes(cardRoot: ParentNode) {
+  const maskedValues: string[] = [];
+  cardRoot.querySelectorAll("[data-ph-mask], .ph-mask, .ph-sensitive").forEach((el) => {
     const maskedValue = (el.textContent || "").replace(/\s+/g, " ").trim();
-    if (maskedValue.length < 2) return;
-    const nodes = [el, ...el.querySelectorAll("*")];
-    for (const node of nodes) {
-      for (const attr of node.attributes) {
-        if (attr.name === "class" || attr.name === "data-ph-mask") continue;
-        const isDataAttr =
-          attr.name.startsWith("data-") &&
-          attr.name !== "data-state" &&
-          attr.name !== "data-swipe-row";
-        if (!ATTRS.has(attr.name) && !isDataAttr) continue;
+    if (maskedValue.length >= 2) maskedValues.push(maskedValue);
+  });
+  if (maskedValues.length === 0) return;
+
+  const nodes =
+    cardRoot instanceof Element
+      ? [cardRoot, ...cardRoot.querySelectorAll("*")]
+      : [...cardRoot.querySelectorAll("*")];
+
+  for (const node of nodes) {
+    for (const attr of Array.from(node.attributes)) {
+      if (attr.name === "class" || attr.name === "data-ph-mask") continue;
+      for (const maskedValue of maskedValues) {
         expect(
           attr.value,
           `${attr.name} on <${node.tagName.toLowerCase()}> must not contain masked "${maskedValue}"`,
         ).not.toContain(maskedValue);
       }
     }
-  });
+  }
 }
 
 const i18nDir = vi.hoisted(() => ({ current: "ltr" as "ltr" | "rtl" }));
@@ -286,8 +289,8 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("!min-h-[54px]");
     expect(markup).toContain("!p-1");
     expect(markup).toContain("w-auto");
-    expect(markup).toContain("min-w-[72px]");
-    expect(markup).toContain("max-[359px]:min-w-[64px]");
+    expect(markup).toContain("min-w-[88px]");
+    expect(markup).toContain("max-[359px]:min-w-[72px]");
     expect(markup).not.toContain("w-[22%]");
     expect(markup).not.toContain("min-w-fit");
     expect(markup).not.toContain("bg-green-50");
@@ -299,7 +302,7 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("500 ILS");
   });
 
-  it("lets category and type badge truncate while chomesh stays shrink-0", () => {
+  it("keeps type badge on the title row with a min width while chomesh stays shrink-0", () => {
     mockUseDonationStore.mockReturnValue(true);
     const markup = renderToStaticMarkup(
       <TransactionCardList
@@ -323,7 +326,7 @@ describe("TransactionCardList", () => {
 
     expect(markup).toContain("min-w-[2.5rem] flex-1 truncate");
     expect(markup).toContain(
-      "min-w-0 max-w-[7.5rem] shrink overflow-hidden",
+      "min-w-[2.75rem] max-w-[7.5rem] shrink-0 overflow-hidden",
     );
     expect(markup).toContain("block min-w-0 truncate");
     expect(markup).toContain(
@@ -331,9 +334,6 @@ describe("TransactionCardList", () => {
     );
     expect(markup).toContain(
       "flex min-w-0 flex-1 flex-nowrap items-center gap-x-1 overflow-hidden",
-    );
-    expect(markup).not.toContain(
-      "min-w-0 max-w-[7.5rem] shrink truncate border",
     );
     expect(markup).not.toContain(
       "mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden",
@@ -345,9 +345,10 @@ describe("TransactionCardList", () => {
     );
     expect(markup).toContain("shrink-0 whitespace-nowrap");
     expect(markup).toContain("Chomesh");
+    expect(markup).toContain("Recognized Expense");
   });
 
-  it("does not put masked card values into title, aria-label, or data-* attributes", () => {
+  it("does not put masked card values into any attributes on the card", () => {
     mockUseDonationStore.mockReturnValue(true);
     const { container } = render(
       <TransactionCardList
@@ -380,7 +381,9 @@ describe("TransactionCardList", () => {
       />,
     );
 
-    assertMaskedValuesStayOutOfAttributes(container);
+    container.querySelectorAll('[role="button"]').forEach((card) => {
+      assertMaskedValuesStayOutOfAttributes(card);
+    });
   });
 
 
