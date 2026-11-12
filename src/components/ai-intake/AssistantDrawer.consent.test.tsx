@@ -1,19 +1,23 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AssistantDrawer, type AssistantDrawerHandle } from "./AssistantDrawer";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AssistantDrawer, CONSENT_CHECK_TIMEOUT_MS, type AssistantDrawerHandle } from "./AssistantDrawer";
+import { AssistantFab } from "./AssistantFab";
+import { onAssistantOpenRequest, requestAssistantOpen, setAssistantConsentCover } from "./assistant-open";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
 import { claimBetaConsentRequired } from "@/lib/ai/beta-consent-required";
-import { createRef } from "react";
+import { createRef, useEffect, useState, type ReactNode } from "react";
 
 const mockRpc = vi.hoisted(() => vi.fn());
 const mockHandleSubmit = vi.hoisted(() => vi.fn());
 const mockHandleReceipt = vi.hoisted(() => vi.fn());
 const mockToggleRecording = vi.hoisted(() => vi.fn());
 const compactViewport = vi.hoisted(() => ({ value: false }));
+const mockToastError = vi.hoisted(() => vi.fn());
 
 let mockAuthUser: { id: string; email: string } | null = { id: "test-user-id", email: "test@example.com" };
 
@@ -120,6 +124,10 @@ vi.mock("@/hooks/use-media-query", () => ({
   useMediaQuery: () => compactViewport.value,
 }));
 
+vi.mock("sonner", () => ({
+  toast: { error: mockToastError, success: vi.fn() },
+}));
+
 vi.mock("react-dropzone", () => ({
   useDropzone: () => ({
     getRootProps: () => ({ className: "" }),
@@ -136,7 +144,22 @@ describe("AssistantDrawer consent gate", () => {
     cleanup();
     vi.clearAllMocks();
     compactViewport.value = false;
+    setAssistantConsentCover(false);
     mockAuthUser = { id: "test-user-id", email: "test@example.com" };
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      configurable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+        onchange: null,
+      }),
+    });
     // Some cases replace supabase.rpc with a hanging promise. Put the shared mock back.
     (supabase as unknown as { rpc: typeof mockRpc }).rpc = mockRpc;
     // Reset mockRpc to default (no consent) with a proper implementation
@@ -544,5 +567,163 @@ describe("AssistantDrawer consent gate", () => {
       expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
       expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.title" })).not.toBeInTheDocument();
     });
+
+    function OpenHost({ children }: { children?: ReactNode }) {
+      const [open, setOpen] = useState(true);
+      return (
+        <TooltipProvider>
+          {children}
+          <AssistantDrawer
+            open={open}
+            onOpenChange={(next) => {
+              mockOnOpenChange(next);
+              setOpen(next);
+            }}
+            receiveRef={receiveRef}
+            onNavigate={mockOnNavigate}
+            userName="Test User"
+          />
+        </TooltipProvider>
+      );
+    }
+
+    it("hides the assistant button and its label while the consent drawer is open", async () => {
+      mockRpc.mockResolvedValue({
+        data: { accepted: false, version: null, current: AI_BETA_TERMS_VERSION },
+        error: null,
+      });
+      const user = userEvent.setup();
+      render(
+        <OpenHost>
+          <AssistantFab />
+        </OpenHost>,
+      );
+
+      await screen.findByRole("heading", { name: "aiIntake.betaTerms.title" });
+      expect(screen.queryByRole("button", { name: "menu.assistant" })).not.toBeInTheDocument();
+      expect(screen.queryByText("menu.assistant")).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "aiIntake.betaTerms.declineButton" }));
+
+      expect(screen.getByRole("button", { name: "menu.assistant" })).toBeInTheDocument();
+    });
+
+    it("shows pending feedback and does not stack a second open", async () => {
+      mockRpc.mockImplementation(() => new Promise(() => {}));
+      function ListeningHost() {
+        const [open, setOpen] = useState(false);
+        useEffect(() => onAssistantOpenRequest(() => setOpen(true)), []);
+        return (
+          <TooltipProvider>
+            <AssistantFab />
+            <AssistantDrawer
+              open={open}
+              onOpenChange={setOpen}
+              receiveRef={receiveRef}
+              onNavigate={mockOnNavigate}
+              userName="Test User"
+            />
+          </TooltipProvider>
+        );
+      }
+
+      const user = userEvent.setup();
+      render(<ListeningHost />);
+      await user.click(screen.getByRole("button", { name: "menu.assistant" }));
+
+      expect(await screen.findByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent("aiIntake.betaTerms.checkingDescription");
+      expect(screen.queryByRole("button", { name: "menu.assistant" })).not.toBeInTheDocument();
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+
+      requestAssistantOpen();
+
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).toBeInTheDocument();
+    });
+
+    it("closes the pending check without opening the assistant", async () => {
+      let resolveConsent: (value: { data: { accepted: boolean; version: string }; error: null }) => void = () => {};
+      mockRpc.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveConsent = resolve;
+          }),
+      );
+      const user = userEvent.setup();
+      render(
+        <OpenHost>
+          <AssistantFab />
+        </OpenHost>,
+      );
+
+      await user.click(await screen.findByRole("button", { name: "aiIntake.betaTerms.cancelCheck" }));
+
+      expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+      expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "menu.assistant" })).toBeInTheDocument();
+
+      await act(async () => {
+        resolveConsent({
+          data: { accepted: true, version: AI_BETA_TERMS_VERSION },
+          error: null,
+        });
+      });
+
+      expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+      expect(mockToastError).not.toHaveBeenCalled();
+    });
+
+    it("fails closed with an error when the consent check times out", async () => {
+      vi.useFakeTimers();
+      try {
+        mockRpc.mockImplementation(() => new Promise(() => {}));
+        render(<OpenHost />);
+
+        expect(screen.getByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).toBeInTheDocument();
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(CONSENT_CHECK_TIMEOUT_MS);
+        });
+
+        expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+        expect(mockToastError).toHaveBeenCalledWith("aiIntake.betaTerms.checkTimeout");
+        expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: suggestion })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.title" })).not.toBeInTheDocument();
+      } finally {
+        vi.clearAllTimers();
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  it("keeps the desktop assistant open when the consent check is slow", async () => {
+    vi.useFakeTimers();
+    try {
+      mockRpc.mockImplementation(() => new Promise(() => {}));
+      render(
+        <AssistantDrawer
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          receiveRef={receiveRef}
+          onNavigate={mockOnNavigate}
+          userName="Test User"
+        />,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(CONSENT_CHECK_TIMEOUT_MS + 1_000);
+      });
+
+      expect(mockOnOpenChange).not.toHaveBeenCalled();
+      expect(mockToastError).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "aiIntake.suggestions.transaction" })).toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "aiIntake.betaTerms.checkingTitle" })).not.toBeInTheDocument();
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
   });
 });

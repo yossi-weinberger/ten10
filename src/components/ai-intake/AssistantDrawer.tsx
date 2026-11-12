@@ -1,15 +1,28 @@
-import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type Ref } from "react";
 import { Paperclip, SquarePen } from "lucide-react";
+import { toast } from "sonner";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { loadTitheBalance } from "@/lib/ai/assistant-extras";
 import type { CurrencyCode } from "@/lib/currencies";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/lib/supabaseClient";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
 import { onBetaConsentRequired } from "@/lib/ai/beta-consent-required";
+import { setAssistantConsentCover } from "./assistant-open";
+
+/** A hung consent check on a phone must end. Long enough for a slow network, short enough to leave. */
+export const CONSENT_CHECK_TIMEOUT_MS = 9_000;
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
@@ -58,12 +71,30 @@ export function AssistantDrawer({
     accepted: boolean | null;
     showDialog: boolean;
   }>(() => ({ checking: open && !!userId, accepted: null, showDialog: false }));
+  const consentEpoch = useRef(0);
+  const closeRef = useRef<(next: boolean) => void>(onOpenChange);
+  const translateRef = useRef(state.t);
 
-  // Check consent status when drawer opens
+  useEffect(() => {
+    translateRef.current = state.t;
+  }, [state.t]);
+
+  // Check consent status when drawer opens. One check per open; a second tap does not start another.
   useEffect(() => {
     if (!open || !userId) return;
 
-    let cancelled = false;
+    const epoch = ++consentEpoch.current;
+    const stillCurrent = () => consentEpoch.current === epoch;
+
+    const timeoutId = isCompactViewport
+      ? window.setTimeout(() => {
+          if (!stillCurrent()) return;
+          consentEpoch.current += 1;
+          setConsentState({ checking: false, accepted: false, showDialog: false });
+          toast.error(translateRef.current("aiIntake.betaTerms.checkTimeout"));
+          closeRef.current(false);
+        }, CONSENT_CHECK_TIMEOUT_MS)
+      : undefined;
 
     const checkConsent = async () => {
       setConsentState({ checking: true, accepted: null, showDialog: false });
@@ -71,7 +102,8 @@ export function AssistantDrawer({
       try {
         const { data, error } = await supabase.rpc("ai_beta_consent_status");
 
-        if (cancelled) return;
+        if (!stillCurrent()) return;
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
 
         if (error) {
           console.error("Failed to check AI beta consent:", error);
@@ -83,7 +115,8 @@ export function AssistantDrawer({
           setConsentState({ checking: false, accepted: false, showDialog: true });
         }
       } catch (err) {
-        if (cancelled) return;
+        if (!stillCurrent()) return;
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
         console.error("Unexpected error checking consent:", err);
         setConsentState({ checking: false, accepted: false, showDialog: true });
       }
@@ -92,9 +125,10 @@ export function AssistantDrawer({
     void checkConsent();
 
     return () => {
-      cancelled = true;
+      consentEpoch.current += 1;
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
-  }, [open, userId]);
+  }, [open, userId, isCompactViewport]);
 
   useEffect(() => {
     return onBetaConsentRequired(() => {
@@ -135,6 +169,7 @@ export function AssistantDrawer({
   useEffect(() => {
     setTextRef.current = state.setText;
     disposeRef.current = state.disposeAssistant;
+    closeRef.current = handleOpenChange;
   });
   useEffect(() => {
     return () => {
@@ -149,6 +184,16 @@ export function AssistantDrawer({
       setTextRef.current(text);
     },
   }), []);
+
+  const consentCoversFab = state.platform === "web"
+    && isCompactViewport
+    && open
+    && (consentState.checking || consentState.showDialog);
+
+  useLayoutEffect(() => {
+    setAssistantConsentCover(consentCoversFab);
+    return () => setAssistantConsentCover(false);
+  }, [consentCoversFab]);
 
   if (state.platform !== "web" || !isAiIntakeEnabled()) return null;
 
@@ -167,6 +212,12 @@ export function AssistantDrawer({
     handleOpenChange(false); // Use handleOpenChange to stop recording and clear conversation
   };
 
+  const cancelConsentCheck = () => {
+    consentEpoch.current += 1;
+    setConsentState({ checking: false, accepted: false, showDialog: false });
+    handleOpenChange(false);
+  };
+
   const hasConversation = conversationStarted(state.history.length, state.activeUser);
   const firstName = userName?.trim().split(/\s+/)[0] || null;
   const openingLine = openingBalance === null
@@ -183,6 +234,23 @@ export function AssistantDrawer({
 
   return (
     <>
+      {isCompactViewport && open && consentState.checking ? (
+        <Drawer open onOpenChange={() => {}} dismissible={false}>
+          <DrawerContent dir={state.i18n.dir()}>
+            <DrawerHeader className="text-start">
+              <DrawerTitle>{state.t("aiIntake.betaTerms.checkingTitle")}</DrawerTitle>
+              <DrawerDescription role="status">
+                {state.t("aiIntake.betaTerms.checkingDescription")}
+              </DrawerDescription>
+            </DrawerHeader>
+            <DrawerFooter className="pb-[max(16px,calc(env(safe-area-inset-bottom)+12px))]">
+              <Button type="button" variant="outline" className="h-11 w-full" onClick={cancelConsentCheck}>
+                {state.t("aiIntake.betaTerms.cancelCheck")}
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : null}
       <BetaTermsDialog
         open={consentState.showDialog}
         onAccept={handleBetaAccept}

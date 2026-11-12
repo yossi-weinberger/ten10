@@ -16,6 +16,10 @@ describe("BetaTermsDialog i18n keys", () => {
     "aiIntake.betaTerms.accepting",
     "aiIntake.betaTerms.acceptSuccess",
     "aiIntake.betaTerms.acceptError",
+    "aiIntake.betaTerms.checkingTitle",
+    "aiIntake.betaTerms.checkingDescription",
+    "aiIntake.betaTerms.cancelCheck",
+    "aiIntake.betaTerms.checkTimeout",
   ];
 
   it("all BetaTermsDialog keys exist in Hebrew navigation.json", () => {
