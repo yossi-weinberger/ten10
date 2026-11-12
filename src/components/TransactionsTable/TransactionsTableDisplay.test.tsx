@@ -275,15 +275,15 @@ describe("TransactionsTableDisplay mobile sort", () => {
     const menu = await screen.findByRole("menu");
     expect(menu).toHaveAttribute("data-side", "bottom");
     expect(menu.className).toContain("z-[60]");
-    expect(menu.className).toContain(
-      "max-h-[var(--radix-dropdown-menu-content-available-height)]",
-    );
-    expect(menu.className).not.toContain("select-content-available-height");
     expect(menu.className).toContain("overflow-y-auto");
+    expect(menu.style.maxHeight).toBe(
+      "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)",
+    );
+    expect(menu.style.maxHeight).not.toContain("select");
     expect(
       menu.style.getPropertyValue("--radix-dropdown-menu-content-available-height"),
     ).toContain("--radix-popper-available-height");
-    expect(menu).toHaveAttribute("data-avoid-collisions", "false");
+    expect(menu).toHaveAttribute("data-avoid-collisions", "true");
 
     for (const label of SORTABLE_LABELS) {
       const item = screen.getByRole("menuitemradio", { name: label });

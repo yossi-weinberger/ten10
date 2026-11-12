@@ -21,10 +21,17 @@ export interface MobileSortPickerProps<Field extends string = string> {
   onChange: (field: Field) => void;
 }
 
-/** False keeps the menu on side="bottom"; collision detection must not flip it upward. */
-const SORT_MENU_AVOID_COLLISIONS = false;
-/** Keeps a bottom-placed menu above the assistant button (24px offset + 56px button + 8px gap). */
-const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 88 } as const;
+/** Bottom is preferred. Flip only when the capped menu does not fit below the trigger. */
+const SORT_MENU_AVOID_COLLISIONS = true;
+/** Small inset. A large bottom pad shrinks a low trigger down to a single row. */
+const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 8 } as const;
+/**
+ * Three min-h-11 rows plus the menu padding, and at most 20rem.
+ * The 9rem fallback fits the gap under the control at 320x568, so that case
+ * stays downward. A shorter gap flips upward instead of collapsing the menu.
+ */
+const SORT_MENU_MAX_HEIGHT =
+  "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)";
 
 function sortDirectionPresentation(direction: "asc" | "desc"): {
   actionLabelKey: "sort.ascending" | "sort.descending";
@@ -84,7 +91,8 @@ export function MobileSortPicker<Field extends string>({
           data-avoid-collisions={String(SORT_MENU_AVOID_COLLISIONS)}
           collisionPadding={SORT_MENU_COLLISION_PADDING}
           align="start"
-          className="z-[60] w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
+          style={{ maxHeight: SORT_MENU_MAX_HEIGHT }}
+          className="z-[60] w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
         >
           <DropdownMenuRadioGroup
             value={field}
