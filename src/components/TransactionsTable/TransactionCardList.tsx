@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, useRef, memo } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, memo } from "react";
 import * as React from "react";
+import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,19 @@ const isSpecialType = (type: TransactionType): boolean => {
          type === "initial_balance";
 };
 
+const SWIPE_ACTION_FALLBACK_WIDTH = 128;
+const SWIPE_OPEN_THRESHOLD = 50;
+
+function clampOpenOffset(value: number, width: number): number {
+  return Math.min(Math.max(value, 0), width);
+}
+
+// Positive openOffset reveals inline-end actions. LTR content moves left;
+// RTL content moves right, so the same offset is mirrored.
+function contentTranslateX(openOffset: number, isRTL: boolean): number {
+  return isRTL ? openOffset : -openOffset;
+}
+
 interface TransactionCardProps {
   transaction: TransactionForTable;
   displayDate: { primary: string | null };
@@ -116,7 +130,6 @@ const TransactionCard = memo(function TransactionCard({
   onSwipeClose,
 }: TransactionCardProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const swipeTriggeredRef = useRef(false);
   const dragBaseRef = useRef(0);
@@ -124,15 +137,43 @@ const TransactionCard = memo(function TransactionCard({
     setIsDragging(false);
   }
   const actionsRef = useRef<HTMLDivElement>(null);
-  const [actionButtonsWidth, setActionButtonsWidth] = useState(128);
+  const [actionButtonsWidth, setActionButtonsWidth] = useState(SWIPE_ACTION_FALLBACK_WIDTH);
   const isSwipeOpen = swipeOpenId === transaction.id;
-  const actionsInteractive = isSwipeOpen && !inSelectionMode;
-
-  const SWIPE_THRESHOLD = 50;
+  // Inert only while the row is closed. Dragging or open stays opaque and
+  // clickable; disabled would fade the buttons.
+  const actionsInert = inSelectionMode || (!isDragging && !isSwipeOpen);
+  const reduceMotion = useReducedMotion();
 
   const isMobileSwipeEnabled = typeof window !== "undefined"
     && typeof window.matchMedia === "function"
     && window.matchMedia("(max-width: 767px) and (pointer: coarse)").matches;
+
+  const logicalOffset =
+    isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
+      ? swipeOffset
+      : 0;
+  const targetX = isMobileSwipeEnabled ? contentTranslateX(logicalOffset, isRTL) : 0;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const renderedXRef = useRef(targetX);
+
+  // A transition added in the same commit as translateX does not run. Rewind
+  // to the previous offset, flush layout, then let the class ease to targetX.
+  useLayoutEffect(() => {
+    const from = renderedXRef.current;
+    renderedXRef.current = targetX;
+    const el = contentRef.current;
+    if (!el) return;
+    const shouldEase = !isDragging && reduceMotion === false && from !== targetX;
+    if (!shouldEase) {
+      el.style.transition = "none";
+      return;
+    }
+    el.style.transition = "none";
+    el.style.transform = `translateX(${from}px)`;
+    void el.getBoundingClientRect();
+    el.style.transition = "";
+    el.style.transform = `translateX(${targetX}px)`;
+  }, [isDragging, reduceMotion, targetX]);
 
   useEffect(() => {
     if (isMobileSwipeEnabled && actionsRef.current) {
@@ -159,23 +200,21 @@ const TransactionCard = memo(function TransactionCard({
 
   const swipeHandlers = useSwipe({
     onSwipeStart: () => {
-      setIsDragging(true);
       dragBaseRef.current = isSwipeOpen ? swipeOffset : 0;
+      setIsDragging(true);
       swipeTriggeredRef.current = true;
-      setIsAnimating(false);
     },
     onSwipeMove: (delta) => {
-      const next = Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
+      const next = clampOpenOffset(dragBaseRef.current + delta, actionButtonsWidth);
       setSwipeOffset(next);
     },
     onSwipeEnd: (delta) => {
       setIsDragging(false);
-      setIsAnimating(true);
       const blocked = inSelectionMode || !isMobileSwipeEnabled;
       const next = blocked
         ? 0
-        : Math.min(Math.max(dragBaseRef.current + delta, 0), actionButtonsWidth);
-      if (!blocked && next >= SWIPE_THRESHOLD) {
+        : clampOpenOffset(dragBaseRef.current + delta, actionButtonsWidth);
+      if (!blocked && next >= SWIPE_OPEN_THRESHOLD) {
         setSwipeOffset(actionButtonsWidth);
         onSwipeOpen(transaction.id);
       } else {
@@ -188,16 +227,11 @@ const TransactionCard = memo(function TransactionCard({
         swipeTriggeredRef.current = false;
       }, 100);
     },
-    threshold: SWIPE_THRESHOLD,
+    threshold: SWIPE_OPEN_THRESHOLD,
     movementThreshold: 10,
     isRTL,
     disabled: inSelectionMode || !isMobileSwipeEnabled,
   });
-
-  const effectiveSwipeOffset =
-    isMobileSwipeEnabled && !inSelectionMode && (isDragging || isSwipeOpen)
-      ? swipeOffset
-      : 0;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     longPressTriggeredRef.current = false;
@@ -232,7 +266,6 @@ const TransactionCard = memo(function TransactionCard({
 
     if (wasSwipeActive) {
       setSwipeOffset(0);
-      setIsAnimating(true);
       if (isSwipeOpen) {
         onSwipeClose();
       }
@@ -253,78 +286,38 @@ const TransactionCard = memo(function TransactionCard({
       longPressTriggeredRef.current = false;
       return;
     }
+    if (isSwipeOpen) {
+      onSwipeClose();
+      return;
+    }
     onCardClick(transaction);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!actionsInteractive) return;
+    if (actionsInert) return;
     onEdit(transaction);
     onSwipeClose();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!actionsInteractive) return;
+    if (actionsInert) return;
     onDelete(transaction);
     onSwipeClose();
   };
 
-  return (
-    <div
-      className="relative max-md:[@media(pointer:coarse)]:overflow-hidden"
-      data-swipe-row={transaction.id}
-    >
-      <div
-        ref={actionsRef}
-        className={cn(
-          "max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-[2] max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2 hidden",
-          effectiveSwipeOffset === 0 && "max-md:[@media(pointer:coarse)]:invisible",
-          !actionsInteractive && "pointer-events-none"
-        )}
-        aria-hidden={!actionsInteractive}
-      >
-        <Button
-          variant="default"
-          size="icon"
-          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
-          onClick={handleEditClick}
-          tabIndex={actionsInteractive ? 0 : -1}
-          disabled={!actionsInteractive}
-          aria-label={t("actions.edit")}
-        >
-          <Edit3 className="h-5 w-5" />
-          <span className="text-[11px] leading-tight">{t("actions.edit")}</span>
-        </Button>
-        <Button
-          variant="destructive"
-          size="icon"
-          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
-          onClick={handleDeleteClick}
-          tabIndex={actionsInteractive ? 0 : -1}
-          disabled={!actionsInteractive}
-          aria-label={t("actions.delete")}
-        >
-          <Trash2 className="h-5 w-5" />
-          <span className="text-[11px] leading-tight">{t("actions.delete")}</span>
-        </Button>
-      </div>
+  const card = (
       <Card
         role="button"
         tabIndex={0}
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(
-          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y max-md:[@media(pointer:coarse)]:relative max-md:[@media(pointer:coarse)]:z-[1]",
+          "flex min-h-[64px] cursor-pointer items-center gap-3 p-3 hover:shadow-md active:scale-[0.99] select-none [-webkit-touch-callout:none] max-md:[@media(pointer:coarse)]:touch-pan-y",
           surfaceClasses,
           isSelected && "ring-2 ring-primary ring-offset-2"
         )}
-        style={{
-          marginInlineEnd: isMobileSwipeEnabled && effectiveSwipeOffset > 0
-            ? `${effectiveSwipeOffset}px`
-            : undefined,
-          transition: isAnimating ? "margin 0.3s ease-out" : "none",
-        }}
         onClick={handleCardClick}
         onKeyDown={onKeyDown}
         onContextMenu={handleContextMenu}
@@ -425,6 +418,58 @@ const TransactionCard = memo(function TransactionCard({
         />
       </div>
       </Card>
+  );
+
+  return (
+    <div
+      className="relative max-md:[@media(pointer:coarse)]:isolate max-md:[@media(pointer:coarse)]:overflow-hidden"
+      data-swipe-row={transaction.id}
+    >
+      <div
+        ref={actionsRef}
+        className={cn(
+          "hidden max-md:[@media(pointer:coarse)]:absolute max-md:[@media(pointer:coarse)]:inset-y-0 max-md:[@media(pointer:coarse)]:end-0 max-md:[@media(pointer:coarse)]:z-0 max-md:[@media(pointer:coarse)]:flex max-md:[@media(pointer:coarse)]:items-stretch max-md:[@media(pointer:coarse)]:gap-2 max-md:[@media(pointer:coarse)]:ps-2",
+          actionsInert && "pointer-events-none"
+        )}
+        aria-hidden={actionsInert}
+      >
+        <Button
+          variant="default"
+          size="icon"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
+          onClick={handleEditClick}
+          tabIndex={actionsInert ? -1 : 0}
+          aria-label={t("actions.edit")}
+        >
+          <Edit3 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.edit")}</span>
+        </Button>
+        <Button
+          variant="destructive"
+          size="icon"
+          className="h-full w-14 min-w-[44px] rounded-lg flex-col gap-0.5 [&_svg]:size-5"
+          onClick={handleDeleteClick}
+          tabIndex={actionsInert ? -1 : 0}
+          aria-label={t("actions.delete")}
+        >
+          <Trash2 className="h-5 w-5" />
+          <span className="text-[11px] leading-tight">{t("actions.delete")}</span>
+        </Button>
+      </div>
+      {isMobileSwipeEnabled ? (
+        <div
+          ref={contentRef}
+          className={cn(
+            "relative z-10",
+            !isDragging && reduceMotion === false && "transition-transform duration-200 ease-out"
+          )}
+          style={{ transform: `translateX(${targetX}px)` }}
+        >
+          {card}
+        </div>
+      ) : (
+        card
+      )}
     </div>
   );
 });
