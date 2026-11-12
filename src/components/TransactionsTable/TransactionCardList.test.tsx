@@ -1895,6 +1895,8 @@ describe("TransactionCardList month separators", () => {
     const separators = document.querySelectorAll(".sticky");
     expect(separators).toHaveLength(2);
     expect(separators[0]).toHaveAttribute("data-sort-chip-slot", "separator");
+    expect(separators[0]?.classList.contains("sticky")).toBe(true);
+    expect(separators[0]?.classList.contains("relative")).toBe(false);
     expect(separators[0]?.querySelector("button")).toHaveTextContent("Sort chip");
     expect(separators[0]?.querySelector(".absolute")).toBeTruthy();
     expect(separators[1]).not.toHaveAttribute("data-sort-chip-slot");

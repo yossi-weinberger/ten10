@@ -889,7 +889,6 @@ export function TransactionCardList({
                 data-sort-chip-slot={placeChip ? "separator" : undefined}
                 className={cn(
                   "sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground",
-                  placeChip && "relative",
                 )}
               >
                 <span
