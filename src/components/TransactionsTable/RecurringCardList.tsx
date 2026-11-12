@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, RefreshCw, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,13 +23,14 @@ import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatCategory } from "@/lib/category-registry";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { MOBILE_SELECTION_CLEARANCE_CLASS } from "@/lib/responsive";
 import { cn, formatBoolean } from "@/lib/utils/formatting";
 import { useMobileSelectionBodyFlag } from "@/hooks/useMobileSelectionBodyFlag";
 import { useRestoreOverlayOnUnmount } from "@/hooks/useRestoreOverlayOnUnmount";
 import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
-import type { RecurringTransaction, TransactionType } from "@/types/transaction";
+import type { Currency, RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -112,6 +113,41 @@ function nonEmptyText(value: string | null | undefined): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function storedConversion(row: RecurringTransaction): {
+  originalAmount: number;
+  originalCurrency: Currency;
+  rate: number | null | undefined;
+} | null {
+  if (
+    row.original_amount == null ||
+    row.original_currency == null ||
+    !hasStoredCurrencyConversion({
+      amount: row.amount,
+      currency: row.currency,
+      originalAmount: row.original_amount,
+      originalCurrency: row.original_currency,
+    })
+  ) {
+    return null;
+  }
+
+  return {
+    originalAmount: row.original_amount,
+    originalCurrency: row.original_currency,
+    rate: row.conversion_rate,
+  };
+}
+
+function formatConversionDetail(
+  originalAmount: number,
+  originalCurrency: Currency,
+  rate: number | null | undefined,
+): string {
+  const original = formatCurrency(originalAmount, originalCurrency, "en");
+  if (typeof rate !== "number" || !Number.isFinite(rate)) return original;
+  return `${original} × ${rate.toFixed(2)}`;
 }
 
 /** Month/day for English, day/month for Hebrew. The year is kept only outside the current year. */
@@ -290,6 +326,8 @@ export function RecurringCardList({
       )
     : null;
   const recipient = selected ? nonEmptyText(selected.recipient) : null;
+  const paymentMethod = selected ? nonEmptyText(selected.payment_method) : null;
+  const selectedConversion = selected ? storedConversion(selected) : null;
   const showChomesh = Boolean(
     selected && trackChomeshSeparately && selected.is_chomesh,
   );
@@ -456,22 +494,16 @@ export function RecurringCardList({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "shrink-0 border",
-                    recurringStatusBadgeColors[selected.status],
+                    "shrink-0 whitespace-nowrap border",
+                    typeBadgeColors[selected.type],
                   )}
                 >
-                  {t(`recurring.statuses.${selected.status}`, selected.status)}
+                  {t(`types.${selected.type}`, selected.type)}
                 </Badge>
               ) : null}
             </div>
             {selected ? (
-              <div className="mt-3 flex items-center justify-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={cn("border", typeBadgeColors[selected.type])}
-                >
-                  {t(`types.${selected.type}`, selected.type)}
-                </Badge>
+              <div className="mt-3 text-center">
                 <MaskedText className="text-[32px] font-bold leading-[1.15]">
                   <CurrencyConversionInfo
                     amount={selected.amount}
@@ -485,6 +517,28 @@ export function RecurringCardList({
                     showConversionIcon={false}
                   />
                 </MaskedText>
+                {selectedConversion ? (
+                  <Badge
+                    variant="outline"
+                    className="mt-2 gap-[5px] whitespace-nowrap border-[hsl(182_30%_78%)] bg-[hsl(182_40%_93%)] py-[3px] pe-2 ps-2.5 text-[13px] font-semibold leading-[1.3] text-primary hover:bg-[hsl(182_40%_93%)]"
+                  >
+                    <RefreshCw className="size-[13px] shrink-0" aria-hidden="true" />
+                    <span>
+                      {t("drawer.convertedPrefix")}
+                      <bdi
+                        dir="ltr"
+                        className={PH_SENSITIVE_PROPS.className}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
+                        {formatConversionDetail(
+                          selectedConversion.originalAmount,
+                          selectedConversion.originalCurrency,
+                          selectedConversion.rate,
+                        )}
+                      </bdi>
+                    </span>
+                  </Badge>
+                ) : null}
               </div>
             ) : null}
             <DrawerDescription className="sr-only">
@@ -514,11 +568,26 @@ export function RecurringCardList({
                 primary={formatDisplayDate(selected.start_date, "numeric").primary}
                 secondary={formatDisplayDate(selected.start_date, "numeric").secondary}
               />
-              <DrawerField label={t("columns.paymentMethod")}>
-                <MaskedText className={drawerValueClass}>
-                  {formatPaymentMethod(selected.payment_method, i18n.language, "-")}
-                </MaskedText>
-              </DrawerField>
+              {selected.status !== "active" ? (
+                <DrawerField label={t("recurringColumns.status")}>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "shrink-0 border",
+                      recurringStatusBadgeColors[selected.status],
+                    )}
+                  >
+                    {t(`recurring.statuses.${selected.status}`, selected.status)}
+                  </Badge>
+                </DrawerField>
+              ) : null}
+              {paymentMethod ? (
+                <DrawerField label={t("columns.paymentMethod")}>
+                  <MaskedText className={drawerValueClass}>
+                    {formatPaymentMethod(selected.payment_method, i18n.language, "-")}
+                  </MaskedText>
+                </DrawerField>
+              ) : null}
               {categoryLabel ? (
                 <DrawerField label={t("columns.category")}>
                   <MaskedText className={drawerValueClass}>{categoryLabel}</MaskedText>

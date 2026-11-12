@@ -326,6 +326,44 @@ describe("RecurringCardList", () => {
     const drawer = await screen.findByRole("dialog");
     expect(within(drawer).queryByText("cards.chomesh")).not.toBeInTheDocument();
     expect(drawer.querySelector(".lucide-badge-check")).toBeNull();
+    expect(within(drawer).queryByText("recurring.statuses.active")).not.toBeInTheDocument();
+    expect(within(drawer).getByText("Rent").parentElement?.textContent).toContain("types.expense");
+    expect(within(drawer).getByText("100 ILS").parentElement?.textContent).not.toContain("types.expense");
+    expect(drawer.querySelector(".lucide-refresh-cw")).toBeNull();
+  });
+
+  it("shows a non-active status row and a conversion pill, and hides an empty payment method", async () => {
+    const user = userEvent.setup();
+    render(
+      <RecurringCardList
+        recurring={[
+          recurringRow({
+            id: "paused",
+            description: "Paused",
+            status: "paused",
+            payment_method: "   ",
+            original_amount: 50,
+            original_currency: "USD",
+            conversion_rate: 3.7,
+          }),
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    await user.click(cardTitled("Paused"));
+    const drawer = await screen.findByRole("dialog");
+    const status = within(drawer).getByText("recurring.statuses.paused");
+    expect(status.closest("[data-ph-mask]")).toBeNull();
+    expect(within(drawer).queryByText("columns.paymentMethod")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("-")).not.toBeInTheDocument();
+    expect(within(drawer).getByText(/drawer\.convertedPrefix/)).toBeInTheDocument();
+    const detail = drawer.querySelector("bdi");
+    expect(detail?.textContent).toContain("50");
+    expect(detail?.textContent).toContain("3.70");
+    expectMasked(detail);
+    expect(drawer.querySelector(".lucide-refresh-cw")).not.toBeNull();
   });
 
   it("groups by status in a fixed order and keeps each group's existing order", () => {
