@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowUp, Check, ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -85,27 +86,24 @@ export function MobileSortPicker<Field extends string>({
           align="start"
           className="z-[60] w-[var(--radix-dropdown-menu-trigger-width)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto"
         >
-          {fields.map((option) => {
-            const selected = option.field === field;
-            return (
-              <DropdownMenuItem
+          <DropdownMenuRadioGroup
+            value={field}
+            onValueChange={(value) => {
+              const next = fields.find((option) => option.field === value);
+              if (!next || next.field === field) return;
+              onChange(next.field);
+            }}
+          >
+            {fields.map((option) => (
+              <DropdownMenuRadioItem
                 key={option.field}
-                className="min-h-11 gap-2"
-                aria-checked={selected}
-                onSelect={() => {
-                  if (selected) return;
-                  onChange(option.field);
-                }}
+                value={option.field}
+                className="min-h-11"
               >
-                <span className="min-w-0 flex-1 truncate text-start">
-                  {option.label}
-                </span>
-                {selected ? (
-                  <Check aria-hidden="true" className="h-4 w-4 shrink-0" />
-                ) : null}
-              </DropdownMenuItem>
-            );
-          })}
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
       <Button

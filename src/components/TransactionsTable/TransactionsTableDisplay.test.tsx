@@ -286,15 +286,14 @@ describe("TransactionsTableDisplay mobile sort", () => {
     expect(menu).toHaveAttribute("data-avoid-collisions", "false");
 
     for (const label of SORTABLE_LABELS) {
-      const item = screen.getByRole("menuitem", { name: label });
+      const item = screen.getByRole("menuitemradio", { name: label });
       expect(item).toHaveAttribute(
         "aria-checked",
         label === "columns.date" ? "true" : "false",
       );
     }
-    expect(screen.getByRole("menuitem", { name: "columns.date" }).querySelector(".lucide-check")).toBeTruthy();
 
-    await user.click(screen.getByRole("menuitem", { name: "columns.paymentMethod" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "columns.paymentMethod" }));
 
     expect(api.setSorting).toHaveBeenCalledTimes(1);
     expect(api.setSorting).toHaveBeenCalledWith("payment_method");
@@ -308,7 +307,7 @@ describe("TransactionsTableDisplay mobile sort", () => {
     await user.click(
       screen.getByRole("button", { name: "sort.sortBy: columns.amount" }),
     );
-    await user.click(screen.getByRole("menuitem", { name: "columns.amount" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "columns.amount" }));
 
     expect(api.setSorting).not.toHaveBeenCalled();
   });
