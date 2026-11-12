@@ -10,19 +10,7 @@ import type { TransactionType } from "@/types/transaction";
 const AMOUNT_PANEL_CLASS =
   "-my-3 -me-3 self-stretch shrink-0 w-[26%] min-w-[84px] max-w-[112px] flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-center font-bold tabular-nums rounded-s-[10px]";
 
-const ICON_PANEL_CLASS =
-  "-my-3 -ms-3 self-stretch shrink-0 w-[52px] grid place-items-center rounded-e-[10px]";
-
 const ICON_CHIP_CLASS = "size-10 shrink-0 rounded-full grid place-items-center";
-
-export function TypeIconPanel({ type }: { type: TransactionType }) {
-  const Icon = TYPE_ICON[type];
-  return (
-    <div className={cn(ICON_PANEL_CLASS, TYPE_CHIP[type])}>
-      <Icon className="size-5" aria-hidden="true" />
-    </div>
-  );
-}
 
 export function TypeIconChip({ type }: { type: TransactionType }) {
   const Icon = TYPE_ICON[type];
