@@ -150,16 +150,6 @@ function formatConversionDetail(
   return `${original} × ${rate.toFixed(2)}`;
 }
 
-const GREGORIAN_NUMERIC = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-
-/** Gregorian numeric dates drop the year inside the current year. Hebrew text stays as formatted. */
-function shortenGregorianYear(value: string, today: Date): string {
-  const match = GREGORIAN_NUMERIC.exec(value);
-  if (!match) return value;
-  if (Number(match[3]) !== today.getFullYear()) return value;
-  return `${match[1]}/${match[2]}`;
-}
-
 function MaskedText({
   children,
   className,
@@ -382,13 +372,10 @@ export function RecurringCardList({
 
           const row = item.item;
           const displayDue = formatDisplayDate(row.next_due_date, "numeric");
-          const today = new Date();
           const nextDueLabel = t("cards.nextShort", {
-            date: shortenGregorianYear(displayDue.primary, today),
+            date: displayDue.primary,
           });
-          const secondaryDue = displayDue.secondary
-            ? shortenGregorianYear(displayDue.secondary, today)
-            : null;
+          const secondaryDue = displayDue.secondary ?? null;
           const isSelected = selectedIds.has(row.id);
           const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;

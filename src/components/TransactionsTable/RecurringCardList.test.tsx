@@ -221,7 +221,6 @@ beforeEach(() => {
   displayCalendar.showSecondaryDate = false;
   useCalendarPreview.getState().clearPreview();
   vi.stubGlobal("matchMedia", phoneMatchMedia(false));
-  vi.setSystemTime(new Date("2026-11-12T12:00:00Z"));
 });
 
 afterEach(() => {
@@ -250,7 +249,7 @@ describe("RecurringCardList", () => {
     expectMasked(screen.getByText("100 ILS").closest("[data-ph-mask]"));
     expectMasked(screen.getByText("recurring.frequencies.monthly").closest("[data-ph-mask]"));
     expect(screen.queryByText("recurring.calendars.gregorian")).not.toBeInTheDocument();
-    expectMasked(screen.getByText("cards.nextShort:01/02").closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("cards.nextShort:01/02/2026").closest("[data-ph-mask]"));
     const cardStatus = within(card).getByText("recurring.statuses.active");
     expect(cardStatus).toHaveClass("sr-only");
     expect(cardStatus.closest("[data-ph-mask]")).toBeNull();
@@ -269,7 +268,7 @@ describe("RecurringCardList", () => {
     expect(document.querySelector(".ph-no-capture")).toBeNull();
   });
 
-  it("shows a masked Hebrew calendar badge and keeps the year outside the current year", () => {
+  it("shows a masked Hebrew calendar badge and the full next date", () => {
     i18nLanguage.current = "he";
     render(
       <RecurringCardList
@@ -309,12 +308,12 @@ describe("RecurringCardList", () => {
       language: "en",
       style: "numeric",
     }).secondary;
-    expectMasked(screen.getByText("cards.nextShort:01/02").closest("[data-ph-mask]"));
+    expectMasked(screen.getByText("cards.nextShort:01/02/2026").closest("[data-ph-mask]"));
     expect(secondary).toBeTruthy();
     expectMasked(screen.getByText(secondary ?? "").closest("[data-ph-mask]"));
   });
 
-  it("follows the Hebrew display calendar and shortens a Gregorian secondary date", () => {
+  it("follows the Hebrew display calendar and keeps the full Gregorian secondary date", () => {
     displayCalendar.calendarType = "hebrew";
     displayCalendar.showSecondaryDate = true;
     i18nLanguage.current = "en";
@@ -342,8 +341,7 @@ describe("RecurringCardList", () => {
       style: "numeric",
     });
     expectMasked(screen.getByText(`cards.nextShort:${current.primary}`).closest("[data-ph-mask]"));
-    expectMasked(screen.getByText("01/02").closest("[data-ph-mask]"));
-    expect(screen.queryByText("01/02/2026")).not.toBeInTheDocument();
+    expectMasked(screen.getByText("01/02/2026").closest("[data-ph-mask]"));
     expectMasked(screen.getByText(`cards.nextShort:${later.primary}`).closest("[data-ph-mask]"));
     expectMasked(screen.getByText("05/03/2027").closest("[data-ph-mask]"));
   });
