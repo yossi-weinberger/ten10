@@ -591,36 +591,41 @@ export function TransactionsTableDisplay() {
 
       <div
         className={cn(
-          "mb-4 flex items-center",
+          "mb-4 flex min-w-0 items-center",
           useMobileCards
-            ? "flex-nowrap justify-between gap-2"
+            ? "flex-wrap justify-between gap-2"
             : "flex-wrap justify-between gap-3",
         )}
       >
         <div
           className={cn(
-            "flex items-center gap-2",
-            useMobileCards ? "flex-nowrap" : "flex-wrap",
+            "flex min-w-0 items-center gap-2",
+            useMobileCards ? "min-w-0 flex-wrap" : "flex-wrap",
           )}
         >
           <ExportButton compact={useMobileCards} />
           <Button
             variant="outline"
             onClick={() => navigate({ to: "/transactions-table/import" })}
-            className="gap-1.5"
+            className={cn(
+              "gap-1.5",
+              useMobileCards && "min-w-0 max-w-full",
+            )}
             aria-label={t("buttons.importTransactions")}
           >
-            <Upload className="h-4 w-4" />
-            {useMobileCards
-              ? t("buttons.importShort")
-              : t("buttons.importTransactions")}
-            <span className="ms-0.5 inline-flex h-4 items-center rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase leading-none text-primary-foreground">
+            <Upload className="h-4 w-4 shrink-0" />
+            <span className={cn(useMobileCards && "min-w-0 truncate")}>
+              {useMobileCards
+                ? t("buttons.importShort")
+                : t("buttons.importTransactions")}
+            </span>
+            <span className="ms-0.5 inline-flex h-4 shrink-0 items-center rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase leading-none text-primary-foreground">
               {tImport("newBadge")}
             </span>
           </Button>
         </div>
         {useMobileCards ? (
-          <div className="ms-auto max-w-full shrink-0">
+          <div className="ms-auto min-w-0 max-w-full shrink">
             <MobileSortPicker
               fields={sortableColumns}
               field={sorting.field}

@@ -447,7 +447,7 @@ export function RecurringCardList({
                 <span className="sr-only">
                   {t(`recurring.statuses.${row.status}`, row.status)}
                 </span>
-                <div className="mt-0.5 flex flex-nowrap items-center gap-0.5 overflow-hidden text-[10px] leading-none text-muted-foreground">
+                <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-px overflow-hidden text-[10px] leading-none text-muted-foreground">
                   <MaskedText className="shrink-0 whitespace-nowrap">
                     {t(`recurring.frequencies.${row.frequency}`, row.frequency)}
                   </MaskedText>
@@ -455,7 +455,7 @@ export function RecurringCardList({
                     {nextDueLabel}
                   </MaskedText>
                   {secondaryDue ? (
-                    <MaskedText className="min-w-0 truncate whitespace-nowrap">
+                    <MaskedText className="min-w-0 flex-1 truncate">
                       {secondaryDue}
                     </MaskedText>
                   ) : null}
@@ -463,7 +463,7 @@ export function RecurringCardList({
                     <Badge
                       variant="secondary"
                       className={cn(
-                        "h-3 shrink-0 px-1 py-0 text-[9px] font-normal leading-none",
+                        "h-3 shrink-0 whitespace-nowrap px-1 py-0 text-[9px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,
                       )}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -479,7 +479,7 @@ export function RecurringCardList({
                       totalOccurrences={row.total_occurrences}
                       frequency={row.frequency}
                       dayOfMonth={row.day_of_month}
-                      className="h-3 px-1 py-0 text-[9px] leading-none"
+                      className="h-3 whitespace-nowrap px-1 py-0 text-[9px] leading-none"
                     />
                   </span>
                 </div>

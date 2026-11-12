@@ -151,18 +151,20 @@ export function MobileSortPicker<Field extends string>({
   }
 
   return (
-    <div className="relative inline-flex max-w-full" dir={textDirection}>
+    <div className="relative inline-flex min-w-0 max-w-full" dir={textDirection}>
       <DropdownMenu dir={textDirection} open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             ref={triggerRef}
             type="button"
             variant="outline"
-            className="relative h-9 w-fit max-w-full rounded-full px-2.5 text-[13px] font-normal before:absolute before:-inset-y-1 before:inset-x-0 before:content-['']"
+            className="relative h-9 w-fit min-w-0 max-w-full rounded-full px-2.5 text-[13px] font-normal before:absolute before:-inset-y-1 before:inset-x-0 before:content-['']"
             aria-label={ariaLabel}
           >
             <ArrowUpDown className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="max-[359px]:sr-only truncate">{currentLabel}</span>
+            <span className="min-w-0 truncate max-[359px]:sr-only">
+              {currentLabel}
+            </span>
             <DirectionArrow className="size-3.5 shrink-0" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>

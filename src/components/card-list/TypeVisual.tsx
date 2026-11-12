@@ -16,9 +16,13 @@ export const MOBILE_NEUTRAL_CARD_HEIGHT_CLASS = "h-[54px] !min-h-[54px]";
 /** Overrides SwipeableCardRow's default p-3/gap-3 (formatting.cn has no twMerge). */
 export const MOBILE_NEUTRAL_CARD_PAD_CLASS = "!gap-1 !p-1";
 
-/** Narrower panel under 360 so recurring frequency/date stay fully visible. */
+/**
+ * Content-driven width so long amounts (e.g. 1,234,567.50 ₪) never clip.
+ * Text column flex-shrinks; panel grows with its amount. Under 360px the amount
+ * font steps down so ordinary 4–7 digit totals stay compact without truncating.
+ */
 const AMOUNT_PANEL_CLASS =
-  "relative isolate -my-1 -me-1 self-stretch shrink-0 w-[22%] min-w-[72px] max-w-[92px] max-[359px]:w-[64px] max-[359px]:min-w-[64px] max-[359px]:max-w-[68px] text-center font-bold tabular-nums text-[13px] leading-none rounded-s-[8px]";
+  "relative isolate -my-1 -me-1 flex shrink-0 items-center justify-center self-stretch w-auto min-w-fit px-1.5 text-center font-bold tabular-nums text-[13px] leading-none whitespace-nowrap rounded-s-[8px] max-[359px]:text-[11px] max-[359px]:px-1";
 
 const ICON_CHIP_CLASS = "size-6 shrink-0 rounded-full grid place-items-center";
 
@@ -43,12 +47,12 @@ export function AmountPanel({
 }) {
   return (
     <div className={cn(AMOUNT_PANEL_CLASS, TYPE_PANEL[type])}>
-      <div className="absolute inset-0 flex items-center justify-center px-0.5">
-        {children}
-      </div>
+      <div className="px-0.5">{children}</div>
       {conversion ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0.5 flex justify-center text-[9px] font-normal leading-none">
-          <div className="pointer-events-auto">{conversion}</div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0.5 flex justify-center overflow-hidden px-0.5 text-[9px] font-normal leading-none">
+          <div className="pointer-events-auto inline-flex max-w-full min-w-0 items-center justify-center">
+            {conversion}
+          </div>
         </div>
       ) : null}
     </div>

@@ -261,6 +261,11 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("h-[54px]");
     expect(markup).toContain("!min-h-[54px]");
     expect(markup).toContain("!p-1");
+    expect(markup).toContain("min-w-fit");
+    expect(markup).toContain("w-auto");
+    expect(markup).not.toContain("w-[22%]");
+    expect(markup).not.toContain("min-w-[64px]");
+    expect(markup).not.toContain("min-w-[72px]");
     expect(markup).not.toContain("bg-green-50");
     expect(markup).toContain("bg-green-100");
     expect(markup).toContain("text-green-800");
@@ -269,6 +274,34 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("Salary");
     expect(markup).toContain("500 ILS");
   });
+
+  it("lets the category truncate while badges and chomesh stay shrink-0", () => {
+    mockUseDonationStore.mockReturnValue(true);
+    const markup = renderToStaticMarkup(
+      <TransactionCardList
+        transactions={[
+          {
+            ...mockTransactions[2],
+            category: "Very Long Charity Category Name That Should Truncate",
+            is_chomesh: true,
+            type: "donation",
+          },
+        ]}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onEditRecurring={vi.fn()}
+        isFetchingRec={false}
+        loading={false}
+      />,
+    );
+
+    expect(markup).toContain("min-w-0 flex-1 truncate");
+    expect(markup).toContain(
+      "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[9px]",
+    );
+    expect(markup).toContain("Chomesh");
+  });
+
 
   it("renders neutral cards with expense amount panel and type chip", () => {
     const markup = renderToStaticMarkup(

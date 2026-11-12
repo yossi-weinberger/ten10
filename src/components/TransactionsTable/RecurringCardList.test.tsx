@@ -304,6 +304,11 @@ describe("RecurringCardList", () => {
     expect(card.className).toContain("h-[54px]");
     expect(card.className).toContain("!min-h-[54px]");
     expect(card.className).toContain("!p-1");
+    expect(card.className).not.toContain("w-[22%]");
+    expect(card.innerHTML).toContain("min-w-fit");
+    expect(card.innerHTML).toContain("w-auto");
+    expect(card.innerHTML).not.toContain("min-w-[64px]");
+    expect(card.innerHTML).not.toContain("min-w-[72px]");
     expect(card.className).not.toContain("bg-green-50");
     expect(card.querySelector(".bg-green-100")).toBeTruthy();
     expectMasked(screen.getByText("recurring.calendars.hebrew").closest("[data-ph-mask]"));

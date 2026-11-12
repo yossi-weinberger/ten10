@@ -55,11 +55,17 @@ export function ExportButton({ compact = false }: { compact?: boolean }) {
         <Button
           variant="outline"
           disabled={exportLoading || platform === "loading"}
-          className="bg-transparent text-foreground hover:bg-muted/50"
+          className={
+            compact
+              ? "min-w-0 max-w-full bg-transparent text-foreground hover:bg-muted/50"
+              : "bg-transparent text-foreground hover:bg-muted/50"
+          }
           aria-label={t("export.title")}
         >
-          <Download className="mr-2 h-4 w-4" />
-          {label}
+          <Download className="me-2 h-4 w-4 shrink-0" />
+          <span className={compact ? "min-w-0 truncate" : undefined}>
+            {label}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
