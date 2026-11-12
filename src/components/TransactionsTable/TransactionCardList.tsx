@@ -33,6 +33,7 @@ import {
   getCalendarMonthKey,
 } from "@/lib/calendar/calendar-period";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
+import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
@@ -964,28 +965,12 @@ export function TransactionCardList({
             const placeChip =
               chipOnFirstSeparator && item.key === firstSeparatorKey;
             return (
-              <div
+              <StickyGroupHeader
                 key={`month-separator-${item.key}`}
-                data-sort-chip-slot={placeChip ? "separator" : undefined}
-                className={cn(
-                  "sticky top-[var(--mobile-topbar-h,0px)] z-10 bg-background py-2 text-xs font-medium text-muted-foreground",
-                )}
-              >
-                <span
-                  className={cn(
-                    PH_SENSITIVE_PROPS.className,
-                    placeChip && "me-48 block max-w-[calc(100%-12rem)] truncate",
-                  )}
-                  data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-                >
-                  {formatCalendarMonthLabel(item.key, calendarType, i18n.language)}
-                </span>
-                {placeChip ? (
-                  <div className="absolute end-0 top-1/2 z-10 -translate-y-1/2">
-                    {sortControl}
-                  </div>
-                ) : null}
-              </div>
+                label={formatCalendarMonthLabel(item.key, calendarType, i18n.language)}
+                placeChip={placeChip}
+                chip={sortControl}
+              />
             );
           }
 
