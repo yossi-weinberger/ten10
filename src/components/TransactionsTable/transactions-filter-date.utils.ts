@@ -57,9 +57,28 @@ function compareCalendar(a: Date, b: Date): number {
 
 /**
  * Short date-cell value for the compact mobile filters panel.
- * A full calendar month uses the month name. Any other range uses
- * `D–D.M` in one month and `D.M–D.M` across months (year added when they differ).
+ * A full calendar month uses the month name, plus the year when it is not
+ * the current year. A missing bound stays an open range (`D.M–` or `–D.M`).
+ * A closed range uses `D–D.M` in one month and `D.M–D.M` across months.
  */
+function isCurrentYear(date: Date): boolean {
+  return date.getFullYear() === new Date().getFullYear();
+}
+
+function openRangeLabel(date: Date, edge: "from" | "until"): string {
+  const label = dayMonth(date, !isCurrentYear(date));
+  switch (edge) {
+    case "from":
+      return `${label}${EN_DASH}`;
+    case "until":
+      return `${EN_DASH}${label}`;
+    default: {
+      const exhaustive: never = edge;
+      return exhaustive;
+    }
+  }
+}
+
 export function formatCompactDateFilterValue(
   range: { from?: Date; to?: Date } | undefined,
   language: string,
@@ -71,10 +90,10 @@ export function formatCompactDateFilterValue(
     return { kind: "all" };
   }
   if (from && !to) {
-    return { kind: "range", label: dayMonth(from, false) };
+    return { kind: "range", label: openRangeLabel(from, "from") };
   }
   if (!from && to) {
-    return { kind: "range", label: dayMonth(to, false) };
+    return { kind: "range", label: openRangeLabel(to, "until") };
   }
   if (!from || !to) {
     return { kind: "all" };
@@ -92,7 +111,11 @@ export function formatCompactDateFilterValue(
   }
 
   if (isWholeMonth(start, end)) {
-    return { kind: "month", monthLabel: monthName(start, language) };
+    const name = monthName(start, language);
+    return {
+      kind: "month",
+      monthLabel: isCurrentYear(start) ? name : `${name} ${start.getFullYear()}`,
+    };
   }
 
   if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {

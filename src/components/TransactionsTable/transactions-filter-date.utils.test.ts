@@ -72,7 +72,21 @@ describe("formatCompactDateFilterValue", () => {
         { from: new Date(2024, 1, 1), to: new Date(2024, 1, 29) },
         "en",
       ),
-    ).toEqual({ kind: "month", monthLabel: "February" });
+    ).toEqual({ kind: "month", monthLabel: "February 2024" });
+  });
+
+  it("adds the year when the whole month is not the current year", () => {
+    const year = new Date().getFullYear() - 1;
+    const from = new Date(year, 10, 1);
+    const to = new Date(year, 10, 30);
+    expect(formatCompactDateFilterValue({ from, to }, "en")).toEqual({
+      kind: "month",
+      monthLabel: `November ${year}`,
+    });
+    expect(formatCompactDateFilterValue({ from, to }, "he")).toEqual({
+      kind: "month",
+      monthLabel: `${format(from, "LLLL", { locale: he })} ${year}`,
+    });
   });
 
   it("formats a custom range as day–day.month, including the 1–30.11 shape", () => {
@@ -95,8 +109,34 @@ describe("formatCompactDateFilterValue", () => {
       `28.12.2025${EN_DASH}3.1.2026`,
     );
     expect(rangeLabel(new Date(2026, 10, 5), new Date(2026, 10, 5))).toBe("5.11");
+  });
+
+  it("keeps a one-sided range open instead of showing a single day", () => {
+    const year = new Date().getFullYear();
+    const earlier = year - 1;
     expect(
-      formatCompactDateFilterValue({ from: new Date(2026, 10, 5) }, "en"),
-    ).toEqual({ kind: "range", label: "5.11" });
+      formatCompactDateFilterValue({ from: new Date(year, 10, 1) }, "en"),
+    ).toEqual({
+      kind: "range",
+      label: `1.11${EN_DASH}`,
+    });
+    expect(
+      formatCompactDateFilterValue({ to: new Date(year, 10, 30) }, "en"),
+    ).toEqual({
+      kind: "range",
+      label: `${EN_DASH}30.11`,
+    });
+    expect(
+      formatCompactDateFilterValue({ from: new Date(earlier, 10, 1) }, "he"),
+    ).toEqual({
+      kind: "range",
+      label: `1.11.${earlier}${EN_DASH}`,
+    });
+    expect(
+      formatCompactDateFilterValue({ to: new Date(earlier, 0, 30) }, "en"),
+    ).toEqual({
+      kind: "range",
+      label: `${EN_DASH}30.1.${earlier}`,
+    });
   });
 });
