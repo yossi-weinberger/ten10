@@ -17,12 +17,12 @@ export const MOBILE_NEUTRAL_CARD_HEIGHT_CLASS = "h-[54px] !min-h-[54px]";
 export const MOBILE_NEUTRAL_CARD_PAD_CLASS = "!gap-1 !p-1";
 
 /**
- * Content-driven width so long amounts (e.g. 1,234,567.50 ₪) never clip.
- * Text column flex-shrinks; panel grows with its amount. Under 360px the amount
- * font steps down so ordinary 4–7 digit totals stay compact without truncating.
+ * Stable min width per breakpoint (64px under 360, 72px above), then grow with
+ * content so long amounts and wider conversion rows never clip. Grid stacks the
+ * amount + conversion in one cell so panel width is max(amount, conversion).
  */
 const AMOUNT_PANEL_CLASS =
-  "relative isolate -my-1 -me-1 flex shrink-0 items-center justify-center self-stretch w-auto min-w-fit px-1.5 text-center font-bold tabular-nums text-[13px] leading-none whitespace-nowrap rounded-s-[8px] max-[359px]:text-[11px] max-[359px]:px-1";
+  "relative isolate -my-1 -me-1 grid shrink-0 self-stretch w-auto min-w-[72px] max-[359px]:min-w-[64px] px-1.5 text-center font-bold tabular-nums text-[13px] leading-none rounded-s-[8px] max-[359px]:text-[11px] max-[359px]:px-1";
 
 const ICON_CHIP_CLASS = "size-6 shrink-0 rounded-full grid place-items-center";
 
@@ -42,17 +42,17 @@ export function AmountPanel({
 }: {
   type: TransactionType;
   children: ReactNode;
-  /** Offset under the centered amount (original currency / live-rate). */
+  /** Inline original-currency / live-rate row pinned to the panel bottom. */
   conversion?: ReactNode;
 }) {
   return (
     <div className={cn(AMOUNT_PANEL_CLASS, TYPE_PANEL[type])}>
-      <div className="px-0.5">{children}</div>
+      <div className="col-start-1 row-start-1 place-self-center whitespace-nowrap px-0.5">
+        {children}
+      </div>
       {conversion ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0.5 flex justify-center overflow-hidden px-0.5 text-[9px] font-normal leading-none">
-          <div className="pointer-events-auto inline-flex max-w-full min-w-0 items-center justify-center">
-            {conversion}
-          </div>
+        <div className="col-start-1 row-start-1 place-self-end justify-self-center whitespace-nowrap px-0.5 pb-0.5 text-[9px] font-normal leading-none">
+          {conversion}
         </div>
       ) : null}
     </div>

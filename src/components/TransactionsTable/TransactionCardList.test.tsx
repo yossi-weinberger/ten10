@@ -261,11 +261,11 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("h-[54px]");
     expect(markup).toContain("!min-h-[54px]");
     expect(markup).toContain("!p-1");
-    expect(markup).toContain("min-w-fit");
     expect(markup).toContain("w-auto");
+    expect(markup).toContain("min-w-[72px]");
+    expect(markup).toContain("max-[359px]:min-w-[64px]");
     expect(markup).not.toContain("w-[22%]");
-    expect(markup).not.toContain("min-w-[64px]");
-    expect(markup).not.toContain("min-w-[72px]");
+    expect(markup).not.toContain("min-w-fit");
     expect(markup).not.toContain("bg-green-50");
     expect(markup).toContain("bg-green-100");
     expect(markup).toContain("text-green-800");
@@ -275,16 +275,18 @@ describe("TransactionCardList", () => {
     expect(markup).toContain("500 ILS");
   });
 
-  it("lets the category truncate while badges and chomesh stay shrink-0", () => {
+  it("lets category and type badge truncate while chomesh stays shrink-0", () => {
     mockUseDonationStore.mockReturnValue(true);
     const markup = renderToStaticMarkup(
       <TransactionCardList
         transactions={[
           {
-            ...mockTransactions[2],
-            category: "Very Long Charity Category Name That Should Truncate",
+            ...mockTransactions[1],
+            category: "Very Long Office Category Name That Should Truncate",
             is_chomesh: true,
-            type: "donation",
+            type: "recognized-expense",
+            description: "Recognized with chomesh",
+            amount: 1234.56,
           },
         ]}
         onEdit={vi.fn()}
@@ -296,9 +298,13 @@ describe("TransactionCardList", () => {
     );
 
     expect(markup).toContain("min-w-0 flex-1 truncate");
+    expect(markup).toContain("min-w-0 max-w-[7.5rem] shrink truncate");
+    expect(markup).toContain('title="Recognized Expense"');
+    expect(markup).toContain('aria-label="Recognized Expense"');
     expect(markup).toContain(
       "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[9px]",
     );
+    expect(markup).toContain("shrink-0 whitespace-nowrap");
     expect(markup).toContain("Chomesh");
   });
 

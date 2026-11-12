@@ -462,8 +462,10 @@ export function RecurringCardList({
                   {row.calendar_type === "hebrew" ? (
                     <Badge
                       variant="secondary"
+                      title={t("recurring.calendars.hebrew")}
+                      aria-label={t("recurring.calendars.hebrew")}
                       className={cn(
-                        "h-3 shrink-0 whitespace-nowrap px-1 py-0 text-[9px] font-normal leading-none",
+                        "h-3 min-w-0 max-w-[5rem] shrink truncate px-1 py-0 text-[9px] font-normal leading-none",
                         PH_SENSITIVE_PROPS.className,
                       )}
                       data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -479,7 +481,7 @@ export function RecurringCardList({
                       totalOccurrences={row.total_occurrences}
                       frequency={row.frequency}
                       dayOfMonth={row.day_of_month}
-                      className="h-3 whitespace-nowrap px-1 py-0 text-[9px] leading-none"
+                      className="h-3 shrink-0 whitespace-nowrap px-1 py-0 text-[9px] leading-none"
                     />
                   </span>
                 </div>

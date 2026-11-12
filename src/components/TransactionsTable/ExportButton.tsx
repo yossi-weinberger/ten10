@@ -62,7 +62,11 @@ export function ExportButton({ compact = false }: { compact?: boolean }) {
           }
           aria-label={t("export.title")}
         >
-          <Download className="me-2 h-4 w-4 shrink-0" />
+          <Download
+            className={
+              compact ? "me-2 h-4 w-4 shrink-0" : "mr-2 h-4 w-4 shrink-0"
+            }
+          />
           <span className={compact ? "min-w-0 truncate" : undefined}>
             {label}
           </span>

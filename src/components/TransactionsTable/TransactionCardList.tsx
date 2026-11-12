@@ -364,8 +364,10 @@ const TransactionCard = memo(function TransactionCard({
           {isSpecialType(transaction.type) && (
             <Badge
               variant="outline"
+              title={t(`types.${transaction.type}`, transaction.type)}
+              aria-label={t(`types.${transaction.type}`, transaction.type)}
               className={cn(
-                "h-3 shrink-0 whitespace-nowrap border px-1 py-0 text-[9px] leading-none",
+                "h-3 min-w-0 max-w-[7.5rem] shrink truncate border px-1 py-0 text-[9px] leading-none",
                 typeBadgeColors[transaction.type as TransactionType],
               )}
             >
@@ -386,7 +388,7 @@ const TransactionCard = memo(function TransactionCard({
               />
               <span
                 className={cn(
-                  "whitespace-nowrap",
+                  "shrink-0 whitespace-nowrap",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
