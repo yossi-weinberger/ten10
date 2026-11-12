@@ -33,6 +33,7 @@ import {
 } from "@/lib/calendar/calendar-period";
 import { groupWithSeparators } from "@/components/card-list/group-with-separators";
 import { StickyGroupHeader } from "@/components/card-list/StickyGroupHeader";
+import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
@@ -42,7 +43,6 @@ import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 import { useDonationStore } from "@/lib/store";
 import { useMobileSelectionBodyFlag } from "@/hooks/useMobileSelectionBodyFlag";
 import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
-import { BulkActionsToolbar } from "./BulkActionsToolbar";
 
 interface TransactionCardListProps {
   transactions: TransactionForTable[];
@@ -572,7 +572,7 @@ export function TransactionCardList({
     <>
       {inSelectionMode && onClearSelection && onSelectionEdit && onSelectionDelete && 
        selectedCountLabel && editLabel && deleteLabel && clearLabel && bulkToolbarAriaLabel && (
-        <BulkActionsToolbar
+        <MobileBulkToolbar
           selectedCount={selectedIds.size}
           selectedCountLabel={selectedCountLabel}
           editLabel={editLabel}
@@ -586,8 +586,6 @@ export function TransactionCardList({
           disabled={selectionDisabled}
           editDisabled={bulkEditDisabled}
           dir={i18n.dir()}
-          className="md:mb-4 max-md:fixed max-md:inset-x-3 max-md:bottom-[calc(12px+env(safe-area-inset-bottom))] max-md:z-40 max-md:rounded-2xl max-md:bg-background max-md:shadow-lg max-md:border max-md:border-border max-md:p-3"
-          mobileLayout
         />
       )}
       <div className={cn("space-y-2", inSelectionMode && "max-md:pb-24")}>
