@@ -1,5 +1,10 @@
 import * as React from "react";
 
+/** Phones, including landscape: narrow, or a short coarse-pointer viewport.
+ *  The assistant shell already uses this for its full-height drawer. */
+export const COMPACT_VIEWPORT_QUERY =
+  "(max-width: 767px), ((max-height: 500px) and (pointer: coarse))";
+
 export function useMediaQuery(query: string) {
   const [value, setValue] = React.useState(() => {
     // Initial check on mount to prevent hydration mismatch

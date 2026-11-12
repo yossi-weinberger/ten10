@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { COMPACT_VIEWPORT_QUERY, useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 interface BetaTermsDialogProps {
   open: boolean;
@@ -38,14 +39,14 @@ export function BetaTermsDialog({
   const { t, i18n } = useTranslation("navigation");
   const { platform } = usePlatform();
   const [isLoading, setIsLoading] = useState(false);
-  const isDesktopQuery = useMediaQuery("(min-width: 768px)");
-  const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
+  const isCompactNow = useMediaQuery(COMPACT_VIEWPORT_QUERY);
+  const [useDrawer, setUseDrawer] = useState(isCompactNow);
 
   useEffect(() => {
     if (open) return;
-    const timeoutId = window.setTimeout(() => setUseDesktop(isDesktopQuery), 0);
+    const timeoutId = window.setTimeout(() => setUseDrawer(isCompactNow), 0);
     return () => window.clearTimeout(timeoutId);
-  }, [isDesktopQuery, open]);
+  }, [isCompactNow, open]);
 
   const handleAccept = async () => {
     setIsLoading(true);
@@ -78,7 +79,7 @@ export function BetaTermsDialog({
 
   if (!open) return null;
 
-  const termsContent = (
+  const termsContent = (enlargedLink: boolean) => (
     <div className="flex flex-col gap-3 py-2 text-start">
       <p className="text-sm text-muted-foreground">
         {t("aiIntake.betaTerms.shortDescription")}
@@ -87,7 +88,10 @@ export function BetaTermsDialog({
         <Link
           to="/beta-terms"
           target={platform === "web" ? "_blank" : undefined}
-          className="text-primary hover:underline font-medium"
+          className={cn(
+            "font-medium text-primary hover:underline",
+            enlargedLink && "inline-flex min-h-11 items-center",
+          )}
         >
           {t("aiIntake.betaTerms.readFullTerms")}
         </Link>
@@ -95,7 +99,7 @@ export function BetaTermsDialog({
     </div>
   );
 
-  if (useDesktop) {
+  if (!useDrawer) {
     return (
       <Dialog open={open} onOpenChange={() => {}}>
         <DialogContent
@@ -108,7 +112,7 @@ export function BetaTermsDialog({
             <DialogTitle>{t("aiIntake.betaTerms.title")}</DialogTitle>
             <DialogDescription>{t("aiIntake.betaTerms.description")}</DialogDescription>
           </DialogHeader>
-          {termsContent}
+          {termsContent(false)}
           <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"
@@ -142,26 +146,26 @@ export function BetaTermsDialog({
           <DrawerTitle>{t("aiIntake.betaTerms.title")}</DrawerTitle>
           <DrawerDescription>{t("aiIntake.betaTerms.description")}</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 overflow-y-auto">{termsContent}</div>
-        <DrawerFooter className="pt-2 gap-2">
+        <div className="overflow-y-auto px-4 pb-4">{termsContent(true)}</div>
+        <DrawerFooter className="gap-2 pt-2 pb-[max(16px,calc(env(safe-area-inset-bottom)+12px))]">
+          <Button
+            type="button"
+            onClick={handleAccept}
+            disabled={isLoading}
+            className="h-11 w-full"
+          >
+            {isLoading
+              ? t("aiIntake.betaTerms.accepting")
+              : t("aiIntake.betaTerms.acceptButton")}
+          </Button>
           <Button
             type="button"
             variant="outline"
             onClick={onDecline}
             disabled={isLoading}
-            className="min-h-11 w-full"
+            className="h-11 w-full border-none bg-[#f0c000] text-yellow-950 shadow-sm hover:bg-[#d9ad00]"
           >
             {t("aiIntake.betaTerms.declineButton")}
-          </Button>
-          <Button
-            type="button"
-            onClick={handleAccept}
-            disabled={isLoading}
-            className="min-h-11 w-full"
-          >
-            {isLoading
-              ? t("aiIntake.betaTerms.accepting")
-              : t("aiIntake.betaTerms.acceptButton")}
           </Button>
         </DrawerFooter>
       </DrawerContent>

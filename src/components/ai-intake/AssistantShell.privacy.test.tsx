@@ -29,6 +29,7 @@ vi.mock("react-dropzone", () => ({
 
 // Mock the media query hook
 vi.mock("@/hooks/use-media-query", () => ({
+  COMPACT_VIEWPORT_QUERY: "(max-width: 767px), ((max-height: 500px) and (pointer: coarse))",
   useMediaQuery: () => false,
 }));
 
