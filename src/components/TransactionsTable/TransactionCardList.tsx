@@ -1031,7 +1031,7 @@ export function TransactionCardList({
             <div className="flex min-w-0 items-center justify-between gap-2">
               <DrawerTitle
                 className={cn(
-                  "min-w-0 flex-1 truncate text-start font-semibold leading-[1.2] tracking-[-0.01em]",
+                  "min-w-0 flex-1 break-words text-start font-semibold leading-[1.2] tracking-[-0.01em] line-clamp-2",
                   PH_SENSITIVE_PROPS.className,
                 )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -1141,8 +1141,8 @@ export function TransactionCardList({
             const recurring = selectedTransaction.recurring_info;
             const canEditRecurring = Boolean(selectedTransaction.source_recurring_id);
             const recurringBadge = recurring ? (
-              <div
-                className={cn("[&_svg]:!size-3", PH_SENSITIVE_PROPS.className)}
+              <span
+                className={cn("inline-flex [&_svg]:!size-3", PH_SENSITIVE_PROPS.className)}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
                 <RecurringProgressBadge
@@ -1154,7 +1154,7 @@ export function TransactionCardList({
                   frequency={recurring.frequency}
                   dayOfMonth={recurring.day_of_month}
                 />
-              </div>
+              </span>
             ) : null;
             const hasExtraActions = Boolean(
               receiptVisible || receiptLink || receiptNote || showUndoAi,
@@ -1199,7 +1199,7 @@ export function TransactionCardList({
                   </DrawerField>
                 ) : null}
 
-                {recurring && canEditRecurring ? (
+                {recurring && canEditRecurring && recurring.status !== "completed" ? (
                   <Button
                     type="button"
                     variant="ghost"
@@ -1208,7 +1208,7 @@ export function TransactionCardList({
                       "h-auto min-w-0 rounded-none px-0 font-normal shadow-none hover:bg-transparent hover:text-foreground",
                     )}
                     onClick={handleEditRecurring}
-                    disabled={isFetchingRec || recurring.status === "completed"}
+                    disabled={isFetchingRec}
                   >
                     <span className="shrink-0 text-[13px] font-normal leading-[1.3] text-muted-foreground">
                       {t("columns.recurring")}
@@ -1225,7 +1225,7 @@ export function TransactionCardList({
                   </Button>
                 ) : null}
 
-                {recurring && !canEditRecurring ? (
+                {recurring && (!canEditRecurring || recurring.status === "completed") ? (
                   <DrawerField label={t("columns.recurring")}>
                     {recurringBadge}
                   </DrawerField>

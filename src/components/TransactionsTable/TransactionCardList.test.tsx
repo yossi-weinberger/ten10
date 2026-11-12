@@ -1800,8 +1800,11 @@ describe("TransactionCardList", () => {
     // The recurring badge wrapper should have masking
     const recurringBadge = screen.getByText("Recurring Badge");
     const parent = recurringBadge.parentElement;
+    expect(parent?.tagName).toBe("SPAN");
     expect(parent).toHaveAttribute("data-ph-mask", "");
     expect(parent?.className).toContain("ph-mask");
+    const editRow = recurringBadge.closest("button");
+    expect(editRow?.querySelector("div")).toBeNull();
   });
 });
 
@@ -2885,7 +2888,10 @@ describe("transaction details drawer", () => {
     const drawer = await openDrawer(mockTransactions[0]);
     const title = within(drawer).getByRole("heading", { name: "Salary" });
     expect(title.className).toContain("min-w-0");
-    expect(title.className).toContain("truncate");
+    expect(title.className).toContain("line-clamp-2");
+    expect(title.className).toContain("break-words");
+    expect(title.className).not.toContain("truncate");
+    expectPostHogMask(title);
     expect(title.parentElement?.className).toContain("justify-between");
     const pill = within(title.parentElement as HTMLElement).getByText("Income");
     expect(pill.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING).toBe(
@@ -2988,8 +2994,12 @@ describe("transaction details drawer", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /Charity/ }));
     const completedDrawer = await screen.findByRole("dialog");
-    const editRow = within(completedDrawer).getByRole("button", { name: /Edit link/ });
-    expect(editRow).toBeDisabled();
+    expect(within(completedDrawer).queryByText("Edit link")).not.toBeInTheDocument();
+    const completedLabel = within(completedDrawer).getByText("Recurring");
+    expect(completedLabel.closest("button")).toBeNull();
+    const completedBadge = within(completedDrawer).getByText("Recurring Badge");
+    expect(completedBadge.parentElement?.tagName).toBe("SPAN");
+    expect(completedBadge.parentElement).toHaveAttribute("data-ph-mask", "");
 
     cleanup();
     const withoutSeries: TransactionForTable = {
@@ -2999,6 +3009,24 @@ describe("transaction details drawer", () => {
     const plain = await openDrawer(withoutSeries);
     expect(within(plain).getByText("Recurring Badge")).toBeInTheDocument();
     expect(within(plain).queryByText("Edit link")).not.toBeInTheDocument();
+  });
+
+  it("wraps a long title onto two lines and keeps the type pill at the inline end", async () => {
+    const longTitle = "Annual synagogue membership and building fund contribution for the family";
+    const drawer = await openDrawer({
+      ...mockTransactions[0],
+      description: longTitle,
+    });
+    const title = within(drawer).getByRole("heading", { name: longTitle });
+    expect(title.textContent).toBe(longTitle);
+    expect(title.className).toContain("line-clamp-2");
+    expect(title.className).toContain("break-words");
+    expectPostHogMask(title);
+    const pill = within(title.parentElement as HTMLElement).getByText("Income");
+    expect(title.parentElement?.className).toContain("justify-between");
+    expect(pill.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
   });
 
   it("shows the conversion pill only when a stored conversion exists", async () => {
