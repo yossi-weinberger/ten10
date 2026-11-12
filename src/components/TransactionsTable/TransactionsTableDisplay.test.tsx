@@ -4,6 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { decideSortMenuPlacement } from "@/components/sortMenuPlacement";
 import { TransactionsTableDisplay } from "./TransactionsTableDisplay";
 
 const {
@@ -270,34 +271,29 @@ describe("TransactionsTableDisplay mobile sort", () => {
     renderDisplay();
 
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 568 });
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: 320 });
-    Object.defineProperty(document.documentElement, "clientHeight", {
-      configurable: true,
-      value: 568,
+    const trigger = screen.getByRole("button", { name: "sort.sortBy: columns.date" });
+    const triggerRect = trigger.getBoundingClientRect();
+    const expectedPlacement = decideSortMenuPlacement({
+      triggerTop: triggerRect.top,
+      triggerBottom: triggerRect.bottom,
+      viewportHeight: 568,
+      safeAreaBottom: 0,
+      headerClearance: 52,
     });
-    Object.defineProperty(document.documentElement, "clientWidth", {
-      configurable: true,
-      value: 320,
-    });
-    await user.click(
-      screen.getByRole("button", { name: "sort.sortBy: columns.date" }),
-    );
+    await user.click(trigger);
 
     const menu = await screen.findByRole("menu");
-    expect(menu).toHaveAttribute("data-side", "bottom");
-    expect(menu).toHaveAttribute("data-collision-bottom", "88");
+    expect(menu).toHaveAttribute("data-side", expectedPlacement.side);
     const popper = menu.closest("[data-radix-popper-content-wrapper]");
     expect(popper).toBeInstanceOf(HTMLElement);
     expect((popper as HTMLElement).style.zIndex).toBe("60");
     expect(menu.className).toContain("overflow-y-auto");
-    expect(menu.style.maxHeight).toBe(
-      "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)",
-    );
+    expect(menu.style.maxHeight).toBe(`${expectedPlacement.maxHeight}px`);
     expect(menu.style.maxHeight).not.toContain("select");
     expect(
       menu.style.getPropertyValue("--radix-dropdown-menu-content-available-height"),
     ).toContain("--radix-popper-available-height");
-    expect(menu).toHaveAttribute("data-avoid-collisions", "true");
+    expect(menu).toHaveAttribute("data-avoid-collisions", "false");
 
     for (const label of SORTABLE_LABELS) {
       const item = screen.getByRole("menuitemradio", { name: label });

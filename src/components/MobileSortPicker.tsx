@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  decideSortMenuPlacement,
+  SORT_MENU_HEADER_CLEARANCE,
+  type SortMenuPlacement,
+} from "@/components/sortMenuPlacement";
 
 export interface MobileSortOption<Field extends string = string> {
   field: Field;
@@ -21,22 +27,23 @@ export interface MobileSortPickerProps<Field extends string = string> {
   onChange: (field: Field) => void;
 }
 
-/** Bottom is preferred. Flip only when the capped menu does not fit below the trigger. */
-const SORT_MENU_AVOID_COLLISIONS = true;
-/**
- * 24px FAB offset + 56px button + 8px gap. The menu stops above the assistant
- * button and the home-indicator area. A low trigger still flips upward.
- */
-const SORT_MENU_COLLISION_PADDING = { top: 8, bottom: 88 } as const;
+/** The side is chosen in decideSortMenuPlacement. Radix must not flip it. */
+const SORT_MENU_AVOID_COLLISIONS = false;
 /** Above the assistant button (z-50). Applied to the portalled popper wrapper. */
 const SORT_MENU_Z_INDEX = "60";
-/**
- * Three min-h-11 rows plus the menu padding, and at most 20rem.
- * The 9rem fallback still fits under the control at 320x568 after the 88px
- * bottom inset, so that case stays downward. A shorter gap flips upward.
- */
-const SORT_MENU_MAX_HEIGHT =
-  "max(min(var(--radix-dropdown-menu-content-available-height, 9rem), 20rem), 8.75rem)";
+
+function readCssPx(length: string, fallback: number): number {
+  if (typeof document === "undefined") return fallback;
+  const probe = document.createElement("div");
+  probe.style.position = "absolute";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.style.paddingBottom = length;
+  document.body.appendChild(probe);
+  const parsed = Number.parseFloat(getComputedStyle(probe).paddingBottom);
+  probe.remove();
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
 
 /**
  * Radix copies the content z-index onto `[data-radix-popper-content-wrapper]`
@@ -80,6 +87,35 @@ export function MobileSortPicker<Field extends string>({
     fields.find((option) => option.field === field)?.label ?? field;
   const { actionLabelKey, Icon } = sortDirectionPresentation(direction);
   const directionAction = t(actionLabelKey);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState<SortMenuPlacement>({
+    side: "bottom",
+    maxHeight: 0,
+  });
+
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const headerClearance = readCssPx(
+          "var(--mobile-topbar-h, 52px)",
+          SORT_MENU_HEADER_CLEARANCE,
+        );
+        setPlacement(
+          decideSortMenuPlacement({
+            triggerTop: rect.top,
+            triggerBottom: rect.bottom,
+            viewportHeight: window.innerHeight,
+            safeAreaBottom: readCssPx("env(safe-area-inset-bottom)", 0),
+            headerClearance:
+              headerClearance > 0 ? headerClearance : SORT_MENU_HEADER_CLEARANCE,
+          }),
+        );
+      }
+    }
+    setOpen(next);
+  }
 
   return (
     <div
@@ -89,9 +125,10 @@ export function MobileSortPicker<Field extends string>({
       <span className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">
         {t("sort.sortBy")}
       </span>
-      <DropdownMenu dir={textDirection}>
+      <DropdownMenu dir={textDirection} open={open} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
+            ref={triggerRef}
             type="button"
             variant="outline"
             className="h-11 min-w-0 flex-1 justify-between gap-2 px-3 font-normal"
@@ -105,14 +142,12 @@ export function MobileSortPicker<Field extends string>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          side="bottom"
+          side={placement.side}
           avoidCollisions={SORT_MENU_AVOID_COLLISIONS}
           data-avoid-collisions={String(SORT_MENU_AVOID_COLLISIONS)}
           ref={raiseMenuAboveFab}
-          collisionPadding={SORT_MENU_COLLISION_PADDING}
-          data-collision-bottom={SORT_MENU_COLLISION_PADDING.bottom}
           align="start"
-          style={{ maxHeight: SORT_MENU_MAX_HEIGHT, zIndex: SORT_MENU_Z_INDEX }}
+          style={{ maxHeight: `${placement.maxHeight}px`, zIndex: SORT_MENU_Z_INDEX }}
           className="relative z-[60] w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
         >
           <DropdownMenuRadioGroup
