@@ -17,12 +17,12 @@ export const MOBILE_NEUTRAL_CARD_HEIGHT_CLASS = "h-[54px] !min-h-[54px]";
 export const MOBILE_NEUTRAL_CARD_PAD_CLASS = "!gap-1 !p-1";
 
 /**
- * Stable min width per breakpoint (64px under 360, 72px above), then grow with
- * content so long amounts and wider conversion rows never clip. Grid stacks the
+ * Uniform mobile panel min width (88px; 72px under 360), then grow with content
+ * so 6+ digit amounts and wider conversion rows never clip. Grid stacks the
  * amount + conversion in one cell so panel width is max(amount, conversion).
  */
 const AMOUNT_PANEL_CLASS =
-  "relative isolate -my-1 -me-1 grid shrink-0 self-stretch w-auto min-w-[72px] max-[359px]:min-w-[64px] px-1.5 text-center font-bold tabular-nums text-[13px] leading-none rounded-s-[8px] max-[359px]:text-[11px] max-[359px]:px-1";
+  "relative isolate -my-1 -me-1 grid shrink-0 self-stretch w-auto min-w-[88px] max-[359px]:min-w-[72px] px-1.5 text-center font-bold tabular-nums text-[13px] leading-none rounded-s-[8px] max-[359px]:text-[11px] max-[359px]:px-1";
 
 const ICON_CHIP_CLASS = "size-6 shrink-0 rounded-full grid place-items-center";
 

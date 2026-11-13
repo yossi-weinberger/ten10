@@ -300,28 +300,64 @@ const TransactionCard = memo(function TransactionCard({
     >
       <TypeIconChip type={transaction.type} />
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div
-          className={cn(
-            showAiOrigin
-              ? "flex min-w-0 items-center gap-1 text-[12px] font-medium leading-none"
-              : "truncate text-[12px] font-medium leading-none",
-            !transaction.description && "text-muted-foreground",
-            PH_SENSITIVE_PROPS.className
-          )}
-          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-        >
-          {showAiOrigin ? (
-            <span className="block min-w-0 truncate">{cardTitle}</span>
-          ) : (
-            cardTitle
-          )}
-          <AiOriginIndicator
-            origin={transaction.origin}
-            platform={platform}
-            aiIntakeEnabled={aiIntakeEnabled}
-            className="shrink-0"
-          />
-        </div>
+        {isSpecialType(transaction.type) ? (
+          <div
+            className={cn(
+              "flex min-w-0 items-center gap-1 text-[12px] font-medium leading-none",
+              !transaction.description && "text-muted-foreground",
+            )}
+          >
+            <span
+              className={cn(
+                "block min-w-0 flex-1 truncate",
+                PH_SENSITIVE_PROPS.className,
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
+              {cardTitle}
+            </span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-3 min-w-[2.75rem] max-w-[7.5rem] shrink-0 overflow-hidden border px-1 py-0 text-[9px] leading-none",
+                typeBadgeColors[transaction.type as TransactionType],
+              )}
+            >
+              <span className="block min-w-0 truncate">
+                {t(`types.${transaction.type}`, transaction.type)}
+              </span>
+            </Badge>
+            <AiOriginIndicator
+              origin={transaction.origin}
+              platform={platform}
+              aiIntakeEnabled={aiIntakeEnabled}
+              className="shrink-0"
+            />
+          </div>
+        ) : (
+          <div
+            className={cn(
+              showAiOrigin
+                ? "flex min-w-0 items-center gap-1 text-[12px] font-medium leading-none"
+                : "truncate text-[12px] font-medium leading-none",
+              !transaction.description && "text-muted-foreground",
+              PH_SENSITIVE_PROPS.className,
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            {showAiOrigin ? (
+              <span className="block min-w-0 truncate">{cardTitle}</span>
+            ) : (
+              cardTitle
+            )}
+            <AiOriginIndicator
+              origin={transaction.origin}
+              platform={platform}
+              aiIntakeEnabled={aiIntakeEnabled}
+              className="shrink-0"
+            />
+          </div>
+        )}
         <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
           <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-x-1 overflow-hidden">
             <span
@@ -356,19 +392,6 @@ const TransactionCard = memo(function TransactionCard({
                 <span aria-hidden="true">·</span>
                 <CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />
               </span>
-            )}
-            {isSpecialType(transaction.type) && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-3 min-w-0 max-w-[7.5rem] shrink overflow-hidden border px-1 py-0 text-[9px] leading-none",
-                  typeBadgeColors[transaction.type as TransactionType],
-                )}
-              >
-                <span className="block min-w-0 truncate">
-                  {t(`types.${transaction.type}`, transaction.type)}
-                </span>
-              </Badge>
             )}
           </div>
           {trackChomeshSeparately && transaction.is_chomesh && (
