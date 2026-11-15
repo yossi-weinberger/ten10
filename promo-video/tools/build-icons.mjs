@@ -1,4 +1,4 @@
-// Extracts the Lucide icons used by the TEN10 app UI into film/icons.js
+// Extracts the Lucide icons the film draws into film/icons.js
 // (inner SVG markup only, so the film can inline them with any size/colour).
 import fs from "node:fs";
 import path from "node:path";
@@ -6,16 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dir = path.join(root, "node_modules/lucide-static/icons");
-const names = [
-  "house", "circle-plus", "table", "chart-pie", "book", "settings", "info", "globe",
-  "wallet", "credit-card", "hand-coins", "scale", "badge-plus", "calendar", "calendar-days",
-  "upload", "download", "file-spreadsheet", "file-text", "circle-check", "check", "repeat",
-  "mail", "send", "message-square-plus", "search", "arrow-left", "arrow-right", "x",
-  "book-open", "bell", "chevron-down", "ellipsis", "arrow-left-right", "chevrons-up-down",
-  "list-filter", "refresh-cw",
-  "cloud", "wifi-off", "hard-drive", "monitor", "smartphone", "lock", "lightbulb", "trending-up",
-  "chart-column", "list", "circle-alert", "minus", "square", "user-round-x",
-];
+const names = ["globe", "cloud", "smartphone", "wifi-off", "hard-drive", "user-round-x"]; // the ones film/geo.js draws
 const out = {};
 for (const n of names) {
   const svg = fs.readFileSync(path.join(dir, `${n}.svg`), "utf8");

@@ -1,6 +1,5 @@
 node_modules/
 renders/
-frames/
 # generated audio: narration takes (audio/tts/), assembled reads, spans, music beds
 audio/
 __pycache__/
