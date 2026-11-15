@@ -22,15 +22,15 @@ chrono = { version = "0.4.38", features = ["serde"] }
 log = "0.4.21"
 env_logger = "0.11.3"
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
-tauri-plugin-fs = "2.5"
-tauri-plugin-shell = "2.3.1"
-tauri-plugin-dialog = "2.7"
-tauri-plugin-os = "2.3.1"
-tauri-plugin-notification = "~2.4.0"
-tauri-plugin-autostart = "2.5.0"
-tauri-plugin-updater = { version = "~2.11.0", default-features = false, features = ["native-tls", "zip"] }
+tauri-plugin-fs = "~2.7.1"
+tauri-plugin-shell = "~2.6.0"
+tauri-plugin-dialog = "~2.8.4"
+tauri-plugin-os = "~2.4.0"
+tauri-plugin-notification = "~2.8.0"
+tauri-plugin-autostart = "~2.7.0"
+tauri-plugin-updater = { version = "~2.14.1", default-features = false, features = ["native-tls", "zip"] }
 tauri-plugin-clipboard-manager = "2.1.0"
-tauri-plugin-stronghold = "2.3.1"
+tauri-plugin-stronghold = "~2.4.0"
 
 [dev-dependencies]
 # "test" feature enables tauri::test::mock_app for command-handler tests only
