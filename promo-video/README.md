@@ -34,7 +34,16 @@ tools/produce.sh he audio/narration_he.wav       # full production synced to the
 FORMAT=vertical tools/produce.sh he audio/narration_he.wav   # the 9:16 version
 MUSIC=audio/licensed.wav tools/produce.sh en audio/narration_en.wav   # with a licensed music track
 tools/produce.sh he                              # no recording yet: provisional (estimated) timing
+node tools/social.mjs                            # WhatsApp status images around the vertical film → renders/social/
 ```
+
+The status images (`tools/social.mjs`) are posted around the vertical film:
+1. a teaser;
+2. the film;
+3. Natan, the AI assistant, with an invitation to the beta;
+4. "help spread the word".
+
+They use the film's font, logos and colours. Natan's capabilities on image 3 are only ones that are already in the app. The channel row marks WhatsApp and email "soon", using the official logos in `tools/brands/` (from Wikimedia Commons).
 
 Output is `renders/<lang>/TEN10_promo_<lang>_1080p.mp4` or `renders/<lang>-vertical/TEN10_promo_<lang>_vertical_1080x1920.mp4`.
 Both are 30 fps, H.264 High CRF 16 with AAC 256k, at −16 LUFS / −1.5 dBTP with narration.

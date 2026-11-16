@@ -1,5 +1,5 @@
-// Minimal static server rooted at the repository root, so the film can load the
-// app's own brand assets (public/fonts, public/logo, public/locales) unchanged.
+// Minimal static server for the film. It serves only promo-video/ and public/ (the app's own brand assets:
+// fonts, logos, locales) from the repository, never dotfiles such as .env, and listens on 127.0.0.1 only.
 //   node tools/serve.mjs [--port 5178]
 //   → http://localhost:5178/promo-video/film/?lang=he
 import http from "node:http";
@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const SERVED = ["promo-video", "public"].map((d) => path.join(repoRoot, d) + path.sep);
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -20,8 +21,12 @@ const MIME = {
 export function startServer(port = 0) {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, "http://x");
-    let file = path.normalize(path.join(repoRoot, decodeURIComponent(url.pathname)));
-    if (!file.startsWith(repoRoot)) { res.writeHead(403).end(); return; }
+    let file;
+    try { file = path.resolve(repoRoot, "." + decodeURIComponent(url.pathname)); } catch { res.writeHead(400).end(); return; }
+    const parts = path.relative(repoRoot, file).split(path.sep);
+    if (!SERVED.some((d) => (file + path.sep).startsWith(d)) || parts.some((p) => p.startsWith(".") || p === "node_modules")) {
+      res.writeHead(403).end(); return;
+    }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, "index.html");
     fs.readFile(file, (err, data) => {
       if (err) { res.writeHead(404).end("not found"); return; }

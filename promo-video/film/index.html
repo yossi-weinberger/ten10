@@ -84,7 +84,10 @@
         if (e.code === "ArrowRight") { t = Math.min(film.duration, t + (e.shiftKey ? 1 : 1 / 30)); show(); }
         if (e.code === "ArrowLeft") { t = Math.max(0, t - (e.shiftKey ? 1 : 1 / 30)); show(); }
       });
-    })().catch((e) => { document.body.innerHTML = `<pre style="color:#f88;padding:20px">${e.stack || e}</pre>`; window.__film = { error: String(e.stack || e) }; });
+    })().catch((e) => {
+      const pre = document.createElement("pre"); pre.style.cssText = "color:#f88;padding:20px"; pre.textContent = String(e.stack || e);
+      document.body.replaceChildren(pre); window.__film = { error: String(e.stack || e) };
+    });
   </script>
 </body>
 </html>
