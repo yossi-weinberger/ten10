@@ -18,10 +18,10 @@ export function HomePage() {
     <div className="grid gap-6">
       <div className="flex items-start justify-between gap-3">
         <div className="grid gap-2 min-w-0" data-onboarding="home-intro">
-          <h2 className="text-2xl font-bold text-foreground">
+          <h2 className="text-2xl font-bold text-foreground max-md:text-lg max-md:leading-7">
             {t("homePage.title")}
           </h2>
-          <p className="text-muted-foreground">{t("homePage.subtitle")}</p>
+          <p className="text-muted-foreground max-md:hidden mobile-landscape:hidden">{t("homePage.subtitle")}</p>
         </div>
         <PageTourButton tour="home" />
       </div>

@@ -54,6 +54,8 @@ import { CurrencyConversionSection } from "@/components/forms/transaction-form-p
 import { OpeningBalanceHomeStyleStatCard } from "@/components/settings/OpeningBalanceHomeStyleStatCard";
 import { ToggleChoiceCard } from "@/components/ui/toggle-choice-card";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 // Derive currency codes tuple from CURRENCIES for type-safe Zod enum
 const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
@@ -91,7 +93,7 @@ export function OpeningBalanceModal({
   const [resolvedTransaction, setResolvedTransaction] =
     useState<Transaction | null>(null);
 
-  const isDesktopQuery = useMediaQuery("(min-width: 768px)");
+  const isDesktopQuery = useMediaQuery("(min-width: 768px) and ((pointer: fine) or (min-height: 501px))");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
   /** Stable primitive for effect deps (avoids reference churn and keeps dependency array length fixed). */
@@ -252,13 +254,24 @@ export function OpeningBalanceModal({
         const conversionRate = values.conversion_rate;
         const originalSignedAmount =
           values.balanceType === "debt" ? amount : -amount;
-        const convertedMagnitude = Number((amount * conversionRate).toFixed(2));
+        const converted = applyConversion({
+          originalAmount: amount,
+          originalCurrency: values.currency,
+          defaultCurrency: normalizeCurrencyCode(settings.defaultCurrency),
+          rate: conversionRate,
+          conversionDate: values.conversion_date || getCurrentLocalDate(),
+          rateSource: values.rate_source,
+        });
+        const convertedMagnitude = converted.amount;
         finalAmount = values.balanceType === "debt" ? convertedMagnitude : -convertedMagnitude;
 
         transactionPayload.amount = finalAmount;
+        transactionPayload.currency = normalizeCurrencyCode(
+          settings.defaultCurrency
+        );
         transactionPayload.original_amount = originalSignedAmount;
         transactionPayload.original_currency = values.currency;
-        transactionPayload.conversion_rate = conversionRate;
+        transactionPayload.conversion_rate = converted.conversion_rate;
         transactionPayload.conversion_date =
           values.conversion_date || getCurrentLocalDate();
         transactionPayload.rate_source = values.rate_source;
@@ -515,12 +528,13 @@ export function OpeningBalanceModal({
   );
 
   const footerContent = (
-    <div className="flex w-full justify-end gap-3">
-      <Button variant="outline" onClick={onClose} type="button">
-        {t("balanceManagement.cancelButton")}
-      </Button>
-      <Button onClick={form.handleSubmit(handleSubmit)} disabled={isSubmitting} type="submit">
+    <div className="grid grid-cols-2 gap-3 w-full">
+      <Button onClick={form.handleSubmit(handleSubmit)} disabled={isSubmitting} type="submit" className="h-11 w-full">
+        {isSubmitting && <BrandInlineSpinner tone="current" />}
         {isSubmitting ? t("balanceManagement.saveButton") + "..." : t("balanceManagement.saveButton")}
+      </Button>
+      <Button variant="outline" onClick={onClose} type="button" className="h-11 w-full">
+        {t("balanceManagement.cancelButton")}
       </Button>
     </div>
   );
@@ -535,25 +549,27 @@ export function OpeningBalanceModal({
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent
-          className="sm:max-w-lg"
+          className="sm:max-w-lg max-md:max-h-[calc(100dvh-16px)] max-md:flex max-md:flex-col"
           dir={layoutDir}
           style={{ direction: layoutDir }}
         >
           <div
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-4 max-md:flex-1 max-md:min-h-0 max-md:overflow-hidden"
             dir={layoutDir}
             style={{ direction: layoutDir }}
           >
-            <DialogHeader className="pe-10">
+            <DialogHeader className="pe-10 max-md:shrink-0">
               <DialogTitle>{modalTitle}</DialogTitle>
               <DialogDescription>
                 {t("balanceManagement.modalDescription")}
               </DialogDescription>
             </DialogHeader>
 
-            {formContent}
+            <div className="max-md:flex-1 max-md:min-h-0 max-md:overflow-y-auto">
+              {formContent}
+            </div>
 
-            <DialogFooter>{footerContent}</DialogFooter>
+            <DialogFooter className="max-md:shrink-0">{footerContent}</DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
@@ -570,9 +586,9 @@ export function OpeningBalanceModal({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="px-4">{formContent}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4">{formContent}</div>
 
-        <DrawerFooter className="pt-2">{footerContent}</DrawerFooter>
+        <DrawerFooter className="pb-[max(1rem,env(safe-area-inset-bottom))]">{footerContent}</DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCurrency, hasStoredCurrencyConversion } from "@/lib/utils/currency";
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +14,8 @@ import { CurrencyCode } from "@/lib/currencies";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 
 interface CurrencyConversionInfoProps {
   amount: number;
@@ -26,6 +28,11 @@ interface CurrencyConversionInfoProps {
   rateSource?: string | null;
   // Mode configuration
   mode?: "static" | "live";
+  /**
+   * Desktop rows keep the refresh indicator. Mobile cards pass false and draw
+   * their own icon so this shared component stays unchanged for the wide table.
+   */
+  showConversionIcon?: boolean;
 }
 
 export function CurrencyConversionInfo({
@@ -37,6 +44,7 @@ export function CurrencyConversionInfo({
   conversionDate,
   rateSource,
   mode = "static",
+  showConversionIcon = true,
 }: CurrencyConversionInfoProps) {
   const { i18n } = useTranslation();
   const { t: tCurrency } = useTranslation("currency-features");
@@ -96,8 +104,12 @@ export function CurrencyConversionInfo({
     // If no conversion happened or same currency, just show amount
     if (
       originalAmount == null ||
-      originalAmount === amount ||
-      originalCurrency === currency
+      !hasStoredCurrencyConversion({
+        amount,
+        currency,
+        originalAmount,
+        originalCurrency,
+      })
     ) {
       return (
         <span className="ph-mask" data-ph-mask>
@@ -109,12 +121,19 @@ export function CurrencyConversionInfo({
     return (
       <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {formatCurrency(amount, currency as CurrencyCode, i18n.language)}
+        {showConversionIcon ? (
         <TooltipProvider>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <RefreshCw className="h-3 w-3 text-muted-foreground cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="text-xs bg-popover text-popover-foreground border shadow-md p-3">
+            <TooltipContent
+              className={cn(
+                "text-xs bg-popover text-popover-foreground border shadow-md p-3",
+                PH_SENSITIVE_PROPS.className
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
               <div className="grid gap-1 text-start">
                 <div className="font-semibold text-foreground border-b pb-1 mb-1">
                   {tCurrency("row.tooltip.conversionDetails")}
@@ -163,6 +182,7 @@ export function CurrencyConversionInfo({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        ) : null}
       </div>
     );
   } else {
@@ -182,19 +202,26 @@ export function CurrencyConversionInfo({
     return (
       <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {isLoading ? (
-            <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+            <BrandInlineSpinner className="h-3 w-3" />
         ) : (
             <span className={cn(liveConverted ? "underline decoration-dotted decoration-muted-foreground/50 underline-offset-4" : "")}>
                 {liveConverted ? formatCurrency(liveConverted, defaultCurrency as CurrencyCode, i18n.language) : "..."}
             </span>
         )}
-        
+
+        {showConversionIcon ? (
         <TooltipProvider>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
                <RefreshCw className="h-3 w-3 text-muted-foreground cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="text-xs bg-popover text-popover-foreground border shadow-md p-3">
+            <TooltipContent
+              className={cn(
+                "text-xs bg-popover text-popover-foreground border shadow-md p-3",
+                PH_SENSITIVE_PROPS.className
+              )}
+              data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            >
               <div className="grid gap-1 text-start">
                 <div className="font-semibold text-foreground border-b pb-1 mb-1">
                   {tCurrency("row.tooltip.conversionDetails")}
@@ -227,6 +254,7 @@ export function CurrencyConversionInfo({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        ) : null}
       </div>
     );
   }

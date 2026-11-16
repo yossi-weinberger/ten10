@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
@@ -14,6 +14,7 @@ import {
 } from "./components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
+import { SidebarHoverZone } from "./components/layout/SidebarHoverZone";
 import { usePlatform } from "./contexts/PlatformContext";
 import { useTWA } from "./contexts/TWAContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,12 +23,20 @@ import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
-import ContactFAB from "./components/layout/ContactFAB";
+import { AssistantFab } from "./components/ai-intake/AssistantFab";
+import { useMyAiAccess } from "./lib/ai/ai-access";
+import { useAiIntakeUi } from "./lib/ai/flags";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
+import { OptInPromptDialog } from "./components/OptInPromptDialog";
 import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
+import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
+import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
+import { APP_MAIN_SHELL_CLASS } from "./components/layout/appMainShellClass";
+import { MOBILE_SCREEN_TITLE_KEYS } from "./components/layout/mobileScreenTitles";
+import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
@@ -59,8 +68,17 @@ function App() {
   const [desktopLockStatus, setDesktopLockStatus] =
     useState<DesktopLockStatus>(null);
   const [desktopInitComplete, setDesktopInitComplete] = useState(false);
+  // First-load handoff (#20, see llm-instructions/ui/brand-motion-guide.md): decided once,
+  // the first time the app shell renders.
+  const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "play" | "skip">("pending");
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
+
+  // The app's first frame replaces the static pre-loader in the same paint, so there is no
+  // blank page between them (see src/lib/staticPreloader.ts).
+  useLayoutEffect(() => {
+    removeStaticPreloader();
+  }, []);
 
   const { platform } = usePlatform();
   const { theme, setTheme } = useTheme();
@@ -93,11 +111,14 @@ function App() {
     "/reset-password",
   ].includes(currentPath);
 
-  // Hide floating contact button on auth + landing pages (FULL_SCREEN_ROUTES)
-  // BUT allow it on terms/privacy if user is logged in
-  const shouldShowContactFab =
+  // The floating button (the assistant's) stays off the auth + landing pages (FULL_SCREEN_ROUTES)
+  // BUT shows on terms/privacy if the user is logged in
+  const shouldShowFab =
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
+  // "Contact" is in the side menu on every platform, so the floating button is only the assistant's.
+  useMyAiAccess(Boolean(user), platform);
+  const showAssistant = useAiIntakeUi(platform, Boolean(user));
 
   // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)
   useSettingsSync();
@@ -330,57 +351,80 @@ function App() {
     return <AppLoader />;
   }
 
+  // The shell is about to show for the first time: the loader's symbol flies into the
+  // sidebar logo. Skip it where there is no sidebar to land in, and after the desktop lock
+  // screen, which is not a loader. Updated during render (React re-renders before
+  // committing), so the shell never paints without it.
+  if (loaderHandoff === "pending") {
+    const canLand =
+      !isFullScreenPage &&
+      isDesktopSidebarVisible &&
+      !(platform === "desktop" && desktopLockStatus?.enabled);
+    setLoaderHandoff(canLand ? "play" : "skip");
+  }
+
   return (
     <OnboardingHost>
     <TooltipProvider>
-      <div className="h-full w-full overflow-hidden bg-background flex">
+      <div className="assistant-push h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
-          <div
+          <SidebarHoverZone
+            onExpandedChange={setIsSidebarExpanded}
             className={cn(
-              "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
-              isSidebarExpanded ? "w-44" : "w-16"
+              "hidden md:block mobile-landscape:!hidden transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
+              isSidebarExpanded
+                ? SIDEBAR_SIZE.expandedWidth.className
+                : SIDEBAR_SIZE.collapsedWidth.className
             )}
-            onMouseEnter={() => setIsSidebarExpanded(true)}
-            onMouseLeave={() => setIsSidebarExpanded(false)}
           >
             <Sidebar expanded={isSidebarExpanded} />
-          </div>
+          </SidebarHoverZone>
         )}
 
         {!isFullScreenPage && (
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "md:hidden fixed top-4 z-50 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-accent hover:text-accent-foreground",
-                  i18n.dir() === "rtl" ? "right-4" : "left-4"
-                )}
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side={i18n.dir() === "rtl" ? "right" : "left"}
-              className="p-0 flex flex-col w-44 overflow-x-hidden"
-            >
-              {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
-              <SheetHeader>
-                <SheetTitle className="sr-only">Mobile navigation</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Main navigation panel for mobile view
-                </SheetDescription>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
-                <Sidebar
-                  expanded={true}
-                  inSheet={true}
-                  onLinkClick={() => setIsMobileMenuOpen(false)}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <>
+            {/* Mobile sticky top bar with hamburger and screen title */}
+            <div className="md:hidden mobile-landscape:!flex fixed top-0 inset-x-0 z-50 h-[calc(52px+env(safe-area-inset-top))] bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-2 pr-[max(.5rem,env(safe-area-inset-right))] pl-[max(.5rem,env(safe-area-inset-left))] safe-area-inset-top">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-11 rounded-full border border-border shadow-sm hover:bg-accent hover:text-accent-foreground"
+                    aria-label={t("menu.open", { ns: "navigation" })}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side={i18n.dir() === "rtl" ? "right" : "left"}
+                  className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
+                >
+                  {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
+                  <SheetHeader>
+                    <SheetTitle className="sr-only">{t("sheet.title", { ns: "navigation" })}</SheetTitle>
+                    <SheetDescription className="sr-only">
+                      {t("sheet.description", { ns: "navigation" })}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
+                    <Sidebar
+                      expanded={true}
+                      inSheet={true}
+                      onLinkClick={() => setIsMobileMenuOpen(false)}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <span className="flex-1 text-center text-base font-semibold truncate px-2">
+                {(() => {
+                  const key = MOBILE_SCREEN_TITLE_KEYS[currentPath];
+                  return key ? t(`menu.${key}`, { ns: "navigation" }) : "";
+                })()}
+              </span>
+              <div className="size-11" />
+            </div>
+          </>
         )}
 
         <div
@@ -390,9 +434,7 @@ function App() {
         >
           <main
             className={`flex-1 ${
-              isFullScreenPage
-                ? "p-0"
-                : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
+              isFullScreenPage ? "p-0" : APP_MAIN_SHELL_CLASS
             }`}
           >
             <div
@@ -409,7 +451,7 @@ function App() {
             LTR), shifted inward by the sidebar's actual current width (collapsed w-16 by
             default, or expanded w-44 while hovered) so it never renders on top of it. 0 extra
             clearance below `md`, where the sidebar doesn't exist (replaced by the mobile Sheet).
-            This also keeps it clear of ContactFAB, which sits on the opposite side.
+            This also keeps it clear of the assistant's floating button, which sits on the opposite side.
             No `richColors` — success/error/warning/info are styled with the app's own brand tokens in components/ui/sonner.tsx. */}
         <Toaster
           closeButton
@@ -423,9 +465,11 @@ function App() {
           }}
         />
       </div>
-      {shouldShowContactFab && <ContactFAB />}
+      {shouldShowFab && showAssistant ? <AssistantFab /> : null}
       <TermsAcceptanceModal />
       <WhatsNewModal />
+      <OptInPromptDialog />
+      {loaderHandoff === "play" && <FirstLoadHandoff />}
     </TooltipProvider>
     </OnboardingHost>
   );

@@ -66,6 +66,12 @@
   "notifications": {
     "cardTitle": "Notifications",
     "cardDescription": "Notification and reminder settings",
+    "reminderEmailsLabel": "Monthly Reminder Emails",
+    "reminderEmailsDescription": "Receive monthly Ma'aser reminders via email",
+    "reminderNotificationsLabel": "Monthly Reminder Notifications",
+    "reminderNotificationsDescription": "Receive monthly Ma'aser reminders on your computer",
+    "marketingEmailsLabel": "Updates and News Emails",
+    "marketingEmailsDescription": "Receive updates about new features and project news",
     "emailNotificationsLabel": "Email Notifications",
     "emailNotificationsDescription": "Receive updates, notifications, summaries and reminders via email",
     "desktopNotificationsLabel": "Desktop Notifications",
@@ -163,6 +169,15 @@
     "newPassword": "New password",
     "confirmNewPassword": "Confirm new password",
     "updatePassword": "Update password"
+  },
+  "aiRules": {
+    "cardTitle": "Assistant rules",
+    "cardDescription": "Active rules apply only to new transactions. Turning one off does not change transactions already saved.",
+    "loading": "Loading rules...",
+    "empty": "No active rules.",
+    "disable": "Turn off",
+    "disabled": "The rule is off.",
+    "disableFailed": "The rule could not be turned off."
   },
   "versionInfo": {
     "title": "Version Information",

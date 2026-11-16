@@ -11,6 +11,8 @@ import { normalizeCurrencyCode, type CurrencyCode } from "@/lib/currencies";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { CalendarClock } from "lucide-react";
 import { formatCategory } from "@/lib/category-registry";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 import { ListRowsSkeleton } from "./AnalyticsSkeleton";
 
 const INCOME_TYPES = ["income", "exempt-income"];
@@ -40,7 +42,11 @@ function RecurringItemCard({ item, defaultCurrency, language, t, dir, index }: R
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.2), duration: 0.2 }}
-      className="flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5"
+      className={cn(
+        "flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5",
+        PH_SENSITIVE_PROPS.className,
+      )}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
       dir={dir}
     >
       <div className="min-w-0 flex-1">
@@ -92,7 +98,10 @@ function TabTotal({
   return (
     <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/50">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`text-sm font-bold ${colorClass}`}>
+      <span
+        className={cn("text-sm font-bold", colorClass, PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <CountUp
           start={startAnimateValue}
           end={displayValue}
@@ -166,7 +175,10 @@ export function RecurringForecastInsight({
           <p className="text-xs text-muted-foreground">
             {t("analytics.forecast.subtitle")}
             {!isLoading && activeRecurring.length > 0 && (
-              <span className="ms-1">
+              <span
+                className={cn("ms-1", PH_SENSITIVE_PROPS.className)}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+              >
                 ({t("analytics.forecast.activeRecurring", { count: activeRecurring.length })})
               </span>
             )}
@@ -194,7 +206,13 @@ export function RecurringForecastInsight({
                   <TabsTrigger key={tab} value={tab} className="text-xs px-3 gap-1">
                     {tabLabels[tab]}
                     {tabItems[tab].length > 0 && (
-                      <span className="inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] h-4 min-w-[16px] px-1">
+                      <span
+                        className={cn(
+                          "inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] h-4 min-w-[16px] px-1",
+                          PH_SENSITIVE_PROPS.className,
+                        )}
+                        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                      >
                         {tabItems[tab].length}
                       </span>
                     )}

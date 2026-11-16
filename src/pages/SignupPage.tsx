@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -31,7 +32,7 @@ const SignupPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [mailingListConsent, setMailingListConsent] = useState(false);
+  const [optOutMarketing, setOptOutMarketing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
@@ -77,12 +78,14 @@ const SignupPage: React.FC = () => {
 
     try {
       const trimmedFullName = fullName.trim();
+      const mailingListConsent = !optOutMarketing;
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: trimmedFullName,
+            mailing_list_consent: mailingListConsent,
           },
         },
       });
@@ -122,7 +125,7 @@ const SignupPage: React.FC = () => {
         setPassword("");
         setConfirmPassword("");
         setFullName("");
-        setMailingListConsent(false);
+        setOptOutMarketing(false);
       } else {
         toast.error(t("signup.toasts.unexpectedError"));
       }
@@ -163,7 +166,7 @@ const SignupPage: React.FC = () => {
 
   return (
     <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
-      <div className="space-y-6">
+      <div className="space-y-6 short:space-y-4">
         {/* Sign up with Google */}
         <Button
           type="button"
@@ -172,7 +175,7 @@ const SignupPage: React.FC = () => {
           disabled={isAnyLoading}
           className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50 hover:text-foreground"
         >
-          <GoogleIcon />
+          {loadingGoogle ? <BrandInlineSpinner /> : <GoogleIcon />}
           <span>
             {loadingGoogle
               ? t("login.googleSignInLoading")
@@ -182,7 +185,7 @@ const SignupPage: React.FC = () => {
 
         <Separator className="opacity-60" />
 
-        <form onSubmit={handleSignup} className="space-y-5">
+        <form onSubmit={handleSignup} className="space-y-5 short:space-y-3">
           <div className="space-y-2">
             <Label htmlFor="full-name">{t("signup.fullNameLabel")}</Label>
             <Input
@@ -248,34 +251,47 @@ const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 rtl:space-x-reverse py-2">
+          <div className="flex items-start space-x-2 rtl:space-x-reverse">
             <Checkbox
-              id="mailing-list-consent"
-              checked={mailingListConsent}
+              id="opt-out-marketing"
+              checked={optOutMarketing}
               onCheckedChange={(checked) =>
-                setMailingListConsent(checked as boolean)
+                setOptOutMarketing(checked as boolean)
               }
               disabled={isAnyLoading}
+              className="mt-0.5"
             />
             <Label
-              htmlFor="mailing-list-consent"
-              className="text-sm font-normal cursor-pointer text-muted-foreground"
+              htmlFor="opt-out-marketing"
+              className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
             >
-              {t("signup.mailingListLabel")}
+              {t("signup.optOutMarketingLabel")}
             </Label>
           </div>
 
           <Button
             type="submit"
             disabled={isAnyLoading}
-            className="w-full h-11 text-base mt-2"
+            className="w-full h-11 text-base mt-4"
           >
+            {loading && <BrandInlineSpinner tone="current" />}
             {isAnyLoading
               ? t("signup.signUpButtonLoading")
               : t("signup.signUpButton")}
           </Button>
 
-          <div className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-xs text-center text-muted-foreground mt-3 max-w-sm mx-auto leading-relaxed">
+            {t("signup.termsNoticePrefix")}{" "}
+            <Link to="/terms" className="text-primary hover:underline whitespace-nowrap">
+              {t("signup.termsNoticeTermsLink")}
+            </Link>{" "}
+            <Link to="/privacy" className="text-primary hover:underline whitespace-nowrap">
+              {t("signup.termsNoticePrivacyLink")}
+            </Link>
+            {t("signup.termsNoticeSuffix")}
+          </p>
+
+          <div className="text-center text-sm text-muted-foreground mt-6 short:mt-3">
             {t("signup.hasAccount")}{" "}
             <Link
               to="/login"

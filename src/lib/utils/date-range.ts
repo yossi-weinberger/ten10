@@ -5,6 +5,19 @@ import {
 import type { DateRangeSelectionType } from "@/hooks/useDateControls";
 import { formatLocalDate, parseLocalDate } from "./local-date";
 
+/**
+ * Inclusive lower bound for the All-time dashboard filter.
+ * Sent as a real date string so current prod RPCs that use
+ * `date BETWEEN p_start_date::date AND p_end_date::date` still return
+ * every stored row (including pre-1970). The '0001-01-01' sentinel
+ * already works in SQLite string comparison.
+ */
+export const ALL_TIME_START_DATE = "0001-01-01";
+
+export function isAllTimeStartDate(startDate: string): boolean {
+  return startDate === ALL_TIME_START_DATE;
+}
+
 export interface PreviousPeriodContext {
   selection: DateRangeSelectionType;
   calendarType: CalendarType;

@@ -10,6 +10,8 @@ vi.mock("./jwt-utils.ts", () => ({
   generateUnsubscribeUrls: vi.fn().mockResolvedValue({
     reminderUrl:
       "https://ten10-app.com/unsubscribe?token=reminder-token&type=reminder",
+    marketingUrl:
+      "https://ten10-app.com/unsubscribe?token=marketing-token&type=marketing",
     allUrl: "https://ten10-app.com/unsubscribe?token=all-token&type=all",
   }),
 }));
@@ -100,7 +102,7 @@ describe("SimpleEmailService", () => {
     expect(payload.Destination.ToAddresses).toEqual(["recipient@example.com"]);
     expect(encodedSubject).not.toBeNull();
     expect(decodeBase64(encodedSubject![1])).toContain("תזכורת מעשר");
-    expect(rawMime).toContain(`List-Unsubscribe: <${allUrl}>`);
+    expect(rawMime).toContain(`List-Unsubscribe: <${reminderUrl}>`);
     expect(rawMime).toContain(
       "List-Unsubscribe-Post: List-Unsubscribe=One-Click",
     );
@@ -298,5 +300,73 @@ describe("SimpleEmailService", () => {
       dryRun: true,
       messageId: "dry-run",
     });
+  });
+
+  it("uses reminderUrl for List-Unsubscribe header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ MessageId: "msg-456" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    await service.sendReminderEmail(
+      "user@example.com",
+      "user-id",
+      100,
+      100,
+      0,
+      "en",
+      "Test User",
+    );
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const payload = JSON.parse(request.body as string) as SesPayload;
+    const rawMime = decodeBase64(payload.Content.Raw.Data);
+
+    expect(rawMime).toContain(`List-Unsubscribe: <${reminderUrl}>`);
+    expect(rawMime).not.toContain(`List-Unsubscribe: <${allUrl}>`);
+  });
+
+  it("skips recipient and logs error when unsubscribe token generation fails", async () => {
+    const { generateUnsubscribeUrls } = await import("./jwt-utils.ts");
+    vi.mocked(generateUnsubscribeUrls).mockRejectedValueOnce(
+      new Error("JWT signing failed"),
+    );
+
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    const result = await service.sendReminderEmail(
+      "recipient@example.com",
+      "user-789",
+      50,
+      50,
+      0,
+      "he",
+      "Test",
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      userId: "user-789",
+      email: "recipient@example.com",
+      titheBalance: 50,
+      status: "failed",
+      error: "Failed to generate unsubscribe token",
+    });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/Failed to generate unsubscribe token.*r\*\*\*@example\.com/),
+    );
+    expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("recipient@example.com"),
+    );
+
+    consoleErrorSpy.mockRestore();
   });
 });

@@ -1,0 +1,108 @@
+import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
+import { ExchangeRateService } from "@/lib/services/exchange-rate.service";
+import type { CurrencyCode } from "@/lib/currencies";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { buildCommitPayload } from "./build-commit-payload";
+import { textIntakePayload } from "./text-intake-payload";
+
+export type SaveTextDraftResult =
+  | { ok: true; transactionId: string; itemId: string; sameEvent?: false }
+  | { ok: true; transactionId: null; itemId: string; sameEvent: true }
+  | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED"; rejected?: true };
+
+export type DraftIdempotency = {
+  key: string;
+  description: string;
+  amount: string;
+  type: string;
+  date: string;
+};
+
+/** A new key when the draft changes or the previous save was rejected. */
+export function nextDraftIdempotency(
+  current: DraftIdempotency | null,
+  next: Omit<DraftIdempotency, "key">,
+  options: { saveFailed?: boolean; createKey?: () => string } = {},
+): DraftIdempotency {
+  const same = current !== null
+    && current.description === next.description
+    && current.amount === next.amount
+    && current.type === next.type
+    && current.date === next.date;
+  if (current && same && !options.saveFailed) return current;
+  const createKey = options.createKey ?? (() => crypto.randomUUID());
+  return { key: createKey(), ...next };
+}
+
+export async function saveTextDraft(
+  draft: TextTransactionDraft,
+  idempotencyKey: string,
+  original: { description: string; amount: number } = draft,
+  duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
+  intentConfidence?: number | null,
+  artifactId?: string | null,
+): Promise<SaveTextDraftResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "SAVE_FAILED" };
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const user = authData.user;
+  if (authError || !user) return { ok: false, reason: "AUTH" };
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("default_currency")
+    .eq("id", user.id)
+    .single();
+  if (profileError || !profile?.default_currency) return { ok: false, reason: "SAVE_FAILED" };
+
+  const defaultCurrency = String(profile.default_currency).toUpperCase();
+  let autoRate: number | null = null;
+  if (draft.currency !== defaultCurrency && draft.requestedRate === null) {
+    autoRate = await ExchangeRateService.fetchExchangeRate(
+      draft.currency as CurrencyCode,
+      defaultCurrency as CurrencyCode,
+    );
+  }
+
+  const built = buildCommitPayload({
+    draft,
+    defaultCurrency,
+    autoRate,
+    idempotencyKey,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
+    isChomesh: draft.isChomesh === true,
+  });
+  if (!built.ok) return built;
+
+  const { data: createdRaw, error: createError } = await supabase.rpc("create_ai_text_intake", {
+    p_payload: textIntakePayload(built.payload, original, duplicate, intentConfidence),
+  });
+  const created = createdRaw as { item_id?: string; version?: number; skip_commit?: boolean } | null;
+  if (createError || !created?.item_id || created.version === undefined) {
+    return { ok: false, reason: "SAVE_FAILED" };
+  }
+  if (created.skip_commit) {
+    return { ok: true, transactionId: null, itemId: created.item_id, sameEvent: true };
+  }
+
+  const { data: committedRaw, error: commitError } = await supabase.rpc("commit_ai_intake_items", {
+    p_items: [{ id: created.item_id, expected_version: created.version }],
+  });
+  const committed = committedRaw as { transaction_ids?: string[]; already_committed?: string[] } | null;
+  const transactionId = committed?.transaction_ids?.[0] ?? committed?.already_committed?.[0];
+  if (commitError || !transactionId) {
+    // A lost reply can hide a commit that went through. Only a confirmed reject frees the key;
+    // otherwise the retry replays this item and the commit answers already_committed.
+    const { data: rejectedRaw } = await supabase.rpc("reject_uncommitted_ai_item", { p_item_id: created.item_id });
+    const rejected = (rejectedRaw as { rejected?: boolean } | null)?.rejected === true;
+    return rejected ? { ok: false, reason: "SAVE_FAILED", rejected: true } : { ok: false, reason: "SAVE_FAILED" };
+  }
+
+  if (artifactId) {
+    await supabase.rpc("attach_ai_receipt_artifact", {
+      p_item_id: created.item_id,
+      p_artifact_id: artifactId,
+    });
+  }
+  return { ok: true, transactionId, itemId: created.item_id };
+}

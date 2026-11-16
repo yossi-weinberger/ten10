@@ -27,15 +27,18 @@ import type {
   ContactRabbiFormValues,
 } from "@/lib/schemas";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface ContactModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  initialSubject?: string;
+  initialBody?: string;
 }
 
 type ContactFormValues = ContactRabbiFormValues | ContactDevFormValues;
 
-export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
+export const ContactModal = ({ isOpen, onOpenChange, initialSubject, initialBody }: ContactModalProps) => {
   const { t, i18n } = useTranslation("contact");
   const { user } = useAuth();
   const [captchaToken, setCaptchaToken] = useState<string>("");
@@ -116,6 +119,8 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
             key="rabbi"
             channel="rabbi"
             captchaToken={captchaToken}
+            initialSubject={initialSubject}
+            initialBody={initialBody}
             onSubmit={handleSubmit}
           />
         </TabsContent>
@@ -145,6 +150,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
           form={`contact-form-${activeTab}`}
           disabled={isSubmitting || !captchaToken}
         >
+          {isSubmitting && <BrandInlineSpinner tone="current" />}
           {isSubmitting ? t("forms.submitting") : t("forms.submit")}
         </Button>
       </div>

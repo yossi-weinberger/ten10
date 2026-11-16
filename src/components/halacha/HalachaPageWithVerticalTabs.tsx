@@ -15,6 +15,7 @@ import {
 } from "./tabs";
 import { FormattedText } from "./FormattedText";
 import { HalachaPrintButton } from "./HalachaPrintButton";
+import { HalachaReadingProgress } from "./HalachaReadingProgress";
 
 const LoadingFallback = () => (
   <div className="flex gap-8">
@@ -95,7 +96,8 @@ function HalachaPageContent() {
   const tabsListRef = useRef<HTMLDivElement | null>(null);
   const [sliderStyle, setSliderStyle] = useState({});
   const isClickScrolling = useRef(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // Read on the first render, so mobile never builds (and then drops) the desktop layout.
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   useEffect(() => {
     const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
@@ -239,12 +241,27 @@ function HalachaPageContent() {
         {/* Tabs Navigation (responsive) */}
         <div className="sticky top-0 z-10 bg-background py-2 md:static md:w-64 md:flex-shrink-0 md:bg-transparent md:py-0">
           <div className="md:sticky md:top-6">
+            {!isMobile && (
+              <HalachaReadingProgress
+                contentRef={scrollContainerRef}
+                className="mb-3 rounded-lg border bg-card px-3 py-2"
+              />
+            )}
             <div
               ref={tabsListRef}
               className="relative rounded-lg border bg-card p-2 
                          flex flex-row flex-wrap gap-2
                          md:flex-col md:space-y-1 md:gap-0"
             >
+              {/* When this bar sticks to the top, the app's fixed mobile menu button (top-4,
+                  inline-start-4, 36px) covers the start of its first row. This spacer keeps
+                  that slot free in the first row only (w-7 + the gap = 36px), so the other
+                  rows keep their full width. */}
+              {isMobile && <span aria-hidden="true" className="w-7 shrink-0" />}
+              {isMobile && (
+                <HalachaReadingProgress compact contentRef={scrollContainerRef} className="px-2" />
+              )}
+
               {/* Active tab slider - DESKTOP ONLY */}
               {!isMobile && (
                 <div

@@ -6,6 +6,8 @@ export type ProductAnalyticsEvent =
   | "transaction_updated"
   | "transaction_deleted"
   | "transaction_validation_failed"
+  | "add_transaction_form_opened"
+  | "add_transaction_form_abandoned"
   | "recurring_obligation_created"
   | "recurring_obligation_updated"
   | "recurring_obligation_paused"
@@ -35,7 +37,13 @@ export type ProductAnalyticsEvent =
   | "onboarding_step_completed"
   | "onboarding_skipped"
   | "onboarding_completed"
-  | "onboarding_restarted";
+  | "onboarding_restarted"
+  | "ai_inspiration_shown"
+  | "ai_turn_started"
+  | "ai_turn_failed"
+  | "ai_draft_cancelled"
+  | "ai_draft_corrected"
+  | "ai_question_reasked";
 
 type ProductAnalyticsProperties = Record<
   string,

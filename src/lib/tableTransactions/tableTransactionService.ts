@@ -66,8 +66,9 @@ export class TableTransactionsService {
     if (platform === "web") {
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const user = session?.user;
         if (!user) {
           throw new Error("User not authenticated for fetching transactions.");
         }
@@ -95,6 +96,9 @@ export class TableTransactionsService {
             filters.recurringFrequencies.length > 0
               ? filters.recurringFrequencies
               : null,
+          ...(filters.origin && filters.origin !== "all"
+            ? { p_origin: filters.origin }
+            : {}),
         };
 
         logger.log(

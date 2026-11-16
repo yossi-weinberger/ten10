@@ -28,3 +28,10 @@ export function useTransactionFormInitialization(isEditMode: boolean) {
 
   return { search, getInitialType };
 }
+
+/** `?recurring=1` opens the form with the standing-order checkbox on. */
+export function recurringFromSearch(search: object): boolean {
+  if (!("recurring" in search)) return false;
+  const value = (search as { recurring?: unknown }).recurring;
+  return value === "1" || value === 1 || value === true || value === "true";
+}

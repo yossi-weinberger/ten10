@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,12 +25,18 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
+import {
+  recurringFromSearch,
+  useTransactionFormInitialization,
+} from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useTrackAddFormLifecycle } from "./useTrackAddFormLifecycle";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
+import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -69,6 +75,13 @@ export function TransactionForm({
   const { platform } = usePlatform();
   const { search, getInitialType } =
     useTransactionFormInitialization(isEditMode);
+
+  const formSavedSuccessRef = useRef(false);
+  const dateInputStatusRef = useRef<GregorianDateParseResult["status"] | null>(null);
+  const dateInputMethodRef = useRef<"typed" | "calendar">("typed");
+  const wasFormSaved = useCallback(() => formSavedSuccessRef.current, []);
+
+  useTrackAddFormLifecycle(isEditMode, wasFormSaved);
 
   // Labels are handled where rendered
 
@@ -123,7 +136,7 @@ export function TransactionForm({
       isExempt: false,
       isRecognized: false,
       isFromPersonalFunds: false,
-      is_recurring: false,
+      is_recurring: recurringFromSearch(search),
       frequency: "monthly",
       recurring_calendar_type: defaultRecurringCalendar,
       recurring_day_of_month: undefined,
@@ -264,17 +277,26 @@ export function TransactionForm({
         const originalAmount = values.amount;
         const originalCurrency = values.currency;
         const conversionRate = values.conversion_rate;
-        const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
+        const converted = applyConversion({
+            originalAmount,
+            originalCurrency,
+            defaultCurrency,
+            rate: conversionRate,
+            conversionDate: values.conversion_date,
+            rateSource: values.rate_source,
+        });
         
         submissionValues = {
             ...values,
-            amount: convertedAmount,
+            amount: converted.amount,
             currency: defaultCurrency,
-            original_amount: originalAmount,
-            original_currency: originalCurrency,
-            // conversion_rate, date, source are already in values
+            original_amount: converted.original_amount,
+            original_currency: converted.original_currency,
+            conversion_rate: converted.conversion_rate,
+            conversion_date: converted.conversion_date,
+            rate_source: converted.rate_source,
         };
-        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: converted.amount });
     } else {
         // Default currency - ensure clean state (no conversion fields)
         submissionValues.original_amount = null;
@@ -405,13 +427,14 @@ export function TransactionForm({
       if (Object.keys(updatePayload).length > 0) {
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
+          formSavedSuccessRef.current = true; // Mark as successfully saved
           onMutationSuccess?.();
           setIsSuccess(true);
-          toast.success(t("transactionForm.messages.success"));
+          toast.success(t("transactionForm.messages.updateSuccess"));
           scheduleSubmitSuccess();
         } catch (error) {
           logger.error("Error updating transaction:", error);
-          toast.error(t("transactionForm.messages.error"));
+          toast.error(t("transactionForm.messages.updateError"));
         }
       } else {
         logger.log("No changes detected, skipping update.");
@@ -421,6 +444,7 @@ export function TransactionForm({
       // Logic for creating a new transaction
       try {
         await handleTransactionSubmit(submissionValues);
+        formSavedSuccessRef.current = true; // Mark as successfully saved
         setIsSuccess(true);
         toast.success(t("transactionForm.messages.success"));
         scheduleSubmitSuccess(() => {
@@ -470,11 +494,19 @@ export function TransactionForm({
     );
 
     // Measure blocked submits so we can track this beyond session recordings.
-    trackProductEvent("transaction_validation_failed", {
+    const properties: Record<string, string | number | boolean> = {
       fields: Object.keys(errors).join(","),
       field_count: Object.keys(errors).length,
       is_edit_mode: isEditMode,
-    });
+    };
+
+    // Add enhanced date field telemetry from callback data
+    if (errors.date && dateInputStatusRef.current) {
+      properties.date_reason = dateInputStatusRef.current;
+      properties.date_input_method = dateInputMethodRef.current;
+    }
+
+    trackProductEvent("transaction_validation_failed", properties);
   }
 
   return (
@@ -495,7 +527,14 @@ export function TransactionForm({
           defaultIncomeChomesh={autoCalcChomesh}
         />
 
-        <AmountCurrencyDateFields form={form} isRecurring={isRecurringChecked} />
+        <AmountCurrencyDateFields 
+          form={form} 
+          isRecurring={isRecurringChecked}
+          onDateInputStatusChange={(status, inputMethod) => {
+            dateInputStatusRef.current = status;
+            dateInputMethodRef.current = inputMethod;
+          }}
+        />
 
         <DescriptionCategoryFields form={form} selectedType={selectedType} />
         </div>

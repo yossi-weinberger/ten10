@@ -22,11 +22,15 @@ vi.mock("react-i18next", () => ({
       const translations: Record<string, Record<string, string>> = {
         en: {
           "datePicker.selectDateRange": "Select date range",
+          "datePicker.selectDate": "Select date",
+          "datePicker.openCalendar": "Open calendar",
           "calendarDay.shabbat": "Shabbat",
           "calendarDay.yomTov": "Yom Tov",
         },
         he: {
           "datePicker.selectDateRange": "בחר טווח תאריכים",
+          "datePicker.selectDate": "בחירת תאריך",
+          "datePicker.openCalendar": "פתיחת לוח שנה",
           "calendarDay.shabbat": "שבת",
           "calendarDay.yomTov": "יום טוב",
         },
@@ -117,6 +121,20 @@ function getDayButton(isoDate: string): HTMLButtonElement {
 beforeEach(() => {
   language = "he";
   setCalendarType("hebrew");
+  
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 });
 
 afterEach(() => {
@@ -303,7 +321,7 @@ describe("Hebrew date pickers", () => {
       <DatePicker date={parseLocalDate("2026-09-12")} setDate={vi.fn()} />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
 
     expect(screen.getByRole("option", { name: "תשפ״ח" })).toBeInTheDocument();
   });
@@ -320,7 +338,7 @@ describe("Hebrew date pickers", () => {
       "DD/MM/YYYY",
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
     await user.click(getDayButton("2026-09-23"));
 
     expect(setDate).not.toHaveBeenCalledWith(undefined);
@@ -340,7 +358,7 @@ describe("Hebrew date pickers", () => {
       <DatePicker date={parseLocalDate("2026-09-12")} setDate={setDate} />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(screen.getByRole("button", { name: "פתיחת לוח שנה" }));
     await user.click(getDayButton("2026-09-21"));
 
     const selected = setDate.mock.calls[setDate.mock.calls.length - 1][0] as Date;
@@ -378,9 +396,129 @@ describe("Hebrew date pickers", () => {
     expect(formatLocalDate(range.from)).toBe("2026-09-11");
     expect(formatLocalDate(range.to!)).toBe("2026-09-12");
   });
+
+  it("defaults the range popover to end-align in RTL", async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /אלול/ }));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
+    );
+  });
+
+  it("honors an explicit end align in RTL", async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        align="end"
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /אלול/ }));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
+    );
+  });
+});
+
+describe("calendar month navigation chevrons", () => {
+  const chevronLeftPath = "m15 18-6-6 6-6";
+  const chevronRightPath = "m9 18 6-6-6-6";
+
+  function getNavChevronPath(container: HTMLElement, buttonClass: string) {
+    return container
+      .querySelector(`.${buttonClass} svg path`)
+      ?.getAttribute("d");
+  }
+
+  it("points previous left and next right in LTR", () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const { container } = renderCalendar(parseLocalDate("2026-09-12"));
+
+    expect(getNavChevronPath(container, "rdp-button_previous")).toBe(
+      chevronLeftPath,
+    );
+    expect(getNavChevronPath(container, "rdp-button_next")).toBe(
+      chevronRightPath,
+    );
+  });
+
+  it.each([
+    ["gregorian", "label"],
+    ["gregorian", "dropdown"],
+    ["hebrew", "label"],
+  ] as const)(
+    "points previous right and next left in RTL for %s %s calendar so both face outward",
+    (calendarType, captionLayout) => {
+      language = "he";
+      setCalendarType(calendarType);
+      const { container } = renderCalendar(parseLocalDate("2026-09-12"), {
+        captionLayout,
+      });
+
+      expect(getNavChevronPath(container, "rdp-button_previous")).toBe(
+        chevronRightPath,
+      );
+      expect(getNavChevronPath(container, "rdp-button_next")).toBe(
+        chevronLeftPath,
+      );
+    },
+  );
 });
 
 describe("Gregorian calendar regression", () => {
+  it("defaults the range popover to start-align in LTR", async () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "start",
+    );
+  });
+
+  it("honors an explicit end align in LTR", async () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        align="end"
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
+    );
+  });
+
   it("retains current Gregorian caption, day numbering, and selection output", async () => {
     setCalendarType("gregorian");
     language = "en";

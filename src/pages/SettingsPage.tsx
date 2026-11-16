@@ -22,10 +22,12 @@ import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
+import { AiRulesSettingsCard } from "@/components/settings/AiRulesSettingsCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";
 import { logger } from "@/lib/logger";
+import { markOptInPromptAsShown } from "@/lib/optInPrompt";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
 
@@ -184,6 +186,14 @@ export function SettingsPage() {
           });
         }
 
+        // Mark opt-in prompt as shown when either toggle changes
+        if (user && (
+          typeof newNotificationSettings.reminderEnabled === "boolean" || 
+          typeof newNotificationSettings.mailingListConsent === "boolean"
+        )) {
+          markOptInPromptAsShown(user.id);
+        }
+
         // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
@@ -211,6 +221,8 @@ export function SettingsPage() {
       disabled={false}
     />
   );
+
+  const aiRulesSection = <AiRulesSettingsCard />;
 
   const calendarSection = (
     <CalendarSettingsCard
@@ -280,7 +292,7 @@ export function SettingsPage() {
       )}
       <div className="grid gap-6">
         <div className="grid gap-2">
-          <h2 className="text-2xl font-bold text-foreground">
+          <h2 className="text-2xl font-bold text-foreground max-md:sr-only mobile-landscape:sr-only">
             {t("pageTitle")}
           </h2>
           <p className="text-muted-foreground">{t("pageDescription")}</p>
@@ -314,6 +326,7 @@ export function SettingsPage() {
             <div className="flex flex-col gap-6">
               {financialSection}
               {notificationSection}
+              {aiRulesSection}
               {clearDataSection}
             </div>
           </div>
@@ -325,6 +338,7 @@ export function SettingsPage() {
           {appLockSection}
           {financialSection}
           {notificationSection}
+          {aiRulesSection}
           {calendarSection}
           {importExportSection}
           {clearDataSection}

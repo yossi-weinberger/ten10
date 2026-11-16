@@ -22,7 +22,8 @@
   "encouragementLabel": "Encouragement Corner",
   "footerPreferenceNote": "Sent according to the reminder preferences you selected",
   "unsubscribeReminder": "Stop monthly reminders",
-  "unsubscribeAll": "Unsubscribe",
+  "unsubscribeMarketing": "Unsubscribe from marketing",
+  "unsubscribeAll": "Unsubscribe from all emails",
   "subject": {
     "outstanding": "Tithe reminder - {{amount}} remaining",
     "credit": "Tithe reminder - {{amount}} credit",

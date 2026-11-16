@@ -21,6 +21,7 @@ const baseData = {
   israelMonth: 1,
   unsubscribeUrls: {
     reminderUrl: "https://ten10-app.com/unsubscribe?type=reminder",
+    marketingUrl: "https://ten10-app.com/unsubscribe?type=marketing",
     allUrl: "https://ten10-app.com/unsubscribe?type=all",
   },
 };
@@ -170,6 +171,7 @@ describe("reminder email templates", () => {
       ...baseData,
       unsubscribeUrls: {
         reminderUrl: 'https://ten10-app.com/unsubscribe?type=reminder&next="x"',
+        marketingUrl: 'https://ten10-app.com/unsubscribe?type=marketing&next="y"',
         allUrl: "https://ten10-app.com/unsubscribe?type=all&next=<script>",
       },
     });
@@ -224,7 +226,7 @@ describe("reminder email templates", () => {
     expect(html).toContain(baseData.unsubscribeUrls.reminderUrl);
     expect(html).toContain(baseData.unsubscribeUrls.allUrl);
     expect(html).toContain("הפסקת תזכורות חודשיות");
-    expect(html).toContain("ביטול הרשמה");
+    expect(html).toContain("הסרה מכל המיילים");
   });
 
   it("localizes subject lines", () => {

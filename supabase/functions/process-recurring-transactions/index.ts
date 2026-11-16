@@ -49,6 +49,10 @@ const RATE_PROVIDERS: RateProvider[] = [
   },
 ];
 
+export function isUsableExchangeRate(rate: number): boolean {
+  return Number.isFinite(rate) && rate > 0;
+}
+
 async function fetchExchangeRate(
   from: string,
   to: string
@@ -74,6 +78,11 @@ async function fetchExchangeRate(
 
       // Round rate to 4 decimal places
       const roundedRate = Math.round(rate * 10000) / 10000;
+      if (!isUsableExchangeRate(roundedRate)) {
+        throw new Error(
+          `${provider.name}: Rate not usable for ${from} -> ${to}`
+        );
+      }
       console.log(
         `Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`
       );

@@ -26,6 +26,7 @@ import { useRouterState, Link } from "@tanstack/react-router";
 import { PUBLIC_ROUTES } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { publishTermsSurface } from "@/components/auth/termsGate";
 
 // Constants
 const CURRENT_TERMS_VERSION = "v1.0"; // Update this when terms change significantly
@@ -57,13 +58,21 @@ export function TermsAcceptanceModal() {
   const userId = user?.id;
 
   useEffect(() => {
+    let cancelled = false;
+    const settle = (open: boolean) => {
+      if (cancelled) return;
+      setIsOpen(open);
+      setCheckingStatus(false);
+      publishTermsSurface(open ? "blocking" : "clear");
+    };
+
     const checkTermsStatus = async () => {
       setCheckingStatus(true);
+      publishTermsSurface("checking");
 
       // Don't show modal on public paths
       if (isPublicPath) {
-        setIsOpen(false);
-        setCheckingStatus(false);
+        settle(false);
         return;
       }
 
@@ -76,20 +85,14 @@ export function TermsAcceptanceModal() {
 
       // For Desktop: Check local store (single user per device)
       if (platform === "desktop") {
-        if (currentTermsVersion === CURRENT_TERMS_VERSION) {
-          setIsOpen(false);
-        } else {
-          setIsOpen(true);
-        }
-        setCheckingStatus(false);
+        settle(currentTermsVersion !== CURRENT_TERMS_VERSION);
         return;
       }
 
       // For Web: Always check DB to ensure per-user verification
       if (platform === "web") {
         if (!userId) {
-          setIsOpen(false);
-          setCheckingStatus(false);
+          settle(false);
           return;
         }
 
@@ -100,28 +103,29 @@ export function TermsAcceptanceModal() {
             .eq("id", userId)
             .single();
 
+          if (cancelled) return;
+
           if (error) {
             console.error("Error checking terms status:", error);
             // On error, don't block UX - let user proceed
-            setIsOpen(false);
-          } else if (
-            !data.terms_accepted_at ||
-            data.terms_version !== CURRENT_TERMS_VERSION
-          ) {
-            setIsOpen(true);
+            settle(false);
           } else {
-            setIsOpen(false);
+            settle(
+              !data.terms_accepted_at ||
+                data.terms_version !== CURRENT_TERMS_VERSION,
+            );
           }
         } catch (err) {
           console.error("Unexpected error checking terms:", err);
-          setIsOpen(false);
-        } finally {
-          setCheckingStatus(false);
+          settle(false);
         }
       }
     };
 
-    checkTermsStatus();
+    void checkTermsStatus();
+    return () => {
+      cancelled = true;
+    };
     // userId changes when user switches accounts - this triggers re-check
   }, [userId, platform, isPublicPath, store]);
 
@@ -142,6 +146,7 @@ export function TermsAcceptanceModal() {
         // Update local store
         updateSettings({ termsAcceptedVersion: CURRENT_TERMS_VERSION });
         setIsOpen(false);
+        publishTermsSurface("clear");
         toast.success(t("termsModal.success"));
       } else if (platform === "web" && user) {
         // Update Supabase with metadata
@@ -161,6 +166,7 @@ export function TermsAcceptanceModal() {
         // Update local store for cache
         updateSettings({ termsAcceptedVersion: CURRENT_TERMS_VERSION });
         setIsOpen(false);
+        publishTermsSurface("clear");
         toast.success(t("termsModal.success"));
         trackProductEvent("terms_accepted", {
           version: CURRENT_TERMS_VERSION,

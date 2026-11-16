@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Undo2, Receipt } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -21,12 +21,21 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
+import { isAiIntakeEnabled, useAiIntakeUi } from "@/lib/ai/flags";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
+import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { AiOriginIndicator } from "./AiOriginIndicator";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
+  onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   selected: boolean;
   onToggleSelected: (id: string) => void;
@@ -39,6 +48,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEdit,
   onDelete,
   onEditRecurring,
+  onUndoAi,
   isFetchingRec,
   selected,
   onToggleSelected,
@@ -46,12 +56,41 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const { user } = useAuth();
+  const { platform } = usePlatform();
+  const aiIntakeEnabled = useAiIntakeUi(platform, Boolean(user));
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
+  const receiptVisible = showReceiptAction({
+    platform,
+    enabled: isAiIntakeEnabled(),
+    expiresAt: transaction.receipt_expires_at,
+  });
+  const receiptUntil = transaction.receipt_expires_at
+    ? formatDisplayDate(receiptExpiryDate(transaction.receipt_expires_at), "numeric").primary
+    : "";
+  const [receiptNote, setReceiptNote] = React.useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = React.useState<string | null>(null);
+
+  async function openReceipt() {
+    setReceiptNote(null);
+    setReceiptLink(null);
+    const result = await openAiReceipt({ transactionId: transaction.id });
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    if (result.status === "beta_consent") return;
+    setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+  }
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
-      <TableCell className="text-start whitespace-nowrap">
+      <TableCell
+        className={cn("text-start whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <span>{displayDate.primary}</span>
         {displayDate.secondary && (
           <span className="block text-xs text-muted-foreground">
@@ -60,9 +99,28 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         )}
       </TableCell>
       <TableCell className="text-start">
-        {transaction.description || "-"}
+        <span
+          className={cn("inline-flex items-center gap-1", PH_SENSITIVE_PROPS.className)}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+        >
+          {transaction.description || "-"}
+          <AiOriginIndicator
+            origin={transaction.origin}
+            platform={platform}
+            aiIntakeEnabled={aiIntakeEnabled}
+          />
+        </span>
+        {receiptLink ? (
+          <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">
+            {t("filters.receiptOpen")}
+          </a>
+        ) : null}
+        {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
-      <TableCell className="text-center font-medium whitespace-nowrap">
+      <TableCell
+        className={cn("text-center font-medium whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <CurrencyConversionInfo
           amount={transaction.amount}
           currency={transaction.currency}
@@ -85,7 +143,10 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           {t(`types.${transaction.type}`, transaction.type)}
         </Badge>
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatCategory(
           transaction.type === "income" || transaction.type === "exempt-income" ? "income"
             : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
@@ -95,30 +156,44 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           "-"
         )}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {transaction.recipient || "-"}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell
+        className={cn("text-center", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatPaymentMethod(
           transaction.payment_method,
           i18n.language,
           "-"
         )}
       </TableCell>
-      <TableCell className="text-center whitespace-nowrap">
+      <TableCell
+        className={cn("text-center whitespace-nowrap", PH_SENSITIVE_PROPS.className)}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         {formatBoolean(transaction.is_chomesh)}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {transaction.recurring_info ? (
-          <RecurringProgressBadge
-            status={transaction.recurring_info.status}
-            type={transaction.type}
-            executionCount={transaction.recurring_info.execution_count}
-            totalOccurrences={transaction.recurring_info.total_occurrences}
-            occurrenceNumber={transaction.occurrence_number}
-            frequency={transaction.recurring_info.frequency}
-            dayOfMonth={transaction.recurring_info.day_of_month}
-          />
+          <span
+            className={PH_SENSITIVE_PROPS.className}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
+            <RecurringProgressBadge
+              status={transaction.recurring_info.status}
+              type={transaction.type}
+              executionCount={transaction.recurring_info.execution_count}
+              totalOccurrences={transaction.recurring_info.total_occurrences}
+              occurrenceNumber={transaction.occurrence_number}
+              frequency={transaction.recurring_info.frequency}
+              dayOfMonth={transaction.recurring_info.day_of_month}
+            />
+          </span>
         ) : (
           "-"
         )}
@@ -159,6 +234,30 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                 </span>
               </DropdownMenuItem>
             )}
+            {receiptVisible ? (
+              <DropdownMenuItem
+                aria-label={receiptUntil
+                  ? `${t("actions.viewReceipt")}, ${t("actions.receiptUntil", { date: receiptUntil })}`
+                  : t("actions.viewReceipt")}
+                onClick={() => void openReceipt()}
+              >
+                <Receipt className="me-2 h-4 w-4" />
+                <span>
+                  {t("actions.viewReceipt")}
+                  {receiptUntil ? ` · ${t("actions.receiptUntil", { date: receiptUntil })}` : ""}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            {platform === "web" &&
+            isAiIntakeEnabled() &&
+            onUndoAi &&
+            canUndoAiTransaction(transaction) &&
+            (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
+              <DropdownMenuItem onClick={() => onUndoAi(transaction)}>
+                <Undo2 className="me-2 h-4 w-4" />
+                {t("actions.undoAi")}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(transaction)}

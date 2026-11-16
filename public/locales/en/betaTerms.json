@@ -1,0 +1,54 @@
+{
+  "title": "AI Beta Terms of Use",
+  "lastUpdated": "Last updated: November 2026",
+  "acceptance": {
+    "title": "Acceptance of Terms",
+    "description": "By using TEN10's AI assistant in beta, you agree to these terms. If you do not agree, please do not use the assistant."
+  },
+  "service": {
+    "title": "Service Description",
+    "description": "TEN10's AI assistant in beta helps manage financial transactions through natural language processing. The service includes:",
+    "item1": "Accepting free-form text, voice, and receipts",
+    "item2": "Analyzing and saving transaction drafts",
+    "item3": "Answering basic questions about your data"
+  },
+  "dataCollection": {
+    "title": "Data Collected",
+    "description": "When using the AI assistant, we may collect:",
+    "item1": "Text you enter or share",
+    "item2": "Transcripts of voice recordings",
+    "item3": "Receipts you upload",
+    "item4": "Generated drafts and corrections you made"
+  },
+  "retention": {
+    "title": "Data Retention Period",
+    "description": "Conversations and uploaded content will be retained according to our data policy."
+  },
+  "processors": {
+    "title": "Processing Providers",
+    "description": "Data is processed through Vercel AI Gateway to the following providers:",
+    "item1": "TypeSafe AI",
+    "item2": "Anthropic",
+    "item3": "Microsoft"
+  },
+  "yourRights": {
+    "title": "Your Rights",
+    "description": "Information about user rights is available in the general Terms of Service."
+  },
+  "security": {
+    "title": "Security",
+    "description": "We use reasonable technical measures to protect your information. However, absolute security cannot be guaranteed in the digital world."
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "description": "The AI assistant is provided in beta as-is. The service may contain errors or inaccuracies.",
+    "note": "The assistant is not legal, financial, or halachic advice. Do not rely on it as a substitute for professional guidance."
+  },
+  "generalTerms": {
+    "title": "General Terms",
+    "description": "These terms are in addition to TEN10's general Terms of Service.",
+    "linkPrefix": "For full terms, see our",
+    "linkText": "General Terms of Service",
+    "linkSuffix": "."
+  }
+}

@@ -8,6 +8,7 @@ import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
+import { RefreshOnReturn } from "./components/refresh-on-return";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import {
@@ -19,6 +20,7 @@ import { registerSW } from "virtual:pwa-register";
 import "./index.css";
 import "./lib/i18n";
 import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils";
+import { removeStaticPreloader } from "./lib/staticPreloader";
 
 // Clean up any stale service workers in Tauri environment
 unregisterServiceWorkersInTauri();
@@ -48,6 +50,7 @@ const appTree = (
     <PlatformProvider>
       <TWAProvider>
         <AuthProvider>
+          <RefreshOnReturn />
           <RouterProvider router={router} />
           <SpeedInsights />
           <Analytics />
@@ -56,6 +59,13 @@ const appTree = (
     </PlatformProvider>
   </ThemeProvider>
 );
+
+// App removes the static pre-loader when it first renders. If the first load ends on a page
+// without App (e.g. the router's error page), remove it once the router has rendered.
+const stopPreloaderFallback = router.subscribe("onResolved", () => {
+  removeStaticPreloader();
+  stopPreloaderFallback();
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -16,7 +16,6 @@ import {
   Download,
   CheckCircle2,
   Info,
-  Loader2,
   AlertCircle,
   Sparkles,
   Mail,
@@ -37,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { useOnboardingUi } from "@/components/onboarding/OnboardingContext";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 type CheckStatus =
   | "idle"
@@ -215,7 +215,7 @@ export function VersionInfoCard() {
           <div className="space-y-2">
             {checkStatus === "checking" && (
               <Alert>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <BrandInlineSpinner />
                 <AlertDescription>{t("versionInfo.checking")}</AlertDescription>
               </Alert>
             )}
@@ -270,12 +270,12 @@ export function VersionInfoCard() {
               >
                 {checkStatus === "checking" ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <BrandInlineSpinner />
                     {t("versionInfo.checking")}
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="h-4 w-4" />
                     {t("versionInfo.checkButton")}
                   </>
                 )}
@@ -327,12 +327,12 @@ export function VersionInfoCard() {
                 >
                   {isInstalling ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <BrandInlineSpinner tone="current" />
                       {t("versionInfo.installing")}
                     </>
                   ) : (
                     <>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       {t("versionInfo.installButton")}
                     </>
                   )}

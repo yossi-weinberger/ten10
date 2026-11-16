@@ -10,6 +10,7 @@ import {
 } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { validateServiceRoleAuth } from "./auth-helpers.ts";
 import {
   buildEmailBodies,
   generateDailySummarySubject,
@@ -29,7 +30,6 @@ type ProfileRecord = {
 };
 
 const DEFAULT_TO = "dev@ten10-app.com";
-const DEFAULT_WINDOW_HOURS = 24;
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -78,6 +78,8 @@ serve(async (req) => {
     );
   }
 
+  // Validate service_role authorization
+  // (verify_jwt=true in config.toml: gateway already validated JWT signature)
   let body: { hours?: number; to?: string } = {};
   if (req.method === "POST") {
     try {
@@ -87,10 +89,18 @@ serve(async (req) => {
     }
   }
 
-  const hours =
-    body?.hours && body.hours > 0 ? body.hours : DEFAULT_WINDOW_HOURS;
-  const toEmail =
-    body?.to?.trim() || Deno.env.get("NEW_USERS_SUMMARY_TO") || DEFAULT_TO;
+  const authResult = validateServiceRoleAuth(
+    req.headers.get("Authorization"),
+    body?.hours,
+  );
+
+  if (!authResult.authorized) {
+    return jsonResponse({ error: authResult.error }, authResult.status);
+  }
+
+  const hours = authResult.hours;
+  // Recipient comes ONLY from env or default - ignore body.to completely
+  const toEmail = Deno.env.get("NEW_USERS_SUMMARY_TO") || DEFAULT_TO;
 
   const sinceIso = new Date(Date.now() - hours * 3600 * 1000).toISOString();
 

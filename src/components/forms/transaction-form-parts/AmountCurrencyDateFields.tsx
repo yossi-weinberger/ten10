@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -14,6 +15,7 @@ import { CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
+import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -23,6 +25,7 @@ import {
 import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { CurrencyConversionSection } from "./CurrencyConversionSection";
+import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
 
 /** Minimum space for one validation line; grows when text wraps on narrow viewports. */
 const FIELD_MESSAGE_SLOT_CLASS = "mt-1 min-h-5 text-sm leading-snug";
@@ -32,14 +35,20 @@ const FIELD_LABEL_CLASS = "flex h-5 items-center gap-1.5";
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
   isRecurring?: boolean;
+  onDateInputStatusChange?: (
+    status: GregorianDateParseResult["status"],
+    inputMethod: "typed" | "calendar"
+  ) => void;
 }
 
 export function AmountCurrencyDateFields({
   form,
   isRecurring = false,
+  onDateInputStatusChange,
 }: AmountCurrencyDateFieldsProps) {
   const { t } = useTranslation("transactions");
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  const minDate = useMemo(() => minTransactionDateLocal(), []);
   
   const selectedCurrency = form.watch("currency");
   const amount = form.watch("amount");
@@ -158,12 +167,30 @@ export function AmountCurrencyDateFields({
                       ? parseLocalDate(field.value)
                       : undefined
                   }
+                  minDate={minDate}
+                  onInputStatusChange={onDateInputStatusChange}
                   setDate={(date) => {
                     if (date && !Number.isNaN(date.getTime())) {
-                      field.onChange(formatLocalDate(date));
-                    } else {
-                      field.onChange("");
+                      form.setValue("date", formatLocalDate(date) || "invalid", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      return;
                     }
+                    if (date) {
+                      form.setValue("date", "invalid", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      return;
+                    }
+                    form.setValue("date", "", {
+                      shouldValidate: false,
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
                   }}
                 />
               </FormControl>

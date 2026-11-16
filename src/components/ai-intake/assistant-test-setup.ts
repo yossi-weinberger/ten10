@@ -1,0 +1,59 @@
+import { vi } from "vitest";
+
+export function installDomPolyfills(viewport: "desktop" | "mobile" = "desktop") {
+  window.matchMedia = ((query: string) => ({
+    matches: viewport === "mobile" ? query.includes("max-width") : false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+  globalThis.IntersectionObserver ??= class {
+    root = null;
+    rootMargin = "";
+    thresholds = [] as number[];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  } as unknown as typeof IntersectionObserver;
+  Element.prototype.scrollIntoView ??= vi.fn();
+  Element.prototype.scrollTo ??= vi.fn();
+  Element.prototype.hasPointerCapture ??= () => false;
+  Element.prototype.setPointerCapture ??= () => {};
+  Element.prototype.releasePointerCapture ??= () => {};
+  if (typeof AudioContext === "undefined") {
+    globalThis.AudioContext = class {
+      createAnalyser() {
+        return {
+          fftSize: 256,
+          smoothingTimeConstant: 0.8,
+          minDecibels: -100,
+          maxDecibels: -30,
+          frequencyBinCount: 128,
+          getByteFrequencyData: () => {},
+          getFloatFrequencyData: () => {},
+          getByteTimeDomainData: () => {},
+          connect: () => {},
+          disconnect: () => {},
+        };
+      }
+      createMediaStreamSource() {
+        return { connect: () => {}, disconnect: () => {} };
+      }
+      close() {
+        return Promise.resolve();
+      }
+    } as unknown as typeof AudioContext;
+  }
+}

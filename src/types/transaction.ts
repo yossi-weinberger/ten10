@@ -75,6 +75,8 @@ export interface Transaction {
   recurring_status?: "active" | "paused" | "completed" | "cancelled" | null;
   recurring_frequency?: string | null;
   occurrence_number?: number | null;
+  origin?: "ai" | "ai_auto" | null;
+  receipt_expires_at?: string | null;
 }
 
 export interface TransactionForTable extends Transaction {
@@ -109,6 +111,8 @@ export interface RecurringTransaction {
   conversion_rate?: number | null;
   conversion_date?: string | null;
   rate_source?: "auto" | "manual" | null;
+  /** Set only when the assistant created the standing order. Cron charges stay unset. */
+  origin?: "ai" | null;
 }
 
 // Stable predefined category keys (same values stored in the DB).

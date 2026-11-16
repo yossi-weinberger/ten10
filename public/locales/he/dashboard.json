@@ -8,12 +8,17 @@
     "year": "מתחילת השנה",
     "all": "מאז ומתמיד",
     "custom": "טווח מותאם",
+    "monthShort": "החודש",
+    "yearShort": "השנה",
+    "allShort": "הכל",
     "calendarLabel": "לוח תצוגה",
     "calendarHebrew": "עברי",
     "calendarGregorian": "לועזי"
   },
   "datePicker": {
-    "selectDateRange": "בחר טווח תאריכים"
+    "selectDateRange": "בחר טווח תאריכים",
+    "selectDate": "בחירת תאריך",
+    "openCalendar": "פתיחת לוח שנה"
   },
   "statsCards": {
     "income": {

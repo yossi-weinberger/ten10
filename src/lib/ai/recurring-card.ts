@@ -1,0 +1,300 @@
+import {
+  addIsoDays,
+  advanceRecurringDate,
+  firstRecurringDueDate,
+  generateRecurringCatchUpDates,
+  getCalendarAdapter,
+  type CalendarType,
+  type RecurrenceFrequency,
+  type RecurrenceRule,
+} from "@/lib/calendar";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import type { SpecialType } from "../../../supabase/functions/_shared/ai/split-anchor.ts";
+
+export function cardFromRecurringDraft(draft: {
+  amount: number | null;
+  currency: RecurringCard["currency"];
+  type: RecurringCard["type"];
+  typeQuestion?: SpecialType | null;
+  description: string | null;
+  category: RecurringCard["category"];
+  paymentMethod: RecurringCard["paymentMethod"];
+  frequency: RecurringCard["frequency"];
+  calendarType: RecurringCard["calendarType"];
+  startDate: string | null;
+  dayOfMonth: number | null;
+  anchorMonthCode: string | null;
+  totalOccurrences: number | null;
+  endDate?: string | null;
+  alreadyCharged: boolean;
+}): RecurringCard {
+  return {
+    amount: draft.amount,
+    currency: draft.currency,
+    type: draft.type,
+    typeQuestion: draft.typeQuestion ?? null,
+    description: draft.description ?? "",
+    category: draft.category,
+    paymentMethod: draft.paymentMethod,
+    recipient: "",
+    frequency: draft.frequency,
+    calendarType: draft.calendarType,
+    startDate: draft.startDate,
+    // The save writes this day. Left empty, it would write the Gregorian day of the start, also on the Hebrew calendar.
+    dayOfMonth: draft.dayOfMonth ?? startDay(draft.startDate, draft.calendarType),
+    anchorMonthCode: draft.anchorMonthCode,
+    totalOccurrences: draft.totalOccurrences,
+    endDate: draft.endDate ?? null,
+    alreadyCharged: draft.alreadyCharged,
+    includeThisMonth: null,
+    monthDuplicate: false,
+    saved: false,
+    savedId: null,
+    savedCreatedAt: null,
+    executionCount: 0,
+    cancelled: false,
+  };
+}
+
+export interface RecurringCard {
+  amount: number | null;
+  currency: TextTransactionDraft["currency"] | null;
+  type: TextTransactionDraft["type"] | null;
+  /** A special type the model guessed. The card asks about it, like a one-time draft. */
+  typeQuestion?: SpecialType | null;
+  description: string;
+  category: TextTransactionDraft["category"];
+  paymentMethod: TextTransactionDraft["paymentMethod"];
+  recipient: string;
+  /** Chomesh on an income order. Unset follows settings.autoCalcChomesh, like the form. */
+  isChomesh?: boolean;
+  frequency: RecurrenceFrequency | null;
+  calendarType: CalendarType;
+  startDate: string | null;
+  dayOfMonth: number | null;
+  anchorMonthCode: string | null;
+  totalOccurrences: number | null;
+  /** The last day an order "until" a date may charge. The count is taken again from the start the save writes. */
+  endDate?: string | null;
+  alreadyCharged: boolean;
+  includeThisMonth: "yes" | "no" | null;
+  monthDuplicate: boolean;
+  saved: boolean;
+  savedId: string | null;
+  savedCreatedAt: string | null;
+  executionCount: number;
+  cancelled: boolean;
+}
+
+const CANCEL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+export type RecurringQuestion = "amount" | "currency" | "type" | "special" | "frequency" | "day" | "includeThisMonth";
+
+export const RECURRING_EDIT_FIELDS = [
+  "amount",
+  "currency",
+  "type",
+  "description",
+  "recipient",
+  "category",
+  "paymentMethod",
+  "day",
+  "start",
+  "count",
+] as const;
+
+export type RecurringEditField = (typeof RECURRING_EDIT_FIELDS)[number];
+
+/**
+ * Daily, weekly, and yearly are recognized and refused.
+ * They are not turned into a monthly order.
+ *
+ * TODO(recurring-frequencies): when weekly/yearly are enabled in the form, also enable them in the AI recurring flow (recurring-card.ts + intent/extraction prompt) and update tests.
+ */
+export function unsupportedRecurringFrequency(
+  frequency: RecurrenceFrequency | null,
+): frequency is "daily" | "weekly" | "yearly" {
+  return frequency === "daily" || frequency === "weekly" || frequency === "yearly";
+}
+
+/** The one missing answer, in order. Null when the card can show its fields. */
+export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | null {
+  if (card.saved || unsupportedRecurringFrequency(card.frequency)) return null;
+  if (card.amount === null || !(card.amount > 0)) return "amount";
+  if (card.currency === null) return "currency";
+  if (card.type === null) return "type";
+  if (card.typeQuestion) return "special";
+  if (card.frequency === null) return "frequency";
+  if (dayOf(card) === null) return "day";
+  if (card.startDate === null) return "day";
+  if (card.alreadyCharged && card.includeThisMonth === null) return "includeThisMonth";
+  return null;
+}
+
+/** The assistant cancel button stays up for 7 days, and only before the first charge. */
+export function recurringCancelOpen(createdAt: string, executionCount: number, now: Date): boolean {
+  if (executionCount !== 0) return false;
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return false;
+  return now.getTime() >= created && now.getTime() - created < CANCEL_WINDOW_MS;
+}
+
+function startDay(startDate: string | null, calendarType: CalendarType): number | null {
+  return startDate ? getCalendarAdapter(calendarType).fromIsoDate(startDate).day : null;
+}
+
+function dayOf(card: RecurringCard): number | null {
+  return card.dayOfMonth ?? startDay(card.startDate, card.calendarType);
+}
+
+export function recurrenceRule(card: RecurringCard): RecurrenceRule | null {
+  const day = dayOf(card);
+  if (!card.frequency || day === null) return null;
+  return {
+    frequency: card.frequency,
+    calendarType: card.calendarType,
+    dayOfMonth: day,
+    anchorMonthCode: card.anchorMonthCode,
+  };
+}
+
+/**
+ * The number of charges a save writes. An order until a date counts from the start the save writes,
+ * so "גם החודש" adds this month's charge instead of dropping the last one.
+ */
+export function recurringTotalOccurrences(card: RecurringCard, today: string): number | null {
+  const start = saveStartDate(card, today);
+  const rule = recurrenceRule(card);
+  if (!card.endDate || !start || !rule) return card.totalOccurrences;
+  let count = 0;
+  for (let due = start; due <= card.endDate && count < 120; due = advanceRecurringDate(due, rule)) count += 1;
+  return count > 0 ? count : card.totalOccurrences;
+}
+
+/** The next charges from the date a save would write, at most three, and fewer when the order ends sooner. */
+export function upcomingRecurringDates(card: RecurringCard, today: string, limit = 3): string[] {
+  const start = saveStartDate(card, today);
+  if (!start) return [];
+  const rule = recurrenceRule(card);
+  if (!rule) return [];
+  const total = recurringTotalOccurrences(card, today);
+  const count = total === null ? limit : Math.min(limit, total);
+  if (count <= 0) return [];
+  const dates: string[] = [];
+  let due = start;
+  while (dates.length < count) {
+    dates.push(due);
+    due = advanceRecurringDate(due, rule);
+  }
+  return dates;
+}
+
+function lookbackDays(frequency: RecurrenceFrequency): number {
+  switch (frequency) {
+    case "daily":
+      return 2;
+    case "weekly":
+      return 14;
+    case "monthly":
+      return 40;
+    case "yearly":
+      return 400;
+    default: {
+      const never: never = frequency;
+      return never;
+    }
+  }
+}
+
+/**
+ * The charge "גם החודש" writes. When this month's day is still ahead, that day,
+ * even though it is after today. When it has passed, the latest due on or before today.
+ * The form's catch-up math stays on `currentPeriodDueDate`.
+ */
+export function includedMonthDueDate(card: RecurringCard, today: string): string | null {
+  const rule = recurrenceRule(card);
+  if (!rule) return null;
+  const upcoming = firstRecurringDueDate(today, card.calendarType, rule.dayOfMonth);
+  const adapter = getCalendarAdapter(card.calendarType);
+  const upcomingMonth = adapter.fromIsoDate(upcoming);
+  const todayMonth = adapter.fromIsoDate(today);
+  if (upcomingMonth.year === todayMonth.year && upcomingMonth.month === todayMonth.month) return upcoming;
+  return currentPeriodDueDate(card, today);
+}
+
+/** Latest due date on or before today. Null when the schedule cannot be read. */
+export function currentPeriodDueDate(card: RecurringCard, today: string): string | null {
+  const rule = recurrenceRule(card);
+  if (!rule) return null;
+  const origin = firstRecurringDueDate(
+    addIsoDays(today, -lookbackDays(rule.frequency)),
+    card.calendarType,
+    rule.dayOfMonth,
+  );
+  const caught = generateRecurringCatchUpDates(origin, today, rule);
+  return caught.length > 0 ? caught[caught.length - 1] : null;
+}
+
+/** Start date written on save. Including this month uses the current period. */
+export function saveStartDate(card: RecurringCard, today: string): string | null {
+  if (card.includeThisMonth === "yes") return includedMonthDueDate(card, today);
+  if (card.includeThisMonth === "no" && card.alreadyCharged) {
+    const rule = recurrenceRule(card);
+    const current = includedMonthDueDate(card, today);
+    if (!rule || !current) return card.startDate;
+    if (card.startDate && card.startDate > current) return card.startDate;
+    return advanceRecurringDate(current, rule);
+  }
+  return card.startDate;
+}
+
+export function recurringCardReady(card: RecurringCard, today: string): boolean {
+  if (card.saved || card.monthDuplicate) return false;
+  if (card.frequency !== "monthly") return false;
+  if (card.alreadyCharged && card.includeThisMonth === null) return false;
+  if (card.typeQuestion) return false;
+  return (
+    card.amount !== null &&
+    card.amount > 0 &&
+    card.currency !== null &&
+    card.type !== null &&
+    saveStartDate(card, today) !== null
+  );
+}
+
+/** The last day a monthly order may name. A Hebrew month has at most 30 days, and the DB checks it. */
+export function maxRecurringDay(calendarType: CalendarType): number {
+  return calendarType === "hebrew" ? 30 : 31;
+}
+
+export function withRecurringDay(card: RecurringCard, day: number, today: string): RecurringCard {
+  const safeDay = Math.min(Math.max(1, Math.trunc(day)), maxRecurringDay(card.calendarType));
+  return {
+    ...card,
+    dayOfMonth: safeDay,
+    startDate: firstRecurringDueDate(today, card.calendarType, safeDay),
+    monthDuplicate: false,
+  };
+}
+
+export function withRecurringStart(card: RecurringCard, startDate: string): RecurringCard {
+  const adapter = getCalendarAdapter(card.calendarType);
+  const representation = adapter.fromIsoDate(startDate);
+  return {
+    ...card,
+    startDate,
+    dayOfMonth: representation.day,
+    anchorMonthCode: card.frequency === "yearly" ? representation.monthCode : card.anchorMonthCode,
+    monthDuplicate: false,
+  };
+}
+
+export function withRecurringFrequency(
+  card: RecurringCard,
+  frequency: RecurrenceFrequency,
+): RecurringCard {
+  const anchor = frequency === "yearly" && card.startDate
+    ? getCalendarAdapter(card.calendarType).fromIsoDate(card.startDate).monthCode
+    : null;
+  return { ...card, frequency, anchorMonthCode: anchor, monthDuplicate: false };
+}

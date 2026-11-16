@@ -202,4 +202,23 @@ describe("PreferencesSyncService reminder calendar profile sync", () => {
       mailing_list_consent: true,
     });
   });
+
+  it("syncs notifications state from reminder_enabled, ignoring mailing_list_consent", async () => {
+    mocks.single.mockResolvedValue({
+      data: {
+        client_preferences: { theme: "dark" },
+        reminder_day_of_month: 10,
+        reminder_enabled: true,
+        reminder_calendar_type: "gregorian",
+        mailing_list_consent: false,
+      },
+      error: null,
+    });
+
+    await PreferencesSyncService.syncPreferences("user-1");
+
+    expect(useDonationStore.getState().settings.notifications).toBe(true);
+    expect(useDonationStore.getState().settings.reminderEnabled).toBe(true);
+    expect(useDonationStore.getState().settings.mailingListConsent).toBe(false);
+  });
 });

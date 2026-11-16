@@ -47,6 +47,19 @@
     "warning": "Warning",
     "info": "Info"
   },
+  "optInPrompt": {
+    "title": "Would you like to turn on updates?",
+    "descriptionReminder": "We'd love to send you monthly reminders to help you stay on track.",
+    "descriptionMarketing": "We'd love to keep you updated on new features and improvements.",
+    "reminderLabel": "Turn on monthly reminders",
+    "reminderDescription": "Get a reminder email every month on your chosen date",
+    "marketingLabel": "Turn on updates and news",
+    "marketingDescription": "Occasional Ten10 updates, features and tips",
+    "enable": "Enable",
+    "updatePreferences": "Update Preferences",
+    "updating": "Updating...",
+    "notNow": "Not Now"
+  },
   "dataLoadError": "Error loading data.",
   "export": {
     "transactionTypes": {

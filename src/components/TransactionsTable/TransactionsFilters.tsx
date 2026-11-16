@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import {
   initialTableTransactionFilters,
   IsRecurringFilter,
+  OriginFilter,
 } from "@/lib/tableTransactions/tableTransactions.types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { TransactionType } from "@/types/transaction";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import type { DateRange } from "react-day-picker";
 import {
   DropdownMenu,
@@ -30,6 +33,22 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+
+const compactMenuClassName =
+  "w-56 max-h-[var(--radix-dropdown-menu-content-available-height)] !overflow-y-auto";
+import { MOBILE_COMPACT_QUERY } from "@/lib/responsive";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { formatCompactDateFilterValue } from "./transactions-filter-date.utils";
+import {
+  CompactFilterCell,
+  CompactFilterGrid,
+  CompactFilterHeader,
+  CompactFilterPanel,
+  CompactFilterSearch,
+  CompactFilterTrigger,
+  CompactSelectTrigger,
+} from "./mobile-filter-controls";
 import {
   getPaymentMethodCacheVersion,
   getUserPaymentMethods,
@@ -44,6 +63,7 @@ import {
 } from "@/lib/payment-methods";
 import { serializeTransactionDateRange } from "./transactions-filter-date.utils";
 import { parseLocalDate } from "@/lib/utils/local-date";
+import { cn } from "@/lib/utils";
 
 const availableTransactionTypes: TransactionType[] = [
   "income",
@@ -60,6 +80,8 @@ const availableTransactionTypes: TransactionType[] = [
 export function TransactionsFilters() {
   const { t: tTables, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
+  const isMobile = useMediaQuery(MOBILE_COMPACT_QUERY);
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     storeFilters,
     setStoreFilters,
@@ -100,6 +122,9 @@ export function TransactionsFilters() {
   );
   const [localIsRecurring, setLocalIsRecurring] = useState<IsRecurringFilter>(
     storeFilters.isRecurring
+  );
+  const [localOrigin, setLocalOrigin] = useState<OriginFilter>(
+    storeFilters.origin ?? "all",
   );
   const [localRecurringStatuses, setLocalRecurringStatuses] = useState<
     string[]
@@ -206,6 +231,7 @@ export function TransactionsFilters() {
     setLocalTypes(initialTableTransactionFilters.types);
     setLocalPaymentMethods(initialTableTransactionFilters.paymentMethods);
     setLocalIsRecurring(initialTableTransactionFilters.isRecurring);
+    setLocalOrigin(initialTableTransactionFilters.origin);
     setLocalRecurringStatuses(initialTableTransactionFilters.recurringStatuses);
     // setLocalRecurringFrequencies( // Commented out - frequency filter disabled
     //   initialTableTransactionFilters.recurringFrequencies
@@ -276,6 +302,344 @@ export function TransactionsFilters() {
   const isRtl = i18n.dir(i18n.language) === "rtl";
   const dropdownAlign = isRtl ? "end" : "start";
   const dropdownDir = isRtl ? "rtl" : "ltr";
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localSearch.trim().length > 0) count++;
+    if (localDateRange?.from || localDateRange?.to) count++;
+    if (localTypes.length > 0) count++;
+    if (localPaymentMethods.length > 0) count++;
+    if (localIsRecurring !== "all") count++;
+    if (localOrigin !== "all") count++;
+    if (localRecurringStatuses.length > 0) count++;
+    return count;
+  }, [
+    localSearch,
+    localDateRange,
+    localTypes,
+    localPaymentMethods,
+    localIsRecurring,
+    localOrigin,
+    localRecurringStatuses,
+  ]);
+
+  const compactDate = formatCompactDateFilterValue(
+    localDateRange,
+    i18n.language,
+  );
+  let compactDateValue = tTables("filters.all");
+  let compactDateDir: "ltr" | undefined;
+  switch (compactDate.kind) {
+    case "all":
+      compactDateValue = tTables("filters.all");
+      break;
+    case "month":
+      compactDateValue = compactDate.monthLabel;
+      break;
+    case "range":
+      compactDateValue = compactDate.label;
+      compactDateDir = "ltr";
+      break;
+    default: {
+      const _exhaustive: never = compactDate;
+      throw new Error(`Unhandled compact date label: ${String(_exhaustive)}`);
+    }
+  }
+  const compactDateActive = compactDate.kind !== "all";
+
+  const compactTypeValue =
+    localTypes.length === 0
+      ? tTables("filters.all")
+      : localTypes.length === 1
+        ? tTables(`types.${localTypes[0]}`)
+        : tTables("filters.typesSelected", { count: localTypes.length });
+  const compactPaymentValue =
+    localPaymentMethods.length === 0
+      ? tTables("filters.all")
+      : localPaymentMethods.length === 1
+        ? getPaymentMethodLabel(localPaymentMethods[0])
+        : tTables("filters.paymentMethodsSelected", {
+            count: localPaymentMethods.length,
+          });
+  const compactRecurringValue =
+    localIsRecurring === "recurring"
+      ? tTables("filters.recurringOnly")
+      : localIsRecurring === "all"
+        ? tTables("filters.all")
+        : tTables("filters.regularOnly");
+  const compactOriginValue =
+    localOrigin === "ai"
+      ? tTables("filters.originAi")
+      : localOrigin === "ai_auto"
+        ? tTables("filters.originAuto")
+        : tTables("filters.all");
+  const compactStatusValue =
+    localRecurringStatuses.length === 0
+      ? tTables("filters.all")
+      : localRecurringStatuses.length === 1
+        ? tTables(`recurring.statuses.${localRecurringStatuses[0]}`)
+        : tTables("filters.statusesSelected", {
+            count: localRecurringStatuses.length,
+          });
+
+  if (isMobile && isExpanded) {
+    return (
+      <CompactFilterPanel>
+        <CompactFilterHeader
+          title={tTables("filters.compactTitle")}
+          count={activeFiltersCount}
+          countLabel={tTables("filters.compactActiveCount", {
+            count: activeFiltersCount,
+          })}
+          resetLabel={tTables("filters.compactReset")}
+          closeLabel={tTables("filters.hideFilters")}
+          onReset={handleResetFilters}
+          onClose={() => setIsExpanded(false)}
+        />
+        <CompactFilterSearch
+          id="search"
+          value={localSearch}
+          onChange={setLocalSearch}
+          onClear={() => setLocalSearch("")}
+          placeholder={tTables("filters.compactSearchPlaceholder")}
+          ariaLabel={tTables("filters.freeSearch")}
+          clearLabel={tTables("filters.compactClearSearch")}
+        />
+        <CompactFilterGrid>
+          <CompactFilterCell>
+            <DatePickerWithRange
+              className="w-full min-w-0 gap-0"
+              date={localDateRange}
+              onDateChange={handleDateChange}
+              triggerButton={
+                <CompactFilterTrigger
+                  label={tTables("filters.compactDate")}
+                  value={compactDateValue}
+                  active={compactDateActive}
+                  valueDir={compactDateDir}
+                  maskValue
+                />
+              }
+            />
+          </CompactFilterCell>
+          <CompactFilterCell>
+            <DropdownMenu
+              open={typesDropdownOpen}
+              onOpenChange={setTypesDropdownOpen}
+              dir={dropdownDir}
+            >
+              <DropdownMenuTrigger asChild>
+                <CompactFilterTrigger
+                  label={tTables("filters.compactType")}
+                  value={compactTypeValue}
+                  active={localTypes.length > 0}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className={compactMenuClassName}
+                align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
+                onClick={stopPropagation}
+              >
+                <DropdownMenuLabel>
+                  {tTables("filters.selectTransactionTypes")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {availableTransactionTypes.map((type) => (
+                  <DropdownMenuCheckboxItem
+                    key={type}
+                    checked={localTypes.includes(type)}
+                    onCheckedChange={(checked) =>
+                      handleTypeChange(type, !!checked)
+                    }
+                    onClick={stopPropagation}
+                  >
+                    {tTables(`types.${type}`)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CompactFilterCell>
+          <CompactFilterCell>
+            <DropdownMenu
+              open={paymentMethodsDropdownOpen}
+              onOpenChange={handlePaymentMethodsOpenChange}
+              dir={dropdownDir}
+            >
+              <DropdownMenuTrigger asChild>
+                <CompactFilterTrigger
+                  label={tTables("filters.compactPayment")}
+                  value={compactPaymentValue}
+                  active={localPaymentMethods.length > 0}
+                  maskValue
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className={compactMenuClassName}
+                align={dropdownAlign}
+                avoidCollisions
+                collisionPadding={16}
+                onClick={stopPropagation}
+              >
+                <DropdownMenuLabel>
+                  {tTables("filters.selectPaymentMethods")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {allPaymentMethods.map((method) => (
+                  <DropdownMenuCheckboxItem
+                    key={method.value}
+                    checked={selectedPaymentMethods.has(method.value)}
+                    onCheckedChange={(checked) =>
+                      handlePaymentMethodChange(method.value, !!checked)
+                    }
+                    onClick={stopPropagation}
+                  >
+                    {method.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CompactFilterCell>
+          <CompactFilterCell>
+            <Select
+              value={localIsRecurring}
+              onValueChange={handleIsRecurringChange}
+              dir={dropdownDir}
+            >
+              <CompactSelectTrigger
+                label={tTables("filters.compactRecurring")}
+                value={compactRecurringValue}
+                active={localIsRecurring !== "all"}
+              />
+              <SelectContent>
+                <SelectItem value="all">{tTables("filters.all")}</SelectItem>
+                <SelectItem value="recurring">
+                  {tTables("filters.recurringOnly")}
+                </SelectItem>
+                <SelectItem value="regular">
+                  {tTables("filters.regularOnly")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </CompactFilterCell>
+          {platform === "web" && isAiIntakeEnabled() ? (
+            <CompactFilterCell>
+              <Select
+                value={localOrigin}
+                onValueChange={(value) => {
+                  if (value !== "all" && value !== "ai" && value !== "ai_auto") {
+                    return;
+                  }
+                  setLocalOrigin(value);
+                  setStoreFilters({ origin: value });
+                }}
+                dir={dropdownDir}
+              >
+                <CompactSelectTrigger
+                  label={tTables("filters.compactSource")}
+                  value={compactOriginValue}
+                  active={localOrigin !== "all"}
+                />
+                <SelectContent>
+                  <SelectItem value="all">{tTables("filters.all")}</SelectItem>
+                  <SelectItem value="ai">{tTables("filters.originAi")}</SelectItem>
+                  <SelectItem value="ai_auto">
+                    {tTables("filters.originAuto")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </CompactFilterCell>
+          ) : null}
+          {localIsRecurring === "recurring" ? (
+            <CompactFilterCell>
+              <DropdownMenu
+                open={statusDropdownOpen}
+                onOpenChange={setStatusDropdownOpen}
+                dir={dropdownDir}
+              >
+                <DropdownMenuTrigger asChild>
+                  <CompactFilterTrigger
+                    label={tTables("filters.compactStatus")}
+                    value={compactStatusValue}
+                    active={localRecurringStatuses.length > 0}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className={compactMenuClassName}
+                  align={dropdownAlign}
+                  avoidCollisions
+                  collisionPadding={16}
+                  onClick={stopPropagation}
+                >
+                  <DropdownMenuLabel>
+                    {tTables("filters.filterByStatus")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {["active", "paused", "completed", "cancelled"].map((value) => (
+                    <DropdownMenuCheckboxItem
+                      key={value}
+                      checked={localRecurringStatuses.includes(value)}
+                      onCheckedChange={(checked) =>
+                        handleRecurringStatusChange(value, !!checked)
+                      }
+                      onClick={stopPropagation}
+                    >
+                      {tTables(`recurring.statuses.${value}`)}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CompactFilterCell>
+          ) : null}
+        </CompactFilterGrid>
+      </CompactFilterPanel>
+    );
+  }
+
+  if (isMobile && !isExpanded) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Input
+                id="search"
+                placeholder={tTables("filters.searchPlaceholder")}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className={cn(
+                  "h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11",
+                  PH_SENSITIVE_PROPS.className,
+                )}
+                data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                aria-label={tTables("filters.freeSearch")}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsExpanded(true)}
+              className="h-9 max-md:h-11 [@media(pointer:coarse)_and_(max-height:500px)]:h-11 gap-2 shrink-0"
+              aria-expanded="false"
+              aria-label={
+                activeFiltersCount > 0
+                  ? `${tTables("filters.showFilters")} (${activeFiltersCount})`
+                  : tTables("filters.showFilters")
+              }
+            >
+              <ListFilter className="h-4 w-4" />
+              {tTables("filters.showFilters")}
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1" aria-hidden="true">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mb-4">
@@ -435,6 +799,36 @@ export function TransactionsFilters() {
                 </SelectContent>
               </Select>
             </div>
+
+            {platform === "web" && isAiIntakeEnabled() ? (
+              <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+                <Label className="mb-2 block text-sm font-medium">
+                  {tTables("filters.origin")}
+                </Label>
+                <Select
+                  value={localOrigin}
+                  onValueChange={(value) => {
+                    if (value !== "all" && value !== "ai" && value !== "ai_auto") {
+                      return;
+                    }
+                    setLocalOrigin(value);
+                    setStoreFilters({ origin: value });
+                  }}
+                  dir="rtl"
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{tTables("filters.all")}</SelectItem>
+                    <SelectItem value="ai">{tTables("filters.originAi")}</SelectItem>
+                    <SelectItem value="ai_auto">
+                      {tTables("filters.originAuto")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
           </div>
 
           {/* Conditional Recurring Filters & Reset Button Group */}

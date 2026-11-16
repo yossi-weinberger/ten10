@@ -7,6 +7,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: {
+      VITE_AI_INTAKE_ENABLED: "true",
+    },
     include: [
       "src/**/*.test.{ts,tsx}",
       "supabase/functions/**/*.test.ts",

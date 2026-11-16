@@ -25,6 +25,7 @@ export interface EmailTemplateData {
   kind?: "monthly" | "maaser-year";
   unsubscribeUrls?: {
     reminderUrl: string;
+    marketingUrl: string;
     allUrl: string;
   };
 }
@@ -264,6 +265,8 @@ function renderUnsubscribeFooter(
     ? `<div style="margin-top: 12px;">
         <a href="${escapeHtml(data.unsubscribeUrls.reminderUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeReminder)}</a>
         <span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
+        <a href="${escapeHtml(data.unsubscribeUrls.marketingUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeMarketing)}</a>
+        <span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
         <a href="${escapeHtml(data.unsubscribeUrls.allUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeAll)}</a>
       </div>`
     : "";
@@ -346,6 +349,7 @@ export function generateReminderEmailText(data: EmailTemplateData): string {
     ? [
         "",
         `${copy.unsubscribeReminder}: ${data.unsubscribeUrls.reminderUrl}`,
+        `${copy.unsubscribeMarketing}: ${data.unsubscribeUrls.marketingUrl}`,
         `${copy.unsubscribeAll}: ${data.unsubscribeUrls.allUrl}`,
       ].join("\n")
     : "";

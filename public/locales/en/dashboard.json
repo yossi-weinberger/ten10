@@ -8,12 +8,17 @@
     "year": "From start of year",
     "all": "All time",
     "custom": "Custom range",
+    "monthShort": "Month",
+    "yearShort": "Year",
+    "allShort": "All",
     "calendarLabel": "Display calendar",
     "calendarHebrew": "Hebrew",
     "calendarGregorian": "Gregorian"
   },
   "datePicker": {
-    "selectDateRange": "Select date range"
+    "selectDateRange": "Select date range",
+    "selectDate": "Select date",
+    "openCalendar": "Open calendar"
   },
   "statsCards": {
     "income": {

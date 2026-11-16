@@ -52,11 +52,21 @@
     "non_tithe_donation": "תרומה שאינה ממעשר",
     "initial_balance": "יתרת פתיחה"
   },
+  "cards": {
+    "chomesh": "חומש",
+    "nextShort": "הבא: {{date}}"
+  },
   "actions": {
     "title": "פעולות",
     "edit": "עריכה",
     "editRecurring": "ערוך הו\"ק",
     "delete": "מחיקה",
+    "viewReceipt": "הצג קבלה",
+    "receiptUntil": "זמינה עד {{date}}",
+    "undoAi": "בטל שמירת AI",
+    "undoAiDone": "השמירה בוטלה והתנועה נמחקה.",
+    "undoAiNotAllowed": "אי אפשר לבטל. אם התנועה נערכה או עברו 7 ימים, מחקים אותה כרגיל.",
+    "undoAiFailed": "הביטול נכשל. התנועה נשארה.",
     "duplicate": "שכפול",
     "export": "ייצוא",
     "cancel": "ביטול"
@@ -64,8 +74,14 @@
   "bulkToolbar": {
     "ariaLabel": "פעולות מרובות לתנועות שנבחרו",
     "recurringAriaLabel": "פעולות מרובות להוראות קבע שנבחרו",
-    "selectedCount": "{{count}} תנועות נבחרו",
-    "selectedRecurringCount": "{{count}} הוראות קבע נבחרו",
+    "selectedCount_one": "תנועה {{count}} נבחרה",
+    "selectedCount_two": "{{count}} תנועות נבחרו",
+    "selectedCount_many": "{{count}} תנועות נבחרו",
+    "selectedCount_other": "{{count}} תנועות נבחרו",
+    "selectedRecurringCount_one": "הוראת קבע {{count}} נבחרה",
+    "selectedRecurringCount_two": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_many": "{{count}} הוראות קבע נבחרו",
+    "selectedRecurringCount_other": "{{count}} הוראות קבע נבחרו",
     "edit": "עריכה מרובה",
     "delete": "מחיקה מרובה",
     "clear": "בטל בחירה"
@@ -194,7 +210,9 @@
   "buttons": {
     "showRecurring": "הצג הוראות קבע",
     "backToTransactions": "חזרה לכל התנועות",
-    "importTransactions": "ייבוא תנועות"
+    "importTransactions": "ייבוא תנועות",
+    "exportShort": "ייצוא",
+    "importShort": "ייבוא"
   },
   "movementType": {
     "recurring": "הוראת קבע",
@@ -202,7 +220,9 @@
   },
   "dialog": {
     "deleteTitle": "אישור מחיקת תנועה",
-    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו."
+    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו.",
+    "undoAiTitle": "אישור ביטול שמירת AI",
+    "undoAiDescription": "האם לבטל את השמירה של \"{{description}}\" מתאריך {{date}}? התנועה תימחק."
   },
   "modal": {
     "editTitle": "עריכת תנועה",
@@ -211,8 +231,27 @@
     "editRecurringDescription": "עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.",
     "noRecurringSelected": "לא נבחרה הוראה לעריכה."
   },
+  "drawer": {
+    "detailsDescription": "פרטי התנועה ופעולות זמינות",
+    "editRecurring": "ערוך",
+    "convertedPrefix": "הומר · "
+  },
   "accessibility": {
     "openMenu": "פתח תפריט"
+  },
+  "sort": {
+    "sortBy": "מיון לפי",
+    "ascending": "מיון עולה",
+    "descending": "מיון יורד",
+    "chip": "מיון: {{field}} · {{direction}}",
+    "directions": {
+      "dateDesc": "חדש לישן",
+      "dateAsc": "ישן לחדש",
+      "amountDesc": "גבוה לנמוך",
+      "amountAsc": "נמוך לגבוה",
+      "textAsc": "א׳–ת׳",
+      "textDesc": "ת׳–א׳"
+    }
   },
   "recurring": {
     "status": "סטטוס",
@@ -252,6 +291,12 @@
     "all": "הכל",
     "recurringOnly": "הוראות קבע בלבד",
     "regularOnly": "תנועות רגילות בלבד",
+    "origin": "מקור",
+    "originAi": "נוצר מ-AI",
+    "originAuto": "נשמר אוטומטית",
+    "receiptNone": "אין קובץ מקור לתנועה הזו.",
+    "receiptOpen": "הצג את הקבלה",
+    "receiptFailed": "הקובץ לא זמין כרגע.",
     "recurringStatus": "סטטוס קבע",
     "allStatuses": "כל הסטטוסים",
     "statusesSelected": "{{count}} נבחרו",
@@ -260,11 +305,29 @@
     "allFrequencies": "כל התדירויות",
     "frequenciesSelected": "{{count}} נבחרו",
     "filterByFrequency": "סינון לפי תדירות",
-    "resetFilters": "אפס סינונים"
+    "resetFilters": "אפס סינונים",
+    "showFilters": "סינון",
+    "hideFilters": "הסתר סינונים",
+    "compactTitle": "סינון",
+    "compactSearchPlaceholder": "חיפוש תיאור, נמען, קטגוריה…",
+    "compactClearSearch": "נקה חיפוש",
+    "compactDate": "תאריך",
+    "compactType": "סוג",
+    "compactPayment": "תשלום",
+    "compactRecurring": "הוראת קבע",
+    "compactSource": "מקור",
+    "compactStatus": "סטטוס",
+    "compactFrequency": "תדירות",
+    "compactReset": "אפס סינונים",
+    "compactActiveCount_one": "{{count}} סינון פעיל",
+    "compactActiveCount_two": "{{count}} סינונים פעילים",
+    "compactActiveCount_many": "{{count}} סינונים פעילים",
+    "compactActiveCount_other": "{{count}} סינונים פעילים"
   },
   "recurringFilters": {
     "title": "סינון הוראות קבע",
     "searchPlaceholder": "חיפוש לפי תיאור...",
+    "compactSearchPlaceholder": "חיפוש לפי תיאור…",
     "filterByStatus": "סנן לפי סטטוס",
     "statusesSelected": "{{count}} סטטוסים נבחרו"
   },
@@ -272,7 +335,8 @@
     "frequency": "תדירות",
     "nextDueDate": "תאריך ביצוע הבא",
     "status": "סטטוס",
-    "progress": "התקדמות"
+    "progress": "התקדמות",
+    "startDate": "תאריך התחלה"
   },
   "recurringTable": {
     "title": "הוראות קבע",

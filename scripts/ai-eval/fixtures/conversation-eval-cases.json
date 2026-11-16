@@ -1,0 +1,1597 @@
+{
+  "today": "2026-11-01",
+  "calendar": "gregorian",
+  "recipients": [
+    "ישיבת נחלת",
+    "כולל",
+    "גן"
+  ],
+  "conversations": [
+    {
+      "id": "conv-000",
+      "topic": "real_chat",
+      "note": "Yossi on testing, 1/11/2026. The reply «כל התקופות» to an unneeded period question is left out.",
+      "turns": [
+        {
+          "user": "היי",
+          "expect": {
+            "kind": "help"
+          }
+        },
+        {
+          "user": "קניתי רוכעלך ב-20 שקל",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "האם מותר לשלם שכר לימוד מכספי מעשרות?",
+          "expect": {
+            "kind": "rabbi",
+            "alsoOk": [
+              "halacha"
+            ]
+          }
+        },
+        {
+          "user": "האם חייבים לתת חומש",
+          "expect": {
+            "kind": "halacha"
+          }
+        },
+        {
+          "user": "אני צריך מתכון להרינג",
+          "expect": {
+            "kind": "out_of_scope"
+          }
+        },
+        {
+          "user": "קניתי 2 חלב ב-10 שקל ותרמתי 14 שקל לעזר מציון",
+          "expect": {
+            "kind": "drafts"
+          }
+        },
+        {
+          "user": "כל 10 לחודש נכנס לי 250 מביטוח לאומי אבל זה פטור ממעשרות",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "exempt-income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "אבל זה כל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "exempt-income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "כל חודש בעשירי נכנס לי 100 שקל מקצבה",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "כמה אני חייב למעשרות?",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "כמה הוראות קבע יש לי",
+          "expect": {
+            "kind": "standing_orders"
+          }
+        },
+        {
+          "user": "כמה תרומות נתתי החודש?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "וכמה הוצאות?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-001",
+      "topic": "recurring_fact",
+      "turns": [
+        {
+          "user": "כל חודש בעשירי נכנס לי 100 מקצבה",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "אבל זה כל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-002",
+      "topic": "recurring_fact",
+      "turns": [
+        {
+          "user": "כל 10 לחודש נכנס לי 250 מביטוח לאומי",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        },
+        {
+          "user": "זה קבוע",
+          "expect": {
+            "kind": "recurring",
+            "amount": 250,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-003",
+      "topic": "recurring_fact",
+      "turns": [
+        {
+          "user": "אני משלם 200 לכולל בכל ראש חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 200,
+            "type": "donation",
+            "frequency": "monthly",
+            "day": 1
+          }
+        },
+        {
+          "user": "כן, הוראת קבע",
+          "expect": {
+            "kind": "recurring",
+            "amount": 200,
+            "type": "donation",
+            "frequency": "monthly",
+            "day": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-004",
+      "topic": "recurring_fact",
+      "turns": [
+        {
+          "user": "כל חודש ב-5 יוצא לי 80 על ארנונה",
+          "expect": {
+            "kind": "recurring",
+            "amount": 80,
+            "type": "expense",
+            "frequency": "monthly",
+            "day": 5
+          }
+        },
+        {
+          "user": "זה לא חד פעמי",
+          "expect": {
+            "kind": "recurring",
+            "amount": 80,
+            "type": "expense",
+            "frequency": "monthly",
+            "day": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-005",
+      "topic": "recurring_fact",
+      "turns": [
+        {
+          "user": "מקבל 4000 שכר ב-1 לכל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 4000,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 1
+          }
+        },
+        {
+          "user": "תוסיף שזה נטו",
+          "expect": {
+            "kind": "recurring",
+            "amount": 4000,
+            "type": "income",
+            "frequency": "monthly",
+            "day": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-006",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "קניתי לחם ב-20",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "בעצם 25",
+          "expect": {
+            "kind": "draft",
+            "amount": 25,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-007",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "תרמתי 100 לישיבה",
+          "expect": {
+            "kind": "draft",
+            "amount": 100,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "זה היה 120",
+          "expect": {
+            "kind": "draft",
+            "amount": 120,
+            "type": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-008",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "קיבלתי 300 מההורים",
+          "expect": {
+            "kind": "draft",
+            "amount": 300,
+            "type": "income"
+          }
+        },
+        {
+          "user": "תשנה את הסכום ל-350",
+          "expect": {
+            "kind": "draft",
+            "amount": 350,
+            "type": "income"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-009",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "שילמתי 60 על מונית",
+          "expect": {
+            "kind": "draft",
+            "amount": 60,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "לא מונית, אוטובוס",
+          "expect": {
+            "kind": "draft",
+            "amount": 60,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-010",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "קניתי חלב ב-12 אתמול",
+          "expect": {
+            "kind": "draft",
+            "amount": 12,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "התאריך הוא היום",
+          "expect": {
+            "kind": "draft",
+            "amount": 12,
+            "type": "expense",
+            "date": "2026-11-01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-011",
+      "topic": "draft_fix",
+      "turns": [
+        {
+          "user": "הוצאתי 40 על דלק",
+          "expect": {
+            "kind": "draft",
+            "amount": 40,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "תוסיף שזה מזומן",
+          "expect": {
+            "kind": "draft",
+            "amount": 40,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "רגע, 45",
+          "expect": {
+            "kind": "draft",
+            "amount": 45,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-012",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "קניתי לחם בסופר",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        },
+        {
+          "user": "100",
+          "expect": {
+            "kind": "draft",
+            "amount": 100,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-013",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה הוצאתי על ירקות",
+          "expect": {
+            "kind": "question",
+            "pending": "period",
+            "alsoOk": [
+              "data_answer"
+            ]
+          }
+        },
+        {
+          "user": "החודש",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ],
+      "note": "A question that names no period asks for one (the rule since #640). A direct all-time answer is accepted too, because the period reader may read no period as all time."
+    },
+    {
+      "id": "conv-014",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה יצא לי",
+          "expect": {
+            "kind": "question",
+            "pending": "family"
+          }
+        },
+        {
+          "user": "הוצאות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-015",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה תרמתי לישיבה השנה",
+          "expect": {
+            "kind": "question",
+            "pending": "name"
+          }
+        },
+        {
+          "user": "ישיבת נחלת",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-016",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "שילמתי על חשמל",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        },
+        {
+          "user": "80",
+          "expect": {
+            "kind": "draft",
+            "amount": 80,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-017",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה הכנסות נכנסו",
+          "expect": {
+            "kind": "question",
+            "pending": "period"
+          }
+        },
+        {
+          "user": "השנה",
+          "expect": {
+            "kind": "data_answer",
+            "family": "income"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-018",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה יצא החודש",
+          "expect": {
+            "kind": "question",
+            "pending": "family"
+          }
+        },
+        {
+          "user": "תרומות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-019",
+      "topic": "assistant_answer",
+      "turns": [
+        {
+          "user": "כמה שילמתי לגן השנה",
+          "expect": {
+            "kind": "question",
+            "pending": "name"
+          }
+        },
+        {
+          "user": "גן",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-020",
+      "topic": "data_followup",
+      "turns": [
+        {
+          "user": "כמה הוצאות היו לי החודש",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        },
+        {
+          "user": "וכמה הוצאות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-021",
+      "topic": "data_followup",
+      "turns": [
+        {
+          "user": "כמה תרמתי השנה",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "ומה עם החודש",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-022",
+      "topic": "data_followup",
+      "turns": [
+        {
+          "user": "כמה הכנסות החודש",
+          "expect": {
+            "kind": "data_answer",
+            "family": "income"
+          }
+        },
+        {
+          "user": "כל התקופות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "income"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-023",
+      "topic": "data_followup",
+      "turns": [
+        {
+          "user": "כמה הוצאתי השנה",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        },
+        {
+          "user": "וכמה הכנסות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "income"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-024",
+      "topic": "data_followup",
+      "turns": [
+        {
+          "user": "כמה תרמתי החודש",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "וכמה הוצאות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        },
+        {
+          "user": "ועכשיו רק תרומות",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-025",
+      "topic": "special_same_message",
+      "turns": [
+        {
+          "user": "קיבלתי 500 מתנה וזה פטור ממעשרות",
+          "expect": {
+            "kind": "draft",
+            "amount": 500,
+            "type": "exempt-income"
+          }
+        },
+        {
+          "user": "נכון",
+          "expect": {
+            "kind": "draft",
+            "amount": 500,
+            "type": "exempt-income"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-026",
+      "topic": "special_same_message",
+      "turns": [
+        {
+          "user": "שילמתי 200 לגן והוצאה מוכרת",
+          "expect": {
+            "kind": "draft",
+            "amount": 200,
+            "type": "recognized-expense"
+          }
+        },
+        {
+          "user": "נכון",
+          "expect": {
+            "kind": "draft",
+            "amount": 200,
+            "type": "recognized-expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-027",
+      "topic": "special_same_message",
+      "turns": [
+        {
+          "user": "נתתי 50 לחבר, לא ממעשרות",
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "non_tithe_donation"
+          }
+        },
+        {
+          "user": "נכון",
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "non_tithe_donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-028",
+      "topic": "balance",
+      "turns": [
+        {
+          "user": "כמה אני חייב למעשרות?",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "וכמה נשאר לי",
+          "expect": {
+            "kind": "balance"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-029",
+      "topic": "balance",
+      "turns": [
+        {
+          "user": "מה היתרה של המעשר",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "תודה",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-030",
+      "topic": "balance",
+      "turns": [
+        {
+          "user": "כמה מעשר עוד לא חולק",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "כולל חומש?",
+          "expect": {
+            "kind": "balance"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-031",
+      "topic": "balance",
+      "turns": [
+        {
+          "user": "יתרת מעשרות שלי",
+          "expect": {
+            "kind": "balance"
+          }
+        },
+        {
+          "user": "תודה",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-032",
+      "topic": "halacha",
+      "turns": [
+        {
+          "user": "מה זה מעשר כספים",
+          "expect": {
+            "kind": "halacha"
+          }
+        },
+        {
+          "user": "ומה עם חומש?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-033",
+      "topic": "halacha",
+      "turns": [
+        {
+          "user": "האם מותר לשלם שכר לימוד מכספי מעשרות?",
+          "expect": {
+            "kind": "rabbi",
+            "alsoOk": [
+              "halacha"
+            ]
+          }
+        },
+        {
+          "user": "ומה עם חומש?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-034",
+      "topic": "halacha",
+      "turns": [
+        {
+          "user": "אילו הוצאות מוכרות למעשר",
+          "expect": {
+            "kind": "halacha"
+          }
+        },
+        {
+          "user": "תן דוגמה",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-035",
+      "topic": "halacha",
+      "turns": [
+        {
+          "user": "האם המתנה שקיבלתי חייבת במעשר",
+          "expect": {
+            "kind": "rabbi"
+          }
+        },
+        {
+          "user": "ומה אם זה מההורים",
+          "expect": {
+            "kind": "rabbi"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-036",
+      "topic": "halacha",
+      "turns": [
+        {
+          "user": "האם הכנסה משכר דירה חייבת במעשר",
+          "expect": {
+            "kind": "halacha"
+          }
+        },
+        {
+          "user": "תן דוגמה",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-037",
+      "topic": "greeting_help_oos",
+      "turns": [
+        {
+          "user": "היי",
+          "expect": {
+            "kind": "help"
+          }
+        },
+        {
+          "user": "מה אתה יודע לעשות",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-038",
+      "topic": "greeting_help_oos",
+      "turns": [
+        {
+          "user": "שלום",
+          "expect": {
+            "kind": "help"
+          }
+        },
+        {
+          "user": "אפשר לשאול על היתרה?",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-039",
+      "topic": "greeting_help_oos",
+      "turns": [
+        {
+          "user": "תמחק את התנועה ששמרתי אתמול",
+          "expect": {
+            "kind": "out_of_scope"
+          }
+        },
+        {
+          "user": "אז תכתוב לי תנועה",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-040",
+      "topic": "greeting_help_oos",
+      "turns": [
+        {
+          "user": "תערוך את הסכום שכבר נשמר",
+          "expect": {
+            "kind": "out_of_scope"
+          }
+        },
+        {
+          "user": "אז מה כן אפשר",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-041",
+      "topic": "new_topic_while_pending",
+      "turns": [
+        {
+          "user": "קניתי לחם",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        },
+        {
+          "user": "כמה הוצאות היו לי השנה",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-042",
+      "topic": "new_topic_while_pending",
+      "turns": [
+        {
+          "user": "כמה הוצאתי",
+          "expect": {
+            "kind": "question",
+            "pending": "period"
+          }
+        },
+        {
+          "user": "קניתי חלב ב-10",
+          "expect": {
+            "kind": "draft",
+            "amount": 10,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-043",
+      "topic": "new_topic_while_pending",
+      "turns": [
+        {
+          "user": "כמה יצא לי",
+          "expect": {
+            "kind": "question",
+            "pending": "family"
+          }
+        },
+        {
+          "user": "היי",
+          "expect": {
+            "kind": "help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-044",
+      "topic": "stale_amount",
+      "turns": [
+        {
+          "user": "קניתי לחם ב-20",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "עכשיו קניתי חלב",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-045",
+      "topic": "stale_amount",
+      "turns": [
+        {
+          "user": "תרמתי 100",
+          "expect": {
+            "kind": "draft",
+            "amount": 100,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "שילמתי על מונית",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-046",
+      "topic": "stale_amount",
+      "turns": [
+        {
+          "user": "קיבלתי 300",
+          "expect": {
+            "kind": "draft",
+            "amount": 300,
+            "type": "income"
+          }
+        },
+        {
+          "user": "הוצאתי על דלק",
+          "expect": {
+            "kind": "question",
+            "pending": "amount"
+          }
+        },
+        {
+          "user": "40",
+          "expect": {
+            "kind": "draft",
+            "amount": 40,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-047",
+      "topic": "discard_draft",
+      "turns": [
+        {
+          "user": "קניתי עוגה ב-30",
+          "expect": {
+            "kind": "draft",
+            "amount": 30,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "לא משנה",
+          "expect": {
+            "kind": "discarded"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-048",
+      "topic": "discard_draft",
+      "turns": [
+        {
+          "user": "תרמתי 15",
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "תמחק את זה",
+          "expect": {
+            "kind": "discarded"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-049",
+      "topic": "discard_draft",
+      "turns": [
+        {
+          "user": "שילמתי 70 על חניה",
+          "expect": {
+            "kind": "draft",
+            "amount": 70,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "תבטל",
+          "expect": {
+            "kind": "discarded"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-050",
+      "topic": "receipt_then_fix",
+      "turns": [
+        {
+          "user": "סופר ירק סהכ 86.40 שולם ב-01/11/2026",
+          "expect": {
+            "kind": "draft",
+            "amount": 86.4,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "זה היה 90",
+          "expect": {
+            "kind": "draft",
+            "amount": 90,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-051",
+      "topic": "receipt_then_fix",
+      "turns": [
+        {
+          "user": "חשמלית חודש אוקטובר 210 שח",
+          "expect": {
+            "kind": "draft",
+            "amount": 210,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "תוסיף שזה הוצאה מוכרת",
+          "expect": {
+            "kind": "draft",
+            "amount": 210,
+            "type": "recognized-expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-052",
+      "topic": "inspiration_more",
+      "turns": [
+        {
+          "user": "תן לי חיזוק",
+          "expect": {
+            "kind": "inspiration"
+          }
+        },
+        {
+          "user": "עוד אחד",
+          "expect": {
+            "kind": "inspiration"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-053",
+      "topic": "multi_request",
+      "turns": [
+        {
+          "user": "קניתי לחם ב-15 וכמה הוצאתי החודש",
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "וכמה זה בסך הכל השנה",
+          "expect": {
+            "kind": "data_answer",
+            "family": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-054",
+      "topic": "multi_request",
+      "turns": [
+        {
+          "user": "50 במכולת ו-120 לישיבה",
+          "expect": {
+            "kind": "drafts"
+          }
+        },
+        {
+          "user": "רק את הראשונה",
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "expense"
+          }
+        }
+      ]
+    },
+    {
+      "id": "conv-055",
+      "topic": "recurring_no_frequency",
+      "note": "From the QA run on #640: a standing order with no frequency.",
+      "turns": [
+        {
+          "user": "הוראת קבע של 100 שקל לעמותה",
+          "expect": {
+            "kind": "question",
+            "alsoOk": [
+              "recurring"
+            ]
+          }
+        },
+        {
+          "user": "כל חודש",
+          "expect": {
+            "kind": "recurring",
+            "amount": 100,
+            "frequency": "monthly"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-01",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "קניתי קפה ב-15",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "expense"
+          }
+        },
+        {
+          "user": "זה תרומה",
+          "expect": {
+            "kind": "draft",
+            "amount": 15,
+            "type": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-02",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "כמה תרמתי החודש?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        },
+        {
+          "user": "לאיזה מקומות?",
+          "expect": {
+            "kind": "data_answer",
+            "family": "donation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-03",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "האם מותר לשלם חובות ממעשר?",
+          "expect": {
+            "kind": "halacha",
+            "alsoOk": [
+              "rabbi"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-04",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "ממה בדיוק מפרישים מעשר?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-05",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "אני מתלבט אם מותר לי לקזז מהמעשר את שכר הלימוד של הבן שלי, מה עושים במקרה שלי?",
+          "expect": {
+            "kind": "rabbi"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-06",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "לאיזה מטרות אפשר לתרום",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-07",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "תעשה כלל שכל תשלום לגן הוא הוצאה מוכרת",
+          "expect": {
+            "kind": "rule"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-08",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "קיבלתי משכורת 8000, תוציא גם חומש",
+          "expect": {
+            "kind": "draft",
+            "amount": 8000,
+            "type": "income",
+            "chomesh": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-09",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "טיפול במוסך 500 תחבורה",
+          "expect": {
+            "kind": "draft",
+            "amount": 500,
+            "type": "expense",
+            "category": "transportation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-10",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "תרמתי 10 לעזר מציון",
+          "expect": {
+            "kind": "draft",
+            "amount": 10,
+            "type": "donation",
+            "description": "עזר מציון"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-11",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "כמה אחוז צריך לתת מעשר?",
+          "expect": {
+            "kind": "halacha"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa-12",
+      "topic": "qa_2026_11",
+      "turns": [
+        {
+          "user": "האם צריך להפריש מעשר ממתנות?",
+          "expect": {
+            "kind": "halacha",
+            "alsoOk": [
+              "rabbi"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-1",
+      "topic": "donation_payee",
+      "note": "QA 2026-11-08 item 8: the payee is the card's recipient, without the joining ל.",
+      "turns": [
+        {
+          "user": "תרומה 50 לקופת העיר",
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation",
+            "description": "קופת העיר",
+            "recipient": "קופת העיר"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-2",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "נתתי 100 לבית חב\"ד",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 100,
+            "type": "donation",
+            "description": "בית חב\"ד",
+            "recipient": "בית חב\"ד"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-3",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "180 לעזר מציון",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 180,
+            "type": "donation",
+            "description": "עזר מציון",
+            "recipient": "עזר מציון"
+          }
+        }
+      ]
+    },
+    {
+      "id": "donation-payee-4",
+      "topic": "donation_payee",
+      "turns": [
+        {
+          "user": "נתתי 100 לישיבת נחלת",
+          "expect": {
+            "kind": "draft",
+            "alsoOk": [
+              "question"
+            ],
+            "amount": 100,
+            "type": "donation",
+            "description": "ישיבת נחלת",
+            "recipient": "ישיבת נחלת"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa6-01",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "expect": {
+            "kind": "already_saved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa6-02",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "נתתי היום 50 שקל לעזר מציון",
+          "expect": {
+            "kind": "already_saved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa6-03",
+      "topic": "repeat_after_save",
+      "turns": [
+        {
+          "user": "תרמתי 50 לעזר מציון",
+          "saved": true,
+          "expect": {
+            "kind": "draft",
+            "amount": 50,
+            "type": "donation"
+          }
+        },
+        {
+          "user": "בעצם 20",
+          "expect": {
+            "kind": "draft",
+            "amount": 20,
+            "type": "donation"
+          }
+        }
+      ]
+    }
+  ]
+}

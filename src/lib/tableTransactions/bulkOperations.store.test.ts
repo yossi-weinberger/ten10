@@ -113,6 +113,32 @@ describe("table transaction bulk store actions", () => {
     expect(useTableTransactionsStore.getState().loading).toBe(false);
   });
 
+  it("appends the next page in server order when loading more", async () => {
+    mockFetchTransactions
+      .mockResolvedValueOnce({
+        data: [{ id: "a" } as Transaction, { id: "b" } as Transaction],
+        totalCount: 4,
+      })
+      .mockResolvedValueOnce({
+        data: [{ id: "c" } as Transaction, { id: "d" } as Transaction],
+        totalCount: 4,
+      });
+
+    await useTableTransactionsStore.getState().fetchTransactions(true, "web");
+    useTableTransactionsStore.getState().setLoadMorePagination();
+    await useTableTransactionsStore.getState().fetchTransactions(false, "web");
+
+    expect(
+      useTableTransactionsStore.getState().transactions.map(({ id }) => id),
+    ).toEqual(["a", "b", "c", "d"]);
+    expect(mockFetchTransactions).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ offset: 20, limit: 20, platform: "web" }),
+    );
+    expect(useTableTransactionsStore.getState().pagination.hasMore).toBe(false);
+    expect(useTableTransactionsStore.getState().pagination.currentPage).toBe(2);
+  });
+
   it("deletes in one service call and refreshes once without optimistic state", async () => {
     await useTableTransactionsStore
       .getState()

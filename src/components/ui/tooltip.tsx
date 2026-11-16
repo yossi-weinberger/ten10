@@ -17,6 +17,7 @@ type TooltipTriggerProps = React.ComponentPropsWithoutRef<
 type TooltipInteractionContextValue = {
   isTouchLikeDevice: boolean;
   toggle: () => void;
+  markPointerDown: () => void;
 };
 
 const TooltipInteractionContext =
@@ -65,9 +66,14 @@ const Tooltip = ({
     defaultOpen ?? false,
   );
   const resolvedOpen = isControlled ? openProp : uncontrolledOpen;
+  const suppressUntilRef = React.useRef<number>(0);
 
   const handleTouchOpenChange = React.useCallback(
     (nextOpen: boolean) => {
+      const now = Date.now();
+      if (now < suppressUntilRef.current) {
+        return;
+      }
       if (!isControlled) {
         setUncontrolledOpen(nextOpen);
       }
@@ -78,15 +84,25 @@ const Tooltip = ({
 
   const toggleTouchTooltip = React.useCallback(() => {
     if (!isTouchLikeDevice) return;
-    handleTouchOpenChange(!resolvedOpen);
-  }, [isTouchLikeDevice, handleTouchOpenChange, resolvedOpen]);
+    const newOpen = !resolvedOpen;
+    if (!isControlled) {
+      setUncontrolledOpen(newOpen);
+    }
+    onOpenChange?.(newOpen);
+    suppressUntilRef.current = Date.now() + 50;
+  }, [isTouchLikeDevice, resolvedOpen, isControlled, onOpenChange]);
+
+  const markPointerDown = React.useCallback(() => {
+    suppressUntilRef.current = Date.now() + 150;
+  }, []);
 
   const interactionContextValue = React.useMemo(
     () => ({
       isTouchLikeDevice,
       toggle: toggleTouchTooltip,
+      markPointerDown,
     }),
-    [isTouchLikeDevice, toggleTouchTooltip],
+    [isTouchLikeDevice, toggleTouchTooltip, markPointerDown],
   );
 
   const rootProps: TooltipRootProps = isTouchLikeDevice
@@ -118,8 +134,15 @@ Tooltip.displayName = "Tooltip";
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   TooltipTriggerProps
->(({ onClick, ...props }, ref) => {
+>(({ onClick, onPointerDown, onPointerLeave, ...props }, ref) => {
   const interactionContext = React.useContext(TooltipInteractionContext);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    onPointerDown?.(event);
+    if (event.pointerType === "touch" && interactionContext?.isTouchLikeDevice) {
+      interactionContext.markPointerDown();
+    }
+  };
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
@@ -129,8 +152,22 @@ const TooltipTrigger = React.forwardRef<
     }
   };
 
+  const handlePointerLeave = (event: React.PointerEvent<HTMLButtonElement>) => {
+    onPointerLeave?.(event);
+    if (event.defaultPrevented) return;
+    if (event.pointerType === "touch") {
+      event.preventDefault();
+    }
+  };
+
   return (
-    <TooltipPrimitive.Trigger ref={ref} {...props} onClick={handleClick} />
+    <TooltipPrimitive.Trigger
+      ref={ref}
+      {...props}
+      onPointerDown={handlePointerDown}
+      onClick={handleClick}
+      onPointerLeave={handlePointerLeave}
+    />
   );
 });
 TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName;

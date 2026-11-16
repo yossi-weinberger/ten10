@@ -47,6 +47,19 @@
     "warning": "אזהרה",
     "info": "מידע"
   },
+  "optInPrompt": {
+    "title": "האם תרצה להפעיל עדכונים?",
+    "descriptionReminder": "נשמח לשלוח לך תזכורות חודשיות שיעזרו לך להישאר מעודכן.",
+    "descriptionMarketing": "נשמח לעדכן אותך על תכונות חדשות ושיפורים.",
+    "reminderLabel": "הפעל תזכורות חודשיות",
+    "reminderDescription": "קבל תזכורת במייל בתחילת כל חודש לבדיקת יתרת המעשר",
+    "marketingLabel": "הפעל עדכונים וחדשות",
+    "marketingDescription": "קבל עדכונים על תכונות חדשות ושיפורים",
+    "enable": "הפעל",
+    "notNow": "לא עכשיו",
+    "updatePreferences": "עדכן העדפות",
+    "updating": "מעדכן..."
+  },
   "dataLoadError": "שגיאה בטעינת נתונים.",
   "export": {
     "transactionTypes": {
@@ -130,6 +143,7 @@
     "android_app_description": "אפליקציה מקורית לאנדרואיד",
     "desktop_offline_available": "זמין במצב לא מקוון עם SQLite",
     "desktop_local_storage": "כל הנתונים שלך מאוחסנים באופן מקומי",
+    "web_online_features": "גישה מכל דפדפן עם חשבון Supabase",
     "download_mobile_app": "הורד אפליקציה למובייל",
     "contact_us": "צור קשר",
     "download_app": "הורד אפליקציה",

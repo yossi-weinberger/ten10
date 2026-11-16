@@ -8,6 +8,8 @@ import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { Repeat } from "lucide-react";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils";
 import { RingsRowSkeleton } from "./AnalyticsSkeleton";
 
 interface RecurringRatioInsightProps {
@@ -79,7 +81,13 @@ function TypeRingChart({
         </svg>
         {/* Center label */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+          <span
+            className={cn(
+              "text-lg sm:text-xl font-semibold tracking-tight text-foreground",
+              PH_SENSITIVE_PROPS.className,
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
             {pct.toFixed(0)}%
           </span>
         </div>
@@ -91,7 +99,13 @@ function TypeRingChart({
       </p>
 
       {/* Recurring amount */}
-      <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+      <p
+        className={cn(
+          "text-xs sm:text-sm font-medium text-muted-foreground",
+          PH_SENSITIVE_PROPS.className,
+        )}
+        data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      >
         <CountUp
           start={startAnimateValue}
           end={displayValue}
@@ -204,13 +218,19 @@ export function RecurringRatioInsight({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <p className="text-muted-foreground mb-0.5">{t("analytics.recurringRatio.recurring")}</p>
-                  <p className="font-bold text-purple-500">
+                  <p
+                    className={cn("font-bold text-purple-500", PH_SENSITIVE_PROPS.className)}
+                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                  >
                     {formatCurrency(recurringAmount, defaultCurrency, i18n.language)}
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-0.5">{t("analytics.recurringRatio.onetime")}</p>
-                  <p className="font-bold text-foreground">
+                  <p
+                    className={cn("font-bold text-foreground", PH_SENSITIVE_PROPS.className)}
+                    data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+                  >
                     {formatCurrency(onetimeAmount, defaultCurrency, i18n.language)}
                   </p>
                 </div>

@@ -16,6 +16,7 @@ export interface BulkActionsToolbarProps {
   editDisabled?: boolean;
   dir?: "rtl" | "ltr";
   className?: string;
+  mobileLayout?: boolean;
 }
 
 export function BulkActionsToolbar({
@@ -33,6 +34,7 @@ export function BulkActionsToolbar({
   editDisabled = false,
   dir = "rtl",
   className,
+  mobileLayout = false,
 }: BulkActionsToolbarProps) {
   if (selectedCount === 0) {
     return null;
@@ -59,7 +61,9 @@ export function BulkActionsToolbar({
           type="button"
           variant="outline"
           size="sm"
-          className="min-h-11 sm:min-h-9"
+          className={cn(
+            mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
+          )}
           onClick={onClear}
           disabled={actionsDisabled}
         >
@@ -68,7 +72,9 @@ export function BulkActionsToolbar({
         <Button
           type="button"
           size="sm"
-          className="min-h-11 sm:min-h-9"
+          className={cn(
+            mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
+          )}
           onClick={onEdit}
           disabled={actionsDisabled || editDisabled || selectedCount === 0}
         >
@@ -78,7 +84,9 @@ export function BulkActionsToolbar({
           type="button"
           variant="destructive"
           size="sm"
-          className="min-h-11 sm:min-h-9"
+          className={cn(
+            mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
+          )}
           onClick={onDelete}
           disabled={actionsDisabled || selectedCount === 0}
         >

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getPreviousPeriodRange } from "./date-range";
+import {
+  ALL_TIME_START_DATE,
+  getPreviousPeriodRange,
+  isAllTimeStartDate,
+} from "./date-range";
 
 describe("getPreviousPeriodRange", () => {
   const cases = [
@@ -156,10 +160,19 @@ describe("getPreviousPeriodRange", () => {
 
   it("returns no comparison for all-time", () => {
     expect(
-      getPreviousPeriodRange("1970-01-01", "2026-09-23", {
+      getPreviousPeriodRange(ALL_TIME_START_DATE, "2026-09-23", {
         selection: "all",
         calendarType: "hebrew",
       }),
     ).toBeNull();
+  });
+});
+
+describe("all-time sentinel", () => {
+  it("uses year 0001 so BETWEEN includes pre-1970 rows", () => {
+    expect(ALL_TIME_START_DATE).toBe("0001-01-01");
+    expect("1926-01-01" >= ALL_TIME_START_DATE).toBe(true);
+    expect("1969-12-31" >= ALL_TIME_START_DATE).toBe(true);
+    expect(isAllTimeStartDate(ALL_TIME_START_DATE)).toBe(true);
   });
 });

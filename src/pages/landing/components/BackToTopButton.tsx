@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getScrollableParent, getScrollTop } from "../utils/scroll";
+import { getScrollableParent, getScrollTop } from "@/lib/utils/scroll";
 
 interface BackToTopButtonProps {
   pageRef: React.RefObject<HTMLElement | null>;

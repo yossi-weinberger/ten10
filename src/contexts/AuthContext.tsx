@@ -18,6 +18,8 @@ import { PreferencesSyncService } from "@/lib/services/preferences-sync.service"
 import { resetPostHogUser } from "@/lib/analytics/posthogClient";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { clearAiAccessCache } from "@/lib/ai/ai-access-cache";
+import { clearSharedIntake } from "@/lib/ai/share-target";
 import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 
 export type { SupabaseUser as User };
@@ -84,6 +86,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(newCurrentUser);
 
         if (event === "SIGNED_OUT") {
+          // A pending share belongs to whoever was signed in; the next account must not receive it.
+          void clearSharedIntake().catch(() => undefined);
+          clearAiAccessCache();
           if (lastAuthedUserIdRef.current != null) {
             trackProductEvent("logout_completed");
             resetPostHogUser();
@@ -108,6 +113,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (lastAuthedUserIdRef.current !== newCurrentUser.id) {
             void syncPostHogUserIdentity(newCurrentUser, i18n.language);
+          }
+          // Another account took over this tab without a sign-out: drop the previous account's pending share.
+          if (lastAuthedUserIdRef.current !== null && lastAuthedUserIdRef.current !== newCurrentUser.id) {
+            void clearSharedIntake().catch(() => undefined);
+            clearAiAccessCache();
           }
           lastAuthedUserIdRef.current = newCurrentUser.id;
         }

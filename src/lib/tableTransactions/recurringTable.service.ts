@@ -204,8 +204,9 @@ export async function fetchAllRecurring(
   const platform = getPlatform();
   if (platform === "web") {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) {
       logger.error("User not found for fetching recurring transactions");
       return [];
@@ -261,8 +262,9 @@ export async function updateRecurringTransaction(
 
   if (platform === "web") {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) {
       throw new Error("User not authenticated for updating transaction");
     }
@@ -309,8 +311,9 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
 
   if (platform === "web") {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) {
       throw new Error("User not authenticated for deleting transaction");
     }

@@ -75,6 +75,10 @@ const TermsPage = lazyRouteComponent(
   () => import("./pages/TermsPage"),
   "TermsPage"
 );
+const BetaTermsPage = lazyRouteComponent(
+  () => import("./pages/BetaTermsPage"),
+  "BetaTermsPage"
+);
 const AccessibilityPage = lazyRouteComponent(
   () => import("./pages/AccessibilityPage"),
   "AccessibilityPage"
@@ -96,6 +100,7 @@ const rootRoute = createRootRoute({
   component: App,
   notFoundComponent: NotFoundPage,
   beforeLoad: async ({ location }) => {
+    if (import.meta.env.DEV && location.pathname.startsWith("/dev/")) return;
     // --- Platform Check ---
     // A simple, synchronous check for the Tauri-injected global.
     // This runs before React components, so we can't use the context/manager here.
@@ -259,6 +264,12 @@ const termsRoute = createRoute({
   component: TermsPage,
 });
 
+const betaTermsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/beta-terms",
+  component: BetaTermsPage,
+});
+
 const accessibilityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/accessibility",
@@ -292,6 +303,17 @@ const adminRoute = createRoute({
   },
 });
 
+const assistantGalleryRoute = import.meta.env.DEV
+  ? createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/dev/assistant",
+      component: lazyRouteComponent(
+        () => import("./pages/dev/AssistantGalleryPage"),
+        "AssistantGalleryPage",
+      ),
+    })
+  : null;
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -309,6 +331,7 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   privacyRoute,
   termsRoute,
+  betaTermsRoute,
   accessibilityRoute,
   adminRoute,
   transactionsTableRoute.addChildren([
@@ -316,6 +339,7 @@ const routeTree = rootRoute.addChildren([
     recurringTransactionsRoute,
     transactionImportRoute,
   ]),
+  ...(assistantGalleryRoute ? [assistantGalleryRoute] : []),
 ]);
 
 // Use hash history on Tauri desktop so that refreshing on a nested route

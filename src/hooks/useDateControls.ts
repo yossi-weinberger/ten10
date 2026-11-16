@@ -6,14 +6,23 @@ import {
   type CalendarType,
 } from "@/lib/calendar";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import {
+  ALL_TIME_START_DATE,
+  isAllTimeStartDate,
+} from "@/lib/utils/date-range";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
 
 export interface DateRangeObject {
-  startDate: string; // YYYY-MM-DD (local)
+  /** YYYY-MM-DD (local). All-time uses ALL_TIME_START_DATE. */
+  startDate: string;
   endDate: string; // YYYY-MM-DD (local) - typically "today"
   label?: string;
+}
+
+export function isAllTimeRange(range: Pick<DateRangeObject, "startDate">): boolean {
+  return isAllTimeStartDate(range.startDate);
 }
 
 // Helper: get "today" as a Date (local)
@@ -49,7 +58,7 @@ export function calculateDateRange(
     }
     case "all":
       return {
-        startDate: "1970-01-01",
+        startDate: ALL_TIME_START_DATE,
         endDate,
         label: labels.all,
       };

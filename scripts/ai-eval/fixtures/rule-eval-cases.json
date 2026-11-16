@@ -1,0 +1,49 @@
+{
+  "rule": {
+    "id": "rule-gan",
+    "name": "גן",
+    "examples": ["גן הילדים ברחוב הרצל", "תשלום חודשי לגן"]
+  },
+  "cases": [
+    {
+      "id": "pos-receipt",
+      "text": "גן ילדים שושנים שכר לימוד גן 1,200 ₪",
+      "expect": "rule-gan"
+    },
+    {
+      "id": "pos-paid",
+      "text": "שילמתי לגן 900",
+      "expect": "rule-gan"
+    },
+    {
+      "id": "pos-bare",
+      "text": "גן 900",
+      "expect": "rule-gan"
+    },
+    {
+      "id": "pos-tuition",
+      "text": "שכר לימוד גן 900 שקל",
+      "expect": "rule-gan"
+    },
+    {
+      "id": "neg-thief",
+      "text": "גנב",
+      "expect": null
+    },
+    {
+      "id": "neg-shield",
+      "text": "מגן",
+      "expect": null
+    },
+    {
+      "id": "neg-gardener",
+      "text": "גנן",
+      "expect": null
+    },
+    {
+      "id": "neg-garden",
+      "text": "קניתי גינה",
+      "expect": null
+    }
+  ]
+}

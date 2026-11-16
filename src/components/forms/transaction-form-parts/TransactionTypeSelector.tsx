@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormLabel } from "@/components/ui/form";
-import { Wallet, CreditCard, HandCoins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionType } from "@/types/transaction";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
+import { BASE_TYPE_ICON, BASE_TYPE_TINT } from "./transaction-type-visuals";
 
 const userFacingTransactionTypes: TransactionType[] = [
   "income",
@@ -47,13 +47,6 @@ function toBaseType(type: TransactionType): BaseType | null {
   }
   return null;
 }
-
-// Only the slider changes color; the triggers themselves remain transparent
-const indicatorColors: Record<ButtonStyleType, string> = {
-  income: "bg-green-100 dark:bg-green-900",
-  expense: "bg-red-100 dark:bg-red-900",
-  donation: "bg-yellow-100 dark:bg-yellow-900",
-};
 
 interface TransactionTypeSelectorProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -108,7 +101,7 @@ export function TransactionTypeSelector({
     0,
     displayTypes.indexOf(selectedType as ButtonStyleType)
   );
-  const sliderColor = indicatorColors[selectedType as ButtonStyleType];
+  const sliderColor = BASE_TYPE_TINT[selectedType as ButtonStyleType];
 
   useEffect(() => {
     const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
@@ -234,13 +227,10 @@ export function TransactionTypeSelector({
                 "focus-visible:ring-0 focus-visible:outline-none"
               )}
             >
-              {type === "income" && <Wallet className="h-5 w-5 mb-1 mx-auto" />}
-              {type === "expense" && (
-                <CreditCard className="h-5 w-5 mb-1 mx-auto" />
-              )}
-              {type === "donation" && (
-                <HandCoins className="h-5 w-5 mb-1 mx-auto" />
-              )}
+              {(() => {
+                const TypeIcon = BASE_TYPE_ICON[type];
+                return <TypeIcon className="mx-auto mb-1 h-5 w-5" />;
+              })()}
               <span className="text-xs md:text-sm">
                 {transactionTypeLabels[type as TransactionType]}
               </span>

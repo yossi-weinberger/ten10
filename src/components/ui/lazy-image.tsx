@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface LazyImageProps {
   src: string;
@@ -56,7 +57,7 @@ export function LazyImage({
       {!isLoaded && !hasError && (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
           {placeholder || (
-            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+            <BrandInlineSpinner className="h-8 w-8" />
           )}
         </div>
       )}

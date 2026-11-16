@@ -46,7 +46,7 @@ Web source of truth after sync: `profiles.client_preferences.onboarding`.
 
 Desktop: the same object inside SQLite `client_preferences` via `persistAllDesktopSettings`.
 
-What's New on first-run is a dedicated column (`profiles.last_seen_version` / `settings.lastSeenVersion`), not JSONB. `extractClientPreferences` omits it. `markCurrentWhatsNewSeen` writes that column on Web and updates Zustand on both platforms.
+What's New on first-run is a dedicated column (`profiles.last_seen_version` / `settings.lastSeenVersion`), not JSONB. `extractClientPreferences` omits it. `markCurrentWhatsNewSeen` writes that column on Web and updates Zustand on both platforms. The automatic What's New modal also waits while the terms modal is checking or open (`src/components/auth/termsGate.ts`). The Version Information button still opens it directly.
 
 ## PostHog events
 

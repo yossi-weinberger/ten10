@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -10,7 +10,10 @@ import {
   Book,
   Table,
   PieChart,
+  MessageCircleQuestionMark,
 } from "lucide-react";
+import { ContactDialog } from "@/components/layout/ContactDialog";
+import { onAssistantOpenRequest } from "@/components/ai-intake/assistant-open";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +29,11 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
+import type { AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
+import { useAiIntakeUi } from "@/lib/ai/flags";
+import { takeSharedIntake, type SharedIntake } from "@/lib/ai/share-target";
+import { BrandSidebarLogo } from "@/components/brand/BrandSidebarLogo";
+import { SIDEBAR_SIZE } from "./sidebarSize";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -34,6 +42,16 @@ interface SidebarProps {
 }
 
 type SliderStyle = { opacity: number; top: number; height: number };
+
+// The AI drawer and its inspiration library load only for users who see it.
+const AssistantDrawer = lazy(() =>
+  import("@/components/ai-intake/AssistantDrawer").then((module) => ({ default: module.AssistantDrawer }))
+);
+
+function deliverShare(handle: AssistantDrawerHandle, shared: SharedIntake) {
+  if (shared.kind === "file") handle.receive(shared.file);
+  else handle.receiveText(shared.text);
+}
 
 export function Sidebar({
   expanded = false,
@@ -48,6 +66,41 @@ export function Sidebar({
   const [profileFullName, setProfileFullName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const assistantRef = useRef<AssistantDrawerHandle | null>(null);
+  const pendingShare = useRef<SharedIntake | null>(null);
+  const showAssistant = useAiIntakeUi(platform, Boolean(session?.user));
+
+  // The floating button opens the drawer of the persistent sidebar, which is mounted on every screen size.
+  useEffect(() => {
+    if (inSheet || !showAssistant) return;
+    return onAssistantOpenRequest(() => setAssistantOpen(true));
+  }, [inSheet, showAssistant]);
+
+  // The drawer loads lazily, so a share can arrive before it mounts. It waits here.
+  const receiveRef = useCallback((handle: AssistantDrawerHandle | null) => {
+    assistantRef.current = handle;
+    const shared = pendingShare.current;
+    if (!handle || !shared) return;
+    pendingShare.current = null;
+    deliverShare(handle, shared);
+  }, []);
+
+  useEffect(() => {
+    // A share waits (it expires after a day) until the flag answers yes; no flag, no IndexedDB.
+    if (inSheet || authLoading || platform === "loading" || !showAssistant) return;
+    let cancelled = false;
+    void takeSharedIntake().then((shared) => {
+      if (cancelled || !shared) return;
+      setAssistantOpen(true);
+      if (assistantRef.current) deliverShare(assistantRef.current, shared);
+      else pendingShare.current = shared;
+    }).catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [inSheet, authLoading, platform, showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -59,8 +112,8 @@ export function Sidebar({
     height: 0,
   });
 
-  const expandedWidth = inSheet ? "w-44" : "w-44";
-  const collapsedWidth = "w-16";
+  const expandedWidth = SIDEBAR_SIZE.expandedWidth.className;
+  const collapsedWidth = SIDEBAR_SIZE.collapsedWidth.className;
 
   // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
@@ -213,9 +266,10 @@ export function Sidebar({
       <Button
         variant="ghost"
         className={cn(
-          "w-full h-12 z-10 overflow-hidden max-w-full",
+          "w-full z-10 overflow-hidden max-w-full",
           "transition-all duration-300",
           "justify-start px-4",
+          inSheet ? "min-h-11" : "h-12",
           isActive
             ? "text-secondary-foreground hover:bg-transparent"
             : "text-foreground",
@@ -275,69 +329,20 @@ export function Sidebar({
         to="/"
         onClick={onLinkClick}
         aria-label={t("appName")}
-        className={cn(
-          "flex items-center mb-6 overflow-hidden shrink-0 transition-all duration-300",
-          expanded ? "px-4 justify-start" : "px-0 justify-center w-full"
-        )}
-        style={{ height: "36px" }}
+        className="block w-full mb-6 shrink-0"
       >
         <span className="sr-only">{t("appName")}</span>
-
-        <div className="relative w-full h-full flex items-center">
-          {/* Square Logo (Collapsed) */}
-          <div
-            className={cn(
-              "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
-              expanded ? "opacity-0 pointer-events-none" : "opacity-100"
-            )}
-          >
-            <img
-              src="/logo/logo.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="block dark:hidden h-9 w-9 object-contain"
-            />
-            <img
-              src="/logo/logo.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="hidden dark:block h-9 w-9 object-contain"
-            />
-          </div>
-
-          {/* Wide Logo (Expanded) */}
-          <div
-            className={cn(
-              "absolute inset-0 flex items-center justify-start transition-opacity duration-300",
-              expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-            )}
-          >
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="block dark:hidden h-7 w-auto object-contain"
-            />
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="hidden dark:block h-7 w-auto object-contain"
-            />
-          </div>
-        </div>
+        {/* Morphs between the wide logo (expanded) and the square logo (collapsed). */}
+        <BrandSidebarLogo expanded={expanded} dir={i18n.dir()} />
       </Link>
 
       {/* Parent wrapper (non-scroll) */}
       <div
         ref={listRef}
         className={cn(
-          "relative flex-1 p-1 overflow-x-hidden", // not scrollable
-          "flex flex-col min-h-0 gap-1"
+          "relative flex-1 p-1 overflow-x-hidden",
+          "flex flex-col min-h-0 gap-1",
+          inSheet ? "overflow-y-auto" : ""
         )}
       >
         {/* Slider overlay over the whole wrapper */}
@@ -366,7 +371,10 @@ export function Sidebar({
         {/* Scrollable NAV area */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden min-w-0"
+          className={cn(
+            "overflow-x-hidden min-w-0",
+            inSheet ? "flex-none" : "flex-1 min-h-0 overflow-y-auto"
+          )}
         >
           <nav className="flex flex-col gap-1 min-w-0">
             <NavLink to="/" icon={Home}>
@@ -399,6 +407,20 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
+            {/* "Contact" lives in the menu on every platform; the floating button is only the assistant's. */}
+            {platform !== "loading" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full h-12 justify-start px-4 text-foreground [&_svg]:size-6"
+                onClick={() => setContactOpen(true)}
+              >
+                <MessageCircleQuestionMark className="min-w-[24px] flex-shrink-0" />
+                <span className={expanded ? "ms-4" : "sr-only"}>
+                  {t("menu.contact")}
+                </span>
+              </Button>
+            ) : null}
 
             {/* Support Us Button - Standard Style */}
             <NavLink
@@ -426,11 +448,13 @@ export function Sidebar({
         </div>
 
         {/* Divider spans the padded width */}
-        <div className="my-2 h-px bg-border/20" />
+        <div className={cn("my-2 h-px bg-border/20", inSheet ? "shrink-0" : "")} />
 
         {/* Feedback (above profile) — web + PostHog only; hides after submit */}
         {platform === "web" && session?.user && (
-          <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          <div className={inSheet ? "shrink-0" : ""}>
+            <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+          </div>
         )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
@@ -442,7 +466,8 @@ export function Sidebar({
             aria-label={t("menu.profile")}
             className={cn(
               "flex items-center rounded-md transition-all duration-300 relative z-10 min-w-0 overflow-hidden",
-              "hover:bg-muted/50 justify-start px-3 h-14"
+              "hover:bg-muted/50 justify-start px-3 h-14",
+              inSheet ? "shrink-0" : ""
             )}
           >
             {authLoading || profileLoading ? (
@@ -524,9 +549,25 @@ export function Sidebar({
       </div>
 
       {/* Bottom area (separate): platform indicator & border */}
-      <div className="mt-auto pt-4 border-t border-border/20 px-1">
+      <div className={cn("mt-auto pt-4 border-t border-border/20 px-1", inSheet ? "shrink-0" : "")}>
         <PlatformIndicator expanded={expanded} />
       </div>
+      {/* Only the persistent sidebar holds the drawer; the floating button opens it on every screen size. */}
+      {showAssistant && !inSheet ? (
+        <Suspense fallback={null}>
+          <AssistantDrawer
+            open={assistantOpen}
+            onOpenChange={setAssistantOpen}
+            receiveRef={receiveRef}
+            userName={profileFullName}
+            onNavigate={() => {
+              setAssistantOpen(false);
+              onLinkClick?.();
+            }}
+          />
+        </Suspense>
+      ) : null}
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }

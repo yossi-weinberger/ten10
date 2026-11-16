@@ -993,8 +993,11 @@ pub fn get_filtered_transactions_handler(
         "ASC"
     };
 
+    // created_at DESC, then id DESC, after every chosen column (including date).
+    // Both tiebreakers are fixed literals, never user text. No NULLS clause:
+    // SQLite keeps its default (NULLs first on ASC, last on DESC).
     let query_string_for_data = format!(
-        "{} {} {} ORDER BY {} {} LIMIT ?{} OFFSET ?{}",
+        "{} {} {} ORDER BY {} {}, t.created_at DESC, t.id DESC LIMIT ?{} OFFSET ?{}",
         base_select,
         base_from,
         where_clause_str,
@@ -1545,6 +1548,164 @@ mod tests {
         .unwrap();
         assert_eq!(page2.total_count, 3);
         assert_eq!(ids(&page2), vec!["t3"]);
+    }
+
+    fn seed_tied_rows(app: &tauri::App<tauri::test::MockRuntime>) {
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        conn.execute_batch(
+            "INSERT INTO transactions
+                (id, date, amount, currency, description, type, category, payment_method, created_at)
+             VALUES
+                ('a', '2024-01-01', 10.0, 'ILS', 'TIE', 'expense', 'food', 'cash', '2024-01-01T00:00:00Z'),
+                ('b', '2024-01-01', 10.0, 'ILS', 'TIE', 'expense', 'food', 'cash', '2024-01-01T00:00:00Z'),
+                ('c', '2024-03-01', 10.0, 'ILS', 'TIE', 'expense', 'food', 'cash', '2024-03-01T00:00:00Z'),
+                ('d', '2024-02-01', 10.0, 'ILS', 'TIE', 'expense', 'food', 'cash', '2024-02-01T00:00:00Z'),
+                ('n', '2024-01-15', 10.0, 'ILS', 'TIE', 'expense', NULL, 'cash', '2024-01-15T00:00:00Z'),
+                ('z', '2024-01-01', 10.0, 'ILS', 'TIE', 'income', 'food', 'cash', '2024-01-01T00:00:00Z');",
+        )
+        .expect("tie seed");
+    }
+
+    fn page_tied(
+        app: &tauri::App<tauri::test::MockRuntime>,
+        page: usize,
+        limit: usize,
+        field: &str,
+        direction: &str,
+    ) -> PaginatedTransactionsResponse {
+        get_filtered_transactions_handler(
+            app.state::<crate::DbState>(),
+            serde_json::from_value(json!({
+                "filters": { "search": "TIE" },
+                "pagination": { "page": page, "limit": limit },
+                "sorting": { "field": field, "direction": direction },
+            }))
+            .unwrap(),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn tied_sort_keys_page_without_duplicates_or_gaps() {
+        let app = mock_app();
+        seed_tied_rows(&app);
+
+        // Equal types break on created_at DESC, then id DESC. Direction of the
+        // chosen column does not flip those tiebreakers.
+        let page1 = page_tied(&app, 1, 2, "type", "asc");
+        let page2 = page_tied(&app, 2, 2, "type", "asc");
+        let page3 = page_tied(&app, 3, 2, "type", "asc");
+        assert_eq!(page1.total_count, 6);
+        assert_eq!(ids(&page1), vec!["c", "d"]);
+        assert_eq!(ids(&page2), vec!["n", "b"]);
+        assert_eq!(ids(&page3), vec!["a", "z"]);
+
+        let seen = [ids(&page1), ids(&page2), ids(&page3)].concat();
+        let mut unique = seen.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(seen.len(), unique.len());
+        assert_eq!(unique, vec!["a", "b", "c", "d", "n", "z"]);
+
+        let desc = page_tied(&app, 1, 10, "type", "desc");
+        assert_eq!(ids(&desc), vec!["z", "c", "d", "n", "b", "a"]);
+
+        // Equal amounts keep created_at DESC, id DESC in both directions.
+        let amount_asc = page_tied(&app, 1, 10, "amount", "asc");
+        assert_eq!(ids(&amount_asc), vec!["c", "d", "n", "z", "b", "a"]);
+        let amount_desc = page_tied(&app, 1, 10, "amount", "desc");
+        assert_eq!(ids(&amount_desc), vec!["c", "d", "n", "z", "b", "a"]);
+
+        // Same calendar date breaks on id DESC, not on the date direction.
+        let date_asc = page_tied(&app, 1, 10, "date", "asc");
+        assert_eq!(ids(&date_asc), vec!["z", "b", "a", "n", "d", "c"]);
+        let date_desc = page_tied(&app, 1, 10, "date", "desc");
+        assert_eq!(ids(&date_desc), vec!["c", "d", "n", "z", "b", "a"]);
+
+        // SQLite still sorts NULL categories first on ASC and last on DESC.
+        let category_asc = page_tied(&app, 1, 10, "category", "asc");
+        assert_eq!(ids(&category_asc), vec!["n", "c", "d", "z", "b", "a"]);
+        let category_desc = page_tied(&app, 1, 10, "category", "desc");
+        assert_eq!(ids(&category_desc), vec!["c", "d", "z", "b", "a", "n"]);
+    }
+
+    fn seed_same_instant(app: &tauri::App<tauri::test::MockRuntime>, count: i32) {
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        for n in 1..=count {
+            conn.execute(
+                "INSERT INTO transactions
+                    (id, date, amount, currency, description, type, category, payment_method, created_at)
+                 VALUES (?1, '2024-06-01', 10.0, 'ILS', 'PAGE', 'expense', 'food', 'cash', '2024-06-01T00:00:00Z')",
+                params![format!("p-{n:02}")],
+            )
+            .expect("page seed");
+        }
+    }
+
+    #[test]
+    fn tied_date_pages_across_twenty_rows_have_no_gaps() {
+        let app = mock_app();
+        seed_same_instant(&app, 25);
+        let expected: Vec<String> = (1..=25).rev().map(|n| format!("p-{n:02}")).collect();
+
+        for (field, direction) in [("date", "asc"), ("date", "desc"), ("type", "asc"), ("amount", "desc")] {
+            let page1 = page_tied_search(&app, "PAGE", 1, 20, field, direction);
+            let page2 = page_tied_search(&app, "PAGE", 2, 20, field, direction);
+            assert_eq!(page1.total_count, 25, "{field} {direction}");
+            assert_eq!(ids(&page1), expected[..20].to_vec(), "{field} {direction} page 1");
+            assert_eq!(ids(&page2), expected[20..].to_vec(), "{field} {direction} page 2");
+            let seen = [ids(&page1), ids(&page2)].concat();
+            let mut unique = seen.clone();
+            unique.sort();
+            unique.dedup();
+            assert_eq!(seen.len(), 25);
+            assert_eq!(unique.len(), 25);
+            assert_eq!(unique.len(), seen.len());
+        }
+    }
+
+    #[test]
+    fn null_created_at_stays_last_on_desc_tiebreaker() {
+        let app = mock_app();
+        seed_same_instant(&app, 1);
+        let db_state = app.state::<crate::DbState>();
+        {
+            let conn = db_state.0.lock().expect("db lock");
+            conn.execute(
+                "INSERT INTO transactions
+                    (id, date, amount, currency, description, type, category, payment_method, created_at)
+                 VALUES ('p-null', '2024-06-01', 10.0, 'ILS', 'PAGE', 'expense', 'food', 'cash', NULL)",
+                [],
+            )
+            .expect("null created_at");
+        }
+        // SQLite DESC puts NULLs last. No NULLS LAST clause is added.
+        let desc = page_tied_search(&app, "PAGE", 1, 10, "date", "desc");
+        assert_eq!(ids(&desc), vec!["p-01", "p-null"]);
+        let asc = page_tied_search(&app, "PAGE", 1, 10, "date", "asc");
+        assert_eq!(ids(&asc), vec!["p-01", "p-null"]);
+    }
+
+    fn page_tied_search(
+        app: &tauri::App<tauri::test::MockRuntime>,
+        search: &str,
+        page: usize,
+        limit: usize,
+        field: &str,
+        direction: &str,
+    ) -> PaginatedTransactionsResponse {
+        get_filtered_transactions_handler(
+            app.state::<crate::DbState>(),
+            serde_json::from_value(json!({
+                "filters": { "search": search },
+                "pagination": { "page": page, "limit": limit },
+                "sorting": { "field": field, "direction": direction },
+            }))
+            .unwrap(),
+        )
+        .unwrap()
     }
 
     fn transaction_count(app: &tauri::App<tauri::test::MockRuntime>) -> i64 {

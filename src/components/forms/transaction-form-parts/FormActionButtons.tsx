@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
+import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
 
 interface FormActionButtonsProps {
   isSubmitting: boolean;
@@ -16,6 +17,20 @@ interface FormActionButtonsProps {
   isEditMode?: boolean;
   selectedType?: TransactionType;
 }
+
+/** The submit button's text for each save state, when adding and when editing. */
+const SUBMIT_LABELS = {
+  add: {
+    idle: "transactionForm.actions.submit",
+    saving: "transactionForm.actions.submitting",
+    saved: "transactionForm.messages.success",
+  },
+  edit: {
+    idle: "transactionForm.actions.save",
+    saving: "transactionForm.actions.saving",
+    saved: "transactionForm.messages.updateSuccess",
+  },
+} as const;
 
 const DONATION_URL =
   "https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10";
@@ -29,14 +44,11 @@ export function FormActionButtons({
 }: FormActionButtonsProps) {
   const { t, i18n } = useTranslation("transactions");
   const isDonation = selectedType === "donation";
+  // Success first: the form reports it while react-hook-form still says it is submitting.
+  const saveState = isSuccess ? "saved" : isSubmitting ? "saving" : "idle";
 
   return (
     <div className="flex justify-end items-center gap-4">
-      {/* Success Icon Animation */}
-      {isSuccess && (
-        <CheckCircle className="h-5 w-5 text-green-500 animate-pulse" />
-      )}
-
       {/* Support Institute Button - Only show when donation type is selected */}
       {isDonation && (
         <Tooltip>
@@ -77,14 +89,10 @@ export function FormActionButtons({
           {t("transactionForm.actions.cancel")}
         </Button>
       )}
-      <Button type="submit" disabled={isSubmitting || isSuccess}>
-        {isSubmitting
-          ? t("transactionForm.actions.submitting")
-          : isSuccess
-          ? t("transactionForm.messages.success")
-          : isEditMode
-          ? t("transactionForm.actions.save")
-          : t("transactionForm.actions.submit")}
+      {/* Disabled while saving and after success, but not dimmed: the symbol shows the progress. */}
+      <Button type="submit" disabled={saveState !== "idle"} className="disabled:opacity-100">
+        {saveState !== "idle" && <BrandSaveIcon status={saveState} />}
+        {t(SUBMIT_LABELS[isEditMode ? "edit" : "add"][saveState])}
       </Button>
     </div>
   );
