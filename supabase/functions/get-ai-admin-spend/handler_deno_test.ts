@@ -1,4 +1,4 @@
-import { handleAdminAiSpend, type AdminSpendDeps } from "./index.ts";
+import { handleAdminAiSpend, type AdminSpendDeps } from "./handler.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -43,7 +43,7 @@ function deps(overrides: Partial<AdminSpendDeps> & { fetchImpl: typeof fetch }):
   return {
     authorize: () => Promise.resolve("ok"),
     apiKey: () => KEY,
-    warn: (message) => warnings.push(message),
+    logError: (message) => warnings.push(message),
     warnings,
     ...overrides,
   };

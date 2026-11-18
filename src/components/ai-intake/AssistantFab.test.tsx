@@ -5,7 +5,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
-import { assistantCoachStorageKey, assistantIntroStorageKey } from "./assistant-intro";
+import {
+  assistantCoachStorageKey,
+  assistantIntroDismissedKey,
+  assistantIntroSessionCountKey,
+  assistantIntroStorageKey,
+} from "./assistant-intro";
 import { AssistantFab } from "./AssistantFab";
 
 const rpc = vi.hoisted(() => vi.fn());
@@ -44,6 +49,7 @@ describe("AssistantFab", () => {
     delete document.body.dataset.mobileSelectionActive;
     delete document.body.dataset.mobileSwipeOpen;
     localStorage.clear();
+    sessionStorage.clear();
     rpc.mockReset();
     rpc.mockResolvedValue({ data: { accepted: false, version: AI_BETA_TERMS_VERSION }, error: null });
     window.history.replaceState({}, "", "/");
@@ -93,7 +99,7 @@ describe("AssistantFab", () => {
     });
   });
 
-  it("repeats the ripple before the note, and plays again until the terms are accepted", async () => {
+  it("plays the ripple once per session and shows the note only once", async () => {
     vi.useFakeTimers();
     renderFab("user-1");
 
@@ -110,10 +116,14 @@ describe("AssistantFab", () => {
     expect(screen.getByText("assistantIntro.title")).toBeInTheDocument();
     expect(localStorage.getItem(assistantCoachStorageKey("user-1"))).toBe("1");
 
-    fireEvent.click(screen.getByRole("button", { name: "assistantIntro.close" }));
-    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBeNull();
-    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    cleanup();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(document.querySelector(".assistant-intro-ring")).toBeNull();
 
+    sessionStorage.clear();
     cleanup();
     renderFab("user-1");
     await act(async () => {
@@ -124,6 +134,89 @@ describe("AssistantFab", () => {
       await vi.advanceTimersByTimeAsync(4000);
     });
     expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("stops the ripple after the note is dismissed with X", async () => {
+    vi.useFakeTimers();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "assistantIntro.close" }));
+
+    expect(localStorage.getItem(assistantIntroDismissedKey("user-1"))).toBe("1");
+    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBeNull();
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+
+    sessionStorage.clear();
+    cleanup();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+    expect(document.querySelector(".assistant-intro-ring")).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it("stops the ripple after three sessions", async () => {
+    vi.useFakeTimers();
+    for (let session = 0; session < 3; session += 1) {
+      sessionStorage.clear();
+      cleanup();
+      renderFab("user-1");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(document.querySelector(".assistant-intro-ring")).toBeTruthy();
+    }
+
+    sessionStorage.clear();
+    cleanup();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+    expect(document.querySelector(".assistant-intro-ring")).toBeNull();
+    expect(localStorage.getItem(assistantIntroSessionCountKey("user-1"))).toBe("3");
+    vi.useRealTimers();
+  });
+
+  it("hides the note after 8 seconds, on scroll, and on an outside tap", async () => {
+    vi.useFakeTimers();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(screen.getByText("assistantIntro.title")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8000);
+    });
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    expect(localStorage.getItem(assistantIntroDismissedKey("user-1"))).toBeNull();
+
+    sessionStorage.clear();
+    localStorage.removeItem(assistantCoachStorageKey("user-1"));
+    cleanup();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    fireEvent.scroll(window);
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+
+    sessionStorage.clear();
+    localStorage.removeItem(assistantCoachStorageKey("user-1"));
+    cleanup();
+    renderFab("user-1");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    expect(localStorage.getItem(assistantIntroDismissedKey("user-1"))).toBeNull();
     vi.useRealTimers();
   });
 
