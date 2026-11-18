@@ -1,4 +1,4 @@
-import { parseGatewayCredits } from "./credits.ts";
+import { parseGatewayCredits } from "./gateway-credits.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);

@@ -3,20 +3,18 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AdminAiCalls, AdminAiCounts, AdminAiCredits, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
+import type { AdminAiCalls, AdminAiCounts, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
 import { AdminAiSection } from "@/components/admin/AdminAiSection";
 
-const { fetchAdminAiCalls, fetchAdminAiCounts, fetchAdminAiCredits, fetchAdminAiSpend } = vi.hoisted(() => ({
+const { fetchAdminAiCalls, fetchAdminAiCounts, fetchAdminAiSpend } = vi.hoisted(() => ({
   fetchAdminAiCalls: vi.fn<() => Promise<AdminAiCalls | null>>(),
   fetchAdminAiCounts: vi.fn<() => Promise<AdminAiCounts | null>>(),
-  fetchAdminAiCredits: vi.fn<() => Promise<AdminAiCredits | null>>(),
   fetchAdminAiSpend: vi.fn<() => Promise<AdminAiSpend | null>>(),
 }));
 
 vi.mock("@/lib/data-layer/aiAdmin.service", () => ({
   fetchAdminAiCalls: () => fetchAdminAiCalls(),
   fetchAdminAiCounts: () => fetchAdminAiCounts(),
-  fetchAdminAiCredits: () => fetchAdminAiCredits(),
   fetchAdminAiSpend: () => fetchAdminAiSpend(),
 }));
 
@@ -76,6 +74,7 @@ const spend: AdminAiSpend = {
   ],
   appDays: [{ day: "2026-10-28", totalCost: 0.0075, requestCount: 23 }],
   sources: { app: 0.0075, eval: 0 },
+  credits: { available: false, balance: null, totalUsed: null, passRemaining: null },
 };
 
 const calls: AdminAiCalls = {
@@ -111,7 +110,6 @@ describe("AdminAiSection", () => {
       dispatchEvent: () => false,
     });
     fetchAdminAiCalls.mockResolvedValue(null);
-    fetchAdminAiCredits.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -119,17 +117,13 @@ describe("AdminAiSection", () => {
     fetchAdminAiCounts.mockReset();
     fetchAdminAiSpend.mockReset();
     fetchAdminAiCalls.mockReset();
-    fetchAdminAiCredits.mockReset();
   });
 
   it("shows the gateway balance above the model costs", async () => {
     fetchAdminAiCounts.mockResolvedValue(counts);
-    fetchAdminAiSpend.mockResolvedValue(spend);
-    fetchAdminAiCredits.mockResolvedValue({
-      available: true,
-      balance: "95.50",
-      totalUsed: "4.50",
-      passRemaining: null,
+    fetchAdminAiSpend.mockResolvedValue({
+      ...spend,
+      credits: { available: true, balance: "95.50", totalUsed: "4.50", passRemaining: null },
     });
 
     render(<TooltipProvider><AdminAiSection /></TooltipProvider>);

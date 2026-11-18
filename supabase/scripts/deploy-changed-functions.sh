@@ -46,7 +46,6 @@ ALL_FUNCTIONS=(
   ai-purge-receipts
   ai-transcribe-speech
   get-ai-admin-spend
-  get-ai-admin-credits
 )
 
 # Redeploy when supabase/functions/_shared changes
@@ -70,7 +69,6 @@ SHARED_DEPENDENT=(
   ai-purge-receipts
   ai-transcribe-speech
   get-ai-admin-spend
-  get-ai-admin-credits
 )
 
 is_managed_function() {

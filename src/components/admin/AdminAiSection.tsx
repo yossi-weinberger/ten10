@@ -19,7 +19,6 @@ import { aiShare } from "@/lib/admin/ai-usage";
 import {
   fetchAdminAiCalls,
   fetchAdminAiCounts,
-  fetchAdminAiCredits,
   fetchAdminAiSpend,
   type AdminAiCalls,
   type AdminAiCounts,
@@ -88,23 +87,6 @@ export function AdminAiSection() {
   const passText = credits?.available ? gatewayUsd(credits.passRemaining) : null;
 
   useEffect(() => {
-    let cancelled = false;
-    void fetchAdminAiCredits()
-      .then((next) => {
-        if (!cancelled) setCredits(next);
-      })
-      .catch(() => {
-        if (!cancelled) setCredits(null);
-      })
-      .finally(() => {
-        if (!cancelled) setCreditsLoaded(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     if (!startDate) return;
     const key = `${startDate}|${endDate}`;
     let cancelled = false;
@@ -143,11 +125,15 @@ export function AdminAiSection() {
         if (cancelled) return;
         setSpend(next);
         setSpendKey(key);
+        setCredits(next?.credits ?? null);
+        setCreditsLoaded(true);
       })
       .catch(() => {
         if (cancelled) return;
         setSpend(null);
         setSpendKey(key);
+        setCredits(null);
+        setCreditsLoaded(true);
       });
     return () => {
       cancelled = true;

@@ -44,19 +44,20 @@ export type AdminAiCounts = {
 
 export type AdminAiSpendDay = { day: string; totalCost: number; requestCount: number };
 
+export type AdminAiCredits = {
+  available: boolean;
+  balance: string | null;
+  totalUsed: string | null;
+  passRemaining: string | null;
+};
+
 export type AdminAiSpend = {
   available: boolean;
   mixed: boolean;
   models: Array<{ label: string; totalCost: number; requestCount: number; inputTokens: number; outputTokens: number }>;
   appDays: AdminAiSpendDay[];
   sources: { app: number; eval: number };
-};
-
-export type AdminAiCredits = {
-  available: boolean;
-  balance: string | null;
-  totalUsed: string | null;
-  passRemaining: string | null;
+  credits: AdminAiCredits;
 };
 
 export type AdminAiCallOperation = {
@@ -151,27 +152,6 @@ export async function fetchAdminAiSpend(from: string, to: string): Promise<Admin
     return spend;
   } catch (error) {
     logger.error("Admin AI spend failed", error);
-    return null;
-  }
-}
-
-export async function fetchAdminAiCredits(): Promise<AdminAiCredits | null> {
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token;
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!accessToken || !supabaseUrl) return null;
-    const response = await fetch(`${supabaseUrl}/functions/v1/get-ai-admin-credits`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) {
-      logger.error("Admin AI credits failed", response.status);
-      return null;
-    }
-    return (await response.json()) as AdminAiCredits;
-  } catch (error) {
-    logger.error("Admin AI credits failed", error);
     return null;
   }
 }
