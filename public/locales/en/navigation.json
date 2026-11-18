@@ -18,6 +18,12 @@
     "contact": "Contact us",
     "open": "Open menu"
   },
+  "assistantIntro": {
+    "title": "New! TEN10's smart assistant ✨",
+    "body": "Record a transaction, or ask about your income and expenses in your own words.",
+    "try": "Let's try",
+    "close": "Close"
+  },
   "sheet": {
     "title": "Mobile navigation",
     "description": "Main navigation panel for mobile view"

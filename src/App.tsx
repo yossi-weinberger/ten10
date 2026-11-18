@@ -465,7 +465,7 @@ function App() {
           }}
         />
       </div>
-      {shouldShowFab && showAssistant ? <AssistantFab /> : null}
+      {shouldShowFab && showAssistant ? <AssistantFab userId={user?.id ?? null} /> : null}
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />
