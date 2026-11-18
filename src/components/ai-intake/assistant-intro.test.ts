@@ -2,9 +2,11 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  assistantCoachStorageKey,
   assistantIntroStorageKey,
   clearAssistantIntroSeen,
   hasSeenAssistantIntro,
+  markAssistantCoachShown,
   markAssistantIntroSeen,
   readIntroPreview,
 } from "./assistant-intro";
@@ -24,9 +26,11 @@ describe("assistant intro persistence", () => {
 
   it("clears a stored intro", () => {
     markAssistantIntroSeen(localStorage, "user-a");
+    markAssistantCoachShown(localStorage, "user-a");
     clearAssistantIntroSeen(localStorage, "user-a");
 
     expect(hasSeenAssistantIntro(localStorage, "user-a")).toBe(false);
+    expect(localStorage.getItem(assistantCoachStorageKey("user-a"))).toBeNull();
   });
 
   it("ignores preview parameters outside a dev build", () => {

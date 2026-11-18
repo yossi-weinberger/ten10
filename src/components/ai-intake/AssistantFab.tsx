@@ -12,8 +12,10 @@ import {
   RIPPLE_MS,
   RIPPLE_REPEATS,
   clearAssistantIntroSeen,
+  hasSeenAssistantCoach,
   hasSeenAssistantIntro,
   isBlockingDialogOpen,
+  markAssistantCoachShown,
   markAssistantIntroSeen,
   prefersReducedMotion,
   readIntroPreview,
@@ -114,6 +116,11 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
 
     const showCoach = () => {
       if (cancelled) return;
+      if (!forced && hasSeenAssistantCoach(localStorage, userId)) {
+        setPhase("idle");
+        return;
+      }
+      markAssistantCoachShown(localStorage, userId);
       setPhase("coach");
       schedule(COACH_LINGER_MS, () => {
         if (!cancelled) hideIntro();

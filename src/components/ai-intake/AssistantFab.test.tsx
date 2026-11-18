@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AI_BETA_TERMS_VERSION } from "@/lib/ai/beta-terms-version";
-import { assistantIntroStorageKey } from "./assistant-intro";
+import { assistantCoachStorageKey, assistantIntroStorageKey } from "./assistant-intro";
 import { AssistantFab } from "./AssistantFab";
 
 const rpc = vi.hoisted(() => vi.fn());
@@ -105,9 +105,10 @@ describe("AssistantFab", () => {
     expect(document.querySelector(".assistant-intro-ring")).toBeTruthy();
     expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2400);
+      await vi.advanceTimersByTimeAsync(4000);
     });
     expect(screen.getByText("assistantIntro.title")).toBeInTheDocument();
+    expect(localStorage.getItem(assistantCoachStorageKey("user-1"))).toBe("1");
 
     fireEvent.click(screen.getByRole("button", { name: "assistantIntro.close" }));
     expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBeNull();
@@ -119,6 +120,10 @@ describe("AssistantFab", () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
     expect(document.querySelector(".assistant-intro-ring")).toBeTruthy();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4000);
+    });
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
     vi.useRealTimers();
   });
 

@@ -57,7 +57,7 @@
 }
 
 .assistant-intro-ring {
-  animation: assistant-intro-ripple 800ms ease-out 3 forwards;
+  animation: assistant-intro-ripple 800ms ease-out 5 forwards;
 }
 
 .assistant-hover-ring {
@@ -74,7 +74,7 @@
 }
 
 .assistant-intro-breathe {
-  animation: assistant-intro-breathe 800ms ease-out 3;
+  animation: assistant-intro-breathe 800ms ease-out 5;
 }
 
 .assistant-intro-spark {
@@ -102,7 +102,7 @@
   }
 
   .assistant-intro-force-motion .assistant-intro-ring {
-    animation: assistant-intro-ripple 800ms ease-out 3 forwards;
+    animation: assistant-intro-ripple 800ms ease-out 5 forwards;
   }
 
   .assistant-intro-force-motion .group:hover > .assistant-hover-ring,
@@ -115,7 +115,7 @@
   }
 
   .assistant-intro-force-motion .assistant-intro-breathe {
-    animation: assistant-intro-breathe 800ms ease-out 3;
+    animation: assistant-intro-breathe 800ms ease-out 5;
   }
 
   .assistant-intro-force-motion .assistant-intro-spark {
