@@ -253,7 +253,9 @@ const METRICS_RESPONSIVE_STYLE = `<style type="text/css">
 export function generateDailySummarySubject(
   input: BuildEmailBodiesInput,
 ): string {
-  return `[Ten10] Daily Summary: +${input.rows.length} users (${input.totalUsers} total), ${input.downloadRequests.windowCount} downloads`;
+  const joins = input.aiBeta.windowCount;
+  const joinClause = joins > 0 ? `, ${joins} AI beta joins` : "";
+  return `[Ten10] Daily Summary: +${input.rows.length} users${joinClause} (${input.totalUsers} total), ${input.downloadRequests.windowCount} downloads`;
 }
 
 export function buildEmailBodies(
@@ -322,6 +324,11 @@ export function buildEmailBodies(
         ? `📧 Reminder emails: <strong style="color: #dc2626;">${reminderFailed} failed</strong>`
         : "📧 Reminder emails: not a reminder day";
 
+  const aiBetaExtra = Math.max(0, aiBeta.windowCount - aiBeta.joins.length);
+  const aiBetaMoreHtml = aiBetaExtra > 0
+    ? `<div style="margin: 0 0 6px; color: ${MUTED_COLOR}; font-size: 12px; line-height: 18px;">+${aiBetaExtra} more</div>`
+    : "";
+
   const githubFooter =
     github.totalDownloads !== null
       ? `All-time: <strong style="color: ${TITLE_COLOR};">${github.totalDownloads}</strong><br><span style="font-size: 10px;">${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}</span>`
@@ -337,7 +344,8 @@ export function buildEmailBodies(
 </table>
 <div style="margin: 0 0 8px; padding: 10px 12px; border-top: 1px solid ${METRIC_BORDER}; border-bottom: 1px solid ${METRIC_BORDER}; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">${reminderStatusLine}</div>
 <div style="margin: 0 0 18px; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">✨ AI beta joined last ${hours}h: <strong style="color: ${TITLE_COLOR};">${aiBeta.windowCount}</strong> · all-time: <strong style="color: ${TITLE_COLOR};">${aiBeta.total}</strong></div>
-${aiBeta.joins.map(renderAiBetaJoin).join("")}`;
+${aiBeta.joins.map(renderAiBetaJoin).join("")}
+${aiBetaMoreHtml}`;
 
   const usersSectionHtml =
     rows.length === 0
@@ -377,6 +385,7 @@ ${aiBeta.joins.map(renderAiBetaJoin).join("")}`;
       const parts = formatDateParts(join.accepted_at);
       return `  - ${join.full_name ?? "Not provided"} | ${join.email ?? "unknown"} | accepted ${parts.date} ${parts.time}`;
     }),
+    ...(aiBetaExtra > 0 ? [`  +${aiBetaExtra} more`] : []),
     `📦 GitHub installs — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads ?? "—"} | ${github.latestVersion}: ${github.latestDownloads ?? "—"}`,
     "",
   ];

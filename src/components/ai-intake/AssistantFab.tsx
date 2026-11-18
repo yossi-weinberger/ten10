@@ -217,7 +217,8 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
         </Tooltip>
         {phase === "coach" ? (
           <div
-            role="note"
+            role="status"
+            aria-live="polite"
             aria-labelledby="assistant-intro-title"
             className="assistant-intro-coach absolute bottom-[calc(100%+0.75rem)] end-0 w-[min(18rem,calc(100vw-3rem))] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
           >

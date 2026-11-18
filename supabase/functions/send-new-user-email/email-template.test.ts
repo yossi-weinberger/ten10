@@ -169,6 +169,19 @@ describe("daily new-user summary email template", () => {
     );
   });
 
+  it("includes AI beta joins in the subject, including a day with no new users", () => {
+    const input: BuildEmailBodiesInput = {
+      ...populatedInput,
+      aiBeta: { joins: [], total: 4, windowCount: 2 },
+      downloadRequests: { details: [], total: 120, windowCount: 0 },
+      rows: [],
+    };
+
+    expect(generateDailySummarySubject(input)).toBe(
+      "[Ten10] Daily Summary: +0 users, 2 AI beta joins (342 total), 0 downloads",
+    );
+  });
+
   it("preserves the complete empty-summary HTML and exact text body", () => {
     const input: BuildEmailBodiesInput = {
       aiBeta: { joins: [], total: 3, windowCount: 0 },
@@ -234,6 +247,49 @@ describe("daily new-user summary email template", () => {
     expect(visibleText(input)).toContain(
       "Joined User · joined@example.test · accepted 16/07/2026 13:30",
     );
+  });
+
+  it("escapes an AI beta join name and email", () => {
+    const unsafe = "<img src=x onerror=alert(1)>";
+    const input: BuildEmailBodiesInput = {
+      ...populatedInput,
+      aiBeta: {
+        joins: [{
+          accepted_at: "2026-07-16T10:30:00.000Z",
+          email: unsafe,
+          full_name: unsafe,
+        }],
+        total: 1,
+        windowCount: 1,
+      },
+    };
+    const rendered = buildEmailBodies(input);
+
+    expect(rendered.htmlBody).not.toContain(unsafe);
+    expect(rendered.htmlBody).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(visibleText(input)).toContain(
+      `${unsafe} · ${unsafe} · accepted 16/07/2026 13:30`,
+    );
+  });
+
+  it("shows how many AI beta joins were left off the list", () => {
+    const input: BuildEmailBodiesInput = {
+      ...populatedInput,
+      aiBeta: {
+        joins: [{
+          accepted_at: "2026-07-16T10:30:00.000Z",
+          email: "joined@example.test",
+          full_name: "Joined User",
+        }],
+        total: 4,
+        windowCount: 3,
+      },
+    };
+    const rendered = buildEmailBodies(input);
+
+    expect(rendered.htmlBody).toContain("+2 more");
+    expect(rendered.textBody).toContain("  +2 more");
+    expect(rendered.textBody).toContain("✨ AI beta joined last 24h: 3 (all-time: 4)");
   });
 
   it("preserves the complete populated ordered text, links, and text-body line order", () => {

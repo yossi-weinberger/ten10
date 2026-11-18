@@ -10,6 +10,7 @@ import {
 } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { AI_BETA_JOIN_LIST_CAP, buildAiBetaJoins } from "./ai-beta-joins.ts";
 import { validateServiceRoleAuth } from "./auth-helpers.ts";
 import {
   buildEmailBodies,
@@ -93,7 +94,8 @@ const fetchAiBetaSummary = async (
   );
   if (accepted.length === 0) return { ...empty, total: total ?? 0 };
 
-  const ids = accepted.map((row) => row.user_id);
+  const listed = accepted.slice(0, AI_BETA_JOIN_LIST_CAP);
+  const ids = listed.map((row) => row.user_id);
   const { data: profiles, error: profilesError } = await client
     .from("profiles")
     .select("id, full_name")
@@ -103,17 +105,9 @@ const fetchAiBetaSummary = async (
   const names = new Map<string, string | null>(
     (profiles ?? []).map((profile) => [profile.id, profile.full_name ?? null]),
   );
-  const joins = [];
-  for (const row of accepted) {
-    const auth = await fetchAuthUser(client, row.user_id);
-    joins.push({
-      accepted_at: row.beta_terms_accepted_at,
-      email: auth.email,
-      full_name: names.get(row.user_id) ?? auth.metaName ?? null,
-    });
-  }
+  const joins = await buildAiBetaJoins(listed, (userId) => fetchAuthUser(client, userId), names);
 
-  return { joins, total: total ?? joins.length, windowCount: joins.length };
+  return { joins, total: total ?? accepted.length, windowCount: accepted.length };
 };
 
 
