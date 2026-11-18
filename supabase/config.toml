@@ -18,6 +18,10 @@ verify_jwt = true
 # Admin AI spend. Requires a valid JWT, then checks admin_emails.
 verify_jwt = true
 
+[functions.get-ai-admin-credits]
+# Admin AI Gateway balance. Requires a valid JWT, then checks admin_emails.
+verify_jwt = true
+
 [functions.send-new-user-email]
 # Daily summary email - requires service_role JWT (pg_cron uses service_role from Vault)
 verify_jwt = true
