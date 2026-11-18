@@ -11,9 +11,7 @@ import {
   INTRO_DELAY_MS,
   RIPPLE_MS,
   RIPPLE_REPEATS,
-  beginAssistantIntroSession,
   clearAssistantIntroSeen,
-  dismissAssistantIntro,
   hasSeenAssistantCoach,
   hasSeenAssistantIntro,
   isBlockingDialogOpen,
@@ -104,7 +102,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
     if (!userId || hidden || consentCovered) return;
 
     const preview = readIntroPreview(window.location.search, import.meta.env.DEV);
-    if (preview === "reset") clearAssistantIntroSeen(localStorage, userId, sessionStorage);
+    if (preview === "reset") clearAssistantIntroSeen(localStorage, userId);
     const forced = preview === "replay" || preview === "motion" || preview === "reset";
     if (!forced && hasSeenAssistantIntro(localStorage, userId)) return;
 
@@ -129,16 +127,11 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
       });
     };
 
-    let started = false;
     const play = () => {
       if (cancelled) return;
       if (isBlockingDialogOpen()) {
         schedule(DIALOG_RETRY_MS, play);
         return;
-      }
-      if (!started) {
-        started = true;
-        if (!forced && !beginAssistantIntroSession(localStorage, sessionStorage, userId)) return;
       }
       const motion = preview === "motion" || !prefersReducedMotion();
       setForceMotion(preview === "motion");
@@ -183,11 +176,9 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
-    window.addEventListener("scroll", hideIntro, true);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
-      window.removeEventListener("scroll", hideIntro, true);
     };
   }, [phase, hideIntro]);
 
@@ -241,10 +232,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
                 variant="ghost"
                 className="size-6 shrink-0"
                 aria-label={t("assistantIntro.close")}
-                onClick={() => {
-                  if (userId) dismissAssistantIntro(localStorage, userId);
-                  hideIntro();
-                }}
+                onClick={hideIntro}
               >
                 <X className="size-3.5" aria-hidden />
               </Button>
