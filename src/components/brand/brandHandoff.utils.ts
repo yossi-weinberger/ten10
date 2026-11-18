@@ -18,7 +18,7 @@ export const BRAND_HANDOFF_TIMING = {
   backdropDelay: 0.15,
   backdropDuration: 0.45,
   textFadeDuration: 0.2,
-  /** Without a target, or with reduced motion, the loader just fades out. */
+  /** Without a target the loader fades out. Reduced motion keeps spinning instead. */
   fadeDuration: 0.2,
 } as const;
 
