@@ -47,13 +47,26 @@
   }
 }
 
-.assistant-intro-ring {
+.assistant-intro-ring,
+.assistant-hover-ring {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
   border: 2px solid hsl(var(--primary));
   pointer-events: none;
-  animation: assistant-intro-ripple 800ms ease-out forwards;
+}
+
+.assistant-intro-ring {
+  animation: assistant-intro-ripple 800ms ease-out 3 forwards;
+}
+
+.assistant-hover-ring {
+  opacity: 0;
+}
+
+.group:hover > .assistant-hover-ring,
+.group:focus-within > .assistant-hover-ring {
+  animation: assistant-intro-ripple 800ms ease-out;
 }
 
 .assistant-intro-ring-late {
@@ -61,7 +74,7 @@
 }
 
 .assistant-intro-breathe {
-  animation: assistant-intro-breathe 800ms ease-out;
+  animation: assistant-intro-breathe 800ms ease-out 3;
 }
 
 .assistant-intro-spark {
@@ -79,14 +92,22 @@
 
 @media (prefers-reduced-motion: reduce) {
   .assistant-intro-ring,
+  .assistant-hover-ring,
   .assistant-intro-breathe,
   .assistant-intro-spark,
-  .assistant-intro-coach {
+  .assistant-intro-coach,
+  .group:hover > .assistant-hover-ring,
+  .group:focus-within > .assistant-hover-ring {
     animation: none;
   }
 
   .assistant-intro-force-motion .assistant-intro-ring {
-    animation: assistant-intro-ripple 800ms ease-out forwards;
+    animation: assistant-intro-ripple 800ms ease-out 3 forwards;
+  }
+
+  .assistant-intro-force-motion .group:hover > .assistant-hover-ring,
+  .assistant-intro-force-motion .group:focus-within > .assistant-hover-ring {
+    animation: assistant-intro-ripple 800ms ease-out;
   }
 
   .assistant-intro-force-motion .assistant-intro-ring-late {
@@ -94,7 +115,7 @@
   }
 
   .assistant-intro-force-motion .assistant-intro-breathe {
-    animation: assistant-intro-breathe 800ms ease-out;
+    animation: assistant-intro-breathe 800ms ease-out 3;
   }
 
   .assistant-intro-force-motion .assistant-intro-spark {

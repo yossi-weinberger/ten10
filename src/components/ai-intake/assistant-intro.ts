@@ -1,6 +1,7 @@
-export const ASSISTANT_INTRO_VERSION = "v1";
+export const ASSISTANT_INTRO_VERSION = "v2";
 export const INTRO_DELAY_MS = 800;
 export const RIPPLE_MS = 800;
+export const RIPPLE_REPEATS = 3;
 export const COACH_LINGER_MS = 12_000;
 export const DIALOG_RETRY_MS = 400;
 

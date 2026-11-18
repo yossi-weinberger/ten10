@@ -93,34 +93,36 @@ describe("AssistantFab", () => {
     });
   });
 
-  it("plays the intro once, then stays quiet", async () => {
+  it("repeats the ripple before the note, and plays again until the terms are accepted", async () => {
     vi.useFakeTimers();
     renderFab("user-1");
 
     expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".assistant-hover-ring")).toHaveLength(2);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
     expect(document.querySelector(".assistant-intro-ring")).toBeTruthy();
+    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(2400);
     });
     expect(screen.getByText("assistantIntro.title")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "assistantIntro.close" }));
-    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBe("1");
+    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBeNull();
     expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
 
     cleanup();
     renderFab("user-1");
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2000);
+      await vi.advanceTimersByTimeAsync(1000);
     });
-    expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
+    expect(document.querySelector(".assistant-intro-ring")).toBeTruthy();
     vi.useRealTimers();
   });
 
-  it("opens the assistant from the button during the intro and does not show it again", async () => {
+  it("opens the assistant from the button without treating that as joining", async () => {
     vi.useFakeTimers();
     const opened = vi.fn();
     window.addEventListener("ten10:open-assistant", opened);
@@ -132,7 +134,7 @@ describe("AssistantFab", () => {
     fireEvent.click(screen.getByRole("button", { name: "menu.assistant" }));
 
     expect(opened).toHaveBeenCalledOnce();
-    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBe("1");
+    expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBeNull();
     window.removeEventListener("ten10:open-assistant", opened);
     vi.useRealTimers();
   });

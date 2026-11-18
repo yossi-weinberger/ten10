@@ -10,6 +10,7 @@ import {
   DIALOG_RETRY_MS,
   INTRO_DELAY_MS,
   RIPPLE_MS,
+  RIPPLE_REPEATS,
   clearAssistantIntroSeen,
   hasSeenAssistantIntro,
   isBlockingDialogOpen,
@@ -68,15 +69,13 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
     timersRef.current.push(id);
   }
 
-  function completeIntro() {
+  function hideIntro() {
     clearIntroTimers();
-    const id = userIdRef.current;
-    if (id) markAssistantIntroSeen(localStorage, id);
     setPhase("idle");
   }
 
   function openAssistant() {
-    completeIntro();
+    hideIntro();
     requestAssistantOpen();
   }
 
@@ -119,7 +118,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
       if (cancelled) return;
       setPhase("coach");
       schedule(COACH_LINGER_MS, () => {
-        if (!cancelled) completeIntro();
+        if (!cancelled) hideIntro();
       });
     };
 
@@ -136,7 +135,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
         return;
       }
       setPhase("ripple");
-      schedule(RIPPLE_MS, showCoach);
+      schedule(RIPPLE_MS * RIPPLE_REPEATS, showCoach);
     };
 
     schedule(INTRO_DELAY_MS, play);
@@ -163,12 +162,12 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
   useEffect(() => {
     if (phase !== "coach") return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") completeIntro();
+      if (event.key === "Escape") hideIntro();
     };
     const onPointer = (event: PointerEvent) => {
       const root = rootRef.current;
       if (root && event.target instanceof Node && root.contains(event.target)) return;
-      completeIntro();
+      hideIntro();
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
@@ -187,7 +186,9 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
       ref={rootRef}
       className={`fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50 ${forceMotion ? "assistant-intro-force-motion" : ""}`}
     >
-      <div className="relative">
+      <div className="group relative">
+        <span className="assistant-hover-ring" />
+        <span className="assistant-hover-ring assistant-intro-ring-late" />
         {phase === "ripple" ? (
           <>
             <span className="assistant-intro-ring" />
@@ -200,7 +201,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
           <TooltipTrigger asChild>
             <Button
               size="icon"
-              className={`relative size-14 mobile-landscape:size-12 rounded-full shadow-lg [&_svg]:size-7 mobile-landscape:[&_svg]:size-6 ${phase === "ripple" ? "assistant-intro-breathe" : ""}`}
+              className={`relative z-10 size-14 mobile-landscape:size-12 rounded-full shadow-lg motion-safe:transition-transform motion-safe:duration-200 motion-safe:hover:scale-105 [&_svg]:size-7 mobile-landscape:[&_svg]:size-6 ${phase === "ripple" ? "assistant-intro-breathe" : ""}`}
               aria-label={t("menu.assistant")}
               onClick={openAssistant}
             >
@@ -225,7 +226,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
                 variant="ghost"
                 className="size-6 shrink-0"
                 aria-label={t("assistantIntro.close")}
-                onClick={completeIntro}
+                onClick={hideIntro}
               >
                 <X className="size-3.5" aria-hidden />
               </Button>
