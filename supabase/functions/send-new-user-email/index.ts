@@ -10,12 +10,14 @@ import {
 } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { AI_BETA_JOIN_LIST_CAP, buildAiBetaJoins } from "./ai-beta-joins.ts";
 import { validateServiceRoleAuth } from "./auth-helpers.ts";
 import {
   buildEmailBodies,
   generateDailySummarySubject,
   type DownloadRequest,
   type ReminderRunLog,
+  type AiBetaSummary,
   type SummaryRow,
 } from "./email-template.ts";
 
@@ -61,6 +63,51 @@ const fetchAuthUser = async (
       (data.user?.user_metadata as { full_name?: string } | undefined)
         ?.full_name ?? null,
   };
+};
+
+const fetchAiBetaSummary = async (
+  client: SupabaseClient,
+  sinceIso: string,
+): Promise<AiBetaSummary> => {
+  const empty: AiBetaSummary = { joins: [], total: 0, windowCount: 0 };
+  const [{ count: total, error: totalError }, { data: joinRows, error: joinError }] =
+    await Promise.all([
+      client
+        .from("user_plans")
+        .select("user_id", { count: "exact", head: true })
+        .not("beta_terms_accepted_at", "is", null),
+      client
+        .from("user_plans")
+        .select("user_id, beta_terms_accepted_at")
+        .gte("beta_terms_accepted_at", sinceIso)
+        .order("beta_terms_accepted_at", { ascending: false }),
+    ]);
+
+  if (totalError) console.error("Failed to count AI beta acceptances:", totalError);
+  if (joinError) {
+    console.error("Failed to list AI beta acceptances:", joinError);
+    return { ...empty, total: total ?? 0 };
+  }
+
+  const accepted = (joinRows ?? []).filter(
+    (row) => typeof row.user_id === "string" && typeof row.beta_terms_accepted_at === "string",
+  );
+  if (accepted.length === 0) return { ...empty, total: total ?? 0 };
+
+  const listed = accepted.slice(0, AI_BETA_JOIN_LIST_CAP);
+  const ids = listed.map((row) => row.user_id);
+  const { data: profiles, error: profilesError } = await client
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", ids);
+  if (profilesError) console.error("Failed to fetch AI beta profiles:", profilesError);
+
+  const names = new Map<string, string | null>(
+    (profiles ?? []).map((profile) => [profile.id, profile.full_name ?? null]),
+  );
+  const joins = await buildAiBetaJoins(listed, (userId) => fetchAuthUser(client, userId), names);
+
+  return { joins, total: total ?? accepted.length, windowCount: accepted.length };
 };
 
 
@@ -294,7 +341,10 @@ serve(async (req) => {
     details: (downloadDetails ?? []) as DownloadRequest[],
   };
 
+  const aiBeta = await fetchAiBetaSummary(supabaseAdmin, sinceIso);
+
   const emailInput = {
+    aiBeta,
     rows,
     hours,
     downloadRequests,
@@ -304,8 +354,12 @@ serve(async (req) => {
   };
   const { htmlBody, textBody } = buildEmailBodies(emailInput);
 
-  if (rows.length === 0 && downloadRequests.windowCount === 0) {
-    // No new users AND no downloads: still return 200, avoid sending an empty email
+  if (
+    rows.length === 0 &&
+    downloadRequests.windowCount === 0 &&
+    aiBeta.windowCount === 0
+  ) {
+    // Nothing new to report: still return 200, avoid sending an empty email
     return jsonResponse({
       message: "No new profiles or download requests in window",
       hours,

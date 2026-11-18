@@ -22,11 +22,24 @@ import {
   fetchAdminAiSpend,
   type AdminAiCalls,
   type AdminAiCounts,
+  type AdminAiCredits,
   type AdminAiSpend,
 } from "@/lib/data-layer/aiAdmin.service";
 
 function kindCount(counts: AdminAiCounts, kind: string): number {
   return Number(counts.messages_by_kind[kind] ?? 0);
+}
+
+function gatewayUsd(value: string | null): string | null {
+  if (value === null) return null;
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return null;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 function CountGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
@@ -59,6 +72,8 @@ export function AdminAiSection() {
   const [spendKey, setSpendKey] = useState("");
   const [calls, setCalls] = useState<AdminAiCalls | null>(null);
   const [callsKey, setCallsKey] = useState("");
+  const [credits, setCredits] = useState<AdminAiCredits | null>(null);
+  const [creditsLoaded, setCreditsLoaded] = useState(false);
 
   const startDate = dateRangeSelection === "all" ? firstOn : activeDateRangeObject.startDate;
   const endDate = activeDateRangeObject.endDate;
@@ -67,6 +82,9 @@ export function AdminAiSection() {
   const spendCurrent = spendKey === rangeKey;
   const callsCurrent = callsKey === rangeKey;
   const funnel = countsCurrent && counts ? intakeFunnel(counts.drafts, counts.origins) : null;
+  const balanceText = credits?.available ? gatewayUsd(credits.balance) : null;
+  const usedText = credits?.available ? gatewayUsd(credits.totalUsed) : null;
+  const passText = credits?.available ? gatewayUsd(credits.passRemaining) : null;
 
   useEffect(() => {
     if (!startDate) return;
@@ -107,11 +125,15 @@ export function AdminAiSection() {
         if (cancelled) return;
         setSpend(next);
         setSpendKey(key);
+        setCredits(next?.credits ?? null);
+        setCreditsLoaded(true);
       })
       .catch(() => {
         if (cancelled) return;
         setSpend(null);
         setSpendKey(key);
+        setCredits(null);
+        setCreditsLoaded(true);
       });
     return () => {
       cancelled = true;
@@ -204,6 +226,27 @@ export function AdminAiSection() {
       ) : (
         <Skeleton className="h-40" />
       )}
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-lg font-medium">{t("ai.balanceTitle")}</h3>
+          <p className="text-sm text-muted-foreground">{t("ai.balanceHint")}</p>
+        </div>
+        {creditsLoaded && balanceText ? (
+          <div>
+            <p className="text-2xl font-bold tabular-nums">{balanceText}</p>
+            {usedText ? (
+              <p className="mt-1 text-sm text-muted-foreground">{t("ai.balanceUsed", { amount: usedText })}</p>
+            ) : null}
+            {passText ? (
+              <p className="text-sm text-muted-foreground">{t("ai.balancePass", { amount: passText })}</p>
+            ) : null}
+          </div>
+        ) : creditsLoaded ? (
+          <p className="text-sm text-muted-foreground">{t("ai.balanceUnavailable")}</p>
+        ) : (
+          <Skeleton className="h-16" />
+        )}
+      </section>
       <section className="space-y-3">
         <h3 className="text-lg font-medium">{t("ai.spendTitle")}</h3>
         {spendCurrent && spend?.available ? (

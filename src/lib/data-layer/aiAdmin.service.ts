@@ -44,12 +44,20 @@ export type AdminAiCounts = {
 
 export type AdminAiSpendDay = { day: string; totalCost: number; requestCount: number };
 
+export type AdminAiCredits = {
+  available: boolean;
+  balance: string | null;
+  totalUsed: string | null;
+  passRemaining: string | null;
+};
+
 export type AdminAiSpend = {
   available: boolean;
   mixed: boolean;
   models: Array<{ label: string; totalCost: number; requestCount: number; inputTokens: number; outputTokens: number }>;
   appDays: AdminAiSpendDay[];
   sources: { app: number; eval: number };
+  credits: AdminAiCredits;
 };
 
 export type AdminAiCallOperation = {

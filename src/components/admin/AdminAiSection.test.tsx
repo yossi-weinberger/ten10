@@ -74,6 +74,7 @@ const spend: AdminAiSpend = {
   ],
   appDays: [{ day: "2026-10-28", totalCost: 0.0075, requestCount: 23 }],
   sources: { app: 0.0075, eval: 0 },
+  credits: { available: false, balance: null, totalUsed: null, passRemaining: null },
 };
 
 const calls: AdminAiCalls = {
@@ -116,6 +117,21 @@ describe("AdminAiSection", () => {
     fetchAdminAiCounts.mockReset();
     fetchAdminAiSpend.mockReset();
     fetchAdminAiCalls.mockReset();
+  });
+
+  it("shows the gateway balance above the model costs", async () => {
+    fetchAdminAiCounts.mockResolvedValue(counts);
+    fetchAdminAiSpend.mockResolvedValue({
+      ...spend,
+      credits: { available: true, balance: "95.50", totalUsed: "4.50", passRemaining: null },
+    });
+
+    render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
+
+    expect(await screen.findByText("ai.balanceTitle")).toBeTruthy();
+    expect(screen.getByText("$95.50")).toBeTruthy();
+    expect(screen.getByText("ai.balanceUsed")).toBeTruthy();
+    expect(screen.queryByText("ai.balancePass")).toBeNull();
   });
 
   it("shows counts when the spend request fails", async () => {

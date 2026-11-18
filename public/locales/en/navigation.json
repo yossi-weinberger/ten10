@@ -18,6 +18,12 @@
     "contact": "Contact us",
     "open": "Open menu"
   },
+  "assistantIntro": {
+    "title": "New",
+    "body": "TEN10's smart assistant is here, and you were chosen to use it first.",
+    "try": "I want to try",
+    "close": "Close"
+  },
   "sheet": {
     "title": "Mobile navigation",
     "description": "Main navigation panel for mobile view"

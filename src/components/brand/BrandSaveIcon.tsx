@@ -20,8 +20,8 @@ const SPIN_MS = 1000;
  * `BrandInlineSpinner`; when the save succeeds it settles upright, the slice clicks in
  * and the whole symbol becomes a check mark: the ring stretches into the long arm and
  * the slice into the short one, fading from gold to the ring's colour on the way, so the
- * check is one colour. With reduced motion it pulses while saving and the check appears
- * without the morph.
+ * check is one colour. With reduced motion it keeps that same spin while saving and the
+ * check appears without the morph.
  *
  * The ring (and the check) take the text colour, so they show on filled buttons.
  * Decorative: the button text says what is happening ("Saving...", "Saved").
@@ -129,7 +129,7 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
       ref={svgRef}
       className={cn(
         "h-4 w-4 shrink-0",
-        status === "saving" && "motion-reduce:animate-brand-pulse",
+        status === "saving" && "motion-reduce:animate-spin",
         className
       )}
     >

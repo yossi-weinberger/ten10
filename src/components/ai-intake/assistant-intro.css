@@ -1,0 +1,128 @@
+@keyframes assistant-intro-ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(2.15);
+    opacity: 0;
+  }
+}
+
+@keyframes assistant-intro-breathe {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.07);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes assistant-intro-spark {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) translateY(-8px);
+  }
+}
+
+@keyframes assistant-intro-coach {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.assistant-intro-ring,
+.assistant-hover-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--primary));
+  pointer-events: none;
+}
+
+.assistant-intro-ring {
+  animation: assistant-intro-ripple 800ms ease-out 5 forwards;
+}
+
+.assistant-hover-ring {
+  opacity: 0;
+}
+
+.group:hover > .assistant-hover-ring,
+.group:focus-within > .assistant-hover-ring {
+  animation: assistant-intro-ripple 800ms ease-out;
+}
+
+.assistant-intro-ring-late {
+  animation-delay: 140ms;
+}
+
+.assistant-intro-breathe {
+  animation: assistant-intro-breathe 800ms ease-out 5;
+}
+
+.assistant-intro-spark {
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  color: hsl(var(--accent));
+  pointer-events: none;
+  animation: assistant-intro-spark 600ms ease-out forwards;
+}
+
+.assistant-intro-coach {
+  animation: assistant-intro-coach 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-intro-ring,
+  .assistant-hover-ring,
+  .assistant-intro-breathe,
+  .assistant-intro-spark,
+  .assistant-intro-coach,
+  .group:hover > .assistant-hover-ring,
+  .group:focus-within > .assistant-hover-ring {
+    animation: none;
+  }
+
+  .assistant-intro-force-motion .assistant-intro-ring {
+    animation: assistant-intro-ripple 800ms ease-out 5 forwards;
+  }
+
+  .assistant-intro-force-motion .group:hover > .assistant-hover-ring,
+  .assistant-intro-force-motion .group:focus-within > .assistant-hover-ring {
+    animation: assistant-intro-ripple 800ms ease-out;
+  }
+
+  .assistant-intro-force-motion .assistant-intro-ring-late {
+    animation-delay: 140ms;
+  }
+
+  .assistant-intro-force-motion .assistant-intro-breathe {
+    animation: assistant-intro-breathe 800ms ease-out 5;
+  }
+
+  .assistant-intro-force-motion .assistant-intro-spark {
+    animation: assistant-intro-spark 600ms ease-out forwards;
+  }
+
+  .assistant-intro-force-motion .assistant-intro-coach {
+    animation: assistant-intro-coach 300ms ease-out;
+  }
+}

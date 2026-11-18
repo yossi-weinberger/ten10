@@ -223,6 +223,7 @@ const contactBaseRecord: ContactMessageRecord = {
 };
 
 const dailySummaryInput: BuildEmailBodiesInput = {
+  aiBeta: { joins: [], total: 4, windowCount: 0 },
   downloadRequests: {
     details: [
       {

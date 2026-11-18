@@ -7,7 +7,7 @@
         "@typescript-eslint/no-empty-object-type": 3,
         "@typescript-eslint/no-explicit-any": 50,
         "@typescript-eslint/no-unused-expressions": 1,
-        "@typescript-eslint/no-unused-vars": 23,
+        "@typescript-eslint/no-unused-vars": 22,
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
         "no-useless-escape": 8,
@@ -919,13 +919,6 @@
         },
         {
           "code": "@typescript-eslint/no-unused-vars",
-          "file": "supabase/functions/send-new-user-email/index.ts",
-          "message": "'fetchAuthUser' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
           "file": "supabase/functions/send-reminder-emails/index.ts",
           "message": "'e' is defined but never used.",
           "severity": "error",
@@ -957,7 +950,7 @@
         "error": 161,
         "warning": 24
       },
-      "total": 185
+      "total": 184
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",
