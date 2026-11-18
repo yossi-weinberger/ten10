@@ -75,9 +75,9 @@ Rules:
 
 1. Apply brand animations with `motion-safe:` only, e.g. `motion-safe:animate-brand-spin`.
 2. Every component defines what reduced-motion users see:
-   - **Loaders** switch to a gentle pulse (`motion-reduce:animate-brand-pulse`), so it is still obvious that something is loading.
+   - **Loaders** keep a steady linear spin. `BrandSpinner` and the static pre-loader use `motion-reduce:animate-spin` (and `pl-spin 1s linear infinite` in `loader.css`) and drop the flung slice. `BrandInlineSpinner` is already that spin, so it keeps `animate-spin`.
    - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
-   - **Save states** (`BrandSaveIcon`) pulse while saving and show the check without the morph.
+   - **Save states** (`BrandSaveIcon`) keep that same spin while saving (`motion-reduce:animate-spin`) and show the check without the morph.
    - **Values driven by data** (`BrandProgress`) still update, but without travel: the slice fades in place instead of dropping (`useReducedMotion` from `framer-motion`).
    - **State changes** (`BrandSidebarLogo`) switch instantly (`motion-reduce:transition-none`), and the first-load handoff becomes a short fade.
    - **Scroll-linked motion** (`LandingLogoDock`): the hero logo stays whole and scrolls away with the page, the corner button fades in once the page has scrolled, and the side navigation keeps its own logo.

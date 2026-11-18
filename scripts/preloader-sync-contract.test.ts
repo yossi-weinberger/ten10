@@ -39,15 +39,21 @@ describe("static pre-loader", () => {
     expect(match(loaderCss, /animation: pl-fling ([^;]+);/)).toBe(
       match(tailwind, /"brand-fling": "brand-fling ([^"]+)"/)
     );
-    expect(match(loaderCss, /animation: pl-pulse ([^;]+);/)).toBe(
-      match(tailwind, /"brand-pulse": "brand-pulse ([^"]+)"/)
-    );
     expect(match(loaderCss, /@keyframes pl-fling \{\s*50% \{\s*transform: ([^;]+);/)).toBe(
       match(tailwind, /"brand-fling": \{\s*"50%": \{ transform: "([^"]+)" \}/)
     );
-    expect(match(loaderCss, /@keyframes pl-pulse \{\s*50% \{\s*opacity: ([^;]+);/)).toBe(
-      match(tailwind, /"brand-pulse": \{\s*"50%": \{ opacity: "([^"]+)" \}/)
-    );
+  });
+
+  it("spins steadily when motion is reduced, like BrandSpinner", () => {
+    const brandSpinner = read("src/components/brand/BrandSpinner.tsx");
+    expect(brandSpinner).toContain("motion-reduce:animate-spin");
+    expect(brandSpinner).not.toContain("animate-brand-pulse");
+    expect(
+      match(
+        loaderCss,
+        /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.pl-spin \{\s*animation: pl-spin ([^;]+);/
+      )
+    ).toBe("1s linear infinite");
   });
 
   it("uses the theme's colours in light and dark", () => {

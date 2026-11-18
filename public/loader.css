@@ -74,19 +74,14 @@
   }
 }
 
-@keyframes pl-pulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-
+/* Same fallback as BrandSpinner's motion-reduce:animate-spin (Tailwind's 1s linear spin). */
 @media (prefers-reduced-motion: reduce) {
   #pre-loader .pl-fling {
     animation: none;
   }
 
   #pre-loader .pl-spin {
-    animation: pl-pulse 2s ease-in-out infinite;
+    animation: pl-spin 1s linear infinite;
   }
 }
 

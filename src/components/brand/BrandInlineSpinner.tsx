@@ -19,7 +19,7 @@ interface BrandInlineSpinnerProps {
  *
  * It turns at a steady pace like `animate-spin`, without `BrandSpinner`'s rhythm and
  * flung slice, which don't read at icon size. The turn is on the `<svg>` itself, so it
- * runs off the main thread. With reduced motion it pulses instead.
+ * runs off the main thread. Reduced motion keeps that same spin.
  *
  * Decorative (`aria-hidden`): where it matters, pair it with text that says what is
  * loading.
@@ -27,7 +27,7 @@ interface BrandInlineSpinnerProps {
 export const BrandInlineSpinner = ({ className, tone = "brand" }: BrandInlineSpinnerProps) => (
   <SymbolSvg
     className={cn(
-      "h-4 w-4 shrink-0 motion-safe:animate-spin motion-reduce:animate-brand-pulse",
+      "h-4 w-4 shrink-0 animate-spin",
       className
     )}
   >

@@ -11,8 +11,8 @@ interface BrandSpinnerProps {
  * Indeterminate loading indicator built from the Ten10 symbol.
  *
  * The symbol spins with an ease-in-out rhythm and the gold slice is flung outward at
- * peak speed, then settles back. With reduced motion it gently pulses instead, so the
- * user still sees that something is loading.
+ * peak speed, then settles back. With reduced motion it keeps a steady linear spin
+ * and the slice stays put.
  *
  * Decorative: pair it with visible or `role="status"` text that says what is loading.
  *
@@ -22,7 +22,7 @@ interface BrandSpinnerProps {
 export const BrandSpinner = ({ className }: BrandSpinnerProps) => (
   <SymbolSvg
     className={cn(
-      "h-14 w-14 motion-safe:animate-brand-spin motion-reduce:animate-brand-pulse",
+      "h-14 w-14 motion-safe:animate-brand-spin motion-reduce:animate-spin",
       className
     )}
   >

@@ -146,9 +146,6 @@ export default {
         "brand-fling": {
           "50%": { transform: "rotate(-5deg) translate(4px, -4px)" },
         },
-        "brand-pulse": {
-          "50%": { opacity: "0.45" },
-        },
         "brand-done-settle": {
           from: { transform: "rotate(-200deg)" },
           to: { transform: "rotate(0deg)" },
@@ -209,7 +206,6 @@ export default {
         // `motion-reduce:` fallback (see llm-instructions/ui/brand-motion-guide.md).
         "brand-spin": "spin 1.5s cubic-bezier(0.6, 0, 0.4, 1) infinite",
         "brand-fling": "brand-fling 1.5s ease-in-out infinite",
-        "brand-pulse": "brand-pulse 2s ease-in-out infinite",
         "brand-done-settle": "brand-done-settle 0.8s cubic-bezier(0.2, 0.6, 0.35, 1) both",
         "brand-done-click": "brand-done-click 0.35s ease-out 0.75s both",
         "brand-done-ripple": "brand-done-ripple 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.8s forwards",
