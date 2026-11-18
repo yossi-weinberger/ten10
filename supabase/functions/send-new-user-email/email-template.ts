@@ -36,7 +36,20 @@ export interface DownloadRequest {
   reason: string | null;
 }
 
+export interface AiBetaJoin {
+  accepted_at: string;
+  email: string | null;
+  full_name: string | null;
+}
+
+export interface AiBetaSummary {
+  joins: AiBetaJoin[];
+  total: number;
+  windowCount: number;
+}
+
 export interface BuildEmailBodiesInput {
+  aiBeta: AiBetaSummary;
   rows: SummaryRow[];
   hours: number;
   downloadRequests: {
@@ -164,6 +177,11 @@ function buildDownloadRequestsSection(
   };
 }
 
+function renderAiBetaJoin(join: AiBetaJoin): string {
+  const parts = formatDateParts(join.accepted_at);
+  return `<div style="margin: 0 0 6px; color: ${MUTED_COLOR}; font-size: 12px; line-height: 18px;">${escapeHtml(join.full_name ?? "Not provided")} · ${escapeHtml(join.email ?? "unknown")} · accepted ${escapeHtml(parts.date)} ${escapeHtml(parts.time)}</div>`;
+}
+
 function renderUserCard(row: SummaryRow): string {
   const avatarCell = row.avatar_url
     ? `<img src="${escapeHtml(row.avatar_url)}" alt="avatar" width="36" height="36" style="display: block; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid ${ROW_BORDER};">`
@@ -241,7 +259,7 @@ export function generateDailySummarySubject(
 export function buildEmailBodies(
   input: BuildEmailBodiesInput,
 ): EmailBodies {
-  const { rows, hours, downloadRequests, totalUsers, reminderLogs, github } =
+  const { aiBeta, rows, hours, downloadRequests, totalUsers, reminderLogs, github } =
     input;
   const {
     windowCount,
@@ -252,7 +270,7 @@ export function buildEmailBodies(
   const downloadSection = buildDownloadRequestsSection(downloadDetails, hours);
   const headerSlogan = "DAILY OPERATIONS";
 
-  if (rows.length === 0 && windowCount === 0) {
+  if (rows.length === 0 && windowCount === 0 && aiBeta.windowCount === 0) {
     const textBody = `${windowLabel}: No new profiles and no new download requests.\nTotal users (all-time): ${totalUsers}`;
     const bodyHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
   <tr>
@@ -317,7 +335,9 @@ export function buildEmailBodies(
     ${renderMetric("📦 GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", githubFooter, true)}
   </tr>
 </table>
-<div style="margin: 0 0 18px; padding: 10px 12px; border-top: 1px solid ${METRIC_BORDER}; border-bottom: 1px solid ${METRIC_BORDER}; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">${reminderStatusLine}</div>`;
+<div style="margin: 0 0 8px; padding: 10px 12px; border-top: 1px solid ${METRIC_BORDER}; border-bottom: 1px solid ${METRIC_BORDER}; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">${reminderStatusLine}</div>
+<div style="margin: 0 0 18px; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">✨ AI beta joined last ${hours}h: <strong style="color: ${TITLE_COLOR};">${aiBeta.windowCount}</strong> · all-time: <strong style="color: ${TITLE_COLOR};">${aiBeta.total}</strong></div>
+${aiBeta.joins.map(renderAiBetaJoin).join("")}`;
 
   const usersSectionHtml =
     rows.length === 0
@@ -352,6 +372,11 @@ export function buildEmailBodies(
     `🌐 Web users last ${hours}h: ${rows.length} (all-time: ${totalUsers})`,
     `💻 Email downloads last ${hours}h: ${windowCount} (all-time: ${total})`,
     `📧 Reminder emails: ${reminderSent} sent | ${reminderFailed} failed`,
+    `✨ AI beta joined last ${hours}h: ${aiBeta.windowCount} (all-time: ${aiBeta.total})`,
+    ...aiBeta.joins.map((join) => {
+      const parts = formatDateParts(join.accepted_at);
+      return `  - ${join.full_name ?? "Not provided"} | ${join.email ?? "unknown"} | accepted ${parts.date} ${parts.time}`;
+    }),
     `📦 GitHub installs — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads ?? "—"} | ${github.latestVersion}: ${github.latestDownloads ?? "—"}`,
     "",
   ];

@@ -11,6 +11,7 @@ const englishSlogan = "DAILY OPERATIONS";
 const adminFooter = ["Ten10 Operations", "Automated internal email"] as const;
 
 const populatedInput: BuildEmailBodiesInput = {
+  aiBeta: { joins: [], total: 3, windowCount: 0 },
   downloadRequests: {
     details: [
       {
@@ -93,6 +94,7 @@ Last 24 hours.
 🌐 Web users last 24h: 3 (all-time: 342)
 💻 Email downloads last 24h: 3 (all-time: 120)
 📧 Reminder emails: 4 sent | 1 failed
+✨ AI beta joined last 24h: 0 (all-time: 3)
 📦 GitHub installs — last 24h: +7 | all-time: 640 | v0.7.4: 40
 
   - Complete User | complete@example.test | date=16/07/2026 13:30 | consent: Yes
@@ -119,6 +121,7 @@ const expectedPopulatedOrderedText = [
   "All-time: 640",
   "v0.7.4: 40",
   "📧 Reminder emails: 4 sent · 1 failed",
+  "✨ AI beta joined last 24h: 0 · all-time: 3",
   "🌐 Web Platform — New Users",
   "Complete User",
   "Yes",
@@ -168,6 +171,7 @@ describe("daily new-user summary email template", () => {
 
   it("preserves the complete empty-summary HTML and exact text body", () => {
     const input: BuildEmailBodiesInput = {
+      aiBeta: { joins: [], total: 3, windowCount: 0 },
       downloadRequests: { details: [], total: 120, windowCount: 0 },
       github: {
         last24h: null,
@@ -197,6 +201,39 @@ describe("daily new-user summary email template", () => {
         ...adminFooter,
       ],
     });
+  });
+
+  it("names the people who accepted the AI beta terms in the window", () => {
+    const input: BuildEmailBodiesInput = {
+      ...populatedInput,
+      aiBeta: {
+        joins: [
+          {
+            accepted_at: "2026-07-16T10:30:00.000Z",
+            email: "joined@example.test",
+            full_name: "Joined User",
+          },
+        ],
+        total: 4,
+        windowCount: 1,
+      },
+      downloadRequests: { details: [], total: 120, windowCount: 0 },
+      rows: [],
+    };
+    const rendered = buildEmailBodies(input);
+
+    expect(rendered.textBody).toContain(
+      "✨ AI beta joined last 24h: 1 (all-time: 4)",
+    );
+    expect(rendered.textBody).toContain(
+      "  - Joined User | joined@example.test | accepted 16/07/2026 13:30",
+    );
+    expect(rendered.textBody).not.toContain(
+      "No new profiles and no new download requests.",
+    );
+    expect(visibleText(input)).toContain(
+      "Joined User · joined@example.test · accepted 16/07/2026 13:30",
+    );
   });
 
   it("preserves the complete populated ordered text, links, and text-body line order", () => {
