@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { BotMessageSquare, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -56,23 +56,21 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
   const [forceMotion, setForceMotion] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<number[]>([]);
-  const userIdRef = useRef(userId);
-  userIdRef.current = userId;
 
-  function clearIntroTimers() {
+  const clearIntroTimers = useCallback(() => {
     for (const id of timersRef.current) window.clearTimeout(id);
     timersRef.current = [];
-  }
+  }, []);
 
-  function later(ms: number, run: () => void) {
+  const later = useCallback((ms: number, run: () => void) => {
     const id = window.setTimeout(run, ms);
     timersRef.current.push(id);
-  }
+  }, []);
 
-  function hideIntro() {
+  const hideIntro = useCallback(() => {
     clearIntroTimers();
     setPhase("idle");
-  }
+  }, [clearIntroTimers]);
 
   function openAssistant() {
     hideIntro();
@@ -141,7 +139,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
     schedule(INTRO_DELAY_MS, play);
 
     if (!forced) {
-      void supabase.rpc("ai_beta_consent_status").then(({ data }) => {
+      void Promise.resolve(supabase.rpc("ai_beta_consent_status")).then(({ data }) => {
         if (cancelled || !data || typeof data !== "object") return;
         const row = data as { accepted?: unknown; version?: unknown };
         if (row.accepted === true && row.version === AI_BETA_TERMS_VERSION) {
@@ -157,7 +155,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
       cancelled = true;
       clearIntroTimers();
     };
-  }, [userId, hidden, consentCovered]);
+  }, [userId, hidden, consentCovered, clearIntroTimers, later, hideIntro]);
 
   useEffect(() => {
     if (phase !== "coach") return;
@@ -175,7 +173,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
     };
-  }, [phase]);
+  }, [phase, hideIntro]);
 
   if (hidden || consentCovered) {
     return null;
