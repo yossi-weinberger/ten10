@@ -40,9 +40,12 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
   const reduceMotion = useReducedMotion() === true || systemReducedMotion();
   const symbolRef = useRef<HTMLDivElement>(null);
   const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
   // undefined while measuring, null when there is nowhere to fly.
   const [flight, setFlight] = useState<HandoffFlight | null | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
