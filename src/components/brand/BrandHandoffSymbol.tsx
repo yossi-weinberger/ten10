@@ -20,24 +20,47 @@ import { SymbolSvg } from "./SymbolSvg";
 interface BrandHandoffSymbolProps {
   /** Size classes; match the loader's spinner (`h-14 w-14`). */
   className?: string;
-  /** Called once the symbol has landed (or faded out). */
+  /** Called once the symbol has landed, faded out, or finished its reduced-motion spin. */
   onDone?: () => void;
+}
+
+/** The OS reduced-motion setting, read on the first paint so the exit does not fade first. */
+function systemReducedMotion(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    : false;
 }
 
 /**
  * The loader's symbol on its way out (#20). It measures the sidebar logo's 0
  * (`[data-brand-zero]`) and flies there, unwinding its spin as it lands. Without a
- * visible target, or with reduced motion, it fades out instead.
+ * visible target it fades out. With reduced motion it keeps a steady spin instead.
  */
 export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProps) => {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion() === true || systemReducedMotion();
   const symbolRef = useRef<HTMLDivElement>(null);
+  const onDoneRef = useRef(onDone);
   // undefined while measuring, null when there is nowhere to fly.
   const [flight, setFlight] = useState<HandoffFlight | null | undefined>(undefined);
 
   useLayoutEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
+  useLayoutEffect(() => {
     const root = document.documentElement;
     root.setAttribute(BRAND_HANDOFF_ATTRIBUTE, "");
+
+    if (reduceMotion) {
+      const timer = window.setTimeout(() => {
+        root.removeAttribute(BRAND_HANDOFF_ATTRIBUTE);
+        onDoneRef.current?.();
+      }, BRAND_HANDOFF_TIMING.fadeDuration * 1000);
+      return () => {
+        window.clearTimeout(timer);
+        root.removeAttribute(BRAND_HANDOFF_ATTRIBUTE);
+      };
+    }
 
     const target = document.querySelector(`[${BRAND_ZERO_ATTRIBUTE}]`);
     const targetRect = target?.getBoundingClientRect();
@@ -51,7 +74,7 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
         )
       : undefined;
     setFlight(
-      !reduceMotion && targetRect && sourceRect && targetRect.width > 0
+      targetRect && sourceRect && targetRect.width > 0
         ? getHandoffFlight(sourceRect, targetRect)
         : null
     );
@@ -60,6 +83,17 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
   }, [reduceMotion]);
 
   const { flightDuration, flightEase, startRotation, fadeDuration } = BRAND_HANDOFF_TIMING;
+
+  if (reduceMotion) {
+    return (
+      <div ref={symbolRef} className={cn("h-14 w-14 animate-spin", className)}>
+        <SymbolSvg className="h-full w-full">
+          <path d={SYMBOL_RING_PATH} className="fill-primary" />
+          <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
+        </SymbolSvg>
+      </div>
+    );
+  }
 
   // A full transform string (not x / y / scale / rotate) lets framer-motion run the flight
   // with the Web Animations API, off the main thread, so it stays smooth while the app
@@ -70,7 +104,7 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
       className={cn("h-14 w-14", className)}
       initial={{
         opacity: 1,
-        transform: `translateX(0px) translateY(0px) scale(1) rotate(${reduceMotion ? 0 : startRotation}deg)`,
+        transform: `translateX(0px) translateY(0px) scale(1) rotate(${startRotation}deg)`,
       }}
       animate={
         flight
