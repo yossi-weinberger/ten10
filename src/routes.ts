@@ -314,6 +314,17 @@ const assistantGalleryRoute = import.meta.env.DEV
     })
   : null;
 
+const importFooterFabShotRoute = import.meta.env.DEV
+  ? createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/dev/import-footer-fab-shot",
+      component: lazyRouteComponent(
+        () => import("./pages/dev/ImportFooterFabShotPage"),
+        "ImportFooterFabShotPage",
+      ),
+    })
+  : null;
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -340,6 +351,7 @@ const routeTree = rootRoute.addChildren([
     transactionImportRoute,
   ]),
   ...(assistantGalleryRoute ? [assistantGalleryRoute] : []),
+  ...(importFooterFabShotRoute ? [importFooterFabShotRoute] : []),
 ]);
 
 // Use hash history on Tauri desktop so that refreshing on a nested route
