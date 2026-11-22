@@ -233,7 +233,11 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
         </div>
 
         <AmountPanel type={txType}>
-          <span dir="ltr">
+          <span
+            className={PH_SENSITIVE_PROPS.className}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+            dir="ltr"
+          >
             {n ? fmtAmount(n.amount, n.currency) : "—"}
           </span>
         </AmountPanel>

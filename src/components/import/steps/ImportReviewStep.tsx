@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import type { ImportPreviewRow, ImportSummary } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import { useDonationStore } from "@/lib/store";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { cn } from "@/lib/utils/index";
 import { ImportReviewSummary } from "../ImportReviewSummary";
 import { ImportReviewTable } from "../ImportReviewTable";
 import { ImportReviewCards } from "../ImportReviewCards";
@@ -123,7 +125,13 @@ export function ImportReviewStep({
           {compactCountParts.join(" · ")}
         </p>
         {compactMoneyParts.length > 0 && (
-          <p className="text-[13.5px] text-muted-foreground leading-snug">
+          <p
+            className={cn(
+              "text-[13.5px] text-muted-foreground leading-snug",
+              PH_SENSITIVE_PROPS.className,
+            )}
+            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+          >
             {compactMoneyParts.join(" · ")}
           </p>
         )}

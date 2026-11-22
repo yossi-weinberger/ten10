@@ -145,6 +145,23 @@ describe("ImportReviewCards B4a", () => {
     expect(screen.getByText("status.needs_review")).toBeInTheDocument();
   });
 
+  it("masks the amount panel text for PostHog replay", () => {
+    const { container } = render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 1 })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    const maskedAmount = container.querySelector(".ph-mask[data-ph-mask]");
+    expect(maskedAmount).toBeTruthy();
+    expect(maskedAmount?.textContent).toMatch(/100|₪/);
+  });
+
   it("uses localized select/edit aria keys", () => {
     render(
       <ImportReviewCards

@@ -121,6 +121,27 @@ describe("ImportReviewStep B4a", () => {
     expect(compact?.textContent).toContain("compactMoney.donations");
   });
 
+  it("masks compact money totals for PostHog replay", () => {
+    const { container } = render(
+      <ImportReviewStep
+        rows={rows}
+        summary={summary({ approvedIncome: 100, approvedExpenses: 50 })}
+        onToggleApproval={noop}
+        onBulkToggle={noop}
+        onToggleAllReady={noop}
+        onClearSelection={noop}
+        onUpdateRow={noop}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    const compact = container.querySelector(".md\\:hidden.rounded-\\[10px\\]");
+    const maskedMoney = compact?.querySelector(".ph-mask[data-ph-mask]");
+    expect(maskedMoney).toBeTruthy();
+    expect(maskedMoney?.textContent).toContain("compactMoney.income");
+  });
+
   it("keeps the desktop summary cards and table wrappers", () => {
     render(
       <ImportReviewStep
