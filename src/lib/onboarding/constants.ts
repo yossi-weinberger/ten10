@@ -24,7 +24,6 @@ export const ONBOARDING_TARGETS = {
   liveBalance: "[data-onboarding='live-balance']",
   importIntro: "[data-onboarding='import-intro']",
   importSteps: "[data-onboarding='import-steps']",
-  importTemplate: "[data-onboarding='import-template']",
   importUpload: "[data-onboarding='import-upload']",
   importMapping: "[data-onboarding='import-mapping']",
   importReview: "[data-onboarding='import-review']",

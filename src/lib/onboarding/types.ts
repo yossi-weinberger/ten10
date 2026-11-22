@@ -34,6 +34,11 @@ export const IMPORT_STEP_IDS = [
   "import-approve",
 ] as const;
 
+/** Live import tour steps after Prepare/template removal (B2). */
+export const IMPORT_TOUR_STEP_IDS = IMPORT_STEP_IDS.filter(
+  (id) => id !== "import-template",
+);
+
 export const ONBOARDING_STEP_IDS = [
   ...HOME_STEP_IDS,
   ...FORM_STEP_IDS,

@@ -1,4 +1,4 @@
-export type OnboardingImportWizardScreen = "prepare" | "upload" | "mapping";
+export type OnboardingImportWizardScreen = "upload" | "mapping";
 
 export type OnboardingImportReachedStep = "mapping" | "review";
 
@@ -13,7 +13,11 @@ const reachedListeners = new Set<ImportReachedListener>();
 
 let refreshTour: (() => void) | null = null;
 
-const IMPORT_UPLOAD_STEP_IDS = new Set<string>(["import-upload"]);
+const IMPORT_UPLOAD_STEP_IDS = new Set<string>([
+  "import-intro",
+  "import-steps",
+  "import-upload",
+]);
 
 export function importWizardScreenForStep(
   stepId: string | undefined,
@@ -24,7 +28,7 @@ export function importWizardScreenForStep(
   if (stepId === "import-review" || stepId === "import-approve") {
     return null;
   }
-  return "prepare";
+  return "upload";
 }
 
 export function notifyOnboardingImportWizardScreen(

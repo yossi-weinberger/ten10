@@ -10,8 +10,6 @@ export interface ImportTourCopy {
   introDescription: string;
   stepsTitle: string;
   stepsDescription: string;
-  templateTitle: string;
-  templateDescription: string;
   uploadTitle: string;
   uploadDescription: string;
   mappingTitle: string;
@@ -67,13 +65,6 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       ONBOARDING_TARGETS.importSteps,
       copy.stepsTitle,
       copy.stepsDescription,
-      nav,
-    ),
-    importStep(
-      "import-template",
-      ONBOARDING_TARGETS.importTemplate,
-      copy.templateTitle,
-      copy.templateDescription,
       nav,
     ),
     importStep(
