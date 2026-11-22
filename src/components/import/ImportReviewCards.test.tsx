@@ -67,6 +67,8 @@ function row(overrides: Partial<ImportPreviewRow> & { id: string; rowNumber: num
       conversion_rate: null,
       conversion_date: null,
       rate_source: null,
+      source_recurring_id: null,
+      occurrence_number: null,
     },
     ...overrides,
   };
@@ -161,6 +163,8 @@ describe("ImportReviewCards B4a", () => {
           conversion_rate: null,
           conversion_date: null,
           rate_source: null,
+          source_recurring_id: null,
+          occurrence_number: null,
         } })]}
         onToggleApproval={vi.fn()}
         onBulkToggle={vi.fn()}

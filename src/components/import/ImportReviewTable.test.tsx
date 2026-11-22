@@ -62,6 +62,8 @@ function row(overrides: Partial<ImportPreviewRow> = {}): ImportPreviewRow {
       conversion_rate: null,
       conversion_date: null,
       rate_source: null,
+      source_recurring_id: null,
+      occurrence_number: null,
     },
     ...overrides,
   };
