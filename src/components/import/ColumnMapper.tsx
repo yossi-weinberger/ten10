@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Check, ChevronDown } from "lucide-react";
 import {
@@ -296,6 +296,8 @@ function MobileColumnMapper({
   });
   const [openColumn, setOpenColumn] = useState<string | null>(null);
   const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const collapseToggleRef = useRef<HTMLButtonElement | null>(null);
+  const pendingFocusRef = useRef<"collapse" | { column: string } | null>(null);
 
   const { visible, collapsible } = useMemo(() => {
     const visibleList: ColumnMapping[] = [];
@@ -310,6 +312,33 @@ function MobileColumnMapper({
     }
     return { visible: visibleList, collapsible: collapsibleList };
   }, [mappings, issueColumns]);
+
+  useLayoutEffect(() => {
+    if (openColumn !== null) return;
+    const pending = pendingFocusRef.current;
+    if (!pending) return;
+    pendingFocusRef.current = null;
+
+    if (pending === "collapse") {
+      collapseToggleRef.current?.focus();
+      return;
+    }
+
+    const same = triggerRefs.current.get(pending.column);
+    if (same) {
+      same.focus();
+      return;
+    }
+
+    const nextPicker = document.querySelector<HTMLElement>(
+      "[data-mapping-mobile] [data-mapping-picker]"
+    );
+    if (nextPicker) {
+      nextPicker.focus();
+      return;
+    }
+    collapseToggleRef.current?.focus();
+  }, [openColumn, mappings, unmappedExpanded, collapsible.length]);
 
   const usedByOtherFor = (sourceColumn: string) => {
     const map = new Map<ImportTargetField, string>();
@@ -413,6 +442,8 @@ function MobileColumnMapper({
         <div data-mapping-unmapped-section="">
           <button
             type="button"
+            ref={collapseToggleRef}
+            data-mapping-unmapped-toggle=""
             className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-dashed border-border px-3 text-sm text-muted-foreground"
             aria-expanded={unmappedExpanded}
             onClick={() => setUnmappedExpanded((v) => !v)}
@@ -441,11 +472,10 @@ function MobileColumnMapper({
           open
           onOpenChange={(next) => {
             if (!next) {
-              const column = openMapping.sourceColumn;
+              if (!pendingFocusRef.current) {
+                pendingFocusRef.current = { column: openMapping.sourceColumn };
+              }
               setOpenColumn(null);
-              queueMicrotask(() => {
-                triggerRefs.current.get(column)?.focus();
-              });
             }
           }}
           sourceColumn={openMapping.sourceColumn}
@@ -453,7 +483,15 @@ function MobileColumnMapper({
           currentField={openMapping.targetField}
           usedByOther={usedByOtherFor(openMapping.sourceColumn)}
           onSelect={(field) => {
-            onMappingChange(openMapping.sourceColumn, field);
+            const column = openMapping.sourceColumn;
+            const willHideInCollapsed =
+              field === null &&
+              !(issueColumns?.has(column) ?? false) &&
+              !unmappedExpanded;
+            pendingFocusRef.current = willHideInCollapsed
+              ? "collapse"
+              : { column };
+            onMappingChange(column, field);
           }}
         />
       )}

@@ -2,8 +2,9 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ColumnMapping } from "@/lib/import/import-session.types";
+import type { ColumnMapping, ImportTargetField } from "@/lib/import/import-session.types";
 import { ColumnMapper } from "./ColumnMapper";
 
 vi.mock("react-i18next", () => ({
@@ -210,5 +211,50 @@ describe("ColumnMapper B3 mobile cards", () => {
     await user.click(trigger);
     expect(document.querySelector("[data-column-picker-sheet]")).toBeInTheDocument();
     expect(screen.getByText("mapping.sheet.question")).toBeInTheDocument();
+  });
+
+  it("moves focus to the collapsed toggle after Don't import hides the card", async () => {
+    mockMobile = true;
+    const user = userEvent.setup();
+
+    function Harness() {
+      const [mappings, setMappings] = useState<ColumnMapping[]>([
+        { sourceColumn: "תאריך", targetField: "date" },
+        { sourceColumn: "סכום", targetField: "amount" },
+        { sourceColumn: "הערה", targetField: "description" },
+        { sourceColumn: "יתרה", targetField: null },
+      ]);
+      return (
+        <ColumnMapper
+          mappings={mappings}
+          sampleRows={[]}
+          onMappingChange={(sourceColumn, targetField: ImportTargetField | null) => {
+            setMappings((prev) =>
+              prev.map((m) =>
+                m.sourceColumn === sourceColumn ? { ...m, targetField } : m
+              )
+            );
+          }}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    const toggle = document.querySelector(
+      "[data-mapping-unmapped-toggle]"
+    ) as HTMLButtonElement;
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    const trigger = document.querySelector(
+      '[data-mapping-picker="הערה"]'
+    ) as HTMLButtonElement;
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /mapping\.noMapping/i }));
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement).toBe(
+      document.querySelector("[data-mapping-unmapped-toggle]")
+    );
   });
 });
