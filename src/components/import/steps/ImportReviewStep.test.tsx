@@ -53,35 +53,6 @@ vi.mock("@/lib/import/bulk-edit", () => ({
   ),
 }));
 
-vi.mock("@/components/card-list/MobileBulkToolbar", () => ({
-  MobileBulkToolbar: ({
-    selectedCountLabel,
-    editLabel,
-    clearLabel,
-    onEdit,
-    onClear,
-    onDelete,
-  }: {
-    selectedCountLabel: string;
-    editLabel: string;
-    clearLabel: string;
-    onEdit: () => void;
-    onClear: () => void;
-    onDelete?: () => void;
-  }) => (
-    <div data-testid="mobile-bulk-toolbar" role="region">
-      <span>{selectedCountLabel}</span>
-      <button type="button" onClick={onEdit}>
-        {editLabel}
-      </button>
-      <button type="button" onClick={onClear}>
-        {clearLabel}
-      </button>
-      {onDelete ? <button type="button">delete</button> : null}
-    </div>
-  ),
-}));
-
 vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
   BulkActionsToolbar: ({
     selectedCountLabel,
@@ -90,6 +61,7 @@ vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
     onEdit,
     onClear,
     onDelete,
+    mobileLayout,
   }: {
     selectedCountLabel: string;
     editLabel: string;
@@ -97,8 +69,12 @@ vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
     onEdit: () => void;
     onClear: () => void;
     onDelete?: () => void;
+    mobileLayout?: boolean;
   }) => (
-    <div data-testid="desktop-bulk-toolbar" role="region">
+    <div
+      data-testid={mobileLayout ? "mobile-bulk-toolbar" : "desktop-bulk-toolbar"}
+      role="region"
+    >
       <span>{selectedCountLabel}</span>
       <button type="button" onClick={onEdit}>
         {editLabel}
@@ -481,7 +457,7 @@ describe("ImportReviewStep B4b select mode", () => {
 
     await user.click(
       within(screen.getByTestId("mobile-bulk-toolbar")).getByRole("button", {
-        name: /review.bulk.edit/,
+        name: "review.bulk.editAction",
       }),
     );
 
@@ -518,7 +494,7 @@ describe("ImportReviewStep B4b select mode", () => {
     await user.click(screen.getByRole("button", { name: "toggle-first" }));
     await user.click(
       within(screen.getByTestId("mobile-bulk-toolbar")).getByRole("button", {
-        name: /review.bulk.edit/,
+        name: "review.bulk.editAction",
       }),
     );
 
@@ -546,12 +522,17 @@ describe("review.bulk Hebrew dual forms", () => {
     const bulk = heImport.review.bulk as Record<string, string>;
     for (const key of ["count", "edit", "sheetTitle", "apply", "applied", "becameInvalid"]) {
       expect(bulk[`${key}_two`], `missing review.bulk.${key}_two`).toBeTypeOf("string");
+      expect(bulk[`${key}_two`], `raw key for ${key}_two`).not.toMatch(
+        new RegExp(`${key}_two`),
+      );
     }
-    expect(bulk.count_two).toBe("{{count}} נבחרו");
-    expect(bulk.edit_two).toBe("עריכת {{count}} תנועות");
-    expect(bulk.sheetTitle_two).toBe("עריכת {{count}} תנועות");
-    expect(bulk.apply_two).toBe("החלה על {{count}} תנועות");
+    expect(bulk.count_two).toBe("שתיים נבחרו");
+    expect(bulk.edit_two).toBe("עריכת שתי תנועות");
+    expect(bulk.sheetTitle_two).toBe("עריכת שתי תנועות");
+    expect(bulk.apply_two).toBe("החלה על שתי תנועות");
     expect(bulk.applied_two).toBe("עודכנו שתי תנועות");
-    expect(bulk.becameInvalid_two).toContain("{{count}}");
+    expect(bulk.becameInvalid_two).toBe(
+      'שתיים מהן צריכות תיקון. אפשר לסנן "לא תקין".',
+    );
   });
 });

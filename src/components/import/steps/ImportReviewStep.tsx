@@ -9,7 +9,6 @@ import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { cn } from "@/lib/utils/index";
 import { MOBILE_SELECTION_CLEARANCE_CLASS } from "@/lib/responsive";
 import { applyBulkEdit } from "@/lib/import/bulk-edit";
-import { MobileBulkToolbar } from "@/components/card-list/MobileBulkToolbar";
 import { BulkActionsToolbar } from "@/components/TransactionsTable/BulkActionsToolbar";
 import { BulkEditDialog } from "@/components/TransactionsTable/BulkEditDialog";
 import { ImportBulkEditFields } from "../ImportBulkEditFields";
@@ -275,6 +274,15 @@ export function ImportReviewStep({
     dir: dir as "rtl" | "ltr",
   };
 
+  // Import mobile only: short labels so the floating bar stays one row at 320px.
+  // Desktop and the shared transactions MobileBulkToolbar keep the longer copy.
+  const mobileBulkToolbarProps = {
+    ...bulkToolbarProps,
+    selectedCountLabel: t("review.bulk.countCompact", { count: selectedCount }),
+    editLabel: t("review.bulk.editAction"),
+    clearLabel: t("review.bulk.clearAction"),
+  };
+
   const listProps = {
     rows: filteredRows,
     onToggleApproval,
@@ -416,7 +424,15 @@ export function ImportReviewStep({
 
       {selectMode && selectedCount > 0 ? (
         <div className="md:hidden">
-          <MobileBulkToolbar {...bulkToolbarProps} />
+          <BulkActionsToolbar
+            {...mobileBulkToolbarProps}
+            mobileLayout
+            className={cn(
+              "fixed inset-x-3 bottom-[calc(12px+env(safe-area-inset-bottom))] z-40",
+              "flex-nowrap items-center gap-1.5 rounded-2xl border border-border",
+              "bg-background p-2 shadow-lg max-h-16",
+            )}
+          />
         </div>
       ) : null}
 
