@@ -64,7 +64,6 @@ import { FileUploadStep, type FileParsedMeta } from "./steps/FileUploadStep";
 import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
-import { PrepareStep } from "./steps/PrepareStep";
 import { PageTourButton } from "@/components/onboarding/PageTourButton";
 
 const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
@@ -73,7 +72,7 @@ const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 // State machine
 // ---------------------------------------------------------------------------
 
-type WizardStep = "prepare" | "upload" | "mapping" | "review" | "result";
+type WizardStep = "upload" | "mapping" | "review" | "result";
 
 interface WizardState {
   step: WizardStep;
@@ -120,7 +119,7 @@ type WizardAction =
   | { type: "RESET" };
 
 const initialState: WizardState = {
-  step: "prepare",
+  step: "upload",
   parsedFile: null,
   columnMappings: [],
   isTen10Template: false,
@@ -450,14 +449,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   useEffect(() => {
     return subscribeOnboardingImportWizardScreen((screen) => {
-      if (screen === "prepare" && state.step === "upload") {
-        dispatch({ type: "SET_STEP", step: "prepare" });
-        return;
-      }
-      if (
-        screen === "upload" &&
-        (state.step === "prepare" || state.step === "mapping")
-      ) {
+      if (screen === "upload" && state.step === "mapping") {
         dispatch({ type: "SET_STEP", step: "upload" });
         return;
       }
@@ -571,7 +563,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   const draftsStartedRef = useRef(false);
 
-  // Layout effect: the prepare step must not paint before the drafts load.
+  // Layout effect: drafts path must not paint upload before review loads.
   useLayoutEffect(() => {
     if (!initialRows || platform === "loading" || draftsStartedRef.current) return;
     draftsStartedRef.current = true;
@@ -820,8 +812,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   // Step navigation helpers
   // ---------------------------------------------------------------------------
 
-  const STEPS: WizardStep[] = ["prepare", "upload", "mapping", "review", "result"];
+  const STEPS: WizardStep[] = ["upload", "mapping", "review", "result"];
+  const labeledSteps = STEPS.filter((s) => s !== "result");
   const currentStepIndex = STEPS.indexOf(state.step);
+  const labeledStepIndex = Math.max(0, labeledSteps.indexOf(state.step as (typeof labeledSteps)[number]));
   const progressPercent = (currentStepIndex / (STEPS.length - 1)) * 100;
 
   // Separate animation keys so loaders get their own enter/exit, independent
@@ -837,13 +831,12 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   function canGoBack() {
     // Drafts reach review without a file, so there is no mapping to return to.
     if (state.step === "review") return state.parsedFile !== null;
-    return state.step !== "prepare" && state.step !== "result";
+    return state.step !== "upload" && state.step !== "result";
   }
 
   function handleBack() {
     switch (state.step) {
       case "upload":
-        dispatch({ type: "SET_STEP", step: "prepare" });
         break;
       case "mapping":
         dispatch({ type: "SET_STEP", step: "upload" });
@@ -851,8 +844,13 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       case "review":
         dispatch({ type: "SET_STEP", step: "mapping" });
         break;
-      default:
+      case "result":
         break;
+      default: {
+        const _exhaustive: never = state.step;
+        void _exhaustive;
+        break;
+      }
     }
   }
 
@@ -863,10 +861,53 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const BackIcon = isRtl ? ArrowRight : ArrowLeft;
   const NextIcon = isRtl ? ArrowLeft : ArrowRight;
 
+  const exitButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-11 w-11 shrink-0"
+      onClick={() => navigate({ to: "/transactions-table" })}
+      aria-label={t("navigation.cancel")}
+    >
+      <X className="h-4 w-4" aria-hidden="true" />
+    </Button>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      {/* Mobile header (<768px): title + compact step + close, then progress bar */}
+      <div className="md:hidden space-y-3">
+        <div className="flex items-center gap-2" data-onboarding="import-intro">
+          <h1 className="text-[17px] font-semibold flex-1 min-w-0 truncate">{t("title")}</h1>
+          {state.step !== "result" && (
+            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0">
+              {t("steps.compact", {
+                current: labeledStepIndex + 1,
+                label: t(`steps.${state.step}`),
+              })}
+            </span>
+          )}
+          {exitButton}
+        </div>
+        {state.step !== "result" && (
+          <div
+            className="h-1 overflow-hidden rounded-full bg-muted"
+            data-onboarding="import-steps"
+            role="progressbar"
+            aria-valuenow={Math.round(progressPercent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full bg-primary transition-[width] duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Desktop header */}
+      <div className="hidden md:flex items-start justify-between gap-4">
         <div className="space-y-1" data-onboarding="import-intro">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
@@ -875,31 +916,24 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          {state.step === "prepare" && <PageTourButton tour="import" />}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate({ to: "/transactions-table" })}
-            aria-label={t("navigation.cancel")}
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </Button>
+          {state.step === "upload" && <PageTourButton tour="import" />}
+          {exitButton}
         </div>
       </div>
 
-      {/* Step indicator */}
+      {/* Desktop step indicator — 3 dots */}
       {state.step !== "result" && (
-        <div className="relative py-1" data-onboarding="import-steps">
-          {/* Background line */}
+        <div className="relative hidden md:block py-1" data-onboarding="import-steps">
           <div className="absolute top-[14px] inset-x-0 h-0.5 bg-border" />
-          {/* Filled line — mirrors horizontally in RTL */}
           <div
-            className={cn("absolute top-[14px] h-0.5 bg-primary transition-[width] duration-300", isRtl ? "right-0" : "left-0")}
+            className={cn(
+              "absolute top-[14px] h-0.5 bg-primary transition-[width] duration-300",
+              isRtl ? "right-0" : "left-0"
+            )}
             style={{ width: `${progressPercent}%` }}
           />
-          {/* Dots + labels */}
           <div className="relative flex justify-between">
-            {STEPS.filter((s) => s !== "result").map((s, i) => {
+            {labeledSteps.map((s, i) => {
               const isCompleted = currentStepIndex > i;
               const isActive = currentStepIndex === i;
               return (
@@ -923,7 +957,11 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   <span
                     className={cn(
                       "text-[11px] whitespace-nowrap",
-                      isActive ? "text-foreground font-semibold" : isCompleted ? "text-primary" : "text-muted-foreground"
+                      isActive
+                        ? "text-foreground font-semibold"
+                        : isCompleted
+                          ? "text-primary"
+                          : "text-muted-foreground"
                     )}
                   >
                     {t(`steps.${s}`)}
@@ -935,15 +973,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         </div>
       )}
 
-
       {/* Step content */}
       <Card>
         <CardContent className="p-4 md:p-6">
           <div key={animationKey}>
-              {animationKey === "prepare" && (
-                <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
-              )}
-
               {animationKey === "upload" && (
                 <FileUploadStep onFileParsed={handleFileParsed} />
               )}
@@ -1008,7 +1041,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       </Card>
 
       {/* Navigation footer — sticky so the import button stays visible while scrolling */}
-      {state.step !== "result" && state.step !== "prepare" && !state.processingError && (
+      {state.step !== "result" && state.step !== "upload" && !state.processingError && (
         <div
           className={cn(
             "sticky bottom-0 z-10 space-y-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 -mx-1 px-1",

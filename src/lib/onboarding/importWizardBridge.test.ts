@@ -8,10 +8,9 @@ import {
 } from "./importWizardBridge";
 
 describe("import wizard bridge", () => {
-  it("maps import steps to the prepare, upload, or mapping screen", () => {
-    expect(importWizardScreenForStep("import-intro")).toBe("prepare");
-    expect(importWizardScreenForStep("import-steps")).toBe("prepare");
-    expect(importWizardScreenForStep("import-template")).toBe("prepare");
+  it("maps import steps to the upload or mapping screen", () => {
+    expect(importWizardScreenForStep("import-intro")).toBe("upload");
+    expect(importWizardScreenForStep("import-steps")).toBe("upload");
     expect(importWizardScreenForStep("import-upload")).toBe("upload");
     expect(importWizardScreenForStep("import-mapping")).toBe("mapping");
     expect(importWizardScreenForStep("import-review")).toBeNull();
@@ -27,7 +26,7 @@ describe("import wizard bridge", () => {
     expect(listener).toHaveBeenCalledWith("upload");
 
     unsubscribe();
-    notifyOnboardingImportWizardScreen("prepare");
+    notifyOnboardingImportWizardScreen("mapping");
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
