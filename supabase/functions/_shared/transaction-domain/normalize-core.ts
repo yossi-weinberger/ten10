@@ -142,8 +142,31 @@ export function isOnOrAfterMinTransactionDate(isoDate: string): boolean {
 }
 
 /**
+ * Build YYYY-MM-DD from day-first parts and reject impossible calendar dates.
+ * Two-digit years use a 2000+ pivot (Israeli bank/card exports).
+ */
+function isoDateFromDayFirst(day: string, month: string, yearRaw: string): string | null {
+  const year = yearRaw.length === 2 ? `20${yearRaw}` : yearRaw;
+  const iso = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  const dt = new Date(`${iso}T00:00:00`);
+  if (isNaN(dt.getTime())) return null;
+  if (
+    dt.getFullYear() !== Number(year) ||
+    dt.getMonth() + 1 !== Number(month) ||
+    dt.getDate() !== Number(day)
+  ) {
+    return null;
+  }
+  return iso;
+}
+
+/**
  * Parse a date string or Excel serial number into ISO YYYY-MM-DD.
  * Returns null if not parseable.
+ *
+ * Numeric day-month-year forms are always Israeli day-first (dd/mm/yyyy,
+ * dd/mm/yy, dd-mm-yyyy, dd-mm-yy, dd.mm.yyyy, dd.mm.yy). Ambiguous numeric
+ * dates never fall through to the native Date parser.
  */
 export function parseDate(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
@@ -156,37 +179,23 @@ export function parseDate(value: unknown): string | null {
       if (!isNaN(d.getTime())) return trimmed;
     }
 
-    const ddmmyyyy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, d, m, y] = ddmmyyyy;
-      const iso = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-      const dt = new Date(iso + "T00:00:00");
-      if (!isNaN(dt.getTime())) return iso;
+    const dayFirstNumeric = trimmed.match(
+      /^(\d{1,2})([./-])(\d{1,2})\2(\d{2}|\d{4})$/,
+    );
+    if (dayFirstNumeric) {
+      const [, day, , month, yearRaw] = dayFirstNumeric;
+      return isoDateFromDayFirst(day, month, yearRaw);
     }
 
-    const ddmmyyyyDash = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-    if (ddmmyyyyDash) {
-      const [, d, m, y] = ddmmyyyyDash;
-      const iso = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-      const dt = new Date(iso + "T00:00:00");
-      if (!isNaN(dt.getTime())) return iso;
-    }
-
-    const dotFormat = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2}|\d{4})$/);
-    if (dotFormat) {
-      const [, d, m, yRaw] = dotFormat;
-      const y = yRaw.length === 2 ? `20${yRaw}` : yRaw;
-      const iso = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-      const dt = new Date(iso + "T00:00:00");
-      if (!isNaN(dt.getTime())) return iso;
-    }
-
-    const native = new Date(trimmed);
-    if (!isNaN(native.getTime())) {
-      const y = native.getFullYear();
-      const m = String(native.getMonth() + 1).padStart(2, "0");
-      const d = String(native.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
+    // Native Date only for non-numeric forms (e.g. "March 15, 2024").
+    if (!/^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$/.test(trimmed)) {
+      const native = new Date(trimmed);
+      if (!isNaN(native.getTime())) {
+        const y = native.getFullYear();
+        const m = String(native.getMonth() + 1).padStart(2, "0");
+        const d = String(native.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
     }
 
     return null;

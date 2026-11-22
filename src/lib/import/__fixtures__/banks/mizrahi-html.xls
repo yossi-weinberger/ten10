@@ -1,0 +1,11 @@
+﻿<html><head><meta charset="utf-8"></head><body>
+<table>
+<tr><td colspan="7">יתרה ותנועות בחשבון</td></tr>
+<tr><td colspan="7">מספר חשבון: 12-345-678</td></tr>
+<tr>
+  <td>תאריך</td><td>תאריך ערך</td><td>סוג תנועה</td><td>זכות</td><td>חובה</td><td>יתרה בש"ח</td><td>אסמכתא</td>
+</tr>
+<tr><td>02/11/26</td><td>02/11/26</td><td>העברה</td><td>12500</td><td></td><td>15300</td><td>7001</td></tr>
+<tr><td>03/11/26</td><td>03/11/26</td><td>חיוב</td><td></td><td>4210.55</td><td>11089.45</td><td>7002</td></tr>
+</table>
+</body></html>

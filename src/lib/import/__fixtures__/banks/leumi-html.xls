@@ -1,0 +1,13 @@
+<html><head><meta charset="utf-8"></head><body>
+<table>
+<tr><td colspan="7">בנק לאומי | תנועות בחשבון</td></tr>
+<tr><td colspan="7">מס' חשבון : 12-345-678901</td></tr>
+<tr>
+  <th>תאריך</th><th>תאריך ערך</th><th>תיאור</th><th>אסמכתא</th>
+  <th>בחובה</th><th>בזכות</th><th>היתרה בש"ח</th>
+</tr>
+<tr><td>02/11/26</td><td>02/11/26</td><td>משכורת</td><td>1001</td><td></td><td>12,500.00</td><td>15,300.00</td></tr>
+<tr><td>03/11/26</td><td>03/11/26</td><td>לאומי קארד</td><td>1002</td><td>4,210.55</td><td></td><td>11,089.45</td></tr>
+<tr><td>05/11/26</td><td>05/11/26</td><td>העברה - צדקה</td><td>1003</td><td>360.00</td><td></td><td>10,729.45</td></tr>
+</table>
+</body></html>

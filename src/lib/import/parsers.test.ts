@@ -88,9 +88,18 @@ describe("parseFile (CSV)", () => {
     expect(result).toMatchObject({ ok: false, error: "too_large" });
   });
 
-  it("rejects .xls files", async () => {
+  it("rejects binary .xls files that are not HTML tables", async () => {
     const result = await parseFile(csvFile("a,b", "old.xls"));
     expect(result).toMatchObject({ ok: false, error: "xls_not_supported" });
+  });
+
+  it("skips a CSV title row above the real header", () => {
+    const { headers, rows } = parseCSVText(
+      'תנועות בחשבון עו"ש\nתאריך,סכום,תיאור\n02/11/26,100,בדיקה',
+    );
+    expect(headers).toEqual(["תאריך", "סכום", "תיאור"]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual({ תאריך: "02/11/26", סכום: "100", תיאור: "בדיקה" });
   });
 
   it("rejects unsupported extensions", async () => {
