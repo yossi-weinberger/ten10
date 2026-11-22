@@ -24,8 +24,11 @@ import type {
   ParsedFileDiagnostic,
 } from "@/lib/import/import-session.types";
 import {
+  buildDuplicateInlineOtherByColumn,
+  formatDuplicateColumnsSummary,
   hasAmountDebitCreditIssue,
   issueColumns,
+  truncateHeader,
   type MappingIssue,
 } from "@/lib/import/mapping-issues";
 import { ColumnMapper } from "../ColumnMapper";
@@ -50,7 +53,7 @@ export function ColumnMappingStep({
   const { t, i18n } = useTranslation("import");
   const isRtl = i18n.dir() === "rtl";
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const flaggedColumns = issueColumns(issues);
+  const flaggedColumns = issueColumns(issues, mappings);
   const suppressAmountDebitDiag = hasAmountDebitCreditIssue(issues);
 
   const detectedCount = useMemo(() => {
@@ -68,11 +71,19 @@ export function ColumnMappingStep({
 
   const issueTextByColumn = useMemo(() => {
     const map = new Map<string, string>();
+    const formatMore = (other: string, count: number) =>
+      t("mapping.errors.otherPlusMore", { other, count });
+
     for (const issue of issues) {
       if (issue.code === "duplicateTarget") {
         const fieldLabel = t(`mapping.fields.${issue.field}`);
-        for (const column of issue.columns) {
-          const other = issue.columns.filter((c) => c !== column).join(", ");
+        // Build the shared "other" labels once per group (linear, bounded).
+        const othersByColumn = buildDuplicateInlineOtherByColumn(
+          issue,
+          mappings,
+          formatMore
+        );
+        for (const [column, other] of othersByColumn) {
           map.set(
             column,
             t("mapping.errors.duplicateTargetInline", {
@@ -83,13 +94,15 @@ export function ColumnMappingStep({
         }
       }
       if (issue.code === "amountAndDebitCredit") {
-        for (const column of issue.columns) {
+        for (const idx of issue.mappingIndexes) {
+          const column = mappings[idx]?.sourceColumn;
+          if (!column) continue;
           map.set(column, t("mapping.errors.amountAndDebitCreditInline"));
         }
       }
     }
     return map;
-  }, [issues, t]);
+  }, [issues, mappings, t]);
 
   const diagnostics = (parsedFile.diagnostics ?? []).filter(
     (d) => !(suppressAmountDebitDiag && d.code === "amount_debit_credit_columns")
@@ -260,7 +273,9 @@ function formatIssueSummary(
       return t("mapping.errors.amountMissing");
     case "duplicateTarget":
       return t("mapping.errors.duplicateTarget", {
-        columns: issue.columns.join(", "),
+        columns: formatDuplicateColumnsSummary(issue, (other, count) =>
+          t("mapping.errors.otherPlusMore", { other, count })
+        ),
         field: t(`mapping.fields.${issue.field}`),
       });
     case "amountAndDebitCredit":
@@ -278,9 +293,13 @@ function formatDiagnostic(
   diagnostic: ParsedFileDiagnostic,
   sheetName?: string
 ): string {
+  const columns = (diagnostic.columns ?? [])
+    .slice(0, 4)
+    .map((column) => truncateHeader(column))
+    .join(", ");
   return t(`mapping.diagnostics.${diagnostic.code}`, {
     count: diagnostic.count ?? 0,
-    columns: diagnostic.columns?.join(", ") ?? "",
+    columns,
     sheet: sheetName ?? "",
   });
 }

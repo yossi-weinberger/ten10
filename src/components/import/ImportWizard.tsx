@@ -516,7 +516,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const processingParamsRef = useRef<ProcessingParams | null>(null);
 
   const scrollToFirstMappingIssue = useCallback(() => {
-    const flagged = [...issueColumns(mappingIssues)];
+    const flagged = [...issueColumns(mappingIssues, state.columnMappings)];
     let target: HTMLElement | null = null;
     const rows = document.querySelectorAll<HTMLElement>("[data-mapping-column]");
     if (flagged.length > 0) {
@@ -545,7 +545,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         ? target
         : target?.querySelector<HTMLElement>("[data-mapping-picker]");
     picker?.focus?.();
-  }, [mappingIssues]);
+  }, [mappingIssues, state.columnMappings]);
 
   const handleMappingNext = useCallback(() => {
     if (getMappingIssues(state.columnMappings).length > 0) {

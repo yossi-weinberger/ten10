@@ -102,6 +102,7 @@
       "amountMissing": "Amount is missing. Choose \"Amount\", or \"Debit\" and \"Credit\" if your bank splits them.",
       "duplicateTarget": "{{columns}} are both set to {{field}}. Keep one and set the other to \"Don't import\".",
       "duplicateTargetInline": "{{other}} is also set to {{field}}. Keep one and set the other to \"Don't import\".",
+      "otherPlusMore": "{{other}} +{{count}}",
       "amountAndDebitCredit": "Pick one method: a single \"Amount\" column, or \"Debit\" and \"Credit\". Not both.",
       "amountAndDebitCreditInline": "There's already an \"Amount\" or \"Debit/Credit\" column. Pick one method.",
       "generic": "There's a problem with the column matching. Check the marked rows."
