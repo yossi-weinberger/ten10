@@ -372,6 +372,28 @@ describe("ImportWizard with initialRows", () => {
     expect(screen.queryByText("mapping-step")).not.toBeInTheDocument();
   });
 
+  it("pins the review footer to the viewport bottom on mobile short pages", async () => {
+    const { container } = render(<ImportWizard initialRows={DRAFTS} />);
+    await screen.findByRole("list", { name: "review-step" });
+
+    const root = container.querySelector("[data-import-wizard-root]");
+    expect(root?.className).toContain("max-md:flex");
+    expect(root?.className).toContain("max-md:flex-col");
+    expect(root?.className).toContain(
+      "max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px)-6rem)]",
+    );
+
+    const footer = container.querySelector("[data-onboarding-import-nav]");
+    expect(footer?.className).toContain("sticky");
+    expect(footer?.className).toContain("bottom-0");
+    expect(footer?.className).toContain("max-md:mt-auto");
+    // Desktop layout stays pixel-identical: pin classes are max-md only.
+    expect(footer?.className.split(/\s+/)).not.toContain("md:mt-auto");
+    expect(root?.className.split(/\s+/).some((c) => c.startsWith("md:min-h-"))).toBe(
+      false,
+    );
+  });
+
   it("saves through the regular import save without origin", async () => {
     io.persistApprovedImport.mockResolvedValue({ inserted: 2, failed: 0, skipped: 1, errors: [] });
     const user = userEvent.setup();

@@ -879,7 +879,12 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         "space-y-6",
         state.step === "review" &&
           "[@media(max-width:767px)_and_(max-height:700px)]:space-y-3",
+        // Mobile review: fill the shell height so the sticky footer sits at the
+        // viewport bottom even with 1–2 rows (mt-auto). Desktop unchanged.
+        state.step === "review" &&
+          "max-md:flex max-md:flex-col max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px)-6rem)]",
       )}
+      data-import-wizard-root=""
     >
       {/* Mobile header (<768px): title + compact step + tour + close, then progress bar */}
       <div
@@ -1061,12 +1066,13 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         </CardContent>
       </Card>
 
-      {/* Navigation footer — sticky so the import button stays visible while scrolling */}
+      {/* Navigation footer — sticky while scrolling; mt-auto pins it on short mobile pages */}
       {state.step !== "result" && state.step !== "upload" && !state.processingError && (
         <div
           className={cn(
             "sticky bottom-0 z-10 space-y-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 -mx-1 px-1",
-            "pb-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+            "pb-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
+            state.step === "review" && "max-md:mt-auto",
           )}
           data-onboarding-import-nav=""
         >
