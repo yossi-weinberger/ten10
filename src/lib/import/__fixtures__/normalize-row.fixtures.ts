@@ -229,6 +229,51 @@ export const CURRENCY_FIXTURES: NormalizeRowFixture[] = [
   ok("default currency by lowercase code", { amount: "10", currency: "ils" }, row({ amount: 10, type: "income" })),
   ok("default currency by symbol", { amount: "10", currency: "₪" }, row({ amount: 10, type: "income" })),
   ok(
+    "shekel ASCII gershayim alias maps to ILS",
+    { amount: "10", currency: 'ש"ח' },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "shekel Hebrew gershayim alias maps to ILS",
+    { amount: "10", currency: "ש״ח" },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "shekel compact alias maps to ILS",
+    { amount: "10", currency: "שח" },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "NIS alias maps to ILS",
+    { amount: "10", currency: "NIS" },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "nis lowercase alias maps to ILS",
+    { amount: "10", currency: "nis" },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "Nis mixed-case alias maps to ILS",
+    { amount: "10", currency: "Nis" },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "shekel ASCII alias trims surrounding whitespace",
+    { amount: "10", currency: '  ש"ח  ' },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "shekel symbol trims surrounding whitespace",
+    { amount: "10", currency: "  ₪  " },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
+    "NIS alias trims surrounding whitespace",
+    { amount: "10", currency: "  NIS  " },
+    row({ amount: 10, type: "income" }),
+  ),
+  ok(
     "dollar sign is USD when USD is the default",
     { amount: "10", currency: "$" },
     row({ amount: 10, type: "income", currency: "USD" }),
