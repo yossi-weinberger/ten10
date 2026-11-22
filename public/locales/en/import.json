@@ -203,7 +203,30 @@
     "saveCta_other": "Save {{count}} transactions",
     "saveRow": "Save",
     "cancelEdit": "Cancel",
-    "issuesAriaLabel": "{{count}} issues in row {{row}}"
+    "issuesAriaLabel": "{{count}} issues in row {{row}}",
+    "bulk": {
+      "enter": "Select",
+      "selectAllVisible": "Select all shown ({{count}})",
+      "done": "Done",
+      "count_one": "1 selected",
+      "count_other": "{{count}} selected",
+      "edit_one": "Edit 1 transaction",
+      "edit_other": "Edit {{count}} transactions",
+      "clear": "Clear selection",
+      "toolbarAria": "Actions for selected rows",
+      "sheetTitle_one": "Edit 1 transaction",
+      "sheetTitle_other": "Edit {{count}} transactions",
+      "sheetDescription": "Whatever you choose applies to every selected row. Fields you don't touch stay as they are.",
+      "typeLabel": "Type",
+      "categoryLabel": "Category",
+      "categoryMixed": "Mixed types selected. Choose a type to change the category.",
+      "apply_one": "Apply to 1 transaction",
+      "apply_other": "Apply to {{count}} transactions",
+      "applied_one": "Updated 1 transaction",
+      "applied_other": "Updated {{count}} transactions",
+      "becameInvalid_one": "1 of them needs fixing. Filter by \"Invalid\".",
+      "becameInvalid_other": "{{count}} of them need fixing. Filter by \"Invalid\"."
+    }
   },
   "confirm": {
     "title_one": "Save 1 transaction?",
