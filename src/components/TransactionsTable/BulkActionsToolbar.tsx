@@ -5,10 +5,10 @@ export interface BulkActionsToolbarProps {
   selectedCount: number;
   selectedCountLabel: string;
   editLabel: string;
-  deleteLabel: string;
+  deleteLabel?: string;
   clearLabel: string;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onClear: () => void;
   ariaLabel: string;
   pending?: boolean;
@@ -41,6 +41,7 @@ export function BulkActionsToolbar({
   }
 
   const actionsDisabled = disabled || pending;
+  const showDelete = onDelete !== undefined;
 
   return (
     <div
@@ -80,18 +81,20 @@ export function BulkActionsToolbar({
         >
           {editLabel}
         </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          className={cn(
-            mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
-          )}
-          onClick={onDelete}
-          disabled={actionsDisabled || selectedCount === 0}
-        >
-          {deleteLabel}
-        </Button>
+        {showDelete ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className={cn(
+              mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
+            )}
+            onClick={onDelete}
+            disabled={actionsDisabled || selectedCount === 0}
+          >
+            {deleteLabel}
+          </Button>
+        ) : null}
       </div>
     </div>
   );
