@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ColumnMapping, ImportPreviewRow, ParsedFile } from "@/lib/import/import-session.types";
@@ -46,7 +46,19 @@ vi.mock("@/lib/import/persist-approved-import", () => ({
   fetchRecurringForImport: io.fetchRecurringForImport,
   persistApprovedImport: io.persistApprovedImport,
 }));
-vi.mock("@/components/onboarding/PageTourButton", () => ({ PageTourButton: () => null }));
+vi.mock("@/components/onboarding/PageTourButton", () => ({
+  PageTourButton: ({
+    tour,
+    className,
+  }: {
+    tour: string;
+    className?: string;
+  }) => (
+    <button type="button" aria-label={`page-tour-${tour}`} className={className}>
+      tour
+    </button>
+  ),
+}));
 
 vi.mock("@/lib/import/index", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/import/index")>();
@@ -155,6 +167,30 @@ afterEach(() => {
 });
 
 describe("ImportWizard without props", () => {
+  it("renders the import tour entry in the mobile header on upload", () => {
+    const { container } = render(<ImportWizard />);
+    const mobileHeader = container.querySelector(
+      '.md\\:hidden [data-onboarding="import-intro"]',
+    );
+    expect(mobileHeader).toBeTruthy();
+    const tour = within(mobileHeader as HTMLElement).getByRole("button", {
+      name: "page-tour-import",
+    });
+    expect(tour).toBeInTheDocument();
+    expect(tour.className).toContain("h-11");
+    expect(tour.className).toContain("w-11");
+
+    const desktopHeader = container.querySelector(
+      '.hidden.md\\:flex [data-onboarding="import-intro"]',
+    )?.parentElement;
+    expect(desktopHeader).toBeTruthy();
+    expect(
+      within(desktopHeader as HTMLElement).getByRole("button", {
+        name: "page-tour-import",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("starts on upload with 3 labeled steps and no back on upload", async () => {
     const user = userEvent.setup();
     render(<ImportWizard />);

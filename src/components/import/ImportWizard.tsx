@@ -875,7 +875,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Mobile header (<768px): title + compact step + close, then progress bar */}
+      {/* Mobile header (<768px): title + compact step + tour + close, then progress bar */}
       <div className="md:hidden space-y-3">
         <div className="flex items-center gap-2" data-onboarding="import-intro">
           <h1 className="text-[17px] font-semibold flex-1 min-w-0 truncate">{t("title")}</h1>
@@ -886,6 +886,9 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                 label: t(`steps.${state.step}`),
               })}
             </span>
+          )}
+          {state.step === "upload" && (
+            <PageTourButton tour="import" className="h-11 w-11" />
           )}
           {exitButton}
         </div>
