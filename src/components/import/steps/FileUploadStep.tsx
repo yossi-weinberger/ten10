@@ -18,13 +18,17 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils/index";
 import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
-import { withTimeout } from "@/lib/utils/with-timeout";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import {
   extensionFromFileName,
   type ImportFileExtension,
 } from "@/lib/import/import-analytics";
-import { parseFile, MAX_FILE_SIZE_BYTES, MAX_ROWS } from "@/lib/import/parsers";
+import { MAX_FILE_SIZE_BYTES, MAX_ROWS } from "@/lib/import/parsers";
+import { parseFileInWorker } from "@/lib/import/parse-file-in-worker";
+import {
+  htmlXlsLooksBounded,
+  shouldApplyHtmlXlsGuard,
+} from "@/lib/import/html-xls-guard";
 import {
   createTen10TemplateFile,
   downloadTemplateCsv,
@@ -95,18 +99,33 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       setError(null);
       const fileExtension = extensionFromFileName(file.name);
 
-      let result: Awaited<ReturnType<typeof parseFile>>;
+      let result: Awaited<ReturnType<typeof parseFileInWorker>>;
       try {
         logger.info("Import upload: parsing file", {
           name: file.name,
           size: file.size,
           sheetName: sheetName ?? null,
         });
-        result = await withTimeout(
-          parseFile(file, sheetName),
-          FILE_PARSE_TIMEOUT_MS,
-          "file_parse_timeout"
-        );
+        if (shouldApplyHtmlXlsGuard(file.name)) {
+          const text = await file.slice(0, Math.min(file.size, MAX_FILE_SIZE_BYTES)).text();
+          const head = text.slice(0, 256).toLowerCase();
+          const looksLikeHtml =
+            head.includes("<html") ||
+            head.includes("<!doctype") ||
+            head.includes("<table");
+          if (looksLikeHtml && !htmlXlsLooksBounded(text)) {
+            setIsLoading(false);
+            trackProductEvent("transaction_import_parse_error", {
+              platform,
+              step: "upload",
+              errorCode: "parse_error",
+              fileExtension,
+            });
+            setError(t("upload.errors.parseError"));
+            return;
+          }
+        }
+        result = await parseFileInWorker(file, sheetName, FILE_PARSE_TIMEOUT_MS);
         logger.info("Import upload: parse finished", {
           ok: result.ok,
           sheetName: result.ok ? result.file.sheetName ?? null : null,

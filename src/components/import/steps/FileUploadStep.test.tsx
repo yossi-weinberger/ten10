@@ -45,6 +45,9 @@ vi.mock("@/lib/import/parsers", async (importOriginal) => {
     parseFile: (file: File, sheetName?: string) => io.parseFile(file, sheetName),
   };
 });
+vi.mock("@/lib/import/parse-file-in-worker", () => ({
+  parseFileInWorker: (file: File, sheetName?: string) => io.parseFile(file, sheetName),
+}));
 vi.mock("@/lib/import/ten10-template", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/import/ten10-template")>();
   return {
