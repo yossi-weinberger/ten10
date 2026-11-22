@@ -80,9 +80,9 @@ export function ImportReviewCards({
 
   return (
     <>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 min-h-11 px-1">
-          <div className="grid h-11 w-11 place-items-center shrink-0">
+      <div className="space-y-2 [@media(max-width:767px)_and_(max-height:700px)]:space-y-1.5">
+        <div className="flex items-center gap-2 min-h-11 px-1 [@media(max-width:767px)_and_(max-height:700px)]:min-h-9">
+          <div className="grid h-11 w-11 place-items-center shrink-0 [@media(max-width:767px)_and_(max-height:700px)]:h-9 [@media(max-width:767px)_and_(max-height:700px)]:w-9">
             <Checkbox
               checked={someSelected ? "indeterminate" : allSelected}
               onCheckedChange={handleSelectAll}
