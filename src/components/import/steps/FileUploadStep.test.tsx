@@ -8,9 +8,10 @@ import { LEUMI_HTML_XLS } from "@/lib/import/__fixtures__/banks/build-fixtures";
 
 const io = vi.hoisted(() => ({
   parseFile: vi.fn(),
-  parseFileInWorker: vi.fn(
-    (file: File, sheetName?: string) => io.parseFile(file, sheetName)
-  ),
+  parseFileInWorker: vi.fn((file: File, sheetName?: string, timeoutMs?: number) => {
+    void timeoutMs;
+    return io.parseFile(file, sheetName);
+  }),
   actualParseFile: null as null | ((
     file: File,
     sheetName?: string
@@ -86,7 +87,10 @@ beforeEach(() => {
   io.parseFile.mockReset();
   io.parseFileInWorker.mockClear();
   io.parseFileInWorker.mockImplementation(
-    (file: File, sheetName?: string) => io.parseFile(file, sheetName)
+    (file: File, sheetName?: string, timeoutMs?: number) => {
+      void timeoutMs;
+      return io.parseFile(file, sheetName);
+    }
   );
   io.downloadTemplateCsv.mockReset();
   io.trackProductEvent.mockReset();
