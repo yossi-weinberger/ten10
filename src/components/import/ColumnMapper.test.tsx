@@ -257,4 +257,62 @@ describe("ColumnMapper B3 mobile cards", () => {
       document.querySelector("[data-mapping-unmapped-toggle]")
     );
   });
+
+  it("moves focus to the next picker when a flagged skip collapses mid-list", async () => {
+    mockMobile = true;
+    const user = userEvent.setup();
+
+    function Harness() {
+      const [mappings, setMappings] = useState<ColumnMapping[]>([
+        { sourceColumn: "תאריך", targetField: "date" },
+        { sourceColumn: "סכום", targetField: "amount" },
+        { sourceColumn: "מטבע מקורי", targetField: "currency" },
+        { sourceColumn: "קטגוריה", targetField: "category" },
+        { sourceColumn: "יתרה", targetField: null },
+      ]);
+      const [issues, setIssues] = useState(() => new Set(["מטבע מקורי"]));
+      return (
+        <ColumnMapper
+          mappings={mappings}
+          sampleRows={[]}
+          issueColumns={issues}
+          onMappingChange={(sourceColumn, targetField: ImportTargetField | null) => {
+            setMappings((prev) =>
+              prev.map((m) =>
+                m.sourceColumn === sourceColumn ? { ...m, targetField } : m
+              )
+            );
+            // Skipping clears the flag — card moves into the collapsed section.
+            if (sourceColumn === "מטבע מקורי" && targetField === null) {
+              setIssues(new Set());
+            }
+          }}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    expect(
+      document.querySelector("[data-mapping-unmapped-toggle]")
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(
+      document.querySelector('[data-mapping-picker="מטבע מקורי"]')
+    ).toBeInTheDocument();
+
+    await user.click(
+      document.querySelector(
+        '[data-mapping-picker="מטבע מקורי"]'
+      ) as HTMLButtonElement
+    );
+    await user.click(screen.getByRole("option", { name: /mapping\.noMapping/i }));
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-mapping-picker="קטגוריה"]')
+    );
+    expect(
+      document.querySelector('[data-mapping-picker="מטבע מקורי"]')
+    ).not.toBeInTheDocument();
+  });
 });
