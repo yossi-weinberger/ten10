@@ -46,15 +46,13 @@ function fmtAmount(amount: number, currency: string): string {
   }
 }
 
-type FilterChip = { key: FilterMode; label: string; count: number };
-
 function FilterChips({
   filters,
   active,
   onChange,
   className,
 }: {
-  filters: FilterChip[];
+  filters: { key: FilterMode; label: string; count: number }[];
   active: FilterMode;
   onChange: (key: FilterMode) => void;
   className?: string;
@@ -215,10 +213,14 @@ export function ImportReviewStep({
     exitSelectMode,
   ]);
 
-  const filterButtons: FilterChip[] = [
+  const filterButtons: { key: FilterMode; label: string; count: number }[] = [
     { key: "all", label: t("review.filters.all"), count: summary.total },
     { key: "ready", label: t("review.filters.ready"), count: summary.ready },
-    { key: "needs_review", label: t("review.filters.needsReview"), count: summary.needsReview },
+    {
+      key: "needs_review",
+      label: t("review.filters.needsReview"),
+      count: summary.needsReview,
+    },
     { key: "invalid", label: t("review.filters.invalid"), count: summary.invalid },
   ].filter((btn) => btn.count > 0 || btn.key === "all");
 
