@@ -330,12 +330,16 @@ function MobileColumnMapper({
       return;
     }
 
-    const nextPicker = document.querySelector<HTMLElement>(
-      "[data-mapping-mobile] [data-mapping-picker]"
-    );
-    if (nextPicker) {
-      nextPicker.focus();
-      return;
+    // Card vanished (e.g. flagged column skipped → issue cleared → collapsed).
+    // Focus the next still-visible picker after it in mapping order, else the toggle.
+    const order = mappings.map((m) => m.sourceColumn);
+    const skippedIdx = order.indexOf(pending.column);
+    for (let i = skippedIdx + 1; i < order.length; i++) {
+      const next = triggerRefs.current.get(order[i]);
+      if (next) {
+        next.focus();
+        return;
+      }
     }
     collapseToggleRef.current?.focus();
   }, [openColumn, mappings, unmappedExpanded, collapsible.length]);
