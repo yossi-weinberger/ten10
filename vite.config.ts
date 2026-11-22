@@ -132,7 +132,7 @@ export default defineConfig(() => {
     // Include them in ALL Tauri builds (local or CI doesn't matter).
     // Module workers (needed for import parseFile worker — IIFE cannot code-split).
     worker: {
-      format: "es",
+      format: "es" as const,
     },
     build: {
       // Silence Rollup's large chunk warning (does not change output, only logging)

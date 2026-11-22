@@ -8,6 +8,9 @@ import { LEUMI_HTML_XLS } from "@/lib/import/__fixtures__/banks/build-fixtures";
 
 const io = vi.hoisted(() => ({
   parseFile: vi.fn(),
+  parseFileInWorker: vi.fn(
+    (file: File, sheetName?: string) => io.parseFile(file, sheetName)
+  ),
   actualParseFile: null as null | ((
     file: File,
     sheetName?: string
@@ -46,7 +49,11 @@ vi.mock("@/lib/import/parsers", async (importOriginal) => {
   };
 });
 vi.mock("@/lib/import/parse-file-in-worker", () => ({
-  parseFileInWorker: (file: File, sheetName?: string) => io.parseFile(file, sheetName),
+  parseFileInWorker: (
+    file: File,
+    sheetName: string | undefined,
+    timeoutMs: number
+  ) => io.parseFileInWorker(file, sheetName, timeoutMs),
 }));
 vi.mock("@/lib/import/ten10-template", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/import/ten10-template")>();
@@ -77,6 +84,10 @@ function parsedStub(overrides: Partial<ParsedFile> = {}): ParsedFile {
 
 beforeEach(() => {
   io.parseFile.mockReset();
+  io.parseFileInWorker.mockClear();
+  io.parseFileInWorker.mockImplementation(
+    (file: File, sheetName?: string) => io.parseFile(file, sheetName)
+  );
   io.downloadTemplateCsv.mockReset();
   io.trackProductEvent.mockReset();
   io.mediaQueryMatches = false;
@@ -179,6 +190,8 @@ describe("FileUploadStep", () => {
     );
 
     await waitFor(() => expect(onFileParsed).toHaveBeenCalledTimes(1));
+    expect(io.parseFileInWorker).toHaveBeenCalled();
+    expect(io.parseFileInWorker.mock.calls[0]?.[2]).toBe(15000);
     const [parsed, meta] = onFileParsed.mock.calls[0];
     expect(parsed.headers[0]).toBe("תאריך");
     expect(meta.fileExtension).toBe("xls");
