@@ -475,6 +475,11 @@ const CURRENCY_SYMBOL_MAP: Record<string, string> = {
     ).map((c) => [c.symbol, c.code]),
   ),
   $: "USD",
+  // Israeli shekel text aliases (bank/card exports). NIS is matched via toLowerCase.
+  'ש"ח': "ILS",
+  "ש״ח": "ILS",
+  שח: "ILS",
+  nis: "ILS",
 };
 
 function normalizeCurrencyInput(raw: string): string {
