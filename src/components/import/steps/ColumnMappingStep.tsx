@@ -249,7 +249,7 @@ function MappingHelpBody() {
   );
 }
 
-export function formatIssueSummary(
+function formatIssueSummary(
   t: ReturnType<typeof useTranslation>["t"],
   issue: MappingIssue
 ): string {
