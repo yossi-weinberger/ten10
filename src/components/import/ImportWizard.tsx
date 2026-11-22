@@ -889,13 +889,19 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   return (
     <div
       className={cn(
-        "space-y-6",
-        state.step === "review" &&
-          "[@media(max-width:767px)_and_(max-height:700px)]:space-y-3",
-        // Mobile review: fill the shell height so the sticky footer sits at the
-        // viewport bottom even with 1–2 rows (mt-auto). Desktop unchanged.
-        state.step === "review" &&
-          "max-md:flex max-md:flex-col max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px)-6rem)]",
+        // Desktop keeps space-y. Mobile review uses flex + gap only — any
+        // space-y-* (including space-y-0) sets margin-top on `> * + *` with
+        // higher specificity than mt-auto, so the footer pin would lose.
+        // min-h fills to the viewport bottom (below the top bar); -mb-24 sinks
+        // into the shell’s pb-24 so short pages don’t grow an extra scroll.
+        state.step === "review"
+          ? cn(
+              "md:space-y-6",
+              "max-md:flex max-md:flex-col max-md:gap-6",
+              "max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] max-md:-mb-24",
+              "[@media(max-width:767px)_and_(max-height:700px)]:gap-3",
+            )
+          : "space-y-6",
       )}
       data-import-wizard-root=""
     >
