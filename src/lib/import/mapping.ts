@@ -92,6 +92,14 @@ function isChargeAmountHeader(normalized: string): boolean {
   );
 }
 
+function isChargeCurrencyHeader(normalized: string): boolean {
+  return (
+    normalized.includes("מטבע חיוב") ||
+    normalized.includes("מטבע לחיוב") ||
+    normalized.includes("מטבע החיוב")
+  );
+}
+
 function isSecondaryDateHeader(normalized: string): boolean {
   return (
     normalized.includes("ערך") ||
@@ -120,6 +128,15 @@ function amountColumnPreference(header: string): number {
   if (normalized.includes("סכום עסקה")) return 40;
   if (normalized === "סכום" || normalized === "amount") return 70;
   return 50;
+}
+
+/** When the amount is the ILS charge column, prefer charge-currency headers. */
+function currencyColumnPreference(header: string, preferChargeCurrency: boolean): number {
+  const normalized = normalizeHeaderName(header);
+  if (preferChargeCurrency && isChargeCurrencyHeader(normalized)) return 100;
+  if (isChargeCurrencyHeader(normalized)) return 60;
+  if (normalized.includes("מקור")) return preferChargeCurrency ? 10 : 50;
+  return 40;
 }
 
 interface AliasMatch {
@@ -200,6 +217,8 @@ function clearTarget(
  * Drop weaker duplicate targets so auto-mapping stays actionable.
  * Prefers transaction date over value/charge dates, and ILS charge amount
  * over original-transaction amount when both appear (card exports).
+ * When the kept amount is a charge column, currency prefers מטבע לחיוב /
+ * מטבע חיוב over מטבע מקור so foreign-merchant ILS charges stay in ILS.
  */
 function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
   const resolved = mappings.map((mapping) => ({ ...mapping }));
@@ -231,17 +250,8 @@ function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
     clearTarget(resolved, (mapping, index) => mapping.targetField === "amount" && index !== best);
   }
 
-  for (const field of ["currency", "type", "category", "recipient", "payment_method", "is_chomesh"] as const) {
-    const indices = indicesFor(field);
-    if (indices.length > 1) {
-      const best = indices[0];
-      clearTarget(
-        resolved,
-        (mapping, index) => mapping.targetField === field && index !== best,
-      );
-    }
-  }
-
+  // Resolve amount vs debit/credit before currency, so charge-currency
+  // preference can follow the final amount column.
   const hasAmount = indicesFor("amount").length > 0;
   const debitIndices = indicesFor("debit");
   const creditIndices = indicesFor("credit");
@@ -266,6 +276,36 @@ function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
     }
   } else if (hasAmount && hasCredit && !hasDebit) {
     clearTarget(resolved, (mapping) => mapping.targetField === "credit");
+  }
+
+  const finalAmountIndices = indicesFor("amount");
+  const preferChargeCurrency = finalAmountIndices.some((index) =>
+    isChargeAmountHeader(normalizeHeaderName(resolved[index].sourceColumn)),
+  );
+
+  const currencyIndices = indicesFor("currency");
+  if (currencyIndices.length > 1) {
+    const best = currencyIndices.reduce((winner, index) =>
+      currencyColumnPreference(resolved[index].sourceColumn, preferChargeCurrency) >
+      currencyColumnPreference(resolved[winner].sourceColumn, preferChargeCurrency)
+        ? index
+        : winner,
+    );
+    clearTarget(
+      resolved,
+      (mapping, index) => mapping.targetField === "currency" && index !== best,
+    );
+  }
+
+  for (const field of ["type", "category", "recipient", "payment_method", "is_chomesh"] as const) {
+    const indices = indicesFor(field);
+    if (indices.length > 1) {
+      const best = indices[0];
+      clearTarget(
+        resolved,
+        (mapping, index) => mapping.targetField === field && index !== best,
+      );
+    }
   }
 
   return resolved;

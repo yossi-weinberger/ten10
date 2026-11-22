@@ -219,3 +219,30 @@ export async function buildCalXlsx(): Promise<File> {
   ]);
   return new File([buffer], "cal.xlsx");
 }
+
+/** Isracard-like sheet including a foreign merchant charged in ILS. */
+export async function buildIsracardXlsx(): Promise<File> {
+  const buffer = await workbookToBuffer([
+    {
+      title: "פירוט עסקאות",
+      rows: [
+        ["ישראכרט - פירוט עסקאות לכרטיס 1234"],
+        ["מועד חיוב: 02/12/2026"],
+        [],
+        [
+          "תאריך רכישה",
+          "שם בית עסק",
+          "סכום עסקה",
+          "מטבע מקור",
+          "סכום חיוב",
+          "מטבע לחיוב",
+          "מספר שובר",
+          "פירוט נוסף",
+        ],
+        ["03/11/2026", "שופרסל דיל", 412.3, "₪", 412.3, "₪", "123456", ""],
+        ["10/11/2026", "AMAZON MKTPLACE", 45.99, "$", 171.2, "₪", "123459", ""],
+      ],
+    },
+  ]);
+  return new File([buffer], "isracard.xlsx");
+}

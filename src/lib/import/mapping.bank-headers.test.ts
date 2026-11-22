@@ -142,6 +142,38 @@ describe("suggestMappings Israeli bank/card header sets", () => {
     expect(validateMappings(mappings).valid).toBe(true);
   });
 
+  it("prefers מטבע לחיוב over מטבע מקור when amount is סכום חיוב", () => {
+    const mappings = suggestMappings([
+      "תאריך רכישה",
+      "שם בית עסק",
+      "סכום עסקה",
+      "מטבע מקור",
+      "סכום חיוב",
+      "מטבע לחיוב",
+    ]);
+    expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
+      "amount",
+    );
+    expect(mappings.find((m) => m.sourceColumn === "מטבע לחיוב")?.targetField).toBe(
+      "currency",
+    );
+    expect(mappings.find((m) => m.sourceColumn === "מטבע מקור")?.targetField).toBeNull();
+    expect(validateMappings(mappings).valid).toBe(true);
+  });
+
+  it("keeps מטבע מקור when it is the only currency column", () => {
+    const mappings = suggestMappings([
+      "תאריך רכישה",
+      "שם בית עסק",
+      "סכום חיוב",
+      "מטבע מקור",
+    ]);
+    expect(mappings.find((m) => m.sourceColumn === "מטבע מקור")?.targetField).toBe(
+      "currency",
+    );
+    expect(validateMappings(mappings).valid).toBe(true);
+  });
+
   it("recognises Mizrahi תאור as description", () => {
     const mappings = suggestMappings(["תאריך", "תאור", "זכות", "חובה"]);
     expect(mappings.find((m) => m.sourceColumn === "תאור")?.targetField).toBe(

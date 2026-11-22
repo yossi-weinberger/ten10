@@ -14,6 +14,7 @@ import {
 import {
   buildCalXlsx,
   buildHapoalimXlsx,
+  buildIsracardXlsx,
   buildLeumiCsv,
   buildMaxXlsx,
   buildMizrahiXlsxAsXls,
@@ -158,5 +159,33 @@ describe("bank fixture parsing", () => {
     const first = normalizeRow(applyMappings(result.file.rows[0], mappings), "ILS");
     expect(first.normalized?.date).toBe("2026-11-03");
     expect(first.normalized?.amount).toBe(412.3);
+  });
+
+  it("maps Isracard charge currency so foreign merchants charged in ILS are not blocked", async () => {
+    const result = await parseFile(await buildIsracardXlsx());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const mappings = suggestMappings(result.file.headers);
+    expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
+      "amount",
+    );
+    expect(mappings.find((m) => m.sourceColumn === "מטבע לחיוב")?.targetField).toBe(
+      "currency",
+    );
+    expect(mappings.find((m) => m.sourceColumn === "מטבע מקור")?.targetField).toBeNull();
+    expect(validateMappings(mappings).valid).toBe(true);
+
+    const foreign = result.file.rows.find(
+      (row) => String(row["שם בית עסק"] ?? "").includes("AMAZON"),
+    );
+    expect(foreign).toBeTruthy();
+    const normalized = normalizeRow(applyMappings(foreign!, mappings), "ILS");
+    expect(normalized.issues.map((issue) => issue.code)).not.toContain(
+      "foreign_currency_not_supported",
+    );
+    expect(normalized.normalized?.currency).toBe("ILS");
+    expect(normalized.normalized?.amount).toBe(171.2);
+    expect(normalized.normalized?.date).toBe("2026-11-10");
   });
 });
