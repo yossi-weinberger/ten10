@@ -20,7 +20,7 @@ function heMappingText(
   count: number
 ): string {
   const suffix = hePluralSuffix(count);
-  const table = heImport.mapping as Record<string, string>;
+  const table = heImport.mapping as unknown as Record<string, string>;
   const template = table[`${key}_${suffix}`] ?? table[`${key}_other`];
   expect(template, `missing he mapping.${key}_${suffix}`).toBeTypeOf("string");
   return template.replace(/\{\{\s*count\s*\}\}/g, String(count));
@@ -28,7 +28,7 @@ function heMappingText(
 
 function heRemainingText(count: number): string {
   const suffix = hePluralSuffix(count);
-  const table = heImport.mapping.summary as Record<string, string>;
+  const table = heImport.mapping.summary as unknown as Record<string, string>;
   const template = table[`remaining_${suffix}`] ?? table.remaining_other;
   expect(template, `missing he mapping.summary.remaining_${suffix}`).toBeTypeOf(
     "string"
