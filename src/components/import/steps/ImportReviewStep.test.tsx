@@ -56,6 +56,7 @@ vi.mock("@/lib/import/bulk-edit", () => ({
 vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
   BulkActionsToolbar: ({
     selectedCountLabel,
+    selectedCountAnnouncement,
     editLabel,
     clearLabel,
     onEdit,
@@ -64,6 +65,7 @@ vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
     mobileLayout,
   }: {
     selectedCountLabel: string;
+    selectedCountAnnouncement?: string;
     editLabel: string;
     clearLabel: string;
     onEdit: () => void;
@@ -74,8 +76,14 @@ vi.mock("@/components/TransactionsTable/BulkActionsToolbar", () => ({
     <div
       data-testid={mobileLayout ? "mobile-bulk-toolbar" : "desktop-bulk-toolbar"}
       role="region"
+      aria-live="polite"
     >
-      <span>{selectedCountLabel}</span>
+      {selectedCountAnnouncement ? (
+        <span className="sr-only">{selectedCountAnnouncement}</span>
+      ) : null}
+      <span aria-hidden={selectedCountAnnouncement ? true : undefined}>
+        {selectedCountLabel}
+      </span>
       <button type="button" onClick={onEdit}>
         {editLabel}
       </button>
@@ -520,13 +528,22 @@ describe("review.bulk Hebrew dual forms", () => {
   it("defines _two keys for every pluralized bulk string used at count=2", () => {
     expect(hePluralSuffix(2)).toBe("two");
     const bulk = heImport.review.bulk as Record<string, string>;
-    for (const key of ["count", "edit", "sheetTitle", "apply", "applied", "becameInvalid"]) {
+    for (const key of [
+      "count",
+      "countAnnouncement",
+      "edit",
+      "sheetTitle",
+      "apply",
+      "applied",
+      "becameInvalid",
+    ]) {
       expect(bulk[`${key}_two`], `missing review.bulk.${key}_two`).toBeTypeOf("string");
       expect(bulk[`${key}_two`], `raw key for ${key}_two`).not.toMatch(
         new RegExp(`${key}_two`),
       );
     }
     expect(bulk.count_two).toBe("שתיים נבחרו");
+    expect(bulk.countAnnouncement_two).toBe("נבחרו שתי שורות");
     expect(bulk.edit_two).toBe("עריכת שתי תנועות");
     expect(bulk.sheetTitle_two).toBe("עריכת שתי תנועות");
     expect(bulk.apply_two).toBe("החלה על שתי תנועות");
@@ -535,4 +552,25 @@ describe("review.bulk Hebrew dual forms", () => {
       'שתיים מהן צריכות תיקון. אפשר לסנן "לא תקין".',
     );
   });
+});
+
+describe("review.bulk countAnnouncement live region (HE)", () => {
+  function heAnnouncement(count: number): string {
+    const rule = new Intl.PluralRules("he").select(count);
+    const bulk = heImport.review.bulk as Record<string, string>;
+    const template =
+      bulk[`countAnnouncement_${rule}`] ?? bulk.countAnnouncement_other;
+    return template.replace(/\{\{\s*count\s*\}\}/g, String(count));
+  }
+
+  it.each([
+    [1, "נבחרה שורה אחת"],
+    [2, "נבחרו שתי שורות"],
+    [5, "נבחרו 5 שורות"],
+  ] as const)(
+    "resolves a full live-region sentence for count %i",
+    (count, expected) => {
+      expect(heAnnouncement(count)).toBe(expected);
+    },
+  );
 });

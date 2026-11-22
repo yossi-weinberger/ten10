@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
@@ -63,4 +63,39 @@ describe("BulkActionsToolbar", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it.each([
+    [1, "נבחרה שורה אחת"],
+    [2, "נבחרו שתי שורות"],
+    [5, "נבחרו 5 שורות"],
+  ] as const)(
+    "announces HE live-region sentence for count %i via sr-only",
+    (count, announcement) => {
+      render(
+        <BulkActionsToolbar
+          selectedCount={count}
+          selectedCountLabel={String(count)}
+          selectedCountAnnouncement={announcement}
+          editLabel="עריכה"
+          clearLabel="ביטול"
+          onEdit={vi.fn()}
+          onClear={vi.fn()}
+          ariaLabel="פעולות על השורות שנבחרו"
+          mobileLayout
+        />,
+      );
+
+      const region = screen.getByRole("region", {
+        name: "פעולות על השורות שנבחרו",
+      });
+      expect(region).toHaveAttribute("aria-live", "polite");
+      const liveText = within(region).getByText(announcement);
+      expect(liveText).toHaveClass("sr-only");
+      expect(within(region).getByText(String(count))).toHaveAttribute(
+        "aria-hidden",
+        "true",
+      );
+      cleanup();
+    },
+  );
 });

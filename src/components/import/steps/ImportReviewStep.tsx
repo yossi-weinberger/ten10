@@ -276,9 +276,13 @@ export function ImportReviewStep({
 
   // Import mobile only: short labels so the floating bar stays one row at 320px.
   // Desktop and the shared transactions MobileBulkToolbar keep the longer copy.
+  // sr-only announcement gives aria-live a full sentence while the visible label stays compact.
   const mobileBulkToolbarProps = {
     ...bulkToolbarProps,
     selectedCountLabel: t("review.bulk.countCompact", { count: selectedCount }),
+    selectedCountAnnouncement: t("review.bulk.countAnnouncement", {
+      count: selectedCount,
+    }),
     editLabel: t("review.bulk.editAction"),
     clearLabel: t("review.bulk.clearAction"),
   };

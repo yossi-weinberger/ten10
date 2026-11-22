@@ -212,6 +212,8 @@
       "count_other": "{{count}} selected",
       "countCompact_one": "{{count}}",
       "countCompact_other": "{{count}}",
+      "countAnnouncement_one": "1 row selected",
+      "countAnnouncement_other": "{{count}} rows selected",
       "edit_one": "Edit 1 transaction",
       "edit_other": "Edit {{count}} transactions",
       "editAction": "Edit",

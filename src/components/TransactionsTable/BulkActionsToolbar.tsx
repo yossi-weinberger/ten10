@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 export interface BulkActionsToolbarProps {
   selectedCount: number;
   selectedCountLabel: string;
+  /** Full sentence for screen readers; when set, the visible count is aria-hidden. */
+  selectedCountAnnouncement?: string;
   editLabel: string;
   deleteLabel?: string;
   clearLabel: string;
@@ -22,6 +24,7 @@ export interface BulkActionsToolbarProps {
 export function BulkActionsToolbar({
   selectedCount,
   selectedCountLabel,
+  selectedCountAnnouncement,
   editLabel,
   deleteLabel,
   clearLabel,
@@ -54,7 +57,13 @@ export function BulkActionsToolbar({
       aria-label={ariaLabel}
       aria-live="polite"
     >
-      <div className="text-sm font-medium text-muted-foreground">
+      {selectedCountAnnouncement ? (
+        <span className="sr-only">{selectedCountAnnouncement}</span>
+      ) : null}
+      <div
+        className="text-sm font-medium text-muted-foreground"
+        aria-hidden={selectedCountAnnouncement ? true : undefined}
+      >
         {selectedCountLabel}
       </div>
       <div className="flex flex-wrap items-center gap-2">
