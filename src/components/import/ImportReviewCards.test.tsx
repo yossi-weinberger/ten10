@@ -157,9 +157,8 @@ describe("ImportReviewCards B4a", () => {
       />,
     );
 
-    const maskedAmount = container.querySelector(".ph-mask[data-ph-mask]");
-    expect(maskedAmount).toBeTruthy();
-    expect(maskedAmount?.textContent).toMatch(/100|₪/);
+    const masked = [...container.querySelectorAll(".ph-mask[data-ph-mask]")];
+    expect(masked.some((el) => /100|₪/.test(el.textContent ?? ""))).toBe(true);
   });
 
   it("uses localized select/edit aria keys", () => {
