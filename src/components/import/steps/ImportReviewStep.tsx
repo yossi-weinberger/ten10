@@ -298,7 +298,14 @@ export function ImportReviewStep({
   );
 
   return (
-    <div className="space-y-4 md:space-y-6" data-onboarding="import-review">
+    <div
+      className={cn(
+        "space-y-4 md:space-y-6",
+        // Short narrow phones: keep ≥2 full review cards above the sticky footer.
+        "[@media(max-width:767px)_and_(max-height:700px)]:space-y-2",
+      )}
+      data-onboarding="import-review"
+    >
       {selectMode ? (
         <div className="md:hidden flex h-12 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
@@ -317,15 +324,32 @@ export function ImportReviewStep({
         </div>
       ) : (
         <>
-          <div className="space-y-1.5">
+          <div
+            className={cn(
+              "space-y-1.5",
+              "[@media(max-width:767px)_and_(max-height:700px)]:hidden",
+            )}
+          >
             <h2 className="text-lg font-semibold leading-snug">{t("review.title2")}</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">{t("review.lead")}</p>
           </div>
-          <div className="md:hidden rounded-[10px] border bg-white px-3 py-2.5 space-y-1">
-            <p className="text-[15px] font-bold leading-snug">{compactCountParts.join(" · ")}</p>
+          <div
+            className={cn(
+              "md:hidden rounded-[10px] border bg-white px-3 py-2.5 space-y-1",
+              "[@media(max-width:767px)_and_(max-height:700px)]:px-2.5",
+              "[@media(max-width:767px)_and_(max-height:700px)]:py-1.5",
+            )}
+          >
+            <p className="text-[15px] font-bold leading-snug [@media(max-width:767px)_and_(max-height:700px)]:text-[14px]">
+              {compactCountParts.join(" · ")}
+            </p>
             {compactMoneyParts.length > 0 ? (
               <p
-                className={cn("text-[13.5px] text-muted-foreground leading-snug", PH_SENSITIVE_PROPS.className)}
+                className={cn(
+                  "text-[13.5px] text-muted-foreground leading-snug",
+                  "[@media(max-width:767px)_and_(max-height:700px)]:text-[12.5px]",
+                  PH_SENSITIVE_PROPS.className,
+                )}
                 data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
               >
                 {compactMoneyParts.join(" · ")}

@@ -887,9 +887,21 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div
+      className={cn(
+        "space-y-6",
+        state.step === "review" &&
+          "[@media(max-width:767px)_and_(max-height:700px)]:space-y-3",
+      )}
+    >
       {/* Mobile header (<768px): title + compact step + tour + close, then progress bar */}
-      <div className="md:hidden space-y-3">
+      <div
+        className={cn(
+          "md:hidden space-y-3",
+          state.step === "review" &&
+            "[@media(max-width:767px)_and_(max-height:700px)]:space-y-2",
+        )}
+      >
         <div className="flex items-center gap-2" data-onboarding="import-intro">
           <h1 className="text-[17px] font-semibold flex-1 min-w-0 truncate">{t("title")}</h1>
           {state.step !== "result" && (
@@ -991,7 +1003,13 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
       {/* Step content */}
       <Card>
-        <CardContent className="p-4 md:p-6">
+        <CardContent
+          className={cn(
+            "p-4 md:p-6",
+            state.step === "review" &&
+              "[@media(max-width:767px)_and_(max-height:700px)]:p-3",
+          )}
+        >
           <div key={animationKey}>
               {animationKey === "upload" && (
                 <FileUploadStep onFileParsed={handleFileParsed} />

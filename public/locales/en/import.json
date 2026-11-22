@@ -152,9 +152,9 @@
       "approvedRows": "Selected for import",
       "compactCountsTotal_one": "1 transaction",
       "compactCountsTotal_other": "{{count}} transactions",
-      "compactCountsReady": "{{count}} ready",
-      "compactCountsReview": "{{count}} to check",
-      "compactCountsInvalid": "{{count}} invalid",
+      "compactCountsReady": "Ready: {{count}}",
+      "compactCountsReview": "To check: {{count}}",
+      "compactCountsInvalid": "Invalid: {{count}}",
       "compactMoney": {
         "income": "Income {{amount}}",
         "expenses": "Expenses {{amount}}",
