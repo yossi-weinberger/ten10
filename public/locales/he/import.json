@@ -89,9 +89,11 @@
     },
     "title2": "מה יש בכל עמודה?",
     "detectedCount_one": "זיהינו לבד עמודה אחת. כדאי להציץ בדוגמאות ולוודא.",
+    "detectedCount_two": "זיהינו לבד שתי עמודות. כדאי להציץ בדוגמאות ולוודא.",
     "detectedCount_other": "זיהינו לבד {{count}} עמודות. כדאי להציץ בדוגמאות ולוודא.",
     "autoDetected": "זוהה אוטומטית",
     "unmappedCollapsed_one": "עוד עמודה אחת שלא תיובא",
+    "unmappedCollapsed_two": "עוד שתי עמודות שלא ייובאו",
     "unmappedCollapsed_other": "עוד {{count}} עמודות שלא ייובאו",
     "sheet": {
       "question": "מה יש בעמודה הזו?",
@@ -101,6 +103,7 @@
     },
     "summary": {
       "remaining_one": "נשאר דבר אחד לתקן",
+      "remaining_two": "נשארו שני דברים לתקן",
       "remaining_other": "נשארו {{count}} דברים לתקן",
       "show": "הצגה",
       "titleInline": "נשאר לתקן:"
