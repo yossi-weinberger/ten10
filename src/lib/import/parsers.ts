@@ -1,9 +1,11 @@
-import type { ParseFileResult } from "./import-session.types";
-import { cleanHeaderName } from "./header-normalizer";
+import type { ParseFileResult, ParsedFile } from "./import-session.types";
+import { cleanHeaderName, normalizeHeaderName } from "./header-normalizer";
+import { FIELD_ALIASES } from "./import-locale-aliases";
 
 export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MAX_ROWS = 5000;
 const SAMPLE_ROWS = 5;
+const HEADER_SCAN_LIMIT = 30;
 
 function looksLikeDataHeader(headers: string[]): boolean {
   if (headers.length < 2) return false;
@@ -55,6 +57,191 @@ function isAmountLikeText(value: string): boolean {
     .replace(/[₪$€£¥₩,\s]/g, "");
 
   return /^-?\(?\d+(\.\d{1,2})?\)?$/.test(normalized);
+}
+
+function headerAliasHitCount(headers: string[]): number {
+  let hits = 0;
+  for (const header of headers) {
+    const normalized = normalizeHeaderName(header);
+    if (!normalized) continue;
+    let matched = false;
+    for (const aliases of Object.values(FIELD_ALIASES)) {
+      for (const alias of aliases) {
+        const aliasNorm = normalizeHeaderName(alias);
+        if (!aliasNorm) continue;
+        if (
+          normalized === aliasNorm ||
+          (aliasNorm.length >= 4 && normalized.includes(aliasNorm))
+        ) {
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+    if (matched) hits += 1;
+  }
+  return hits;
+}
+
+/**
+ * Score a candidate header row. Prefer distinct labels and known aliases over
+ * merged title rows that repeat the same cell across every column.
+ */
+export function scoreHeaderCandidate(values: unknown[]): number {
+  const cells = values
+    .map((value) => String(value ?? "").trim())
+    .filter((value) => value !== "");
+  if (cells.length < 2) return -1;
+
+  const unique = new Set(cells.map((cell) => normalizeHeaderName(cell)).filter(Boolean));
+  if (unique.size <= 1) {
+    // Merged title / banner: many cells, one label.
+    return cells.length;
+  }
+
+  const aliasHits = headerAliasHitCount(cells);
+  return unique.size * 10 + aliasHits * 25 + cells.length;
+}
+
+function pickBestHeaderIndex(rows: unknown[][]): number {
+  let bestIndex = 0;
+  let bestScore = -1;
+  const limit = Math.min(rows.length, HEADER_SCAN_LIMIT);
+  for (let index = 0; index < limit; index++) {
+    const score = scoreHeaderCandidate(rows[index] ?? []);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  }
+  return bestIndex;
+}
+
+function decodeXmlEntitiesBasic(value: string): string {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    );
+}
+
+function stripHtmlTags(value: string): string {
+  return decodeXmlEntitiesBasic(
+    value
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+function looksLikeHtmlSpreadsheet(text: string): boolean {
+  const sample = text.slice(0, 4000).trimStart();
+  return (
+    /^(?:<!doctype html|<html|<head|<body|<table|<meta)/i.test(sample) ||
+    (/<table[\s>]/i.test(sample) && /<tr[\s>]/i.test(sample))
+  );
+}
+
+function isZipBuffer(bytes: Uint8Array): boolean {
+  return bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b;
+}
+
+/**
+ * Decode CSV / HTML-as-xls bytes: honour BOM, try UTF-8 fatal, then windows-1255.
+ */
+export function decodeImportText(bytes: Uint8Array): string {
+  if (
+    bytes.length >= 2 &&
+    bytes[0] === 0xff &&
+    bytes[1] === 0xfe
+  ) {
+    return new TextDecoder("utf-16le").decode(bytes);
+  }
+  if (
+    bytes.length >= 2 &&
+    bytes[0] === 0xfe &&
+    bytes[1] === 0xff
+  ) {
+    return new TextDecoder("utf-16be").decode(bytes);
+  }
+  if (
+    bytes.length >= 3 &&
+    bytes[0] === 0xef &&
+    bytes[1] === 0xbb &&
+    bytes[2] === 0xbf
+  ) {
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder("windows-1255").decode(bytes);
+  }
+}
+
+/**
+ * Parse an HTML table saved as .xls (common for Leumi / Mizrahi exports).
+ * Picks the table whose header row scores highest on alias hits.
+ */
+export function parseHtmlTableText(text: string): {
+  headers: string[];
+  rows: Record<string, unknown>[];
+} {
+  const tables = text.match(/<table\b[\s\S]*?<\/table>/gi) ?? [];
+  let best: { headers: string[]; rows: Record<string, unknown>[]; score: number } | null =
+    null;
+
+  for (const tableHtml of tables.length > 0 ? tables : [text]) {
+    const rowHtmls = tableHtml.match(/<tr\b[\s\S]*?<\/tr>/gi) ?? [];
+    const matrix: string[][] = [];
+    for (const rowHtml of rowHtmls) {
+      const cells: string[] = [];
+      const cellRe = /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi;
+      let cellMatch: RegExpExecArray | null;
+      while ((cellMatch = cellRe.exec(rowHtml)) !== null) {
+        cells.push(cleanHeaderName(stripHtmlTags(cellMatch[1])));
+      }
+      if (cells.some((cell) => cell !== "")) matrix.push(cells);
+    }
+    if (matrix.length === 0) continue;
+
+    const headerIndex = pickBestHeaderIndex(matrix);
+    const rawHeaders = matrix[headerIndex] ?? [];
+    const headers = rawHeaders.map((header) => cleanHeaderName(header));
+    while (headers.length > 0 && headers[headers.length - 1] === "") headers.pop();
+    if (headers.filter(Boolean).length < 2) continue;
+
+    const rows: Record<string, unknown>[] = [];
+    for (let rowIndex = headerIndex + 1; rowIndex < matrix.length; rowIndex++) {
+      const values = matrix[rowIndex] ?? [];
+      const row: Record<string, unknown> = {};
+      let hasValue = false;
+      for (let col = 0; col < headers.length; col++) {
+        const header = headers[col];
+        if (!header) continue;
+        const value = values[col] ?? "";
+        row[header] = value;
+        if (String(value).trim() !== "") hasValue = true;
+      }
+      if (hasValue) rows.push(row);
+    }
+
+    const score = scoreHeaderCandidate(headers);
+    if (!best || score > best.score) {
+      best = { headers, rows, score };
+    }
+  }
+
+  return best ?? { headers: [], rows: [] };
 }
 
 // ---------------------------------------------------------------------------
@@ -123,8 +310,18 @@ export function parseCSVText(text: string): {
   const normalized = stripped.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const lines = splitCSVLines(normalized);
 
-  const headerIdx = lines.findIndex((l) => l.trim().length > 0);
-  if (headerIdx === -1) return { headers: [], rows: [] };
+  const nonEmptyIndexes: number[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    if (lines[index].trim().length > 0) nonEmptyIndexes.push(index);
+  }
+  if (nonEmptyIndexes.length === 0) return { headers: [], rows: [] };
+
+  const probeDelimiter = detectDelimiter(lines[nonEmptyIndexes[0]]);
+  const candidateRows = nonEmptyIndexes
+    .slice(0, HEADER_SCAN_LIMIT)
+    .map((lineIndex) => parseCSVLine(lines[lineIndex], probeDelimiter));
+  const bestCandidate = pickBestHeaderIndex(candidateRows);
+  const headerIdx = nonEmptyIndexes[bestCandidate] ?? nonEmptyIndexes[0];
 
   const delimiter = detectDelimiter(lines[headerIdx]);
   const headers = parseCSVLine(lines[headerIdx], delimiter).map(cleanHeaderName);
@@ -346,19 +543,27 @@ async function listExcelSheetNames(buffer: ArrayBuffer): Promise<string[] | null
 }
 
 /**
- * Find the "real" header row: the first row (in first 30) with the most cells.
- * Bank/credit exports often have 1–3 metadata rows at the top with only 1 cell.
+ * Find the "real" header row among the first 30 non-empty rows.
+ * Scores by distinct labels + known import aliases so a merged title row
+ * that repeats one label across every column loses to the true header.
  */
 function findBestHeaderRowNum(rowMap: Map<number, Map<number, unknown>>): number {
   const sortedNums = Array.from(rowMap.keys()).sort((a, b) => a - b);
-  const candidates = sortedNums.slice(0, 30);
+  const candidates = sortedNums.slice(0, HEADER_SCAN_LIMIT);
   let best = candidates[0] ?? 1;
-  let bestCount = 0;
+  let bestScore = -1;
   for (const rn of candidates) {
-    const count = Array.from(rowMap.get(rn)!.values()).filter(
-      (value) => String(value ?? "").trim() !== ""
-    ).length;
-    if (count > bestCount) { bestCount = count; best = rn; }
+    const cells = rowMap.get(rn)!;
+    const maxCol = Math.max(0, ...cells.keys());
+    const values: unknown[] = [];
+    for (let col = 1; col <= maxCol; col++) {
+      values.push(cells.get(col) ?? "");
+    }
+    const score = scoreHeaderCandidate(values);
+    if (score > bestScore) {
+      bestScore = score;
+      best = rn;
+    }
   }
   return best;
 }
@@ -574,15 +779,27 @@ export async function parseExcelBuffer(
     return { availableSheets, selected: { sheetName: sheet.name, headers: [], rows: [] } };
   }
 
-  // Smart header detection: use the row with the most non-empty cells
-  // (rather than always the first non-empty row, which is often a title/metadata row)
-  const candidates = nonEmptyRows.slice(0, 30);
+  // Smart header detection: score rows by distinct labels + alias hits
+  // (rather than raw cell count, which lets a merged title win).
+  const candidates = nonEmptyRows.slice(0, HEADER_SCAN_LIMIT);
   let headerRow = candidates[0];
   let headerRowCellCount = 0;
+  let headerRowScore = -1;
   for (const row of candidates) {
+    const values: unknown[] = [];
     let count = 0;
-    row.eachCell({ includeEmpty: false }, () => count++);
-    if (count > headerRowCellCount) { headerRowCellCount = count; headerRow = row; }
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      values[colNumber - 1] = getCellValue(cell);
+      if (cell.value !== null && cell.value !== undefined && cell.value !== "") {
+        count += 1;
+      }
+    });
+    const score = scoreHeaderCandidate(values);
+    if (score > headerRowScore) {
+      headerRowScore = score;
+      headerRow = row;
+      headerRowCellCount = count;
+    }
   }
 
   // If ExcelJS found a sheet but no usable cells, it likely hit a non-standard
@@ -639,19 +856,93 @@ export async function parseFile(file: File, selectedSheet?: string): Promise<Par
     };
   }
   const ext = file.name.split(".").pop()?.toLowerCase();
-  if (ext === "xls") return { ok: false, error: "xls_not_supported" };
-  if (ext !== "csv" && ext !== "xlsx") return { ok: false, error: "unsupported_format" };
+  if (ext !== "csv" && ext !== "xlsx" && ext !== "xls") {
+    return { ok: false, error: "unsupported_format" };
+  }
   try {
-    return ext === "csv"
-      ? await parseCSVFile(file)
-      : await parseExcelFile(file, selectedSheet);
+    if (ext === "csv") return await parseCSVFile(file);
+    if (ext === "xls") return await parseXlsFile(file, selectedSheet);
+    return await parseExcelFile(file, selectedSheet);
   } catch {
     return { ok: false, error: "parse_error" };
   }
 }
 
+function buildParsedSuccess(
+  headers: string[],
+  rows: Record<string, unknown>[],
+  extras: Partial<Pick<ParsedFile, "sheetName" | "availableSheets" | "diagnostics">> = {},
+): ParseFileResult {
+  if (headers.length === 0) {
+    return {
+      ok: false,
+      error: "no_headers",
+      diagnostic: "No non-empty header row found",
+    };
+  }
+  if (looksLikeDataHeader(headers)) {
+    const headerless = remapHeaderlessRows(headers, rows);
+    if (headerless.rows.length > MAX_ROWS) {
+      return { ok: false, error: "too_many_rows", detail: String(MAX_ROWS) };
+    }
+    return {
+      ok: true,
+      file: {
+        headers: headerless.headers,
+        rows: headerless.rows,
+        sampleRows: headerless.rows.slice(0, SAMPLE_ROWS),
+        rowCount: headerless.rows.length,
+        diagnostics: [{ code: "generated_headers", count: headerless.headers.length }],
+        ...extras,
+      },
+    };
+  }
+  if (rows.length === 0) {
+    return {
+      ok: false,
+      error: "no_data",
+      diagnostic: `Headers detected (${headers.length} columns) but no data rows followed`,
+    };
+  }
+  if (rows.length > MAX_ROWS) {
+    return { ok: false, error: "too_many_rows", detail: String(MAX_ROWS) };
+  }
+  return {
+    ok: true,
+    file: {
+      headers,
+      rows,
+      sampleRows: rows.slice(0, SAMPLE_ROWS),
+      rowCount: rows.length,
+      ...extras,
+    },
+  };
+}
+
+/**
+ * .xls support covers HTML-table exports and .xlsx files misnamed as .xls.
+ * True BIFF binary .xls remains unsupported.
+ */
+async function parseXlsFile(file: File, selectedSheet?: string): Promise<ParseFileResult> {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+
+  if (isZipBuffer(bytes)) {
+    return parseExcelFile(file, selectedSheet);
+  }
+
+  const text = decodeImportText(bytes);
+  if (looksLikeHtmlSpreadsheet(text)) {
+    const { headers, rows } = parseHtmlTableText(text);
+    return buildParsedSuccess(headers, rows);
+  }
+
+  return { ok: false, error: "xls_not_supported" };
+}
+
 async function parseCSVFile(file: File): Promise<ParseFileResult> {
-  const text = await file.text();
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const text = decodeImportText(bytes);
   const { headers, rows } = parseCSVText(text);
   if (headers.length === 0) {
     const hasQuoteInFirstLine = text.split("\n")[0]?.includes('"');

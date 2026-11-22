@@ -36,7 +36,7 @@ export function suggestMappings(headers: string[]): ColumnMapping[] {
   // Check if this is a Ten10 template file first
   const isTen10Template = detectTen10Template(headers);
 
-  return headers.map((header) => {
+  const mapped = headers.map((header) => {
     if (isTen10Template) {
       const target = TEN10_TEMPLATE_HEADERS[normalizeHeaderName(header)];
       if (target) {
@@ -48,6 +48,8 @@ export function suggestMappings(headers: string[]): ColumnMapping[] {
     const target = matchHeaderToField(header);
     return { sourceColumn: header, targetField: target };
   });
+
+  return isTen10Template ? mapped : resolveMappingConflicts(mapped);
 }
 
 export function detectTen10Template(headers: string[]): boolean {
@@ -65,24 +67,248 @@ const NON_IMPORTABLE_HEADERS = new Set([
   normalizeHeaderName("Hebrew Date"),
 ]);
 
+/** Headers that should never become date/amount/debit/credit targets. */
+function isIgnoredBankMetadataHeader(normalized: string): boolean {
+  if (NON_IMPORTABLE_HEADERS.has(normalized)) return true;
+  if (normalized.includes("יתרה")) return true;
+  if (normalized.startsWith("אסמכת")) return true;
+  if (normalized.startsWith("שער")) return true;
+  return false;
+}
+
+function isCurrencyShapedHeader(normalized: string): boolean {
+  return (
+    normalized === "currency" ||
+    normalized === "cur" ||
+    normalized.startsWith("מטבע")
+  );
+}
+
+function isChargeAmountHeader(normalized: string): boolean {
+  return (
+    normalized.includes("סכום חיוב") ||
+    normalized.includes("סכום החיוב") ||
+    normalized === "חיוב בשקלים"
+  );
+}
+
+function isChargeCurrencyHeader(normalized: string): boolean {
+  return (
+    normalized.includes("מטבע חיוב") ||
+    normalized.includes("מטבע לחיוב") ||
+    normalized.includes("מטבע החיוב")
+  );
+}
+
+function isSecondaryDateHeader(normalized: string): boolean {
+  return (
+    normalized.includes("ערך") ||
+    normalized.includes("חיוב") ||
+    normalized.startsWith("יום")
+  );
+}
+
+function dateColumnPreference(header: string): number {
+  const normalized = normalizeHeaderName(header);
+  if (normalized === "תאריך" || normalized === "date") return 100;
+  if (
+    normalized === "תאריך עסקה" ||
+    normalized === "תאריך רכישה" ||
+    normalized === "תאריך פעולה"
+  ) {
+    return 90;
+  }
+  if (isSecondaryDateHeader(normalized)) return 10;
+  return 50;
+}
+
+function amountColumnPreference(header: string): number {
+  const normalized = normalizeHeaderName(header);
+  if (isChargeAmountHeader(normalized)) return 100;
+  if (normalized.includes("סכום עסקה")) return 40;
+  if (normalized === "סכום" || normalized === "amount") return 70;
+  return 50;
+}
+
+/** When the amount is the ILS charge column, prefer charge-currency headers. */
+function currencyColumnPreference(header: string, preferChargeCurrency: boolean): number {
+  const normalized = normalizeHeaderName(header);
+  if (preferChargeCurrency && isChargeCurrencyHeader(normalized)) return 100;
+  if (isChargeCurrencyHeader(normalized)) return 60;
+  if (normalized.includes("מקור")) return preferChargeCurrency ? 10 : 50;
+  return 40;
+}
+
+interface AliasMatch {
+  field: ImportTargetField;
+  score: number;
+}
+
+/**
+ * Prefer exact alias matches, then the longest substring match (≥ 4 chars).
+ * Currency-shaped headers (מטבע*) only compete for the currency field so
+ * "מטבע חיוב" never wins debit via the "חיוב" substring.
+ */
 function matchHeaderToField(header: string): ImportTargetField | null {
   const normalized = normalizeHeaderName(header);
-  if (NON_IMPORTABLE_HEADERS.has(normalized)) return null;
+  if (!normalized || isIgnoredBankMetadataHeader(normalized)) return null;
+
+  const currencyOnly = isCurrencyShapedHeader(normalized);
+  const candidates: AliasMatch[] = [];
 
   for (const [field, aliases] of Object.entries(FIELD_ALIASES) as [
     ImportTargetField,
     string[],
   ][]) {
+    if (currencyOnly && field !== "currency") continue;
+
     for (const alias of aliases) {
-      if (normalized === alias) return field;
+      const aliasNorm = normalizeHeaderName(alias);
+      if (!aliasNorm) continue;
+      if (normalized === aliasNorm) {
+        candidates.push({ field, score: 1000 + aliasNorm.length });
+        continue;
+      }
       // Substring match only for aliases long enough to be unambiguous (≥ 4 chars).
       // Short aliases like "סוג" (3) or "שם" (2) must match exactly so they don't
       // accidentally match compound headers like "סוג תנועה".
-      if (alias.length >= 4 && normalized.includes(alias)) return field;
+      if (aliasNorm.length >= 4 && normalized.includes(aliasNorm)) {
+        candidates.push({ field, score: aliasNorm.length });
+      }
     }
   }
 
-  return null;
+  if (candidates.length === 0) return null;
+
+  candidates.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    // Stable tie-break: prefer more specific money fields over generic amount.
+    const order: ImportTargetField[] = [
+      "debit",
+      "credit",
+      "currency",
+      "date",
+      "amount",
+      "description",
+      "type",
+      "category",
+      "recipient",
+      "payment_method",
+      "is_chomesh",
+    ];
+    return order.indexOf(a.field) - order.indexOf(b.field);
+  });
+
+  return candidates[0].field;
+}
+
+function clearTarget(
+  mappings: ColumnMapping[],
+  predicate: (mapping: ColumnMapping, index: number) => boolean,
+): void {
+  for (let index = 0; index < mappings.length; index++) {
+    if (predicate(mappings[index], index)) {
+      mappings[index] = { ...mappings[index], targetField: null };
+    }
+  }
+}
+
+/**
+ * Drop weaker duplicate targets so auto-mapping stays actionable.
+ * Prefers transaction date over value/charge dates, and ILS charge amount
+ * over original-transaction amount when both appear (card exports).
+ * When the kept amount is a charge column, currency prefers מטבע לחיוב /
+ * מטבע חיוב over מטבע מקור so foreign-merchant ILS charges stay in ILS.
+ */
+function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
+  const resolved = mappings.map((mapping) => ({ ...mapping }));
+
+  const indicesFor = (field: ImportTargetField): number[] =>
+    resolved
+      .map((mapping, index) => (mapping.targetField === field ? index : -1))
+      .filter((index) => index >= 0);
+
+  const dateIndices = indicesFor("date");
+  if (dateIndices.length > 1) {
+    const best = dateIndices.reduce((winner, index) =>
+      dateColumnPreference(resolved[index].sourceColumn) >
+      dateColumnPreference(resolved[winner].sourceColumn)
+        ? index
+        : winner,
+    );
+    clearTarget(resolved, (mapping, index) => mapping.targetField === "date" && index !== best);
+  }
+
+  const amountIndices = indicesFor("amount");
+  if (amountIndices.length > 1) {
+    const best = amountIndices.reduce((winner, index) =>
+      amountColumnPreference(resolved[index].sourceColumn) >
+      amountColumnPreference(resolved[winner].sourceColumn)
+        ? index
+        : winner,
+    );
+    clearTarget(resolved, (mapping, index) => mapping.targetField === "amount" && index !== best);
+  }
+
+  // Resolve amount vs debit/credit before currency, so charge-currency
+  // preference can follow the final amount column.
+  const hasAmount = indicesFor("amount").length > 0;
+  const debitIndices = indicesFor("debit");
+  const creditIndices = indicesFor("credit");
+  const hasDebit = debitIndices.length > 0;
+  const hasCredit = creditIndices.length > 0;
+
+  if (hasAmount && hasDebit && hasCredit) {
+    // Bank-style separate debit/credit columns win over a generic amount column.
+    clearTarget(resolved, (mapping) => mapping.targetField === "amount");
+  } else if (hasDebit && !hasCredit) {
+    const debitIndex = debitIndices[0];
+    const debitHeader = normalizeHeaderName(resolved[debitIndex].sourceColumn);
+    if (isChargeAmountHeader(debitHeader)) {
+      // Card exports use "סכום חיוב" as the ILS amount column.
+      clearTarget(resolved, (mapping) => mapping.targetField === "amount");
+      resolved[debitIndex] = {
+        ...resolved[debitIndex],
+        targetField: "amount",
+      };
+    } else if (hasAmount) {
+      clearTarget(resolved, (mapping) => mapping.targetField === "debit");
+    }
+  } else if (hasAmount && hasCredit && !hasDebit) {
+    clearTarget(resolved, (mapping) => mapping.targetField === "credit");
+  }
+
+  const finalAmountIndices = indicesFor("amount");
+  const preferChargeCurrency = finalAmountIndices.some((index) =>
+    isChargeAmountHeader(normalizeHeaderName(resolved[index].sourceColumn)),
+  );
+
+  const currencyIndices = indicesFor("currency");
+  if (currencyIndices.length > 1) {
+    const best = currencyIndices.reduce((winner, index) =>
+      currencyColumnPreference(resolved[index].sourceColumn, preferChargeCurrency) >
+      currencyColumnPreference(resolved[winner].sourceColumn, preferChargeCurrency)
+        ? index
+        : winner,
+    );
+    clearTarget(
+      resolved,
+      (mapping, index) => mapping.targetField === "currency" && index !== best,
+    );
+  }
+
+  for (const field of ["type", "category", "recipient", "payment_method", "is_chomesh"] as const) {
+    const indices = indicesFor(field);
+    if (indices.length > 1) {
+      const best = indices[0];
+      clearTarget(
+        resolved,
+        (mapping, index) => mapping.targetField === field && index !== best,
+      );
+    }
+  }
+
+  return resolved;
 }
 
 // ---------------------------------------------------------------------------
