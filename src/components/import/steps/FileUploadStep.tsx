@@ -17,6 +17,11 @@ import {
 import { cn } from "@/lib/utils/index";
 import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
 import { withTimeout } from "@/lib/utils/with-timeout";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import {
+  extensionFromFileName,
+  type ImportFileExtension,
+} from "@/lib/import/import-analytics";
 import { parseFile, MAX_FILE_SIZE_BYTES, MAX_ROWS } from "@/lib/import/parsers";
 import { createTen10TemplateFile } from "@/lib/import/ten10-template";
 import {
@@ -31,8 +36,12 @@ const UPLOAD_REJECTION_KEYS = {
   unsupportedFormat: "upload.errors.unsupportedFormat",
 } as const;
 
+export interface FileParsedMeta {
+  fileExtension: ImportFileExtension;
+}
+
 interface FileUploadStepProps {
-  onFileParsed: (file: ParsedFile) => void;
+  onFileParsed: (file: ParsedFile, meta: FileParsedMeta) => void;
 }
 
 const FILE_PARSE_TIMEOUT_MS = 15000;
@@ -51,6 +60,7 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
     async (file: File, sheetName?: string) => {
       setIsLoading(true);
       setError(null);
+      const fileExtension = extensionFromFileName(file.name);
 
       let result: Awaited<ReturnType<typeof parseFile>>;
       try {
@@ -73,12 +83,24 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
         const isTimeout = err instanceof Error && err.message === "file_parse_timeout";
         logger.error("Import upload: parse timed out or failed:", err);
         setIsLoading(false);
+        trackProductEvent("transaction_import_parse_error", {
+          platform,
+          step: "upload",
+          errorCode: isTimeout ? "parse_timeout" : "parse_error",
+          fileExtension,
+        });
         setError(t(isTimeout ? "upload.errors.parseTimeout" : "upload.errors.parseError"));
         return;
       }
 
       if (!result.ok) {
         setIsLoading(false);
+        trackProductEvent("transaction_import_parse_error", {
+          platform,
+          step: "upload",
+          errorCode: result.error,
+          fileExtension,
+        });
         const maxMb = Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024);
         switch (result.error) {
           case "too_large":
@@ -99,8 +121,14 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
           case "no_headers":
             setError(t("upload.errors.noHeaders"));
             break;
-          default:
+          case "parse_error":
             setError(t("upload.errors.parseError"));
+            break;
+          default: {
+            const _exhaustive: never = result.error;
+            void _exhaustive;
+            setError(t("upload.errors.parseError"));
+          }
         }
         return;
       }
@@ -117,20 +145,25 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       }
 
       setIsLoading(false);
-      onFileParsed(result.file);
+      onFileParsed(result.file, { fileExtension });
     },
-    [onFileParsed, t]
+    [onFileParsed, t, platform]
   );
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (!file) return;
+      trackProductEvent("transaction_import_file_picked", {
+        platform,
+        step: "upload",
+        fileExtension: extensionFromFileName(file.name),
+      });
       setPendingFile(file);
       setAvailableSheets(null);
       await processFile(file);
     },
-    [processFile]
+    [processFile, platform]
   );
 
   const onDropRejected = useCallback(

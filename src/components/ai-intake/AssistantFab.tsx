@@ -46,7 +46,14 @@ function Sparkle({ className, delayMs }: { className: string; delayMs: number })
 }
 
 /** The floating button for the assistant, where the contact button was. Contact moved into the menu. */
-export function AssistantFab({ userId = null }: { userId?: string | null }) {
+export function AssistantFab({
+  userId = null,
+  mobileHidden = false,
+}: {
+  userId?: string | null;
+  /** Hide the FAB below the md breakpoint (e.g. import route footer collision). */
+  mobileHidden?: boolean;
+}) {
   const { t } = useTranslation("navigation");
   const consentCovered = useSyncExternalStore(
     subscribeAssistantConsentCover,
@@ -189,12 +196,12 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
   return (
     <div
       ref={rootRef}
-      className={`fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50 ${forceMotion ? "assistant-intro-force-motion" : ""}`}
+      className={`fixed bottom-6 max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mobile-landscape:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] end-6 z-50 ${mobileHidden ? "max-md:hidden" : ""} ${forceMotion ? "assistant-intro-force-motion" : ""}`}
     >
       <div className="group relative">
         <span className="assistant-hover-ring" />
         <span className="assistant-hover-ring assistant-intro-ring-late" />
-        {phase === "ripple" ? (
+        {phase === "ripple" && !mobileHidden ? (
           <>
             <span className="assistant-intro-ring" />
             <span className="assistant-intro-ring assistant-intro-ring-late" />
@@ -215,7 +222,7 @@ export function AssistantFab({ userId = null }: { userId?: string | null }) {
           </TooltipTrigger>
           <TooltipContent side="top">{t("menu.assistant")}</TooltipContent>
         </Tooltip>
-        {phase === "coach" ? (
+        {phase === "coach" && !mobileHidden ? (
           <div
             role="status"
             aria-live="polite"

@@ -21,10 +21,10 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-function renderFab(userId?: string) {
+function renderFab(userId?: string | null, opts?: { mobileHidden?: boolean }) {
   return render(
     <TooltipProvider>
-      <AssistantFab userId={userId} />
+      <AssistantFab userId={userId} mobileHidden={opts?.mobileHidden} />
     </TooltipProvider>
   );
 }
@@ -178,5 +178,11 @@ describe("AssistantFab", () => {
     expect(screen.queryByText("assistantIntro.title")).not.toBeInTheDocument();
     expect(localStorage.getItem(assistantIntroStorageKey("user-1"))).toBe("1");
     vi.useRealTimers();
+  });
+
+  it("hides the FAB on mobile when mobileHidden is set", () => {
+    const { container } = renderFab(null, { mobileHidden: true });
+    const fab = container.querySelector("[class*='fixed']");
+    expect(fab?.className).toContain("max-md:hidden");
   });
 });

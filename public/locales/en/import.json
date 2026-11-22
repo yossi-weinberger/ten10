@@ -75,15 +75,14 @@
   "mapping": {
     "title": "Map Columns",
     "description": "Link each column from your file to a Ten10 field. Columns marked with * are required.",
-    "whatIsMapping": "Connect each column in your file to the matching field in Ten10. Review the suggestions and adjust if needed.",
-    "hint": "Ten10 suggested mappings automatically — review them and adjust if needed.",
-    "sourceColumn": "File Column",
-    "targetField": "Ten10 Field",
+    "whatIsMapping": "Tell TEN10 which column is the date, the amount and the description. We've guessed already; mark anything you don't need as \"Don't import\".",
+    "sourceColumn": "In your file",
+    "targetField": "In TEN10",
     "sampleLabel": "e.g.:",
-    "sampleColumnHeader": "From File",
+    "sampleColumnHeader": "Samples",
     "sampleValues": "Sample Values",
-    "noMapping": "— Skip column —",
-    "ten10TemplateDetected": "Ten10 template detected — columns were mapped automatically. Review and adjust if needed.",
+    "noMapping": "Don't import",
+    "ten10TemplateDetected": "This is the TEN10 template. Everything is matched, you can continue.",
     "fields": {
       "date": "Date",
       "amount": "Amount",
@@ -99,19 +98,45 @@
     },
     "required": "Required",
     "errors": {
-      "dateMissing": "You must map a Date column",
-      "amountMissing": "You must map an Amount column, or a Debit column, or a Credit column",
-      "duplicateTarget": "Each Ten10 field can only be mapped once",
-      "amountAndDebitCredit": "Cannot map both Amount and Debit/Credit at the same time"
+      "dateMissing": "Date is missing. Choose which column is the transaction date.",
+      "amountMissing": "Amount is missing. Choose \"Amount\", or \"Debit\" and \"Credit\" if your bank splits them.",
+      "duplicateTarget": "{{columns}} are both set to {{field}}. Keep one and set the other to \"Don't import\".",
+      "duplicateTargetInline": "{{other}} is also set to {{field}}. Keep one and set the other to \"Don't import\".",
+      "amountAndDebitCredit": "Pick one method: a single \"Amount\" column, or \"Debit\" and \"Credit\". Not both.",
+      "amountAndDebitCreditInline": "There's already an \"Amount\" or \"Debit/Credit\" column. Pick one method.",
+      "generic": "There's a problem with the column matching. Check the marked rows."
     },
     "diagnostics": {
       "duplicate_headers": "Duplicate headers found: {{columns}}",
       "empty_headers": "{{count}} columns have no header and will be skipped",
-      "many_unmapped_columns": "{{count}} columns are not mapped — check that no important data is missing",
+      "many_unmapped_columns": "{{count}} columns won't be imported. Check nothing important is missing.",
       "multiple_description_candidates": "Several description columns were found: {{columns}}. You can map more than one to Description.",
-      "amount_debit_credit_columns": "Amount and Debit/Credit columns were found — choose one amount strategy",
-      "multi_sheet_workbook": "This workbook has multiple sheets — make sure you selected the right one",
-      "generated_headers": "No header row was detected. Temporary column names were created — map them using the sample values."
+      "amount_debit_credit_columns": "Found both \"Amount\" and \"Debit/Credit\". Pick one method.",
+      "multi_sheet_workbook": "Importing from sheet \"{{sheet}}\".",
+      "generated_headers": "No header row found, so we named the columns. Choose by the samples."
+    },
+    "title2": "What's in each column?",
+    "detectedCount_one": "We matched 1 column for you. Glance at the samples to check.",
+    "detectedCount_other": "We matched {{count}} columns for you. Glance at the samples to check.",
+    "autoDetected": "Matched automatically",
+    "summary": {
+      "remaining_one": "1 thing left to fix",
+      "remaining_other": "{{count}} things left to fix",
+      "show": "Show",
+      "titleInline": "Left to fix:"
+    },
+    "help": {
+      "open": "What's this?",
+      "title": "What is column matching?",
+      "definition": "You tell TEN10 what each column in your file holds: which is the date, the amount and the description.",
+      "date": "Date ← the day the money moved",
+      "amount": "Amount ← how much. If your bank splits it, \"Debit\" and \"Credit\"",
+      "description": "Description ← the business name or details",
+      "rule": "Only date and amount are required. Everything else can be \"Don't import\".",
+      "exampleTitle": "Example from a bank file",
+      "example1": "\"Value date\" ← Date. Also have \"Date\"? Keep one; set the other to \"Don't import\".",
+      "example2": "\"Debit\" ← Debit · \"Credit\" ← Credit",
+      "example3": "\"Balance\" ← Don't import (a balance isn't a transaction)"
     }
   },
   "importing": {
