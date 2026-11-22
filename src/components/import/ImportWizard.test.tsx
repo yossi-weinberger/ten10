@@ -205,7 +205,7 @@ describe("ImportWizard without props", () => {
     await user.click(screen.getByRole("button", { name: "navigation.next" }));
     await screen.findByRole("list", { name: "review-step" });
 
-    await user.click(screen.getByRole("button", { name: /confirm\.proceed \(3\)/ }));
+    await user.click(screen.getByRole("button", { name: /review\.saveCta:3/ }));
     await user.click(await screen.findByRole("button", { name: "confirm.proceed" }));
 
     await waitFor(() => expect(io.persistApprovedImport).toHaveBeenCalledTimes(1));
@@ -342,7 +342,7 @@ describe("ImportWizard with initialRows", () => {
     render(<ImportWizard initialRows={DRAFTS} />);
     await screen.findByRole("list", { name: "review-step" });
 
-    await user.click(screen.getByRole("button", { name: /confirm\.proceed \(2\)/ }));
+    await user.click(screen.getByRole("button", { name: /review\.saveCta:2/ }));
     await user.click(await screen.findByRole("button", { name: "confirm.proceed" }));
 
     await waitFor(() => expect(io.persistApprovedImport).toHaveBeenCalledTimes(1));

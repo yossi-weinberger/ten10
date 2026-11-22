@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import type { ImportPreviewRow, ImportSummary } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
+import { useDonationStore } from "@/lib/store";
 import { ImportReviewSummary } from "../ImportReviewSummary";
 import { ImportReviewTable } from "../ImportReviewTable";
 import { ImportReviewCards } from "../ImportReviewCards";
@@ -21,6 +22,19 @@ interface ImportReviewStepProps {
   recurringTransactions: RecurringTransaction[];
 }
 
+function fmtAmount(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("he-IL", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+}
+
 export function ImportReviewStep({
   rows,
   summary,
@@ -33,6 +47,7 @@ export function ImportReviewStep({
   recurringTransactions,
 }: ImportReviewStepProps) {
   const { t } = useTranslation("import");
+  const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [filter, setFilter] = useState<FilterMode>("all");
 
   const filteredRows = useMemo(() => {
@@ -63,13 +78,62 @@ export function ImportReviewStep({
     },
   ].filter((btn) => btn.count > 0 || btn.key === "all");
 
-  return (
-    <div className="space-y-6" data-onboarding="import-review">
-      {/* Summary cards */}
-      <ImportReviewSummary summary={summary} />
+  const compactCountParts = [
+    t("review.summary.compactCountsTotal", { count: summary.total }),
+    t("review.summary.compactCountsReady", { count: summary.ready }),
+  ];
+  if (summary.needsReview > 0) {
+    compactCountParts.push(
+      t("review.summary.compactCountsReview", { count: summary.needsReview }),
+    );
+  }
+  if (summary.invalid > 0) {
+    compactCountParts.push(
+      t("review.summary.compactCountsInvalid", { count: summary.invalid }),
+    );
+  }
 
-      {/* Bulk actions */}
-      <div className="flex flex-wrap gap-2">
+  const fmt = (amount: number) => fmtAmount(amount, defaultCurrency);
+  const compactMoneyParts: string[] = [];
+  if (summary.approvedIncome > 0) {
+    compactMoneyParts.push(
+      t("review.summary.compactMoney.income", { amount: fmt(summary.approvedIncome) }),
+    );
+  }
+  if (summary.approvedExpenses > 0) {
+    compactMoneyParts.push(
+      t("review.summary.compactMoney.expenses", { amount: fmt(summary.approvedExpenses) }),
+    );
+  }
+  if (summary.approvedDonations > 0) {
+    compactMoneyParts.push(
+      t("review.summary.compactMoney.donations", { amount: fmt(summary.approvedDonations) }),
+    );
+  }
+
+  return (
+    <div className="space-y-4 md:space-y-6" data-onboarding="import-review">
+      <div className="space-y-1.5">
+        <h2 className="text-lg font-semibold leading-snug">{t("review.title2")}</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">{t("review.lead")}</p>
+      </div>
+
+      <div className="md:hidden rounded-[10px] border bg-white px-3 py-2.5 space-y-1">
+        <p className="text-[15px] font-bold leading-snug">
+          {compactCountParts.join(" · ")}
+        </p>
+        {compactMoneyParts.length > 0 && (
+          <p className="text-[13.5px] text-muted-foreground leading-snug">
+            {compactMoneyParts.join(" · ")}
+          </p>
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <ImportReviewSummary summary={summary} />
+      </div>
+
+      <div className="hidden md:flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={() => startTransition(onToggleAllReady)}>
           {t("review.actions.selectAllReady")}
         </Button>
@@ -78,32 +142,38 @@ export function ImportReviewStep({
         </Button>
       </div>
 
-      {/* Filter tabs */}
-      <div
-        className="flex flex-wrap gap-1 border-b border-border pb-2"
-        role="tablist"
-      >
-        {filterButtons.map(({ key, label, count }) => (
-          <button
-            key={key}
-            role="tab"
-            aria-selected={filter === key}
-            onClick={() => setFilter(key)}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              filter === key
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            {label}
-            {count > 0 && (
-              <span className="ms-1.5 tabular-nums">({count})</span>
-            )}
-          </button>
-        ))}
+      {/* pe-14 leaves room for B4b's select button on mobile */}
+      <div className="relative pe-14 md:pe-0">
+        <div
+          className="flex flex-nowrap gap-2 overflow-x-auto no-scrollbar"
+          role="tablist"
+        >
+          {filterButtons.map(({ key, label, count }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={filter === key}
+              onClick={() => setFilter(key)}
+              className={`h-10 shrink-0 rounded-full px-3 text-sm transition-colors ${
+                filter === key
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {label}
+              {count > 0 && (
+                <span className="ms-1.5 tabular-nums">({count})</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 end-14 w-8 bg-gradient-to-l from-background to-transparent md:hidden rtl:bg-gradient-to-r"
+        />
       </div>
 
-      {/* Desktop: Table / Mobile: Cards */}
       <div className="hidden md:block">
         <ImportReviewTable
           rows={filteredRows}

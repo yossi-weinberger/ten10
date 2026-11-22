@@ -1110,7 +1110,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   className="gap-1.5 max-md:h-11 max-md:flex-1"
                   data-onboarding="import-approve"
                 >
-                  {t("confirm.proceed")} ({approvedCount})
+                  {t("review.saveCta", { count: approvedCount })}
                   <NextIcon className="h-4 w-4" aria-hidden="true" />
                 </Button>
               )}
@@ -1123,15 +1123,15 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       <Dialog open={state.confirmOpen} onOpenChange={(open) => !open && dispatch({ type: "CLOSE_CONFIRM" })}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("confirm.title")}</DialogTitle>
+            <DialogTitle>{t("confirm.title", { count: approvedCount })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              {t("confirm.description_other", { count: approvedCount })}
+              {t("confirm.description", { count: approvedCount })}
             </p>
             {riskyApproved > 0 && (
               <p className="text-amber-600 dark:text-amber-400">
-                {t("confirm.riskyRows_other", { count: riskyApproved })}
+                {t("confirm.riskyRows", { count: riskyApproved })}
               </p>
             )}
           </div>

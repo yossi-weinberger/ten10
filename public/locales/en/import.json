@@ -125,6 +125,8 @@
   },
   "review": {
     "title": "Review Import",
+    "title2": "Check before saving",
+    "lead": "Make sure income wasn't marked as expenses. Only checked rows are saved.",
     "processing": "Processing rows…",
     "previewLoadingTitle": "Building import preview",
     "previewLoadingDescription": "Checking duplicates, recurring matches, and row validation.",
@@ -144,9 +146,19 @@
       "totalRows": "Total rows",
       "readyRows": "Ready to import",
       "invalidRows": "Invalid",
-      "needsReviewRows": "Needs review",
+      "needsReviewRows": "To check",
       "needsReviewBreakdown": "incl. {{duplicates}} duplicates, {{recurring}} recurring",
-      "approvedRows": "Selected for import"
+      "approvedRows": "Selected for import",
+      "compactCountsTotal_one": "1 transaction",
+      "compactCountsTotal_other": "{{count}} transactions",
+      "compactCountsReady": "{{count}} ready",
+      "compactCountsReview": "{{count}} to check",
+      "compactCountsInvalid": "{{count}} invalid",
+      "compactMoney": {
+        "income": "Income {{amount}}",
+        "expenses": "Expenses {{amount}}",
+        "donations": "Donations {{amount}}"
+      }
     },
     "financial": {
       "title": "Financial Impact",
@@ -158,14 +170,14 @@
     "filters": {
       "all": "All",
       "ready": "Ready",
-      "needsReview": "Needs Review",
+      "needsReview": "To check",
       "invalid": "Invalid",
       "warnings": "Warnings"
     },
     "actions": {
-      "selectAllReady": "Select all ready",
-      "selectAllSelectable": "Select all selectable rows",
-      "clearSelection": "Clear all",
+      "selectAllReady": "Check all ready",
+      "selectAllSelectable": "Check all rows",
+      "clearSelection": "Uncheck all",
       "showInvalidOnly": "Invalid only",
       "showWarningsOnly": "Warnings only"
     },
@@ -182,27 +194,32 @@
       "paymentMethod": "Payment",
       "issues": "Issues"
     },
-    "noRows": "No rows match the current filter.",
+    "noRows": "No rows here. Try another filter.",
     "editRow": "Edit",
+    "editRowAria": "Edit row {{row}}: {{description}}",
+    "selectRowAria": "Include row {{row}}",
+    "saveCta_one": "Save 1 transaction",
+    "saveCta_other": "Save {{count}} transactions",
     "saveRow": "Save",
     "cancelEdit": "Cancel",
     "issuesAriaLabel": "{{count}} issues in row {{row}}"
   },
   "confirm": {
-    "title": "Confirm Import",
-    "description_one": "You are about to import {{count}} transaction.",
-    "description_other": "You are about to import {{count}} transactions.",
-    "riskyRows_one": "{{count}} row has warnings — review carefully.",
-    "riskyRows_other": "{{count}} rows have warnings — review carefully.",
-    "proceed": "Import Now",
-    "cancel": "Go Back"
+    "title_one": "Save 1 transaction?",
+    "title_other": "Save {{count}} transactions?",
+    "description_one": "1 transaction will be added to your account.",
+    "description_other": "{{count}} transactions will be added. You can delete them later from the transactions table.",
+    "riskyRows_one": "1 row has a warning. Worth a check.",
+    "riskyRows_other": "{{count}} rows have warnings. Worth a check.",
+    "proceed": "Save",
+    "cancel": "Back"
   },
   "result": {
     "title": "Import Complete",
-    "inserted_one": "{{count}} transaction imported",
-    "inserted_other": "{{count}} transactions imported",
-    "failed_one": "{{count}} row failed to import",
-    "failed_other": "{{count}} rows failed to import",
+    "inserted_one": "1 transaction saved",
+    "inserted_other": "{{count}} transactions saved",
+    "failed_one": "1 row wasn't saved",
+    "failed_other": "{{count}} rows weren't saved",
     "skipped": "{{count}} rows were not selected",
     "errorReport": "Download Error Report",
     "viewTransactions": "View Transactions",
