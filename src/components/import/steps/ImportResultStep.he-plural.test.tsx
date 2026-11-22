@@ -1,9 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import i18n from "i18next";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { I18nextProvider, initReactI18next } from "react-i18next";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import heImport from "../../../../public/locales/he/import.json";
 import { ImportResultStep } from "./ImportResultStep";
 
@@ -11,29 +9,60 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-beforeAll(async () => {
-  await i18n.use(initReactI18next).init({
-    lng: "he",
-    fallbackLng: "he",
-    resources: { he: { import: heImport } },
-    ns: ["import"],
-    defaultNS: "import",
-    interpolation: { escapeValue: false },
-  });
-});
+/** Hebrew CLDR categories used by i18next for `he`. */
+function hePluralSuffix(count: number): "one" | "two" | "many" | "other" {
+  const rule = new Intl.PluralRules("he").select(count);
+  if (rule === "one" || rule === "two" || rule === "many" || rule === "other") {
+    return rule;
+  }
+  return "other";
+}
+
+function heResultText(key: "inserted" | "failed" | "skipped", count: number): string {
+  const suffix = hePluralSuffix(count);
+  const table = heImport.result as Record<string, string>;
+  const template = table[`${key}_${suffix}`] ?? table[`${key}_other`];
+  expect(template, `missing he result.${key}_${suffix}`).toBeTypeOf("string");
+  return template.replace(/\{\{\s*count\s*\}\}/g, String(count));
+}
+
+vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
+  useTranslation: () => ({
+    t: (key: string, opts?: { count?: number }) => {
+      if (
+        (key === "result.inserted" ||
+          key === "result.failed" ||
+          key === "result.skipped") &&
+        typeof opts?.count === "number"
+      ) {
+        const base = key.slice("result.".length) as "inserted" | "failed" | "skipped";
+        return heResultText(base, opts.count);
+      }
+      if (key === "result.title") return heImport.result.title;
+      if (key === "result.viewTransactions") return heImport.result.viewTransactions;
+      if (key === "result.importAnother") return heImport.result.importAnother;
+      if (key === "result.noRowsImported") return heImport.result.noRowsImported;
+      return key;
+    },
+    i18n: { language: "he", dir: () => "rtl" },
+  }),
+}));
 
 afterEach(() => cleanup());
 
 describe("ImportResultStep Hebrew plurals", () => {
-  it("renders the dual form for two inserted rows without a raw key", async () => {
-    await i18n.changeLanguage("he");
+  it("renders the dual form for two inserted rows without a raw key", () => {
+    expect(hePluralSuffix(2)).toBe("two");
+    expect(heImport.result).toHaveProperty("inserted_two");
+    expect(heImport.result).toHaveProperty("inserted_many");
+    expect(heImport.result).toHaveProperty("inserted_other");
+
     render(
-      <I18nextProvider i18n={i18n}>
-        <ImportResultStep
-          result={{ inserted: 2, failed: 0, skipped: 0, errors: [] }}
-          onImportAnother={vi.fn()}
-        />
-      </I18nextProvider>
+      <ImportResultStep
+        result={{ inserted: 2, failed: 0, skipped: 0, errors: [] }}
+        onImportAnother={vi.fn()}
+      />
     );
 
     expect(screen.getByText("שתי תנועות יובאו בהצלחה")).toBeInTheDocument();
