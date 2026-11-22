@@ -144,11 +144,19 @@ export function issueColumns(
   return columns;
 }
 
+type ColumnConflictIssue = Extract<
+  MappingIssue,
+  { code: "duplicateTarget" | "amountAndDebitCredit" }
+>;
+
 /**
- * Linear duplicate "other" label for one conflict group.
+ * Linear conflict "other" label for one group.
  * Built once: primary/secondary truncated samples + remaining count.
  */
-export function duplicateGroupOtherParts(issue: Extract<MappingIssue, { code: "duplicateTarget" }>): {
+export function conflictGroupOtherParts(issue: {
+  columns: string[];
+  totalCount: number;
+}): {
   primary: string;
   secondary: string;
   moreCount: number;
@@ -164,7 +172,7 @@ export function formatDuplicateColumnsSummary(
   issue: Extract<MappingIssue, { code: "duplicateTarget" }>,
   formatMore: (other: string, count: number) => string
 ): string {
-  const { primary, secondary, moreCount } = duplicateGroupOtherParts(issue);
+  const { primary, secondary, moreCount } = conflictGroupOtherParts(issue);
   if (!primary) return "";
   if (!issue.columns[1]) return primary;
   const pair = `${primary}, ${secondary}`;
@@ -172,15 +180,16 @@ export function formatDuplicateColumnsSummary(
 }
 
 /**
- * Build per-column inline "other" strings for a duplicate group (O(n), bounded length).
+ * Build per-column inline "other" strings for a conflict group (O(n), bounded length).
  * Does not filter/join the full header list inside the loop.
+ * Each column names at most one other sample, plus +N when there are more.
  */
-export function buildDuplicateInlineOtherByColumn(
-  issue: Extract<MappingIssue, { code: "duplicateTarget" }>,
+export function buildConflictInlineOtherByColumn(
+  issue: ColumnConflictIssue,
   mappings: ColumnMapping[],
   formatMore: (other: string, count: number) => string
 ): Map<string, string> {
-  const { primary, secondary, moreCount } = duplicateGroupOtherParts(issue);
+  const { primary, secondary, moreCount } = conflictGroupOtherParts(issue);
   const withMore = (other: string) =>
     moreCount > 0 ? formatMore(other, moreCount) : other;
   const otherForFirst = withMore(secondary);

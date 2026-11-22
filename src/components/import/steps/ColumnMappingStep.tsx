@@ -24,7 +24,7 @@ import type {
   ParsedFileDiagnostic,
 } from "@/lib/import/import-session.types";
 import {
-  buildDuplicateInlineOtherByColumn,
+  buildConflictInlineOtherByColumn,
   formatDuplicateColumnsSummary,
   hasAmountDebitCreditIssue,
   issueColumns,
@@ -78,7 +78,7 @@ export function ColumnMappingStep({
       if (issue.code === "duplicateTarget") {
         const fieldLabel = t(`mapping.fields.${issue.field}`);
         // Build the shared "other" labels once per group (linear, bounded).
-        const othersByColumn = buildDuplicateInlineOtherByColumn(
+        const othersByColumn = buildConflictInlineOtherByColumn(
           issue,
           mappings,
           formatMore
@@ -94,10 +94,16 @@ export function ColumnMappingStep({
         }
       }
       if (issue.code === "amountAndDebitCredit") {
-        for (const idx of issue.mappingIndexes) {
-          const column = mappings[idx]?.sourceColumn;
-          if (!column) continue;
-          map.set(column, t("mapping.errors.amountAndDebitCreditInline"));
+        const othersByColumn = buildConflictInlineOtherByColumn(
+          issue,
+          mappings,
+          formatMore
+        );
+        for (const [column, other] of othersByColumn) {
+          map.set(
+            column,
+            t("mapping.errors.amountAndDebitCreditInline", { other })
+          );
         }
       }
     }

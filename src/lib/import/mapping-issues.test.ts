@@ -5,13 +5,33 @@ import {
   HEADER_DISPLAY_MAX,
   MAPPING_MESSAGE_MAX_LEN,
   MAX_STORED_ISSUE_COLUMNS,
-  buildDuplicateInlineOtherByColumn,
+  buildConflictInlineOtherByColumn,
   formatDuplicateColumnsSummary,
   getMappingIssues,
   issueColumns,
   mappingIssueErrorCodes,
   truncateHeader,
 } from "./mapping-issues";
+
+/** Max card headers from the parsing-branch Researcher fixture set. */
+const MAX_HEADERS = [
+  "תאריך עסקה",
+  "שם בית העסק",
+  "קטגוריה",
+  "4 ספרות אחרונות של כרטיס האשראי",
+  "סוג עסקה",
+  "סכום חיוב",
+  "מטבע חיוב",
+  "סכום עסקה מקורי",
+  "מטבע עסקה מקורי",
+  "תאריך חיוב",
+  "הערות",
+  "תיוגים",
+  "מועדון הנחות",
+  "מפתח דיסקונט",
+  "אופן ביצוע ההעסקה",
+  'שער המרה ממטבע מקור/התחשבנות לש"ח',
+] as const;
 
 function map(
   sourceColumn: string,
@@ -133,7 +153,7 @@ describe("getMappingIssues", () => {
     }
 
     const formatMore = (other: string, count: number) => `${other} +${count}`;
-    const others = buildDuplicateInlineOtherByColumn(dup, mappings, formatMore);
+    const others = buildConflictInlineOtherByColumn(dup, mappings, formatMore);
     expect(others.size).toBe(1000);
 
     const field = "date";
@@ -150,6 +170,42 @@ describe("getMappingIssues", () => {
     expect(summaryColumns.length).toBeLessThan(MAPPING_MESSAGE_MAX_LEN);
     expect(summaryColumns.includes(longHeader)).toBe(false);
     expect(summaryColumns).toContain("+998");
+  });
+});
+
+describe("amountAndDebitCredit inline others (Max headers)", () => {
+  it("names the other conflicting Max amount column in the bounded format", () => {
+    // Hand-built conflict on Max headers: amount + debit (not matcher output).
+    const mappings: ColumnMapping[] = MAX_HEADERS.map((sourceColumn) => {
+      if (sourceColumn === "תאריך עסקה") return map(sourceColumn, "date");
+      if (sourceColumn === "סכום חיוב") return map(sourceColumn, "amount");
+      if (sourceColumn === "סכום עסקה מקורי") return map(sourceColumn, "debit");
+      if (sourceColumn === "הערות") return map(sourceColumn, "description");
+      return map(sourceColumn, null);
+    });
+
+    const issues = getMappingIssues(mappings);
+    const conflict = issues.find((issue) => issue.code === "amountAndDebitCredit");
+    expect(conflict).toBeDefined();
+    if (!conflict || conflict.code !== "amountAndDebitCredit") {
+      throw new Error("expected amountAndDebitCredit");
+    }
+
+    const formatMore = (other: string, count: number) => `${other} +${count}`;
+    const others = buildConflictInlineOtherByColumn(conflict, mappings, formatMore);
+
+    expect(others.get("סכום חיוב")).toBe("סכום עסקה מקורי");
+    expect(others.get("סכום עסקה מקורי")).toBe("סכום חיוב");
+    for (const label of others.values()) {
+      expect(label.length).toBeLessThanOrEqual(HEADER_DISPLAY_MAX);
+      expect(label.includes("+")).toBe(false); // only two columns → no +N
+    }
+
+    const heInline = (other: string) =>
+      `גם ${other} מסומנת כסכום או חיוב/זיכוי. בחרו שיטה אחת.`;
+    for (const other of others.values()) {
+      expect(heInline(other).length).toBeLessThan(MAPPING_MESSAGE_MAX_LEN);
+    }
   });
 });
 

@@ -74,7 +74,6 @@
   },
   "mapping": {
     "title": "Map Columns",
-    "description": "Link each column from your file to a Ten10 field. Columns marked with * are required.",
     "whatIsMapping": "Tell TEN10 which column is the date, the amount and the description. We've guessed already; mark anything you don't need as \"Don't import\".",
     "sourceColumn": "In your file",
     "targetField": "In TEN10",
@@ -104,7 +103,7 @@
       "duplicateTargetInline": "{{other}} is also set to {{field}}. Keep one and set the other to \"Don't import\".",
       "otherPlusMore": "{{other}} +{{count}}",
       "amountAndDebitCredit": "Pick one method: a single \"Amount\" column, or \"Debit\" and \"Credit\". Not both.",
-      "amountAndDebitCreditInline": "There's already an \"Amount\" or \"Debit/Credit\" column. Pick one method.",
+      "amountAndDebitCreditInline": "{{other}} is also set as Amount or Debit/Credit. Pick one method.",
       "generic": "There's a problem with the column matching. Check the marked rows."
     },
     "diagnostics": {
