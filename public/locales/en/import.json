@@ -74,7 +74,7 @@
       "duplicateTarget": "{{columns}} are both set to {{field}}. Keep one and set the other to \"Don't import\".",
       "duplicateTargetInline": "{{other}} is also set to {{field}}. Keep one and set the other to \"Don't import\".",
       "otherPlusMore": "{{other}} +{{count}}",
-      "amountAndDebitCredit": "Pick one method: a single \"Amount\" column, or \"Debit\" and \"Credit\". Not both.",
+      "amountAndDebitCredit": "{{columns}} are set as Amount or Debit/Credit. Pick one method: Amount, or Debit and Credit — not both.",
       "amountAndDebitCreditInline": "{{other}} is also set as Amount or Debit/Credit. Pick one method.",
       "generic": "There's a problem with the column matching. Check the marked rows."
     },

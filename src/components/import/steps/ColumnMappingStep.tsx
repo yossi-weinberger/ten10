@@ -293,7 +293,11 @@ function formatIssueSummary(
         field: t(`mapping.fields.${issue.field}`),
       });
     case "amountAndDebitCredit":
-      return t("mapping.errors.amountAndDebitCredit");
+      return t("mapping.errors.amountAndDebitCredit", {
+        columns: formatDuplicateColumnsSummary(issue, (other, count) =>
+          t("mapping.errors.otherPlusMore", { other, count })
+        ),
+      });
     default: {
       const _exhaustive: never = issue;
       void _exhaustive;
