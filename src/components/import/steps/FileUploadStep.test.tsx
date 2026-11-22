@@ -176,6 +176,78 @@ describe("FileUploadStep", () => {
     expect(await screen.findByText("upload.errors.xlsNotSupported")).toBeInTheDocument();
   });
 
+  it("shows pdfNotSupported for a .pdf extension without parsing", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<FileUploadStep onFileParsed={vi.fn()} />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(
+      input,
+      new File(["%PDF-1.4 fake"], "hapoalim.pdf", { type: "application/pdf" }),
+    );
+
+    expect(await screen.findByText("upload.errors.pdfNotSupported")).toBeInTheDocument();
+    expect(io.parseFile).not.toHaveBeenCalled();
+    expect(io.trackProductEvent).toHaveBeenCalledWith(
+      "transaction_import_parse_error",
+      expect.objectContaining({
+        step: "upload",
+        errorCode: "pdf",
+        fileExtension: "other",
+      }),
+    );
+    const payload = io.trackProductEvent.mock.calls.find(
+      (c) => c[0] === "transaction_import_parse_error",
+    )?.[1] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty("fileName");
+    expect(payload).not.toHaveProperty("name");
+    expect(payload).not.toHaveProperty("size");
+    expect(JSON.stringify(payload)).not.toMatch(/hapoalim|PDF-1\.4/i);
+  });
+
+  it("shows pdfNotSupported for a %PDF- file renamed to .csv", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<FileUploadStep onFileParsed={vi.fn()} />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const bytes = new TextEncoder().encode("%PDF-1.7 disguised");
+    await user.upload(
+      input,
+      new File([bytes], "statement.csv", { type: "text/csv" }),
+    );
+
+    expect(await screen.findByText("upload.errors.pdfNotSupported")).toBeInTheDocument();
+    expect(io.parseFile).not.toHaveBeenCalled();
+    expect(io.trackProductEvent).toHaveBeenCalledWith(
+      "transaction_import_parse_error",
+      expect.objectContaining({ errorCode: "pdf", fileExtension: "csv" }),
+    );
+  });
+
+  it("still parses .xlsx and .csv when they are not PDFs", async () => {
+    io.parseFile.mockResolvedValue({ ok: true, file: parsedStub() });
+    const onFileParsed = vi.fn();
+    const user = userEvent.setup();
+    const { container, rerender } = render(
+      <FileUploadStep onFileParsed={onFileParsed} />,
+    );
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, new File(["date,amount\n"], "ok.csv", { type: "text/csv" }));
+    await waitFor(() => expect(onFileParsed).toHaveBeenCalledTimes(1));
+
+    onFileParsed.mockClear();
+    io.parseFile.mockClear();
+    io.trackProductEvent.mockClear();
+    rerender(<FileUploadStep onFileParsed={onFileParsed} />);
+    const input2 = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(
+      input2,
+      new File(["PK\u0003\u0004"], "ok.xlsx", {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+    );
+    await waitFor(() => expect(io.parseFile).toHaveBeenCalled());
+    expect(screen.queryByText("upload.errors.pdfNotSupported")).not.toBeInTheDocument();
+  });
+
   it("reaches mapping when an HTML-as-.xls bank fixture parses", async () => {
     expect(io.actualParseFile).toBeTruthy();
     io.parseFile.mockImplementation((file: File, sheetName?: string) =>
