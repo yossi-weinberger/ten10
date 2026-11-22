@@ -143,9 +143,14 @@ vi.mock("../ImportBulkEditFields", () => ({
   }: {
     onTypeChange: (type: string) => void;
   }) => (
-    <button type="button" onClick={() => onTypeChange("income")}>
-      pick-income
-    </button>
+    <>
+      <button type="button" onClick={() => onTypeChange("income")}>
+        pick-income
+      </button>
+      <button type="button" onClick={() => onTypeChange("donation")}>
+        pick-donation
+      </button>
+    </>
   ),
 }));
 
@@ -487,6 +492,43 @@ describe("ImportReviewStep B4b select mode", () => {
     expect(onBulkUpdateRows).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("cards-select-mode")).toHaveTextContent("false");
     expect(screen.getByText(/review.bulk.applied/)).toBeInTheDocument();
+    expect(screen.queryByText(/review.bulk.becameInvalid/)).not.toBeInTheDocument();
+  });
+
+  it("shows becameInvalid in the status line when stubbed revalidation marks rows invalid", async () => {
+    const onBulkUpdateRows = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ImportReviewStep
+        rows={rows}
+        summary={summary({ total: 3, ready: 2, invalid: 1, approved: 2 })}
+        onToggleApproval={noop}
+        onBulkToggle={noop}
+        onToggleAllReady={noop}
+        onClearSelection={noop}
+        onUpdateRow={noop}
+        onBulkUpdateRows={onBulkUpdateRows}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    await user.click(screen.getAllByRole("button", { name: "review.bulk.enter" })[0]!);
+    await user.click(screen.getByRole("button", { name: "toggle-first" }));
+    await user.click(
+      within(screen.getByTestId("mobile-bulk-toolbar")).getByRole("button", {
+        name: /review.bulk.edit/,
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "pick-donation" }));
+    await user.click(within(dialog).getByRole("button", { name: /review.bulk.apply/ }));
+
+    expect(onBulkUpdateRows).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/review.bulk.applied/)).toBeInTheDocument();
+    expect(screen.getByText(/review.bulk.becameInvalid/)).toBeInTheDocument();
   });
 });
 

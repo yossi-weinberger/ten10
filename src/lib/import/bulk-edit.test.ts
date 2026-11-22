@@ -1,6 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ImportPreviewRow } from "./import-session.types";
 import { applyBulkEdit } from "./bulk-edit";
+import { revalidateAfterEdit } from "./validation";
+
+vi.mock("./validation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./validation")>();
+  return {
+    ...actual,
+    revalidateAfterEdit: vi.fn(actual.revalidateAfterEdit),
+  };
+});
 
 function baseNormalized(
   overrides: Partial<NonNullable<ImportPreviewRow["normalized"]>> = {},
@@ -46,8 +55,13 @@ const context = {
   recurringTransactions: [],
 };
 
+function stubReady(): void {
+  vi.mocked(revalidateAfterEdit).mockReturnValue({ issues: [], status: "ready" });
+}
+
 describe("applyBulkEdit", () => {
   it("changes type on selected rows", () => {
+    stubReady();
     const rows = [
       row({ id: "a", rowNumber: 1 }),
       row({ id: "b", rowNumber: 2 }),
@@ -60,6 +74,7 @@ describe("applyBulkEdit", () => {
   });
 
   it("clears category when the type family changes and no category is given", () => {
+    stubReady();
     const rows = [row({ id: "a", rowNumber: 1 })];
 
     const next = applyBulkEdit(rows, ["a"], { type: "income" }, context);
@@ -69,6 +84,7 @@ describe("applyBulkEdit", () => {
   });
 
   it("keeps category when the type family stays the same", () => {
+    stubReady();
     const rows = [row({ id: "a", rowNumber: 1 })];
 
     const next = applyBulkEdit(
@@ -83,6 +99,7 @@ describe("applyBulkEdit", () => {
   });
 
   it("sets category when provided even across family changes", () => {
+    stubReady();
     const rows = [row({ id: "a", rowNumber: 1 })];
 
     const next = applyBulkEdit(
@@ -96,7 +113,11 @@ describe("applyBulkEdit", () => {
     expect(next[0]?.normalized?.category).toBe("salary");
   });
 
-  it("unapproves rows that revalidation marks invalid", () => {
+  it("unapproves rows when stubbed revalidation returns invalid", () => {
+    vi.mocked(revalidateAfterEdit).mockReturnValue({
+      issues: [{ code: "missing_required_field", field: "date" }],
+      status: "invalid",
+    });
     const rows = [
       row({
         id: "a",
@@ -110,12 +131,11 @@ describe("applyBulkEdit", () => {
 
     expect(next[0]?.status).toBe("invalid");
     expect(next[0]?.approved).toBe(false);
-    expect(next[0]?.issues.some((i) => i.code === "donation_recipient_required")).toBe(
-      true,
-    );
+    expect(next[0]?.issues.some((i) => i.code === "missing_required_field")).toBe(true);
   });
 
   it("leaves ids outside the selection untouched", () => {
+    stubReady();
     const rows = [
       row({ id: "a", rowNumber: 1, approved: true }),
       row({

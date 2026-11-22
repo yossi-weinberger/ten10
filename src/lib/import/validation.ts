@@ -57,21 +57,17 @@ function isWarningIssue(issue: ImportRowIssue): boolean {
 
 /**
  * Post-normalization validation for donation-specific rules.
- * Tithe donations require a recipient; otherwise the row is invalid.
+ * Recipient is optional — consistent with the existing transaction form behavior.
+ * This function is kept as a no-op hook for future enforcement if the product decides to require it.
  */
 export function validateDonationRules(
   normalized: ImportNormalizedRow,
   issues: ImportRowIssue[]
 ): void {
-  if (normalized.type !== "donation") {
-    return;
-  }
-
-  if ((normalized.recipient ?? "").trim().length > 0) {
-    return;
-  }
-
-  issues.push({ code: "donation_recipient_required", field: "recipient" });
+  // Recipient is not enforced for donations — matches existing add-transaction form behavior.
+  // Keep the signature so callers don't need to change if enforcement is added later.
+  void normalized;
+  void issues;
 }
 
 /**

@@ -287,6 +287,16 @@ export function ImportReviewStep({
     onToggleSelect: toggleSelect,
   };
 
+  const renderDoneSelectButton = () => (
+    <button
+      type="button"
+      className="shrink-0 text-sm font-semibold text-primary underline-offset-2 hover:underline"
+      onClick={exitSelectMode}
+    >
+      {t("review.bulk.done")}
+    </button>
+  );
+
   return (
     <div className="space-y-4 md:space-y-6" data-onboarding="import-review">
       {selectMode ? (
@@ -303,13 +313,7 @@ export function ImportReviewStep({
               {t("review.bulk.selectAllVisible", { count: selectableFiltered.length })}
             </span>
           </div>
-          <button
-            type="button"
-            className="shrink-0 text-sm font-semibold text-primary underline-offset-2 hover:underline"
-            onClick={exitSelectMode}
-          >
-            {t("review.bulk.done")}
-          </button>
+          {renderDoneSelectButton()}
         </div>
       ) : (
         <>
@@ -350,13 +354,7 @@ export function ImportReviewStep({
       ) : (
         <div className="hidden md:flex sticky top-0 z-20 items-center justify-between gap-3 bg-background/95 backdrop-blur-sm py-2">
           <BulkActionsToolbar {...bulkToolbarProps} />
-          <button
-            type="button"
-            className="shrink-0 text-sm font-semibold text-primary underline-offset-2 hover:underline"
-            onClick={exitSelectMode}
-          >
-            {t("review.bulk.done")}
-          </button>
+          {renderDoneSelectButton()}
         </div>
       )}
 
