@@ -170,16 +170,24 @@ export function ColumnMappingStep({
         </Alert>
       )}
 
-      <div className="rounded-lg border border-border overflow-hidden">
-        <div
-          className="grid grid-cols-[1fr_36px_1fr] md:grid-cols-[1fr_minmax(0,130px)_36px_1fr] text-xs font-bold text-foreground/60 px-3 py-2.5 bg-muted/60 border-b border-border"
-          style={isRtl ? { direction: "rtl" } : undefined}
-        >
-          <span>{t("mapping.sourceColumn")}</span>
-          <span className="hidden md:block">{t("mapping.sampleColumnHeader")}</span>
-          <span />
-          <span className="ps-2">{t("mapping.targetField")}</span>
-        </div>
+      <div
+        className={
+          isMobile
+            ? undefined
+            : "rounded-lg border border-border overflow-hidden"
+        }
+      >
+        {!isMobile && (
+          <div
+            className="grid grid-cols-[1fr_36px_1fr] md:grid-cols-[1fr_minmax(0,130px)_36px_1fr] text-xs font-bold text-foreground/60 px-3 py-2.5 bg-muted/60 border-b border-border"
+            style={isRtl ? { direction: "rtl" } : undefined}
+          >
+            <span>{t("mapping.sourceColumn")}</span>
+            <span className="hidden md:block">{t("mapping.sampleColumnHeader")}</span>
+            <span />
+            <span className="ps-2">{t("mapping.targetField")}</span>
+          </div>
+        )}
 
         <ColumnMapper
           mappings={mappings}
@@ -188,7 +196,7 @@ export function ColumnMappingStep({
           issueColumns={flaggedColumns}
           issueTextByColumn={issueTextByColumn}
           autoMappedColumns={autoMappedColumns}
-          className="rounded-none border-0"
+          className={isMobile ? undefined : "rounded-none border-0"}
         />
       </div>
     </div>
