@@ -164,6 +164,30 @@ describe("ColumnMapper B3 mobile cards", () => {
     ).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("starts collapsed when amount is covered by debit+credit (RG-308)", () => {
+    mockMobile = true;
+    const mappings: ColumnMapping[] = [
+      { sourceColumn: "תאריך", targetField: "date" },
+      { sourceColumn: "חיוב", targetField: "debit" },
+      { sourceColumn: "זיכוי", targetField: "credit" },
+      { sourceColumn: "יתרה", targetField: null },
+      { sourceColumn: "הערה", targetField: null },
+    ];
+    const { container } = render(
+      <ColumnMapper
+        mappings={mappings}
+        sampleRows={[]}
+        onMappingChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /unmappedCollapsed:2/ }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector('[data-mapping-column="יתרה"]')).toBeNull();
+    expect(container.querySelector('[data-mapping-column="הערה"]')).toBeNull();
+  });
+
   it("never collapses a flagged column and auto-expands when date is unmapped", async () => {
     mockMobile = true;
     const user = userEvent.setup();

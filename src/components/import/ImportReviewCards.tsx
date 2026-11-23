@@ -1,15 +1,18 @@
 import { useState, useCallback, useOptimistic, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Pencil } from "lucide-react";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
-import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
+import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { rowBlocksApproval } from "@/lib/import/approval-gates";
-import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
+import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import {
+  categoryBaseForType,
+  formatCategory,
+} from "@/lib/category-registry";
+import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
@@ -82,20 +85,22 @@ export function ImportReviewCards({
 
   return (
     <>
-      <div className="rounded-md border border-border overflow-hidden">
-        {/* Select-all header */}
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-          <Checkbox
-            checked={someSelected ? "indeterminate" : allSelected}
-            onCheckedChange={handleSelectAll}
-            disabled={selectableRows.length === 0}
-            aria-label={t("review.actions.selectAllSelectable")}
-          />
-          <span className="text-xs text-muted-foreground flex-1">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 min-h-11 px-1">
+          <div className="grid h-11 w-11 place-items-center shrink-0">
+            <Checkbox
+              checked={someSelected ? "indeterminate" : allSelected}
+              onCheckedChange={handleSelectAll}
+              disabled={selectableRows.length === 0}
+              className="h-[22px] w-[22px]"
+              aria-label={t("review.actions.selectAllSelectable")}
+            />
+          </div>
+          <span className="text-sm text-muted-foreground flex-1">
             {t("review.actions.selectAllSelectable")}
           </span>
           {approvedCount > 0 && (
-            <span className="text-xs text-muted-foreground tabular-nums">
+            <span className="text-xs text-muted-foreground tabular-nums pe-1">
               {approvedCount}/{selectableRows.length}
             </span>
           )}
@@ -125,9 +130,6 @@ export function ImportReviewCards({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Individual row — compact single-line design, memoized for performance
-// ---------------------------------------------------------------------------
 interface RowCardProps {
   row: ImportPreviewRow;
   typeLabel: (type: string) => string;
@@ -137,6 +139,7 @@ interface RowCardProps {
 }
 
 function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCardProps) {
+  const { i18n } = useTranslation("import");
   const formatDisplayDate = useDisplayDate();
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
     row.approved,
@@ -156,81 +159,121 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
   const isInvalid = row.status === "invalid";
   const approvalBlocked = rowBlocksApproval(row);
   const n = row.normalized;
+  const txType = n?.type ?? null;
+  const description = n?.description ?? "";
+  const amountInner = (
+    <span
+      className={PH_SENSITIVE_PROPS.className}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      dir="ltr"
+    >
+      {n ? fmtAmount(n.amount, n.currency) : "—"}
+    </span>
+  );
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2.5 border-b border-border last:border-b-0 transition-colors ${
-        optimisticApproved ? "bg-primary/5" : ""
-      } ${isInvalid ? "opacity-60" : ""}`}
+      className={cn(
+        "flex min-h-[60px] overflow-hidden rounded-[10px] border bg-white dark:bg-card text-foreground",
+        optimisticApproved && "bg-primary/5",
+        isInvalid && "opacity-60",
+      )}
     >
-      <Checkbox
-        checked={optimisticApproved}
-        disabled={approvalBlocked}
-        onCheckedChange={(checked) => handleToggle(!!checked)}
-        className="shrink-0"
-        aria-label={`Select row ${row.rowNumber}`}
-      />
-
-      {/* Content: description + meta */}
-      <div className="flex-1 min-w-0">
-        {/* Description */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium leading-tight truncate">
-            {n?.description ?? <span className="text-muted-foreground">—</span>}
-          </span>
-        </div>
-        {/* Date · type · issues */}
-        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-          {n?.date && (
-            <span className="text-xs text-muted-foreground" dir="ltr">
-              {Object.values(formatDisplayDate(n.date)).join(" · ")}
-            </span>
-          )}
-          {n?.type ? (
-            <Badge
-              variant="outline"
-              className={cn("border text-xs px-1.5 py-0 h-4 font-normal", typeBadgeColors[n.type as TransactionType])}
-            >
-              {typeLabel(n.type)}
-            </Badge>
-          ) : row.issues.some((i) => i.code === "card_refund") ? (
-            <span className="text-xs text-muted-foreground">
-              {t("review.typeUnset")}
-            </span>
-          ) : null}
-          {row.issues.map((issue, i) => (
-            <span key={i} className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3 w-3 shrink-0" />
-              {t(`issues.${issue.code}`, { field: issue.field ?? "", currency: issue.detail ?? "" })}
-            </span>
-          ))}
-        </div>
+      <div className="grid h-auto w-11 shrink-0 place-items-center self-stretch">
+        <Checkbox
+          checked={optimisticApproved}
+          disabled={approvalBlocked}
+          onCheckedChange={(checked) => handleToggle(!!checked)}
+          className="h-[22px] w-[22px]"
+          aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+        />
       </div>
 
-      {/* Trailing: amount + badge + edit */}
-      <div className="shrink-0 flex flex-col items-end gap-1">
-        <span
-          className="ph-mask text-sm font-semibold tabular-nums leading-tight"
-          data-ph-mask
-          dir="ltr"
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 items-stretch text-start"
+        disabled={isInvalid}
+        onClick={() => onRequestEdit(row.id)}
+        aria-label={t("review.editRowAria", {
+          row: row.rowNumber,
+        })}
+      >
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-2 py-2 pe-1",
+            PH_SENSITIVE_PROPS.className,
+          )}
+          data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          {n ? fmtAmount(n.amount, n.currency) : "—"}
-        </span>
-        <div className="flex items-center gap-1">
-          <ImportRowStatusBadge status={row.status} />
-          {!isInvalid && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 text-muted-foreground hover:text-foreground"
-              onClick={() => onRequestEdit(row.id)}
-              aria-label={t("review.editRow")}
-            >
-              <Pencil className="h-3 w-3" />
-            </Button>
+          {txType ? (
+            <TypeIconChip type={txType} />
+          ) : (
+            <div
+              className="size-6 shrink-0 rounded-full bg-muted/50"
+              aria-hidden
+            />
           )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold leading-tight">
+              {description || <span className="text-muted-foreground">—</span>}
+            </p>
+            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-1.5">
+              {n?.date && (
+                <span className="text-xs text-muted-foreground" dir="ltr">
+                  {Object.values(formatDisplayDate(n.date)).join(" · ")}
+                </span>
+              )}
+              {txType ? (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "h-6 border px-2 text-[13px] font-semibold",
+                    typeBadgeColors[txType],
+                  )}
+                >
+                  {typeLabel(txType)}
+                </Badge>
+              ) : row.issues.some((i) => i.code === "card_refund") ? (
+                <span className="text-[13px] text-muted-foreground">
+                  {t("review.typeUnset")}
+                </span>
+              ) : null}
+              {row.status === "needs_review" && (
+                <span className="inline-flex h-6 items-center rounded-md border border-amber-300 bg-amber-50 px-2 text-[13px] font-semibold text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+                  {t("status.needs_review")}
+                </span>
+              )}
+              {row.status === "invalid" && (
+                <span className="inline-flex h-6 items-center rounded-md border border-red-300 bg-red-50 px-2 text-[13px] font-semibold text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+                  {t("status.invalid")}
+                </span>
+              )}
+            </div>
+            {(n?.category || n?.recipient) && (
+              <div className="mt-0.5 flex min-w-0 flex-wrap gap-x-2 text-xs text-muted-foreground">
+                {n.category ? (
+                  <span className="truncate">
+                    {formatCategory(
+                      categoryBaseForType(txType),
+                      n.category,
+                      i18n.language,
+                    )}
+                  </span>
+                ) : null}
+                {n.recipient ? <span className="truncate">{n.recipient}</span> : null}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+
+        {txType ? (
+          <AmountPanel type={txType}>{amountInner}</AmountPanel>
+        ) : (
+          <div className="relative isolate -my-1 -me-1 grid w-auto min-w-[88px] max-[359px]:min-w-[72px] shrink-0 place-items-center self-stretch rounded-s-[8px] bg-muted/40 px-1.5 text-center text-[13px] font-bold leading-none tabular-nums max-[359px]:px-1 max-[359px]:text-[11px]">
+            {amountInner}
+          </div>
+        )}
+      </button>
     </div>
   );
 }

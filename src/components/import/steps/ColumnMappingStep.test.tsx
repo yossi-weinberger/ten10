@@ -77,3 +77,58 @@ describe("ColumnMappingStep desktop amount/debit alert", () => {
     expect(screen.getByText(/ALERT:סכום, חיוב/)).toBeInTheDocument();
   });
 });
+
+describe("ColumnMappingStep mobile missing-required summary (RG-304)", () => {
+  it("shows dateMissing and amountMissing text above the cards on mobile", () => {
+    mockMobile = true;
+    const mappings: ColumnMapping[] = [
+      { sourceColumn: "תיאור", targetField: "description" },
+      { sourceColumn: "יתרה", targetField: null },
+    ];
+    const issues = getMappingIssues(mappings);
+    expect(issues.map((i) => i.code).sort()).toEqual([
+      "amountMissing",
+      "dateMissing",
+    ]);
+
+    render(
+      <ColumnMappingStep
+        parsedFile={PARSED}
+        mappings={mappings}
+        isTen10Template={false}
+        issues={issues}
+        autoMappedColumns={{}}
+        onMappingChange={vi.fn()}
+      />,
+    );
+
+    const alert = document.querySelector("#mapping-issues-summary");
+    expect(alert).toBeTruthy();
+    expect(alert?.textContent).toContain("mapping.errors.dateMissing");
+    expect(alert?.textContent).toContain("mapping.errors.amountMissing");
+  });
+
+  it("does not put duplicate-only issues in the mobile top summary", () => {
+    mockMobile = true;
+    const mappings: ColumnMapping[] = [
+      { sourceColumn: "תאריך", targetField: "date" },
+      { sourceColumn: "תאריך ערך", targetField: "date" },
+      { sourceColumn: "סכום", targetField: "amount" },
+    ];
+    const issues = getMappingIssues(mappings);
+    expect(issues.every((i) => i.code === "duplicateTarget")).toBe(true);
+
+    render(
+      <ColumnMappingStep
+        parsedFile={PARSED}
+        mappings={mappings}
+        isTen10Template={false}
+        issues={issues}
+        autoMappedColumns={{}}
+        onMappingChange={vi.fn()}
+      />,
+    );
+
+    expect(document.querySelector("#mapping-issues-summary")).toBeNull();
+  });
+});

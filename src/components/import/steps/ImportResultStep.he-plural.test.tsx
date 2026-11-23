@@ -65,7 +65,7 @@ describe("ImportResultStep Hebrew plurals", () => {
       />
     );
 
-    expect(screen.getByText("שתי תנועות יובאו בהצלחה")).toBeInTheDocument();
+    expect(screen.getByText("שתי תנועות נשמרו")).toBeInTheDocument();
     expect(screen.queryByText("result.inserted")).not.toBeInTheDocument();
     expect(screen.queryByText(/result\.inserted/)).not.toBeInTheDocument();
   });

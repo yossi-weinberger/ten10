@@ -114,6 +114,14 @@ export function ColumnMappingStep({
     (d) => !(suppressAmountDebitDiag && d.code === "amount_debit_credit_columns")
   );
 
+  // Desktop: all issues. Mobile: date/amount-missing only (no flagged row to
+  // scroll to — sticky "Show" targets this summary).
+  const missingRequiredIssues = issues.filter(
+    (issue) =>
+      issue.code === "dateMissing" || issue.code === "amountMissing",
+  );
+  const summaryIssues = isMobile ? missingRequiredIssues : issues;
+
   return (
     <div className="space-y-4" data-onboarding="import-mapping">
       <div className="flex items-start justify-between gap-3">
@@ -141,14 +149,20 @@ export function ColumnMappingStep({
         )
       )}
 
-      {!isMobile && issues.length > 0 && (
-        <Alert variant="destructive" id="mapping-issues-summary" aria-live="polite">
+      {summaryIssues.length > 0 && (
+        <Alert
+          variant="destructive"
+          id="mapping-issues-summary"
+          aria-live="polite"
+        >
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>{t("mapping.summary.titleInline")}</AlertTitle>
           <AlertDescription>
             <ul className="list-disc list-inside space-y-0.5 mt-1">
-              {issues.map((issue, index) => (
-                <li key={`${issue.code}-${index}`}>{formatIssueSummary(t, issue)}</li>
+              {summaryIssues.map((issue, index) => (
+                <li key={`${issue.code}-${index}`}>
+                  {formatIssueSummary(t, issue)}
+                </li>
               ))}
             </ul>
           </AlertDescription>

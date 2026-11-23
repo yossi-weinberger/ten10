@@ -514,6 +514,18 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   const scrollToFirstMappingIssue = useCallback(() => {
     const flagged = [...issueColumns(mappingIssues, state.columnMappings)];
+    const hasMissingRequired = mappingIssues.some(
+      (issue) =>
+        issue.code === "dateMissing" || issue.code === "amountMissing",
+    );
+    // Missing date/amount have no flagged row — scroll to the visible summary.
+    if (flagged.length === 0 && hasMissingRequired) {
+      const summary = document.getElementById("mapping-issues-summary");
+      if (summary && typeof summary.scrollIntoView === "function") {
+        summary.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+    }
     let target: HTMLElement | null = null;
     const rows = document.querySelectorAll<HTMLElement>("[data-mapping-column]");
     if (flagged.length > 0) {
@@ -525,7 +537,6 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         }
       }
     } else {
-      // dateMissing / amountMissing: no flagged row — scroll to first unmapped column
       for (const row of rows) {
         if (row.dataset.mappingUnmapped === "true") {
           target = row;
@@ -881,8 +892,24 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Mobile header (<768px): title + compact step + close, then progress bar */}
+    <div
+      className={cn(
+        // Desktop keeps space-y. Mobile review uses flex + gap only — any
+        // space-y-* (including space-y-0) sets margin-top on `> * + *` with
+        // higher specificity than mt-auto, so the footer pin would lose.
+        // min-h fills to the viewport bottom (below the top bar); -mb-24 sinks
+        // into the shell’s pb-24 so short pages don’t grow an extra scroll.
+        state.step === "review"
+          ? cn(
+              "md:space-y-6",
+              "max-md:flex max-md:flex-col max-md:gap-6",
+              "max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] max-md:-mb-24",
+            )
+          : "space-y-6",
+      )}
+      data-import-wizard-root=""
+    >
+      {/* Mobile header (<768px): title + compact step + tour + close, then progress bar */}
       <div className="md:hidden space-y-3">
         <div className="flex items-center gap-2" data-onboarding="import-intro">
           <h1 className="text-[17px] font-semibold flex-1 min-w-0 truncate">{t("title")}</h1>
@@ -893,6 +920,9 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                 label: t(`steps.${state.step}`),
               })}
             </span>
+          )}
+          {state.step === "upload" && (
+            <PageTourButton tour="import" className="h-11 w-11" />
           )}
           {exitButton}
         </div>
@@ -1047,19 +1077,30 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         </CardContent>
       </Card>
 
-      {/* Navigation footer — sticky so the import button stays visible while scrolling */}
+      {/* Navigation footer — sticky while scrolling; mt-auto pins it on short mobile pages */}
       {state.step !== "result" && state.step !== "upload" && !state.processingError && (
         <div
           className={cn(
             "sticky bottom-0 z-10 space-y-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 -mx-1 px-1",
-            "pb-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+            "pb-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
+            state.step === "review" && "max-md:mt-auto",
           )}
           data-onboarding-import-nav=""
         >
           {state.step === "mapping" && mappingBlocked && isMobile && (
             <button
               type="button"
-              id="mapping-issues-summary"
+              // When date/amount-missing text lives in the step Alert, keep that
+              // element as #mapping-issues-summary for aria-describedby + Show.
+              id={
+                mappingIssues.some(
+                  (issue) =>
+                    issue.code === "dateMissing" ||
+                    issue.code === "amountMissing",
+                )
+                  ? undefined
+                  : "mapping-issues-summary"
+              }
               onClick={scrollToFirstMappingIssue}
               className="flex h-11 w-full items-center justify-between gap-2 border-t border-red-200 bg-red-50 px-3 text-red-700"
               aria-label={t("mapping.summary.show")}
@@ -1117,7 +1158,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   className="gap-1.5 max-md:h-11 max-md:flex-1"
                   data-onboarding="import-approve"
                 >
-                  {t("confirm.proceed")} ({approvedCount})
+                  {t("review.saveCta", { count: approvedCount })}
                   <NextIcon className="h-4 w-4" aria-hidden="true" />
                 </Button>
               )}
@@ -1130,15 +1171,15 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       <Dialog open={state.confirmOpen} onOpenChange={(open) => !open && dispatch({ type: "CLOSE_CONFIRM" })}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("confirm.title")}</DialogTitle>
+            <DialogTitle>{t("confirm.title", { count: approvedCount })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              {t("confirm.description_other", { count: approvedCount })}
+              {t("confirm.description", { count: approvedCount })}
             </p>
             {riskyApproved > 0 && (
               <p className="text-amber-600 dark:text-amber-400">
-                {t("confirm.riskyRows_other", { count: riskyApproved })}
+                {t("confirm.riskyRows", { count: riskyApproved })}
               </p>
             )}
           </div>

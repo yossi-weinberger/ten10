@@ -90,6 +90,28 @@ function row(overrides: Partial<ImportPreviewRow> = {}): ImportPreviewRow {
 
 afterEach(() => cleanup());
 
+describe("ImportReviewTable B4a", () => {
+  it("uses selectRowAria and keeps the desktop edit button", () => {
+    render(
+      <ImportReviewTable
+        rows={[row({ normalized: baseNormalized({ category: null }) })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: 'review.selectRowAria:{"row":3}' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "review.editRow" })).toBeInTheDocument();
+    expect(screen.queryByText("Select row")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Row /)).not.toBeInTheDocument();
+  });
+});
+
 describe("ImportReviewTable category labels", () => {
   it("shows the localized label for a known category key", () => {
     render(

@@ -101,7 +101,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
             checked={optimisticApproved}
             disabled={approvalBlocked}
             onCheckedChange={(checked) => handleToggle(!!checked)}
-            aria-label={`Row ${row.rowNumber}`}
+            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
           />
         </div>
       </TableCell>
@@ -139,7 +139,10 @@ const ReviewTableRow = memo(function ReviewTableRow({
         {row.normalized?.type ? (
           <Badge
             variant="outline"
-            className={cn("border text-xs font-normal", typeBadgeColors[row.normalized.type as TransactionType])}
+            className={cn(
+              "h-6 border px-2 text-[13px] font-semibold",
+              typeBadgeColors[row.normalized.type as TransactionType],
+            )}
           >
             {typeLabel(row.normalized.type)}
           </Badge>
