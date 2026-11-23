@@ -36,6 +36,9 @@ interface ImportReviewCardsProps {
   onUpdateRow: (id: string, updates: Partial<ImportPreviewRow>) => void;
   existingTransactions: Transaction[];
   recurringTransactions: RecurringTransaction[];
+  selectMode?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function ImportReviewCards({
@@ -45,6 +48,9 @@ export function ImportReviewCards({
   onUpdateRow,
   existingTransactions,
   recurringTransactions,
+  selectMode = false,
+  selectedIds,
+  onToggleSelect,
 }: ImportReviewCardsProps) {
   const { t } = useTranslation("import");
   const { t: tTx } = useTranslation("transactions");
@@ -86,25 +92,27 @@ export function ImportReviewCards({
   return (
     <>
       <div className="space-y-2">
-        <div className="flex items-center gap-2 min-h-11 px-1">
-          <div className="grid h-11 w-11 place-items-center shrink-0">
-            <Checkbox
-              checked={someSelected ? "indeterminate" : allSelected}
-              onCheckedChange={handleSelectAll}
-              disabled={selectableRows.length === 0}
-              className="h-[22px] w-[22px]"
-              aria-label={t("review.actions.selectAllSelectable")}
-            />
-          </div>
-          <span className="text-sm text-muted-foreground flex-1">
-            {t("review.actions.selectAllSelectable")}
-          </span>
-          {approvedCount > 0 && (
-            <span className="text-xs text-muted-foreground tabular-nums pe-1">
-              {approvedCount}/{selectableRows.length}
+        {!selectMode ? (
+          <div className="flex items-center gap-2 min-h-11 px-1">
+            <div className="grid h-11 w-11 place-items-center shrink-0">
+              <Checkbox
+                checked={someSelected ? "indeterminate" : allSelected}
+                onCheckedChange={handleSelectAll}
+                disabled={selectableRows.length === 0}
+                className="h-[22px] w-[22px]"
+                aria-label={t("review.actions.selectAllSelectable")}
+              />
+            </div>
+            <span className="text-sm text-muted-foreground flex-1">
+              {t("review.actions.selectAllSelectable")}
             </span>
-          )}
-        </div>
+            {approvedCount > 0 && (
+              <span className="text-xs text-muted-foreground tabular-nums pe-1">
+                {approvedCount}/{selectableRows.length}
+              </span>
+            )}
+          </div>
+        ) : null}
 
         {rows.map((row) => (
           <RowCard
@@ -113,6 +121,9 @@ export function ImportReviewCards({
             typeLabel={typeLabel}
             onToggleApproval={onToggleApproval}
             onRequestEdit={setEditingRowId}
+            selectMode={selectMode}
+            isSelected={selectedIds?.has(row.id) ?? false}
+            onToggleSelect={onToggleSelect}
             t={t}
           />
         ))}
@@ -135,10 +146,22 @@ interface RowCardProps {
   typeLabel: (type: string) => string;
   onToggleApproval: (id: string, approved: boolean) => void;
   onRequestEdit: (id: string) => void;
+  selectMode: boolean;
+  isSelected: boolean;
+  onToggleSelect?: (id: string) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
-function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCardProps) {
+function RowCard({
+  row,
+  typeLabel,
+  onToggleApproval,
+  onRequestEdit,
+  selectMode,
+  isSelected,
+  onToggleSelect,
+  t,
+}: RowCardProps) {
   const { i18n } = useTranslation("import");
   const formatDisplayDate = useDisplayDate();
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
@@ -171,32 +194,57 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
     </span>
   );
 
+  const handleCardActivate = () => {
+    if (selectMode) {
+      if (!isInvalid) onToggleSelect?.(row.id);
+      return;
+    }
+    if (!isInvalid) onRequestEdit(row.id);
+  };
+
   return (
     <div
       className={cn(
         "flex min-h-[60px] overflow-hidden rounded-[10px] border bg-white dark:bg-card text-foreground",
-        optimisticApproved && "bg-primary/5",
+        !selectMode && optimisticApproved && "bg-primary/5",
+        selectMode && isSelected && "border-2 border-primary bg-primary/5",
         isInvalid && "opacity-60",
       )}
     >
       <div className="grid h-auto w-11 shrink-0 place-items-center self-stretch">
-        <Checkbox
-          checked={optimisticApproved}
-          disabled={approvalBlocked}
-          onCheckedChange={(checked) => handleToggle(!!checked)}
-          className="h-[22px] w-[22px]"
-          aria-label={t("review.selectRowAria", { row: row.rowNumber })}
-        />
+        {selectMode ? (
+          <Checkbox
+            checked={isSelected}
+            disabled={isInvalid}
+            onCheckedChange={() => {
+              if (!isInvalid) onToggleSelect?.(row.id);
+            }}
+            className="h-[22px] w-[22px] rounded-full"
+            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+          />
+        ) : (
+          <Checkbox
+            checked={optimisticApproved}
+            disabled={approvalBlocked}
+            onCheckedChange={(checked) => handleToggle(!!checked)}
+            className="h-[22px] w-[22px]"
+            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+          />
+        )}
       </div>
 
       <button
         type="button"
         className="flex min-w-0 flex-1 items-stretch text-start"
-        disabled={isInvalid}
-        onClick={() => onRequestEdit(row.id)}
-        aria-label={t("review.editRowAria", {
-          row: row.rowNumber,
-        })}
+        disabled={isInvalid && !selectMode}
+        onClick={handleCardActivate}
+        aria-label={
+          selectMode
+            ? t("review.selectRowAria", { row: row.rowNumber })
+            : t("review.editRowAria", {
+                row: row.rowNumber,
+              })
+        }
       >
         <div
           className={cn(

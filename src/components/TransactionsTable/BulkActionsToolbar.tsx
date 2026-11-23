@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 export interface BulkActionsToolbarProps {
   selectedCount: number;
   selectedCountLabel: string;
+  /** Full sentence for screen readers; when set, the visible count is aria-hidden. */
+  selectedCountAnnouncement?: string;
   editLabel: string;
-  deleteLabel: string;
+  deleteLabel?: string;
   clearLabel: string;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onClear: () => void;
   ariaLabel: string;
   pending?: boolean;
@@ -22,6 +24,7 @@ export interface BulkActionsToolbarProps {
 export function BulkActionsToolbar({
   selectedCount,
   selectedCountLabel,
+  selectedCountAnnouncement,
   editLabel,
   deleteLabel,
   clearLabel,
@@ -41,6 +44,7 @@ export function BulkActionsToolbar({
   }
 
   const actionsDisabled = disabled || pending;
+  const showDelete = onDelete !== undefined;
 
   return (
     <div
@@ -53,7 +57,13 @@ export function BulkActionsToolbar({
       aria-label={ariaLabel}
       aria-live="polite"
     >
-      <div className="text-sm font-medium text-muted-foreground">
+      {selectedCountAnnouncement ? (
+        <span className="sr-only">{selectedCountAnnouncement}</span>
+      ) : null}
+      <div
+        className="text-sm font-medium text-muted-foreground"
+        aria-hidden={selectedCountAnnouncement ? true : undefined}
+      >
         {selectedCountLabel}
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -80,18 +90,20 @@ export function BulkActionsToolbar({
         >
           {editLabel}
         </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          className={cn(
-            mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
-          )}
-          onClick={onDelete}
-          disabled={actionsDisabled || selectedCount === 0}
-        >
-          {deleteLabel}
-        </Button>
+        {showDelete ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className={cn(
+              mobileLayout ? "h-11" : "min-h-11 sm:min-h-9"
+            )}
+            onClick={onDelete}
+            disabled={actionsDisabled || selectedCount === 0}
+          >
+            {deleteLabel}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

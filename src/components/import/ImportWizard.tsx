@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from "react";
+import { useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,7 @@ type WizardAction =
   | { type: "UPDATE_ROW"; id: string; updates: Partial<ImportPreviewRow> }
   | { type: "TOGGLE_APPROVAL"; id: string; approved: boolean }
   | { type: "BULK_TOGGLE"; ids: string[]; approved: boolean }
+  | { type: "BULK_UPDATE_ROWS"; rows: ImportPreviewRow[] }
   | { type: "TOGGLE_ALL_READY" }
   | { type: "CLEAR_SELECTION" }
   | { type: "OPEN_CONFIRM" }
@@ -215,6 +216,12 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         }),
       };
     }
+
+    case "BULK_UPDATE_ROWS":
+      return {
+        ...state,
+        previewRows: action.rows,
+      };
 
     case "TOGGLE_ALL_READY":
       return {
@@ -415,6 +422,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
 
   const [state, dispatch] = useReducer(wizardReducer, initialState);
+  const [reviewSelectMode, setReviewSelectMode] = useState(false);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const mappingIssues = useMemo(
     () => getMappingIssues(state.columnMappings),
@@ -696,6 +704,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
     []
   );
 
+  const handleBulkUpdateRows = useCallback((rows: ImportPreviewRow[]) => {
+    dispatch({ type: "BULK_UPDATE_ROWS", rows });
+  }, []);
+
   const handleReviewNext = useCallback(() => {
     dispatch({ type: "OPEN_CONFIRM" });
   }, []);
@@ -794,6 +806,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   ]);
 
   const handleReset = useCallback(() => {
+    setReviewSelectMode(false);
     dispatch({ type: "RESET" });
   }, []);
 
@@ -1062,6 +1075,8 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   onToggleAllReady={handleToggleAllReady}
                   onClearSelection={handleClearSelection}
                   onUpdateRow={handleUpdateRow}
+                  onBulkUpdateRows={handleBulkUpdateRows}
+                  onSelectModeChange={setReviewSelectMode}
                   existingTransactions={state.existingTransactions}
                   recurringTransactions={state.recurringTransactions}
                 />
@@ -1078,7 +1093,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       </Card>
 
       {/* Navigation footer — sticky while scrolling; mt-auto pins it on short mobile pages */}
-      {state.step !== "result" && state.step !== "upload" && !state.processingError && (
+      {state.step !== "result" &&
+        state.step !== "upload" &&
+        !state.processingError &&
+        !(state.step === "review" && reviewSelectMode) && (
         <div
           className={cn(
             "sticky bottom-0 z-10 space-y-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 -mx-1 px-1",

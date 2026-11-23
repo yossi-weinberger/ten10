@@ -44,26 +44,28 @@ function fmtAmount(amount: number, currency: string): string {
   return fmt.format(amount);
 }
 
-// ---------------------------------------------------------------------------
-// Memoized row — no editing state inside; editing opens a full modal
-// ---------------------------------------------------------------------------
 interface ReviewRowProps {
   row: ImportPreviewRow;
   onToggleApproval: (id: string, approved: boolean) => void;
   onRequestEdit: (id: string) => void;
+  selectMode: boolean;
+  isSelected: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 const ReviewTableRow = memo(function ReviewTableRow({
   row,
   onToggleApproval,
   onRequestEdit,
+  selectMode,
+  isSelected,
+  onToggleSelect,
 }: ReviewRowProps) {
   const { t, i18n } = useTranslation("import");
   const { t: tTx } = useTranslation("transactions");
   const formatDisplayDate = useDisplayDate();
   const isRtl = i18n.dir() === "rtl";
 
-  // Instant visual feedback — checkbox flips before parent re-render completes
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
     row.approved,
     (_: boolean, next: boolean) => next
@@ -84,46 +86,54 @@ const ReviewTableRow = memo(function ReviewTableRow({
 
   const isInvalid = row.status === "invalid";
   const approvalBlocked = rowBlocksApproval(row);
+  const selected = selectMode ? isSelected : optimisticApproved;
 
   return (
     <TableRow
-      data-state={optimisticApproved ? "selected" : undefined}
+      data-state={selected ? "selected" : undefined}
       className={isInvalid ? "opacity-60" : ""}
     >
-      {/* Checkbox */}
       <TableCell
         className={`sticky start-0 w-10 min-w-10 p-0 text-center align-middle transition-colors shadow-[1px_0_0_0_hsl(var(--border))] ${
-          optimisticApproved ? "bg-primary/10" : "bg-background"
+          selected ? "bg-primary/10" : "bg-background"
         }`}
       >
         <div className="flex items-center justify-center">
-          <Checkbox
-            checked={optimisticApproved}
-            disabled={approvalBlocked}
-            onCheckedChange={(checked) => handleToggle(!!checked)}
-            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
-          />
+          {selectMode ? (
+            <Checkbox
+              checked={isSelected}
+              disabled={isInvalid}
+              onCheckedChange={() => {
+                if (!isInvalid) onToggleSelect?.(row.id);
+              }}
+              className="rounded-full"
+              aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+            />
+          ) : (
+            <Checkbox
+              checked={optimisticApproved}
+              disabled={approvalBlocked}
+              onCheckedChange={(checked) => handleToggle(!!checked)}
+              aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+            />
+          )}
         </div>
       </TableCell>
 
-      {/* Row # */}
       <TableCell className="text-center align-middle text-muted-foreground text-xs tabular-nums" dir="ltr">
         {row.rowNumber}
       </TableCell>
 
-      {/* Status */}
       <TableCell className="text-center align-middle">
         <ImportRowStatusBadge status={row.status} />
       </TableCell>
 
-      {/* Date */}
       <TableCell dir="auto" className="whitespace-nowrap">
         {row.normalized
           ? Object.values(formatDisplayDate(row.normalized.date)).join(" · ")
           : "—"}
       </TableCell>
 
-      {/* Amount */}
       <TableCell
         className="ph-mask text-center align-middle whitespace-nowrap"
         data-ph-mask
@@ -134,7 +144,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
           : "—"}
       </TableCell>
 
-      {/* Type */}
       <TableCell className="whitespace-nowrap">
         {row.normalized?.type ? (
           <Badge
@@ -155,7 +164,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
         )}
       </TableCell>
 
-      {/* Description */}
       <TableCell className="max-w-[160px]">
         <span
           className="truncate block max-w-[160px]"
@@ -167,7 +175,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
         </span>
       </TableCell>
 
-      {/* Category */}
       <TableCell>
         <span className="text-sm">
           {row.normalized?.category ? (
@@ -182,7 +189,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
         </span>
       </TableCell>
 
-      {/* Recipient */}
       <TableCell>
         <span className="text-sm">
           {row.normalized?.recipient ?? (
@@ -191,7 +197,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
         </span>
       </TableCell>
 
-      {/* Issues */}
       <TableCell className="text-center align-middle">
         {row.issues.length > 0 && (
           <Tooltip>
@@ -217,9 +222,8 @@ const ReviewTableRow = memo(function ReviewTableRow({
         )}
       </TableCell>
 
-      {/* Edit action */}
       <TableCell className="text-center align-middle">
-        {!isInvalid && (
+        {!isInvalid && !selectMode && (
           <Button
             variant="outline"
             size="sm"
@@ -234,9 +238,6 @@ const ReviewTableRow = memo(function ReviewTableRow({
   );
 });
 
-// ---------------------------------------------------------------------------
-// Table — owns the single shared edit modal
-// ---------------------------------------------------------------------------
 interface ImportReviewTableProps {
   rows: ImportPreviewRow[];
   onToggleApproval: (id: string, approved: boolean) => void;
@@ -244,6 +245,10 @@ interface ImportReviewTableProps {
   onUpdateRow: (id: string, updates: Partial<ImportPreviewRow>) => void;
   existingTransactions: Transaction[];
   recurringTransactions: RecurringTransaction[];
+  selectMode?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
+  onSelectAllVisible?: () => void;
 }
 
 export function ImportReviewTable({
@@ -253,13 +258,16 @@ export function ImportReviewTable({
   onUpdateRow,
   existingTransactions,
   recurringTransactions,
+  selectMode = false,
+  selectedIds,
+  onToggleSelect,
+  onSelectAllVisible,
 }: ImportReviewTableProps) {
   const { t, i18n } = useTranslation("import");
   const isRtl = i18n.dir() === "rtl";
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
-  // Select-all state: based on selectable (non-invalid) rows
   const selectableRows = useMemo(
     () => rows.filter((r) => !rowBlocksApproval(r)),
     [rows]
@@ -271,12 +279,31 @@ export function ImportReviewTable({
   const allSelected = selectableRows.length > 0 && approvedCount === selectableRows.length;
   const someSelected = approvedCount > 0 && approvedCount < selectableRows.length;
 
+  const selectedVisibleCount = useMemo(() => {
+    if (!selectedIds) return 0;
+    return selectableRows.filter((r) => selectedIds.has(r.id)).length;
+  }, [selectableRows, selectedIds]);
+
+  const allVisibleSelected =
+    selectMode &&
+    selectableRows.length > 0 &&
+    selectedVisibleCount === selectableRows.length;
+  const someVisibleSelected =
+    selectMode &&
+    selectedVisibleCount > 0 &&
+    selectedVisibleCount < selectableRows.length;
+
   const handleSelectAll = useCallback(() => {
+    if (selectMode) {
+      onSelectAllVisible?.();
+      return;
+    }
     const ids = selectableRows.map((r) => r.id);
     startTransition(() => {
       onBulkToggle(ids, !allSelected);
     });
-  }, [selectableRows, allSelected, onBulkToggle]);
+  }, [selectMode, onSelectAllVisible, selectableRows, allSelected, onBulkToggle]);
+
   const editingRow = editingRowId
     ? (rows.find((r) => r.id === editingRowId) ?? null)
     : null;
@@ -299,10 +326,6 @@ export function ImportReviewTable({
 
   return (
     <>
-      {/*
-       * Native <table> instead of shadcn <Table> so that our outer div is
-       * the scroll context and <thead sticky> works correctly.
-       */}
       <div
         className="overflow-auto rounded-md border"
         style={{ maxHeight: "60vh" }}
@@ -316,10 +339,25 @@ export function ImportReviewTable({
               <TableHead className="w-10 min-w-10 sticky start-0 bg-background z-30 p-0 text-center align-middle">
                 <div className="flex items-center justify-center">
                   <Checkbox
-                    checked={someSelected ? "indeterminate" : allSelected}
+                    checked={
+                      selectMode
+                        ? someVisibleSelected
+                          ? "indeterminate"
+                          : allVisibleSelected
+                        : someSelected
+                          ? "indeterminate"
+                          : allSelected
+                    }
                     onCheckedChange={handleSelectAll}
                     disabled={selectableRows.length === 0}
-                    aria-label={t("review.actions.selectAllSelectable")}
+                    className={selectMode ? "rounded-full" : undefined}
+                    aria-label={
+                      selectMode
+                        ? t("review.bulk.selectAllVisible", {
+                            count: selectableRows.length,
+                          })
+                        : t("review.actions.selectAllSelectable")
+                    }
                   />
                 </div>
               </TableHead>
@@ -371,13 +409,15 @@ export function ImportReviewTable({
                 row={row}
                 onToggleApproval={onToggleApproval}
                 onRequestEdit={handleRequestEdit}
+                selectMode={selectMode}
+                isSelected={selectedIds?.has(row.id) ?? false}
+                onToggleSelect={onToggleSelect}
               />
             ))}
           </TableBody>
         </table>
       </div>
 
-      {/* Single shared modal — only mounted when a row is being edited */}
       <ImportRowEditModal
         row={editingRow}
         isOpen={editingRowId !== null}
