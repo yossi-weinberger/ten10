@@ -8,9 +8,18 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
+import { formatCategory } from "@/lib/category-registry";
 import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+
+function categoryBase(
+  type: TransactionType | null | undefined,
+): "income" | "expense" | undefined {
+  if (type === "income" || type === "exempt-income") return "income";
+  if (type === "expense" || type === "recognized-expense") return "expense";
+  return undefined;
+}
 
 function fmtAmount(amount: number, currency: string): string {
   try {
@@ -158,6 +167,7 @@ function RowCard({
   onToggleSelect,
   t,
 }: RowCardProps) {
+  const { i18n } = useTranslation("import");
   const formatDisplayDate = useDisplayDate();
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
     row.approved,
@@ -294,7 +304,15 @@ function RowCard({
             </div>
             {(n?.category || n?.recipient) && (
               <div className="mt-0.5 flex min-w-0 flex-wrap gap-x-2 text-xs text-muted-foreground">
-                {n.category ? <span className="truncate">{n.category}</span> : null}
+                {n.category ? (
+                  <span className="truncate">
+                    {formatCategory(
+                      categoryBase(txType),
+                      n.category,
+                      i18n.language,
+                    )}
+                  </span>
+                ) : null}
                 {n.recipient ? <span className="truncate">{n.recipient}</span> : null}
               </div>
             )}
