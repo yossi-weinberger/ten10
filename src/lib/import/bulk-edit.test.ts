@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ImportPreviewRow } from "./import-session.types";
+import { getApprovedRows, rowBlocksApproval } from "./approval-gates";
 import { applyBulkEdit } from "./bulk-edit";
 import { revalidateAfterEdit } from "./validation";
 
@@ -179,6 +180,10 @@ describe("applyBulkEdit", () => {
     expect(afterCategory[0]?.normalized?.type).toBeNull();
     expect(afterCategory[0]?.issues.map((i) => i.code)).toContain("card_refund");
     expect(afterCategory[0]?.status).toBe("needs_review");
+    expect(rowBlocksApproval(afterCategory[0]!)).toBe(true);
+    expect(
+      getApprovedRows([{ ...afterCategory[0]!, approved: true }]),
+    ).toEqual([]);
 
     const afterType = applyBulkEdit(
       [refundRow],
@@ -189,5 +194,9 @@ describe("applyBulkEdit", () => {
     expect(afterType[0]?.normalized?.type).toBe("income");
     expect(afterType[0]?.issues.map((i) => i.code)).not.toContain("card_refund");
     expect(afterType[0]?.status).toBe("ready");
+    expect(rowBlocksApproval(afterType[0]!)).toBe(false);
+    expect(
+      getApprovedRows([{ ...afterType[0]!, approved: true }]),
+    ).toEqual([{ ...afterType[0]!, approved: true }]);
   });
 });
