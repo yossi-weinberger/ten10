@@ -5,6 +5,8 @@ import {
   validateMappings,
 } from "./mapping";
 import { normalizeRow } from "./normalize";
+import { checkCardRefund } from "./card-refund-detector";
+import { buildPreviewRows } from "./index";
 import {
   decodeImportText,
   parseCSVText,
@@ -149,6 +151,17 @@ describe("bank fixture parsing", () => {
     // Charge-only Max sheet: positive סכום חיוב is an expense (debit convention).
     expect(first.normalized?.type).toBe("expense");
     expect(first.normalized?.amount).toBe(412.3);
+
+    const refundRaw = result.file.rows.find(
+      (row) => String(row["שם בית העסק"] ?? "").includes("החזר"),
+    );
+    expect(refundRaw).toBeTruthy();
+    const refundMapped = applyMappings(refundRaw!, mappings);
+    const refundNorm = normalizeRow(refundMapped, "ILS");
+    // Max labels refunds as סוג עסקה=זיכוי → income via locale aliases; abs(debit) kept.
+    expect(refundNorm.normalized?.type).toBe("income");
+    expect(refundNorm.normalized?.amount).toBe(50);
+    expect(checkCardRefund(refundMapped)?.code).toBe("card_refund");
   });
 
   it("parses Cal purchases as expenses (dual-column charge stays debit)", async () => {
@@ -167,6 +180,17 @@ describe("bank fixture parsing", () => {
     expect(first.normalized?.date).toBe("2026-11-03");
     expect(first.normalized?.amount).toBe(412.3);
     expect(first.normalized?.type).toBe("expense");
+
+    const refundRaw = result.file.rows.find(
+      (row) => String(row["שם בית עסק"] ?? "").includes("החזר"),
+    );
+    expect(refundRaw).toBeTruthy();
+    const refundMapped = applyMappings(refundRaw!, mappings);
+    const refundNorm = normalizeRow(refundMapped, "ILS");
+    // Cal labels refunds as סוג עסקה=זיכוי → income; negative debit still flags card_refund.
+    expect(refundNorm.normalized?.type).toBe("income");
+    expect(refundNorm.normalized?.amount).toBe(50);
+    expect(checkCardRefund(refundMapped)?.code).toBe("card_refund");
   });
 
   it("maps Isracard charge currency so foreign merchants charged in ILS are not blocked", async () => {
@@ -204,13 +228,34 @@ describe("bank fixture parsing", () => {
     const purchaseNorm = normalizeRow(applyMappings(purchase!, mappings), "ILS");
     expect(purchaseNorm.normalized?.type).toBe("expense");
     expect(purchaseNorm.normalized?.amount).toBe(412.3);
+
+    const refundRaw = result.file.rows.find(
+      (row) => String(row["שם בית עסק"] ?? "").includes("החזר"),
+    );
+    expect(refundRaw).toBeTruthy();
+    const refundMapped = applyMappings(refundRaw!, mappings);
+    const refundNorm = normalizeRow(refundMapped, "ILS");
+    expect(refundNorm.normalized?.type).toBe("expense");
+    expect(refundNorm.normalized?.amount).toBe(50);
+    expect(checkCardRefund(refundMapped)?.code).toBe("card_refund");
   });
 
-  // Refund representation: TEN10 stores abs(amount) + type. Debit→expense and
-  // credit→income are the only existing conventions; there is no negative-expense
-  // path without changing normalize-core / form positive-amount rules. Product
-  // must choose before we assert refund type/sign here (see RG-201 report).
-  it.todo(
-    "card refund (negative סכום חיוב) offsets expense without using income — awaiting product choice",
-  );
+  it("builds preview rows that keep refunds as needs_review with card_refund", async () => {
+    const result = await parseFile(await buildCalXlsx());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const mappings = suggestMappings(result.file.headers);
+    const { rows } = await buildPreviewRows(result.file, mappings, "ILS", [], []);
+    const purchase = rows.find((r) => r.normalized?.description?.includes("שופרסל"));
+    const refund = rows.find((r) => r.normalized?.description?.includes("החזר"));
+    expect(purchase?.status).toBe("ready");
+    expect(purchase?.normalized?.type).toBe("expense");
+    expect(purchase?.approved).toBe(true);
+    expect(refund?.status).toBe("needs_review");
+    expect(refund?.issues.map((i) => i.code)).toContain("card_refund");
+    expect(refund?.normalized?.type).toBe("income");
+    expect(refund?.normalized?.amount).toBe(50);
+    expect(refund?.approved).toBe(false);
+  });
 });
