@@ -178,7 +178,8 @@
     "editRow": "Edit",
     "saveRow": "Save",
     "cancelEdit": "Cancel",
-    "issuesAriaLabel": "{{count}} issues in row {{row}}"
+    "issuesAriaLabel": "{{count}} issues in row {{row}}",
+    "typeUnset": "Choose type"
   },
   "confirm": {
     "title": "Confirm Import",

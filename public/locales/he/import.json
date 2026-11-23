@@ -178,7 +178,8 @@
     "editRow": "עריכה",
     "saveRow": "שמור",
     "cancelEdit": "ביטול",
-    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}"
+    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}",
+    "typeUnset": "בחרו סוג"
   },
   "confirm": {
     "title": "אישור ייבוא",
