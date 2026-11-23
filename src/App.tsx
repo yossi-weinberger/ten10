@@ -465,7 +465,12 @@ function App() {
           }}
         />
       </div>
-      {shouldShowFab && showAssistant ? <AssistantFab userId={user?.id ?? null} /> : null}
+      {shouldShowFab && showAssistant ? (
+        <AssistantFab
+          userId={user?.id ?? null}
+          mobileHidden={currentPath === "/transactions-table/import"}
+        />
+      ) : null}
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />

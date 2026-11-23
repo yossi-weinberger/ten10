@@ -113,10 +113,10 @@
     "exportDescription": "ייצא את כל נתוני האפליקציה לקובץ JSON — שימושי למעבר בין פלטפורמות (דסקטופ ↔ ווב) או לגיבוי מלא.",
     "exportButton": "ייצא נתונים",
     "exporting": "מייצא נתונים...",
-    "importTitle": "ייבוא נתונים",
-    "importDescription": "ייבא נתונים מקובץ גיבוי",
-    "importButton": "ייבא נתונים",
-    "importing": "מייבא נתונים..."
+    "importTitle": "שחזור מגיבוי",
+    "importDescription": "שחזור כל הנתונים מקובץ גיבוי של TEN10 (JSON). לייבוא תנועות מהבנק: טבלת התנועות ← ייבוא.",
+    "importButton": "שחזור מגיבוי (JSON)",
+    "importing": "משחזר…"
   },
   "clearData": {
     "title": "מחיקת נתונים",
