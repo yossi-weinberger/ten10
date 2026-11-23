@@ -272,6 +272,7 @@
     "donation_recipient_required": "Recipient is required for donations",
     "possible_duplicate": "Possible duplicate",
     "possible_recurring": "May match a recurring transaction",
+    "card_refund": "Card refund, choose the transaction type",
     "ambiguous_debit_credit": "Both debit and credit have values",
     "formula_cell": "Cell contains a formula (value was used)",
     "income_keyword_match": "Classified as income from description text"

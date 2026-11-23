@@ -28,6 +28,7 @@ export type ImportIssueCode =
   | "donation_recipient_required"
   | "possible_duplicate"
   | "possible_recurring"
+  | "card_refund"
   | "ambiguous_debit_credit"
   | "formula_cell"
   | "income_keyword_match";

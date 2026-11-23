@@ -6,6 +6,7 @@ import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
 import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
 import { ImportRowEditModal } from "./ImportRowEditModal";
@@ -66,7 +67,7 @@ export function ImportReviewCards({
   const typeLabel = (type: string) =>
     tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
-  const selectableRows = useMemo(() => rows.filter((r) => r.status !== "invalid"), [rows]);
+  const selectableRows = useMemo(() => rows.filter((r) => !rowBlocksApproval(r)), [rows]);
   const approvedCount = useMemo(() => selectableRows.filter((r) => r.approved).length, [selectableRows]);
   const allSelected = selectableRows.length > 0 && approvedCount === selectableRows.length;
   const someSelected = approvedCount > 0 && approvedCount < selectableRows.length;
@@ -174,6 +175,7 @@ function RowCard({
   );
 
   const isInvalid = row.status === "invalid";
+  const approvalBlocked = rowBlocksApproval(row);
   const n = row.normalized;
   const txType = (n?.type as TransactionType | undefined) ?? "expense";
   const description = n?.description ?? "";
@@ -209,7 +211,7 @@ function RowCard({
         ) : (
           <Checkbox
             checked={optimisticApproved}
-            disabled={isInvalid}
+            disabled={approvalBlocked}
             onCheckedChange={(checked) => handleToggle(!!checked)}
             className="h-[22px] w-[22px]"
             aria-label={t("review.selectRowAria", { row: row.rowNumber })}

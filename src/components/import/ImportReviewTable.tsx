@@ -15,6 +15,7 @@ import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -80,6 +81,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
     tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
   const isInvalid = row.status === "invalid";
+  const approvalBlocked = rowBlocksApproval(row);
   const selected = selectMode ? isSelected : optimisticApproved;
 
   return (
@@ -106,7 +108,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
           ) : (
             <Checkbox
               checked={optimisticApproved}
-              disabled={isInvalid}
+              disabled={approvalBlocked}
               onCheckedChange={(checked) => handleToggle(!!checked)}
               aria-label={t("review.selectRowAria", { row: row.rowNumber })}
             />
@@ -251,7 +253,7 @@ export function ImportReviewTable({
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const selectableRows = useMemo(
-    () => rows.filter((r) => r.status !== "invalid"),
+    () => rows.filter((r) => !rowBlocksApproval(r)),
     [rows]
   );
   const approvedCount = useMemo(
