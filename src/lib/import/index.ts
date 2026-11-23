@@ -25,6 +25,7 @@ export { resolveType } from "./type-resolver";
 export { computeRowStatus, validateDonationRules, defaultApprovalForStatus, revalidateAfterEdit } from "./validation";
 export { buildExistingFingerprintSet, checkDuplicate, buildBatchFingerprintSet } from "./duplicate-detector";
 export { checkRecurringWarning } from "./recurring-warning-detector";
+export { checkCardRefund } from "./card-refund-detector";
 export { persistApprovedImport } from "./persist-approved-import";
 
 import { nanoid } from "nanoid";
@@ -40,6 +41,7 @@ import { normalizeRow, type NormalizeRowResult } from "./normalize";
 import { validateDonationRules, computeRowStatus, defaultApprovalForStatus } from "./validation";
 import { buildExistingFingerprintSet, checkDuplicate, buildBatchFingerprintSet } from "./duplicate-detector";
 import { checkRecurringWarning } from "./recurring-warning-detector";
+import { checkCardRefund } from "./card-refund-detector";
 
 const BUILD_PREVIEW_CHUNK_SIZE = 100;
 
@@ -81,6 +83,9 @@ function toPreviewRow(
   { normalized, issues }: NormalizeRowResult
 ): ImportPreviewRow {
   const allIssues: ImportRowIssue[] = [...issues];
+
+  const cardRefundIssue = checkCardRefund(mapped);
+  if (cardRefundIssue) allIssues.push(cardRefundIssue);
 
   if (normalized) {
     validateDonationRules(normalized, allIssues);
