@@ -74,7 +74,7 @@
       "duplicateTarget": "{{columns}} are both set to {{field}}. Keep one and set the other to \"Don't import\".",
       "duplicateTargetInline": "{{other}} is also set to {{field}}. Keep one and set the other to \"Don't import\".",
       "otherPlusMore": "{{other}} +{{count}}",
-      "amountAndDebitCredit": "Pick one method: a single \"Amount\" column, or \"Debit\" and \"Credit\". Not both.",
+      "amountAndDebitCredit": "{{columns}} are set as Amount or Debit/Credit. Pick one method: Amount, or Debit and Credit — not both.",
       "amountAndDebitCreditInline": "{{other}} is also set as Amount or Debit/Credit. Pick one method.",
       "generic": "There's a problem with the column matching. Check the marked rows."
     },
@@ -91,6 +91,14 @@
     "detectedCount_one": "We matched 1 column for you. Glance at the samples to check.",
     "detectedCount_other": "We matched {{count}} columns for you. Glance at the samples to check.",
     "autoDetected": "Matched automatically",
+    "unmappedCollapsed_one": "1 more column not imported",
+    "unmappedCollapsed_other": "{{count}} more columns not imported",
+    "sheet": {
+      "question": "What's in this column?",
+      "skipHint": "This column won't go into TEN10",
+      "usedBy": "Already used for \"{{column}}\"",
+      "alsoMarked": "\"{{column}}\" is also set to this"
+    },
     "summary": {
       "remaining_one": "1 thing left to fix",
       "remaining_other": "{{count}} things left to fix",

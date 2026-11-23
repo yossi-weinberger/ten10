@@ -169,7 +169,7 @@ export function conflictGroupOtherParts(issue: {
 
 /** Summary `columns` value: at most two truncated names, plus +N when needed. */
 export function formatDuplicateColumnsSummary(
-  issue: Extract<MappingIssue, { code: "duplicateTarget" }>,
+  issue: ColumnConflictIssue,
   formatMore: (other: string, count: number) => string
 ): string {
   const { primary, secondary, moreCount } = conflictGroupOtherParts(issue);
