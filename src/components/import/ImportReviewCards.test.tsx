@@ -33,12 +33,16 @@ vi.mock("@/lib/store", () => ({
 
 vi.mock("@/lib/utils/export-pdf", () => ({ exportTransactionsToPDF: vi.fn() }));
 
-vi.mock("@/lib/category-registry", () => ({
-  formatCategory: (
-    _base: "income" | "expense" | undefined | null,
-    value: string | null | undefined,
-  ) => (value === "food" ? "מזון" : value ?? ""),
-}));
+vi.mock("@/lib/category-registry", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/category-registry")>();
+  return {
+    ...actual,
+    formatCategory: (
+      _base: "income" | "expense" | undefined | null,
+      value: string | null | undefined,
+    ) => (value === "food" ? "מזון" : value ?? ""),
+  };
+});
 
 vi.mock("./ImportRowEditModal", () => ({
   ImportRowEditModal: ({
