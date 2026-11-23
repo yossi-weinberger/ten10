@@ -17,6 +17,43 @@ export {
 // Donations: categories are NOT supported for donation transactions.
 // Donations use the recipient field instead. Labels stay in i18n.
 
+/**
+ * Maps a transaction type to the category registry base family.
+ * Returns null for types that do not use categories (donations, etc.).
+ */
+export function categoryBaseForType(
+  type: string | null | undefined,
+): "income" | "expense" | null {
+  if (type === "income" || type === "exempt-income") return "income";
+  if (type === "expense" || type === "recognized-expense") return "expense";
+  return null;
+}
+
+/**
+ * Whether a stored category value is allowed for the given transaction type.
+ * Custom (non-predefined) categories are allowed for income/expense families.
+ * Predefined keys must belong to that family's key list.
+ */
+export function isCategoryValidForType(
+  type: string | null | undefined,
+  category: string | null | undefined,
+): boolean {
+  if (!category) return true;
+  const base = categoryBaseForType(type);
+  if (base == null) return false;
+  if (!isPredefinedCategory(category)) return true;
+  return (CATEGORY_KEYS_BY_TYPE[base] as readonly string[]).includes(category);
+}
+
+/** Keep category when valid for type; otherwise null. */
+export function categoryForTypeOrNull(
+  type: string | null | undefined,
+  category: string | null | undefined,
+): string | null {
+  if (!category) return null;
+  return isCategoryValidForType(type, category) ? category : null;
+}
+
 // ---------------------------------------------------------------------------
 // formatCategory
 // Resolves a stored category value to a localized label.
