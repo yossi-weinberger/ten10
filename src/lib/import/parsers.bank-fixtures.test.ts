@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyMappings,
   suggestMappings,
@@ -6,7 +6,6 @@ import {
 } from "./mapping";
 import { normalizeRow } from "./normalize";
 import { checkCardRefund } from "./card-refund-detector";
-import { buildPreviewRows } from "./index";
 import {
   decodeImportText,
   parseCSVText,
@@ -23,6 +22,10 @@ import {
   LEUMI_HTML_XLS,
   MIZRAHI_HTML_XLS,
 } from "./__fixtures__/banks/build-fixtures";
+
+vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
+
+import { buildPreviewRows } from "./index";
 
 function fileFromBytes(bytes: Uint8Array, name: string): File {
   const copy = new Uint8Array(bytes.byteLength);
