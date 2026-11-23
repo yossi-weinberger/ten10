@@ -207,7 +207,8 @@
     "saveCta_other": "שמירת {{count}} תנועות",
     "saveRow": "שמור",
     "cancelEdit": "ביטול",
-    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}"
+    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}",
+    "typeUnset": "בחרו סוג"
   },
   "confirm": {
     "title_one": "לשמור תנועה אחת?",

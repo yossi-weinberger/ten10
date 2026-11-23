@@ -202,7 +202,8 @@
     "saveCta_other": "Save {{count}} transactions",
     "saveRow": "Save",
     "cancelEdit": "Cancel",
-    "issuesAriaLabel": "{{count}} issues in row {{row}}"
+    "issuesAriaLabel": "{{count}} issues in row {{row}}",
+    "typeUnset": "Choose type"
   },
   "confirm": {
     "title_one": "Save 1 transaction?",

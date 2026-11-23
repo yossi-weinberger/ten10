@@ -132,7 +132,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
 
       {/* Type */}
       <TableCell className="whitespace-nowrap">
-        {row.normalized ? (
+        {row.normalized?.type ? (
           <Badge
             variant="outline"
             className={cn(
@@ -142,7 +142,13 @@ const ReviewTableRow = memo(function ReviewTableRow({
           >
             {typeLabel(row.normalized.type)}
           </Badge>
-        ) : "—"}
+        ) : row.issues.some((i) => i.code === "card_refund") ? (
+          <span className="text-xs text-muted-foreground">
+            {t("review.typeUnset")}
+          </span>
+        ) : (
+          "—"
+        )}
       </TableCell>
 
       {/* Description */}
