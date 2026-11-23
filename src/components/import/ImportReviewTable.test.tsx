@@ -16,7 +16,7 @@ vi.mock("react-i18next", () => ({
       }
       return key;
     },
-    i18n: { language: "en", dir: () => "ltr" },
+    i18n: { language: "he", dir: () => "rtl" },
   }),
 }));
 
@@ -32,13 +32,49 @@ vi.mock("@/lib/store", () => ({
 
 vi.mock("@/lib/utils/export-pdf", () => ({ exportTransactionsToPDF: vi.fn() }));
 
+vi.mock("@/lib/category-registry", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/category-registry")>();
+  return {
+    ...actual,
+    formatCategory: (
+      _base: "income" | "expense" | undefined | null,
+      value: string | null | undefined,
+    ) => (value === "food" ? "מזון" : value ?? ""),
+  };
+});
+
 vi.mock("./ImportRowEditModal", () => ({
   ImportRowEditModal: () => null,
 }));
 
 import { ImportReviewTable } from "./ImportReviewTable";
 
+function baseNormalized(
+  overrides: Partial<NonNullable<ImportPreviewRow["normalized"]>> = {},
+): NonNullable<ImportPreviewRow["normalized"]> {
+  return {
+    date: "2026-01-15",
+    amount: 100,
+    currency: "ILS",
+    type: "expense",
+    description: "Desk",
+    category: "food",
+    recipient: null,
+    payment_method: null,
+    is_chomesh: false,
+    original_amount: null,
+    original_currency: null,
+    conversion_rate: null,
+    conversion_date: null,
+    rate_source: null,
+    source_recurring_id: null,
+    occurrence_number: null,
+    ...overrides,
+  };
+}
+
 function row(overrides: Partial<ImportPreviewRow> = {}): ImportPreviewRow {
+  const { normalized, ...rest } = overrides;
   return {
     id: "r1",
     rowNumber: 3,
@@ -47,25 +83,8 @@ function row(overrides: Partial<ImportPreviewRow> = {}): ImportPreviewRow {
     status: "ready",
     issues: [],
     approved: true,
-    normalized: {
-      date: "2026-01-15",
-      amount: 100,
-      currency: "ILS",
-      type: "expense",
-      description: "Desk",
-      category: null,
-      recipient: null,
-      payment_method: null,
-      is_chomesh: false,
-      original_amount: null,
-      original_currency: null,
-      conversion_rate: null,
-      conversion_date: null,
-      rate_source: null,
-      source_recurring_id: null,
-      occurrence_number: null,
-    },
-    ...overrides,
+    ...rest,
+    normalized: normalized ?? baseNormalized(),
   };
 }
 
@@ -75,7 +94,7 @@ describe("ImportReviewTable B4a", () => {
   it("uses selectRowAria and keeps the desktop edit button", () => {
     render(
       <ImportReviewTable
-        rows={[row()]}
+        rows={[row({ normalized: baseNormalized({ category: null }) })]}
         onToggleApproval={vi.fn()}
         onBulkToggle={vi.fn()}
         onUpdateRow={vi.fn()}
@@ -90,5 +109,42 @@ describe("ImportReviewTable B4a", () => {
     expect(screen.getByRole("button", { name: "review.editRow" })).toBeInTheDocument();
     expect(screen.queryByText("Select row")).not.toBeInTheDocument();
     expect(screen.queryByText(/^Row /)).not.toBeInTheDocument();
+  });
+});
+
+describe("ImportReviewTable category labels", () => {
+  it("shows the localized label for a known category key", () => {
+    render(
+      <ImportReviewTable
+        rows={[row()]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(screen.getByText("מזון")).toBeInTheDocument();
+    expect(screen.queryByText("food")).not.toBeInTheDocument();
+  });
+
+  it("shows a custom category name as-is", () => {
+    render(
+      <ImportReviewTable
+        rows={[
+          row({
+            normalized: baseNormalized({ category: "Gym Membership" }),
+          }),
+        ]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(screen.getByText("Gym Membership")).toBeInTheDocument();
   });
 });

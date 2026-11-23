@@ -16,6 +16,10 @@ import type { Transaction, RecurringTransaction, TransactionType } from "@/types
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { rowBlocksApproval } from "@/lib/import/approval-gates";
+import {
+  categoryBaseForType,
+  formatCategory,
+} from "@/lib/category-registry";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -173,7 +177,13 @@ const ReviewTableRow = memo(function ReviewTableRow({
 
       <TableCell>
         <span className="text-sm">
-          {row.normalized?.category ?? (
+          {row.normalized?.category ? (
+            formatCategory(
+              categoryBaseForType(row.normalized.type) ?? undefined,
+              row.normalized.category,
+              i18n.language,
+            )
+          ) : (
             <span className="text-muted-foreground">—</span>
           )}
         </span>
