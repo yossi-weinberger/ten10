@@ -58,8 +58,8 @@ function Harness({
 
 afterEach(() => cleanup());
 
-describe("TransactionTypeSelector category sync", () => {
-  it("clears an expense category when switching to income", async () => {
+describe("TransactionTypeSelector (regular form — no category clear)", () => {
+  it("keeps an expense category when switching to income", async () => {
     const user = userEvent.setup();
     const formRef: {
       current: UseFormReturn<TransactionFormValues> | null;
@@ -74,7 +74,6 @@ describe("TransactionTypeSelector category sync", () => {
     );
 
     await waitFor(() => expect(formRef.current).not.toBeNull());
-    expect(formRef.current?.getValues("category")).toBe("food");
 
     await user.click(
       screen.getByRole("tab", {
@@ -82,10 +81,10 @@ describe("TransactionTypeSelector category sync", () => {
       }),
     );
 
-    expect(formRef.current?.getValues("category")).toBe("");
+    expect(formRef.current?.getValues("category")).toBe("food");
   });
 
-  it("keeps a custom category that remains valid for the new type", async () => {
+  it("keeps a custom category across type toggle and donation", async () => {
     const user = userEvent.setup();
     const formRef: {
       current: UseFormReturn<TransactionFormValues> | null;
@@ -106,7 +105,20 @@ describe("TransactionTypeSelector category sync", () => {
         name: /transactionForm\.transactionType\.income/,
       }),
     );
+    expect(formRef.current?.getValues("category")).toBe("Gym Membership");
 
+    await user.click(
+      screen.getByRole("tab", {
+        name: /transactionForm\.transactionType\.expense/,
+      }),
+    );
+    expect(formRef.current?.getValues("category")).toBe("Gym Membership");
+
+    await user.click(
+      screen.getByRole("tab", {
+        name: /transactionForm\.transactionType\.donation/,
+      }),
+    );
     expect(formRef.current?.getValues("category")).toBe("Gym Membership");
   });
 });

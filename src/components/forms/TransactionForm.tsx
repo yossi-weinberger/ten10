@@ -36,6 +36,7 @@ import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 import type { GregorianDateParseResult } from "@/components/ui/gregorian-date-input";
+import { useAlignCategoryOnTypeChange } from "@/lib/import/use-align-category-on-type-change";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -50,6 +51,12 @@ interface TransactionFormProps {
    * All existing callers that do NOT pass this prop are unaffected.
    */
   onOverrideSubmit?: (data: TransactionFormValues) => void | Promise<void>;
+  /**
+   * Import row-edit only. When true, clears a category that is invalid for the
+   * newly selected type so the visible field matches what save persists.
+   * Defaults off — regular add/edit forms keep main behavior.
+   */
+  alignCategoryWithType?: boolean;
 }
 
 const backgroundStyles: Record<TransactionType, string> = {
@@ -69,6 +76,7 @@ export function TransactionForm({
   onMutationSuccess,
   onCancel,
   onOverrideSubmit,
+  alignCategoryWithType = false,
 }: TransactionFormProps) {
   const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
@@ -256,6 +264,12 @@ export function TransactionForm({
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
   const isRecurringChecked = form.watch("is_recurring");
+
+  useAlignCategoryOnTypeChange(
+    form,
+    selectedType || "",
+    alignCategoryWithType,
+  );
 
   async function onSubmit(values: TransactionFormValues) {
     setIsSuccess(false);
