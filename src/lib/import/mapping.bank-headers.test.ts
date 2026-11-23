@@ -114,7 +114,7 @@ describe("suggestMappings Israeli bank/card header sets", () => {
       "currency",
     );
     expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
-      "amount",
+      "debit",
     );
     expect(validateMappings(mappings).valid).toBe(true);
   });
@@ -126,7 +126,7 @@ describe("suggestMappings Israeli bank/card header sets", () => {
     expect(validateMappings(mappings).valid).toBe(true);
   });
 
-  it("keeps a single amount when סכום עסקה and סכום חיוב both appear", () => {
+  it("keeps charge debit (not amount) when סכום עסקה and סכום חיוב both appear", () => {
     const mappings = suggestMappings([
       "תאריך עסקה",
       "שם בית עסק",
@@ -134,7 +134,7 @@ describe("suggestMappings Israeli bank/card header sets", () => {
       "סכום חיוב",
     ]);
     expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
-      "amount",
+      "debit",
     );
     expect(mappings.find((m) => m.sourceColumn === "סכום עסקה")?.targetField).toBeNull();
     expect(validateMappings(mappings).errors).not.toContain("duplicateTarget");
@@ -142,7 +142,7 @@ describe("suggestMappings Israeli bank/card header sets", () => {
     expect(validateMappings(mappings).valid).toBe(true);
   });
 
-  it("prefers מטבע לחיוב over מטבע מקור when amount is סכום חיוב", () => {
+  it("prefers מטבע לחיוב over מטבע מקור when debit is סכום חיוב", () => {
     const mappings = suggestMappings([
       "תאריך רכישה",
       "שם בית עסק",
@@ -152,7 +152,7 @@ describe("suggestMappings Israeli bank/card header sets", () => {
       "מטבע לחיוב",
     ]);
     expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
-      "amount",
+      "debit",
     );
     expect(mappings.find((m) => m.sourceColumn === "מטבע לחיוב")?.targetField).toBe(
       "currency",
