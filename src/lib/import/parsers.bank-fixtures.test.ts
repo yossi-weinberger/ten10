@@ -6,6 +6,8 @@ import {
 } from "./mapping";
 import { normalizeRow } from "./normalize";
 import { checkCardRefund } from "./card-refund-detector";
+import { rowBlocksApproval, getApprovedRows } from "./approval-gates";
+import { revalidateAfterEdit } from "./validation";
 import {
   decodeImportText,
   parseCSVText,
@@ -243,7 +245,75 @@ describe("bank fixture parsing", () => {
     expect(checkCardRefund(refundMapped)?.code).toBe("card_refund");
   });
 
-  it("builds preview rows that keep refunds as needs_review with card_refund", async () => {
+  it.each([
+    ["Cal", buildCalXlsx, "שם בית עסק", false],
+    ["Max", buildMaxXlsx, "שם בית העסק", true],
+    ["Isracard", buildIsracardXlsx, "שם בית עסק", false],
+  ] as const)(
+    "%s preview refunds have no tentative type and stay blocked until type is set",
+    async (_label, build, descCol, multiSheet) => {
+      const file = await build();
+      let result = await parseFile(file);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      if (multiSheet) {
+        expect(result.file.availableSheets?.length).toBeGreaterThan(1);
+        result = await parseFile(file, result.file.availableSheets![0]);
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+      }
+
+      const mappings = suggestMappings(result.file.headers);
+      const { rows } = await buildPreviewRows(result.file, mappings, "ILS", [], []);
+      const refund = rows.find((r) =>
+        String(r.raw[descCol] ?? r.normalized?.description ?? "").includes("החזר"),
+      );
+      expect(refund).toBeTruthy();
+      expect(refund?.status).toBe("needs_review");
+      expect(refund?.issues.map((i) => i.code)).toContain("card_refund");
+      expect(refund?.normalized?.type).toBeNull();
+      expect(refund?.normalized?.amount).toBe(50);
+      expect(refund?.approved).toBe(false);
+      expect(rowBlocksApproval(refund!)).toBe(true);
+      expect(getApprovedRows([{ ...refund!, approved: true }])).toEqual([]);
+
+      // Category-only edit keeps the block (RG-203).
+      const categoryOnly = {
+        ...refund!,
+        normalized: { ...refund!.normalized!, category: "מזון" },
+      };
+      const afterCategory = revalidateAfterEdit(categoryOnly, {
+        existingTransactions: [],
+        recurringTransactions: [],
+      });
+      expect(afterCategory.issues.map((i) => i.code)).toContain("card_refund");
+      expect(afterCategory.status).toBe("needs_review");
+      expect(
+        rowBlocksApproval({ ...categoryOnly, ...afterCategory }),
+      ).toBe(true);
+
+      // Explicit type unblocks.
+      const typed = {
+        ...refund!,
+        normalized: { ...refund!.normalized!, type: "income" as const },
+      };
+      const afterType = revalidateAfterEdit(typed, {
+        existingTransactions: [],
+        recurringTransactions: [],
+      });
+      expect(afterType.issues.map((i) => i.code)).not.toContain("card_refund");
+      expect(afterType.status).toBe("ready");
+      expect(
+        rowBlocksApproval({
+          ...typed,
+          issues: afterType.issues,
+          status: afterType.status,
+        }),
+      ).toBe(false);
+    },
+  );
+
+  it("keeps positive Cal purchases as ready expenses in preview", async () => {
     const result = await parseFile(await buildCalXlsx());
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -251,14 +321,9 @@ describe("bank fixture parsing", () => {
     const mappings = suggestMappings(result.file.headers);
     const { rows } = await buildPreviewRows(result.file, mappings, "ILS", [], []);
     const purchase = rows.find((r) => r.normalized?.description?.includes("שופרסל"));
-    const refund = rows.find((r) => r.normalized?.description?.includes("החזר"));
     expect(purchase?.status).toBe("ready");
     expect(purchase?.normalized?.type).toBe("expense");
     expect(purchase?.approved).toBe(true);
-    expect(refund?.status).toBe("needs_review");
-    expect(refund?.issues.map((i) => i.code)).toContain("card_refund");
-    expect(refund?.normalized?.type).toBe("income");
-    expect(refund?.normalized?.amount).toBe(50);
-    expect(refund?.approved).toBe(false);
+    expect(rowBlocksApproval(purchase!)).toBe(false);
   });
 });

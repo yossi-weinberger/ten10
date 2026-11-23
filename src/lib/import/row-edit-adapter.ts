@@ -1,15 +1,18 @@
 import type { TransactionFormValues } from "@/lib/schemas";
 import type { Currency, Transaction, TransactionType } from "@/types/transaction";
 import type { ValidationProfile } from "../../../supabase/functions/_shared/transaction-domain/transaction-types.ts";
-import type { NormalizedTransactionRow } from "./import-session.types";
+import type {
+  ImportNormalizedRow,
+  NormalizedTransactionRow,
+} from "./import-session.types";
 
 interface EditablePreviewRow {
   id: string;
-  normalized: NormalizedTransactionRow;
+  normalized: ImportNormalizedRow | NormalizedTransactionRow;
 }
 
 function conversionFieldsForOpen(
-  row: NormalizedTransactionRow,
+  row: ImportNormalizedRow | NormalizedTransactionRow,
   profile: ValidationProfile,
 ): Pick<
   Transaction,
@@ -114,7 +117,8 @@ export function previewRowToTransaction(
     updated_at: new Date().toISOString(),
     date: n.date,
     description: n.description,
-    type: n.type,
+    // Empty string → no type tab selected when the import row has no type yet.
+    type: (n.type ?? "") as TransactionType,
     category: n.category,
     is_chomesh: n.is_chomesh,
     recipient: n.recipient,
@@ -131,10 +135,10 @@ export function previewRowToTransaction(
 export function formValuesToNormalized(
   values: TransactionFormValues,
   defaultCurrency: Currency,
-  existing: NormalizedTransactionRow,
+  existing: ImportNormalizedRow | NormalizedTransactionRow,
   profile: ValidationProfile,
   finalType: TransactionType,
-): NormalizedTransactionRow {
+): ImportNormalizedRow | NormalizedTransactionRow {
   const isDonation =
     finalType === "donation" || finalType === "non_tithe_donation";
 

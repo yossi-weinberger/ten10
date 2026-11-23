@@ -12,7 +12,7 @@ import {
   TransactionFormValues,
   createTransactionFormSchema,
 } from "@/lib/schemas";
-import { TransactionType } from "@/types/transaction";
+import { Transaction, TransactionType, transactionTypes } from "@/types/transaction";
 import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { TransactionTypeSelector } from "./transaction-form-parts/TransactionTypeSelector";
@@ -22,7 +22,6 @@ import { TransactionCheckboxes } from "./transaction-form-parts/TransactionCheck
 import { RecurringFields } from "./transaction-form-parts/RecurringFields";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 import { CURRENCIES } from "@/lib/currencies";
-import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -213,12 +212,17 @@ export function TransactionForm({
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
     if (isEditMode && initialData) {
-      // Normalize the type to base type for the form (TypeSelector only shows base types)
-      const baseType = normalizeToBaseType(initialData.type);
+      // Normalize the type to base type for the form (TypeSelector only shows base types).
+      // Empty/missing type (card_refund import rows) leaves no tab preselected.
+      const rawType = initialData.type;
+      const baseType =
+        rawType && transactionTypes.includes(rawType as (typeof transactionTypes)[number])
+          ? normalizeToBaseType(rawType)
+          : ("" as unknown as TransactionType);
 
       const defaultVals: Partial<TransactionFormValues> = {
         ...initialData,
-        type: baseType, // Use normalized base type instead of derived type
+        type: baseType,
         date: initialData.date || "",
         // Handle converted transactions: show original values in form
         amount: initialData.original_amount ?? initialData.amount,
@@ -231,9 +235,9 @@ export function TransactionForm({
         payment_method: initialData.payment_method ?? "",
 
         // Map backend fields to form fields if necessary
-        isExempt: initialData.type === "exempt-income",
-        isRecognized: initialData.type === "recognized-expense",
-        isFromPersonalFunds: initialData.type === "non_tithe_donation",
+        isExempt: rawType === "exempt-income",
+        isRecognized: rawType === "recognized-expense",
+        isFromPersonalFunds: rawType === "non_tithe_donation",
         // When editing, always false - we edit the single transaction instance, not the recurring definition.
         // Transactions with source_recurring_id can have their recurring instruction edited via "Edit Recurring" in the row menu.
         is_recurring: false,
