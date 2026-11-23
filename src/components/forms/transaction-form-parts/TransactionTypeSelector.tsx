@@ -6,6 +6,7 @@ import { FormLabel } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { TransactionType } from "@/types/transaction";
 import type { TransactionFormValues } from "@/lib/schemas";
+import { categoryForTypeOrNull } from "@/lib/category-registry";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 import { BASE_TYPE_ICON, BASE_TYPE_TINT } from "./transaction-type-visuals";
 
@@ -153,6 +154,14 @@ export function TransactionTypeSelector({
           // we must proactively reset incompatible fields BEFORE triggering validation,
           // otherwise Zod will block the form with errors like "Chomesh is only for income".
           form.setValue("type", nextBase, { shouldValidate: false });
+
+          // Keep the visible category field aligned with what save will persist.
+          const currentCategory = form.getValues("category") || null;
+          const nextCategory =
+            categoryForTypeOrNull(nextBase, currentCategory) ?? "";
+          if ((currentCategory ?? "") !== nextCategory) {
+            form.setValue("category", nextCategory, { shouldValidate: false });
+          }
 
           // Reset all flags that are NOT relevant to the next type
           const relevantFlags = new Set(FLAGS_BY_TYPE[nextBase]);
