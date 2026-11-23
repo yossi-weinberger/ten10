@@ -49,11 +49,31 @@ vi.mock("./ImportRowEditModal", () => ({
 
 import { ImportReviewTable } from "./ImportReviewTable";
 
-function row(
-  overrides: Partial<ImportPreviewRow> & {
-    normalized?: Partial<NonNullable<ImportPreviewRow["normalized"]>>;
-  } = {},
-): ImportPreviewRow {
+function baseNormalized(
+  overrides: Partial<NonNullable<ImportPreviewRow["normalized"]>> = {},
+): NonNullable<ImportPreviewRow["normalized"]> {
+  return {
+    date: "2026-01-15",
+    amount: 100,
+    currency: "ILS",
+    type: "expense",
+    description: "Desk",
+    category: "food",
+    recipient: null,
+    payment_method: null,
+    is_chomesh: false,
+    original_amount: null,
+    original_currency: null,
+    conversion_rate: null,
+    conversion_date: null,
+    rate_source: null,
+    source_recurring_id: null,
+    occurrence_number: null,
+    ...overrides,
+  };
+}
+
+function row(overrides: Partial<ImportPreviewRow> = {}): ImportPreviewRow {
   const { normalized, ...rest } = overrides;
   return {
     id: "r1",
@@ -64,25 +84,7 @@ function row(
     issues: [],
     approved: true,
     ...rest,
-    normalized: {
-      date: "2026-01-15",
-      amount: 100,
-      currency: "ILS",
-      type: "expense",
-      description: "Desk",
-      category: "food",
-      recipient: null,
-      payment_method: null,
-      is_chomesh: false,
-      original_amount: null,
-      original_currency: null,
-      conversion_rate: null,
-      conversion_date: null,
-      rate_source: null,
-      source_recurring_id: null,
-      occurrence_number: null,
-      ...normalized,
-    },
+    normalized: normalized ?? baseNormalized(),
   };
 }
 
@@ -108,7 +110,11 @@ describe("ImportReviewTable category labels", () => {
   it("shows a custom category name as-is", () => {
     render(
       <ImportReviewTable
-        rows={[row({ normalized: { category: "Gym Membership" } })]}
+        rows={[
+          row({
+            normalized: baseNormalized({ category: "Gym Membership" }),
+          }),
+        ]}
         onToggleApproval={vi.fn()}
         onBulkToggle={vi.fn()}
         onUpdateRow={vi.fn()}
