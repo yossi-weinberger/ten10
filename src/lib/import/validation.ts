@@ -48,6 +48,7 @@ function isWarningIssue(issue: ImportRowIssue): boolean {
     "ambiguous_debit_credit",
     "possible_duplicate",
     "possible_recurring",
+    "card_refund",
     "formula_cell",
     "invalid_type",
     "income_keyword_match",
@@ -87,6 +88,9 @@ export function defaultApprovalForStatus(status: ImportRowStatus): boolean {
  * If `context` is provided, duplicate and recurring checks are re-run against
  * the live data. If omitted, stale possible_duplicate / possible_recurring
  * warnings are cleared rather than blindly preserved.
+ *
+ * `card_refund` is never re-emitted here: editing (including confirming type)
+ * is the resolution path for that one-shot import warning.
  */
 export function revalidateAfterEdit(
   row: ImportPreviewRow,
@@ -113,6 +117,7 @@ export function revalidateAfterEdit(
   }
   // When context is absent, possible_duplicate and possible_recurring are
   // intentionally dropped — stale warnings must not persist after an edit.
+  // card_refund is also dropped: the edit is the confirmation step.
 
   const status = computeRowStatus({ normalized: row.normalized, issues });
 
