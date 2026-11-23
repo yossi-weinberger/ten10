@@ -186,14 +186,18 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
               {Object.values(formatDisplayDate(n.date)).join(" · ")}
             </span>
           )}
-          {n?.type && (
+          {n?.type ? (
             <Badge
               variant="outline"
               className={cn("border text-xs px-1.5 py-0 h-4 font-normal", typeBadgeColors[n.type as TransactionType])}
             >
               {typeLabel(n.type)}
             </Badge>
-          )}
+          ) : row.issues.some((i) => i.code === "card_refund") ? (
+            <span className="text-xs text-muted-foreground">
+              {t("review.typeUnset")}
+            </span>
+          ) : null}
           {row.issues.map((issue, i) => (
             <span key={i} className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-3 w-3 shrink-0" />
