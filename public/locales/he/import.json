@@ -251,7 +251,8 @@
       "becameInvalid_two": "שתיים מהן צריכות תיקון. אפשר לסנן \"לא תקין\".",
       "becameInvalid_many": "{{count}} מהן צריכות תיקון. אפשר לסנן \"לא תקין\".",
       "becameInvalid_other": "{{count}} מהן צריכות תיקון. אפשר לסנן \"לא תקין\"."
-    }
+    },
+    "typeUnset": "בחרו סוג"
   },
   "confirm": {
     "title_one": "לשמור תנועה אחת?",

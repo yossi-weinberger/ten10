@@ -50,7 +50,8 @@ function toBaseType(type: TransactionType): BaseType | null {
 
 interface TransactionTypeSelectorProps {
   form: UseFormReturn<TransactionFormValues>;
-  selectedType: TransactionType;
+  /** Empty string when no type is selected yet (e.g. card_refund import rows). */
+  selectedType: TransactionType | "";
   defaultIncomeChomesh?: boolean;
 }
 
@@ -97,11 +98,11 @@ export function TransactionTypeSelector({
   const displayTypes = userFacingTransactionTypes
     .slice()
     .reverse() as ButtonStyleType[];
-  const index = Math.max(
-    0,
-    displayTypes.indexOf(selectedType as ButtonStyleType)
-  );
-  const sliderColor = BASE_TYPE_TINT[selectedType as ButtonStyleType];
+  const index = displayTypes.indexOf(selectedType as ButtonStyleType);
+  const hasSelection = index >= 0;
+  const sliderColor = hasSelection
+    ? BASE_TYPE_TINT[selectedType as ButtonStyleType]
+    : undefined;
 
   useEffect(() => {
     const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
@@ -190,22 +191,24 @@ export function TransactionTypeSelector({
             "bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden"
           )}
         >
-          {/* The single slider that provides the highlight */}
-          <div
-            className={cn(
-              "pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm",
-              "transition-[transform,background-color] duration-500 ease-in-out",
-              "will-change-transform",
-              sliderColor
-            )}
-            style={{
-              // Width is one third of the inner width after padding (p-1 = 0.25rem each side)
-              width: "calc((100% - 0.5rem) / 3)",
-              // Move by its own width; won't overflow on the right edge
-              transform: `translateX(calc(${index} * 100%))`,
-            }}
-            aria-hidden
-          />
+          {/* The single slider that provides the highlight (hidden until a type is chosen). */}
+          {hasSelection && sliderColor ? (
+            <div
+              className={cn(
+                "pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm",
+                "transition-[transform,background-color] duration-500 ease-in-out",
+                "will-change-transform",
+                sliderColor
+              )}
+              style={{
+                // Width is one third of the inner width after padding (p-1 = 0.25rem each side)
+                width: "calc((100% - 0.5rem) / 3)",
+                // Move by its own width; won't overflow on the right edge
+                transform: `translateX(calc(${index} * 100%))`,
+              }}
+              aria-hidden
+            />
+          ) : null}
 
           {displayTypes.map((type) => (
             <TabsTrigger

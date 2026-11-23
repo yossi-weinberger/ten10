@@ -231,7 +231,8 @@
       "applied_other": "Updated {{count}} transactions",
       "becameInvalid_one": "1 of them needs fixing. Filter by \"Invalid\".",
       "becameInvalid_other": "{{count}} of them need fixing. Filter by \"Invalid\"."
-    }
+    },
+    "typeUnset": "Choose type"
   },
   "confirm": {
     "title_one": "Save 1 transaction?",

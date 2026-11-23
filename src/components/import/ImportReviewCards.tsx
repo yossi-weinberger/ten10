@@ -177,8 +177,17 @@ function RowCard({
   const isInvalid = row.status === "invalid";
   const approvalBlocked = rowBlocksApproval(row);
   const n = row.normalized;
-  const txType = (n?.type as TransactionType | undefined) ?? "expense";
+  const txType = n?.type ?? null;
   const description = n?.description ?? "";
+  const amountInner = (
+    <span
+      className={PH_SENSITIVE_PROPS.className}
+      data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
+      dir="ltr"
+    >
+      {n ? fmtAmount(n.amount, n.currency) : "—"}
+    </span>
+  );
 
   const handleCardActivate = () => {
     if (selectMode) {
@@ -239,7 +248,14 @@ function RowCard({
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
         >
-          <TypeIconChip type={txType} />
+          {txType ? (
+            <TypeIconChip type={txType} />
+          ) : (
+            <div
+              className="size-6 shrink-0 rounded-full bg-muted/50"
+              aria-hidden
+            />
+          )}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold leading-tight">
               {description || <span className="text-muted-foreground">—</span>}
@@ -250,17 +266,21 @@ function RowCard({
                   {Object.values(formatDisplayDate(n.date)).join(" · ")}
                 </span>
               )}
-              {n?.type && (
+              {txType ? (
                 <Badge
                   variant="outline"
                   className={cn(
                     "h-6 border px-2 text-[13px] font-semibold",
-                    typeBadgeColors[n.type as TransactionType],
+                    typeBadgeColors[txType],
                   )}
                 >
-                  {typeLabel(n.type)}
+                  {typeLabel(txType)}
                 </Badge>
-              )}
+              ) : row.issues.some((i) => i.code === "card_refund") ? (
+                <span className="text-[13px] text-muted-foreground">
+                  {t("review.typeUnset")}
+                </span>
+              ) : null}
               {row.status === "needs_review" && (
                 <span className="inline-flex h-6 items-center rounded-md border border-amber-300 bg-amber-50 px-2 text-[13px] font-semibold text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
                   {t("status.needs_review")}
@@ -281,15 +301,13 @@ function RowCard({
           </div>
         </div>
 
-        <AmountPanel type={txType}>
-          <span
-            className={PH_SENSITIVE_PROPS.className}
-            data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
-            dir="ltr"
-          >
-            {n ? fmtAmount(n.amount, n.currency) : "—"}
-          </span>
-        </AmountPanel>
+        {txType ? (
+          <AmountPanel type={txType}>{amountInner}</AmountPanel>
+        ) : (
+          <div className="relative isolate -my-1 -me-1 grid w-auto min-w-[88px] max-[359px]:min-w-[72px] shrink-0 place-items-center self-stretch rounded-s-[8px] bg-muted/40 px-1.5 text-center text-[13px] font-bold leading-none tabular-nums max-[359px]:px-1 max-[359px]:text-[11px]">
+            {amountInner}
+          </div>
+        )}
       </button>
     </div>
   );

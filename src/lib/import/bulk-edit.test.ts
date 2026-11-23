@@ -152,4 +152,42 @@ describe("applyBulkEdit", () => {
     expect(next[1]).toEqual(rows[1]);
     expect(next[0]?.normalized?.type).toBe("income");
   });
+
+  it("keeps card_refund blocked on category-only bulk edit; type patch clears it", async () => {
+    const validation = await vi.importActual<typeof import("./validation")>(
+      "./validation",
+    );
+    vi.mocked(revalidateAfterEdit).mockImplementation(
+      validation.revalidateAfterEdit,
+    );
+
+    const refundRow = row({
+      id: "a",
+      rowNumber: 1,
+      approved: false,
+      status: "needs_review",
+      issues: [{ code: "card_refund" }],
+      normalized: baseNormalized({ type: null, category: null, amount: 50 }),
+    });
+
+    const afterCategory = applyBulkEdit(
+      [refundRow],
+      ["a"],
+      { category: "מזון" },
+      context,
+    );
+    expect(afterCategory[0]?.normalized?.type).toBeNull();
+    expect(afterCategory[0]?.issues.map((i) => i.code)).toContain("card_refund");
+    expect(afterCategory[0]?.status).toBe("needs_review");
+
+    const afterType = applyBulkEdit(
+      [refundRow],
+      ["a"],
+      { type: "income" },
+      context,
+    );
+    expect(afterType[0]?.normalized?.type).toBe("income");
+    expect(afterType[0]?.issues.map((i) => i.code)).not.toContain("card_refund");
+    expect(afterType[0]?.status).toBe("ready");
+  });
 });

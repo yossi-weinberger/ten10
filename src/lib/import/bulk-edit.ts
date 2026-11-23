@@ -39,7 +39,10 @@ export function applyBulkEdit(
     let nextCategory = row.normalized.category;
 
     if (patch.type !== undefined) {
-      const previousFamily = getBulkCategoryFamily([{ type: previousType }]);
+      const previousFamily =
+        previousType == null
+          ? null
+          : getBulkCategoryFamily([{ type: previousType }]);
       const nextFamily = getBulkCategoryFamily([{ type: patch.type }]);
       if (previousFamily !== nextFamily && patch.category === undefined) {
         nextCategory = null;

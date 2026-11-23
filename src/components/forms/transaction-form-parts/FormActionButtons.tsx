@@ -15,7 +15,7 @@ interface FormActionButtonsProps {
   isSuccess: boolean;
   onCancel?: () => void;
   isEditMode?: boolean;
-  selectedType?: TransactionType;
+  selectedType?: TransactionType | "";
 }
 
 /** The submit button's text for each save state, when adding and when editing. */
