@@ -115,12 +115,13 @@ export function ImportReviewStep({
 
   return (
     <div className="space-y-4 md:space-y-6" data-onboarding="import-review">
-      <div className="space-y-1.5">
+      <div className="max-md:hidden space-y-1.5">
         <h2 className="text-lg font-semibold leading-snug">{t("review.title2")}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">{t("review.lead")}</p>
       </div>
 
-      <div className="md:hidden rounded-[10px] border bg-white dark:bg-card text-foreground px-3 py-2.5 space-y-1">
+      {/* Mobile: plain two-line summary only — no inner card frame. */}
+      <div className="md:hidden space-y-1" data-testid="mobile-compact-summary">
         <p className="text-[15px] font-bold leading-snug">
           {compactCountParts.join(" · ")}
         </p>

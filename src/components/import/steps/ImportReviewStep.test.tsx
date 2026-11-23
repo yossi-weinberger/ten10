@@ -74,7 +74,7 @@ afterEach(() => cleanup());
 
 describe("ImportReviewStep B4a", () => {
   it("omits zero review/invalid parts from the compact summary", () => {
-    const { container } = render(
+    render(
       <ImportReviewStep
         rows={rows}
         summary={summary({ needsReview: 0, invalid: 0, approvedDonations: 0 })}
@@ -88,20 +88,21 @@ describe("ImportReviewStep B4a", () => {
       />,
     );
 
-    const compact = container.querySelector(".md\\:hidden.rounded-\\[10px\\]");
-    expect(compact).toBeTruthy();
-    expect(compact?.textContent).toContain("review.summary.compactCountsTotal");
-    expect(compact?.textContent).toContain("review.summary.compactCountsReady");
-    expect(compact?.textContent).not.toContain("compactCountsReview");
-    expect(compact?.textContent).not.toContain("compactCountsInvalid");
-    expect(compact?.textContent).not.toContain("לבדיקה");
-    expect(compact?.textContent).toContain("compactMoney.income");
-    expect(compact?.textContent).toContain("compactMoney.expenses");
-    expect(compact?.textContent).not.toContain("compactMoney.donations");
+    const compact = screen.getByTestId("mobile-compact-summary");
+    expect(compact.className).toContain("md:hidden");
+    expect(compact.className).not.toMatch(/rounded|border|bg-white|px-|py-/);
+    expect(compact.textContent).toContain("review.summary.compactCountsTotal");
+    expect(compact.textContent).toContain("review.summary.compactCountsReady");
+    expect(compact.textContent).not.toContain("compactCountsReview");
+    expect(compact.textContent).not.toContain("compactCountsInvalid");
+    expect(compact.textContent).not.toContain("לבדיקה");
+    expect(compact.textContent).toContain("compactMoney.income");
+    expect(compact.textContent).toContain("compactMoney.expenses");
+    expect(compact.textContent).not.toContain("compactMoney.donations");
   });
 
   it("includes review and invalid parts when non-zero", () => {
-    const { container } = render(
+    render(
       <ImportReviewStep
         rows={rows}
         summary={summary({ needsReview: 2, invalid: 1, approvedDonations: 20 })}
@@ -115,14 +116,14 @@ describe("ImportReviewStep B4a", () => {
       />,
     );
 
-    const compact = container.querySelector(".md\\:hidden.rounded-\\[10px\\]");
-    expect(compact?.textContent).toContain("compactCountsReview");
-    expect(compact?.textContent).toContain("compactCountsInvalid");
-    expect(compact?.textContent).toContain("compactMoney.donations");
+    const compact = screen.getByTestId("mobile-compact-summary");
+    expect(compact.textContent).toContain("compactCountsReview");
+    expect(compact.textContent).toContain("compactCountsInvalid");
+    expect(compact.textContent).toContain("compactMoney.donations");
   });
 
   it("masks compact money totals for PostHog replay", () => {
-    const { container } = render(
+    render(
       <ImportReviewStep
         rows={rows}
         summary={summary({ approvedIncome: 100, approvedExpenses: 50 })}
@@ -136,14 +137,14 @@ describe("ImportReviewStep B4a", () => {
       />,
     );
 
-    const compact = container.querySelector(".md\\:hidden.rounded-\\[10px\\]");
-    const maskedMoney = compact?.querySelector(".ph-mask[data-ph-mask]");
+    const compact = screen.getByTestId("mobile-compact-summary");
+    const maskedMoney = compact.querySelector(".ph-mask[data-ph-mask]");
     expect(maskedMoney).toBeTruthy();
     expect(maskedMoney?.textContent).toContain("compactMoney.income");
   });
 
-  it("keeps the desktop summary cards and table wrappers", () => {
-    render(
+  it("hides title and lead below md and keeps desktop intro identical at md+", () => {
+    const { container } = render(
       <ImportReviewStep
         rows={rows}
         summary={summary()}
@@ -157,11 +158,19 @@ describe("ImportReviewStep B4a", () => {
       />,
     );
 
+    const title = screen.getByText("review.title2");
+    const lead = screen.getByText("review.lead");
+    const intro = title.closest("div");
+    expect(intro?.className).toContain("max-md:hidden");
+    expect(lead.closest("div")).toBe(intro);
+
+    const compact = screen.getByTestId("mobile-compact-summary");
+    expect(compact.className).toContain("md:hidden");
+    expect(container.querySelector(".md\\:hidden.rounded-\\[10px\\]")).toBeNull();
+
     expect(screen.getByTestId("desktop-summary")).toBeInTheDocument();
     expect(screen.getByTestId("desktop-table")).toBeInTheDocument();
     expect(screen.getByTestId("mobile-cards")).toBeInTheDocument();
-    expect(screen.getByText("review.title2")).toBeInTheDocument();
-    expect(screen.getByText("review.lead")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "review.actions.selectAllReady" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "review.actions.clearSelection" })).toBeInTheDocument();
   });
