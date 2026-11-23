@@ -136,7 +136,7 @@ describe("bank fixture parsing", () => {
       "currency",
     );
     expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
-      "amount",
+      "debit",
     );
     expect(mappings.find((m) => m.sourceColumn === "תאריך חיוב")?.targetField).toBeNull();
     expect(
@@ -146,19 +146,27 @@ describe("bank fixture parsing", () => {
 
     const first = normalizeRow(applyMappings(result.file.rows[0], mappings), "ILS");
     expect(first.normalized?.date).toBe("2026-11-03");
+    // Charge-only Max sheet: positive סכום חיוב is an expense (debit convention).
+    expect(first.normalized?.type).toBe("expense");
+    expect(first.normalized?.amount).toBe(412.3);
   });
 
-  it("parses Cal dd/mm/yy dates after resolving amount columns", async () => {
+  it("parses Cal purchases as expenses (dual-column charge stays debit)", async () => {
     const result = await parseFile(await buildCalXlsx());
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const mappings = suggestMappings(result.file.headers);
+    expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
+      "debit",
+    );
+    expect(mappings.find((m) => m.sourceColumn === "סכום עסקה")?.targetField).toBeNull();
     expect(validateMappings(mappings).valid).toBe(true);
 
     const first = normalizeRow(applyMappings(result.file.rows[0], mappings), "ILS");
     expect(first.normalized?.date).toBe("2026-11-03");
     expect(first.normalized?.amount).toBe(412.3);
+    expect(first.normalized?.type).toBe("expense");
   });
 
   it("maps Isracard charge currency so foreign merchants charged in ILS are not blocked", async () => {
@@ -168,7 +176,7 @@ describe("bank fixture parsing", () => {
 
     const mappings = suggestMappings(result.file.headers);
     expect(mappings.find((m) => m.sourceColumn === "סכום חיוב")?.targetField).toBe(
-      "amount",
+      "debit",
     );
     expect(mappings.find((m) => m.sourceColumn === "מטבע לחיוב")?.targetField).toBe(
       "currency",
@@ -187,5 +195,22 @@ describe("bank fixture parsing", () => {
     expect(normalized.normalized?.currency).toBe("ILS");
     expect(normalized.normalized?.amount).toBe(171.2);
     expect(normalized.normalized?.date).toBe("2026-11-10");
+    expect(normalized.normalized?.type).toBe("expense");
+
+    const purchase = result.file.rows.find(
+      (row) => String(row["שם בית עסק"] ?? "").includes("שופרסל"),
+    );
+    expect(purchase).toBeTruthy();
+    const purchaseNorm = normalizeRow(applyMappings(purchase!, mappings), "ILS");
+    expect(purchaseNorm.normalized?.type).toBe("expense");
+    expect(purchaseNorm.normalized?.amount).toBe(412.3);
   });
+
+  // Refund representation: TEN10 stores abs(amount) + type. Debit→expense and
+  // credit→income are the only existing conventions; there is no negative-expense
+  // path without changing normalize-core / form positive-amount rules. Product
+  // must choose before we assert refund type/sign here (see RG-201 report).
+  it.todo(
+    "card refund (negative סכום חיוב) offsets expense without using income — awaiting product choice",
+  );
 });
