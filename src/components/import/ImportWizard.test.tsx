@@ -306,6 +306,31 @@ describe("ImportWizard without props", () => {
     expect(focus).toHaveBeenCalled();
     flagged.remove();
   });
+
+  it("scrolls Show to the missing-required summary on mobile (RG-304)", async () => {
+    // No date/amount mapping → dateMissing+amountMissing; sticky Show targets the summary.
+    io.suggestMappings.mockReturnValue([
+      { sourceColumn: "תיאור", targetField: "description" },
+      { sourceColumn: "יתרה", targetField: null },
+    ]);
+    io.mediaQueryMatches = true;
+    const scrollIntoView = vi.fn();
+    const summary = document.createElement("div");
+    summary.id = "mapping-issues-summary";
+    summary.scrollIntoView = scrollIntoView;
+    document.body.appendChild(summary);
+
+    const user = userEvent.setup();
+    render(<ImportWizard />);
+    await user.click(screen.getByRole("button", { name: "upload-file" }));
+    await user.click(screen.getByRole("button", { name: "mapping.summary.show" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: "center",
+      behavior: "smooth",
+    });
+    summary.remove();
+  });
 });
 
 const DRAFTS: TransactionDraftV1[] = [
