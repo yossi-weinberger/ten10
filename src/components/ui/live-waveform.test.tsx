@@ -1,12 +1,47 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveWaveform } from "./live-waveform";
 
 // Mock AudioContext and related APIs
 let mockAudioContextInstances = 0;
 let mockAnalyserData: Uint8Array | null = null;
+
+// Track setTimeout-backed rAF handles so cancelAnimationFrame actually stops them.
+// Without this, pending frames fire after jsdom teardown (requestAnimationFrame /
+// getComputedStyle ReferenceErrors).
+let nextRafId = 1;
+const pendingRafTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+function clearPendingRafTimers() {
+  for (const timer of pendingRafTimers.values()) {
+    clearTimeout(timer);
+  }
+  pendingRafTimers.clear();
+}
+
+function installCancelableRaf(options?: { delayMs?: number; onSchedule?: () => void }) {
+  const delayMs = options?.delayMs ?? 16;
+  globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+    options?.onSchedule?.();
+    const id = nextRafId++;
+    const timer = setTimeout(() => {
+      pendingRafTimers.delete(id);
+      callback(performance.now());
+    }, delayMs);
+    pendingRafTimers.set(id, timer);
+    return id;
+  }) as typeof requestAnimationFrame;
+
+  globalThis.cancelAnimationFrame = ((id: number) => {
+    const timer = pendingRafTimers.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      pendingRafTimers.delete(id);
+    }
+  }) as typeof cancelAnimationFrame;
+}
 
 class MockAnalyserNode {
   fftSize = 256;
@@ -67,14 +102,12 @@ describe("LiveWaveform", () => {
   beforeEach(() => {
     mockAudioContextInstances = 0;
     mockAnalyserData = null;
+    clearPendingRafTimers();
+    nextRafId = 1;
 
     // Install mocks
     globalThis.AudioContext = MockAudioContext as unknown as typeof AudioContext;
-    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
-      setTimeout(() => cb(performance.now()), 16);
-      return 1;
-    }) as typeof requestAnimationFrame;
-    globalThis.cancelAnimationFrame = vi.fn();
+    installCancelableRaf();
 
     // Mock ResizeObserver
     globalThis.ResizeObserver = class ResizeObserver {
@@ -82,6 +115,13 @@ describe("LiveWaveform", () => {
       unobserve() {}
       disconnect() {}
     } as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    // Unmount React trees so component effect cleanups run (cancelAnimationFrame).
+    cleanup();
+    // Drop any timers that cancelAnimationFrame did not own (e.g. mid-test overrides).
+    clearPendingRafTimers();
   });
 
   it("renders canvas with varying output when frequency data is non-silent", async () => {
@@ -492,16 +532,15 @@ describe("LiveWaveform", () => {
   it("processing animation runs without errors and schedules animation frames", async () => {
     // Track requestAnimationFrame calls to verify animation loop runs
     let rafCallCount = 0;
-    const originalRAF = globalThis.requestAnimationFrame;
-    globalThis.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-      rafCallCount++;
-      // Call the callback asynchronously to simulate real behavior
-      setTimeout(() => callback(performance.now()), 0);
-      return rafCallCount;
-    }) as typeof requestAnimationFrame;
+    installCancelableRaf({
+      delayMs: 0,
+      onSchedule: () => {
+        rafCallCount++;
+      },
+    });
 
     // Render with processing=true, active=false, no mediaStream
-    const { container, unmount } = render(
+    const { container } = render(
       <LiveWaveform active={false} processing={true} mode="scrolling" height={40} barWidth={3} barGap={1} />
     );
 
@@ -516,10 +555,6 @@ describe("LiveWaveform", () => {
       },
       { timeout: 1000 }
     );
-
-    // Cleanup
-    unmount();
-    globalThis.requestAnimationFrame = originalRAF;
   });
 
   it("processing animation survives transition from active recording to processing transcription", async () => {
@@ -539,13 +574,12 @@ describe("LiveWaveform", () => {
     const roundRectCalls: Array<{ time: number; heights: number[] }> = [];
     let frameCount = 0;
 
-    // Override requestAnimationFrame to track frames
-    const originalRAF = globalThis.requestAnimationFrame;
-    globalThis.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-      frameCount++;
-      setTimeout(() => callback(performance.now()), 16);
-      return frameCount;
-    }) as typeof requestAnimationFrame;
+    installCancelableRaf({
+      delayMs: 16,
+      onSchedule: () => {
+        frameCount++;
+      },
+    });
 
     // Mock canvas context to capture bar heights
     const originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -577,56 +611,56 @@ describe("LiveWaveform", () => {
       return null;
     }) as typeof HTMLCanvasElement.prototype.getContext;
 
-    // Step 1: Render with active=true and mediaStream (recording)
-    const { rerender, container } = render(
-      <LiveWaveform active={true} mediaStream={stream} mode="scrolling" height={40} barWidth={3} barGap={1} />
-    );
+    try {
+      // Step 1: Render with active=true and mediaStream (recording)
+      const { rerender, container } = render(
+        <LiveWaveform active={true} mediaStream={stream} mode="scrolling" height={40} barWidth={3} barGap={1} />
+      );
 
-    const canvas = container.querySelector("canvas");
-    expect(canvas).toBeInTheDocument();
+      const canvas = container.querySelector("canvas");
+      expect(canvas).toBeInTheDocument();
 
-    // Wait for recording animation to start
-    await waitFor(() => {
-      expect(frameCount).toBeGreaterThan(2);
-    });
+      // Wait for recording animation to start
+      await waitFor(() => {
+        expect(frameCount).toBeGreaterThan(2);
+      });
 
-    const recordingFrameCount = frameCount;
+      const recordingFrameCount = frameCount;
 
-    // Step 2: Transition to processing=true, active=false, no mediaStream (transcribing)
-    // This is the exact transition that happens in the real app when recording stops
-    rerender(
-      <LiveWaveform active={false} processing={true} mode="scrolling" height={40} barWidth={3} barGap={1} />
-    );
+      // Step 2: Transition to processing=true, active=false, no mediaStream (transcribing)
+      // This is the exact transition that happens in the real app when recording stops
+      rerender(
+        <LiveWaveform active={false} processing={true} mode="scrolling" height={40} barWidth={3} barGap={1} />
+      );
 
-    // Wait for processing animation to continue scheduling frames
-    // Before the fix, this would timeout because the processing loop dies immediately
-    await waitFor(
-      () => {
-        expect(frameCount).toBeGreaterThan(recordingFrameCount + 5);
-      },
-      { timeout: 1000 }
-    );
+      // Wait for processing animation to continue scheduling frames
+      // Before the fix, this would timeout because the processing loop dies immediately
+      await waitFor(
+        () => {
+          expect(frameCount).toBeGreaterThan(recordingFrameCount + 5);
+        },
+        { timeout: 1000 }
+      );
 
-    // Verify that bar heights are actually changing (animation is running, not frozen)
-    if (roundRectCalls.length >= 2) {
-      const firstFrame = roundRectCalls[0]!;
-      const lastFrame = roundRectCalls[roundRectCalls.length - 1]!;
+      // Verify that bar heights are actually changing (animation is running, not frozen)
+      if (roundRectCalls.length >= 2) {
+        const firstFrame = roundRectCalls[0]!;
+        const lastFrame = roundRectCalls[roundRectCalls.length - 1]!;
 
-      if (firstFrame.heights.length > 0 && lastFrame.heights.length > 0) {
-        // At least one bar height should be different between first and last frame
-        let foundDifference = false;
-        for (let i = 0; i < Math.min(firstFrame.heights.length, lastFrame.heights.length); i++) {
-          if (Math.abs(firstFrame.heights[i]! - lastFrame.heights[i]!) > 0.1) {
-            foundDifference = true;
-            break;
+        if (firstFrame.heights.length > 0 && lastFrame.heights.length > 0) {
+          // At least one bar height should be different between first and last frame
+          let foundDifference = false;
+          for (let i = 0; i < Math.min(firstFrame.heights.length, lastFrame.heights.length); i++) {
+            if (Math.abs(firstFrame.heights[i]! - lastFrame.heights[i]!) > 0.1) {
+              foundDifference = true;
+              break;
+            }
           }
+          expect(foundDifference).toBe(true);
         }
-        expect(foundDifference).toBe(true);
       }
+    } finally {
+      HTMLCanvasElement.prototype.getContext = originalGetContext;
     }
-
-    // Cleanup
-    globalThis.requestAnimationFrame = originalRAF;
-    HTMLCanvasElement.prototype.getContext = originalGetContext;
   });
 });
