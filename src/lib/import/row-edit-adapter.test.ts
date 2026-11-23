@@ -128,4 +128,37 @@ describe("import row edit adapter", () => {
     expect(saved.source_recurring_id).toBeNull();
     expect(saved.occurrence_number).toBeNull();
   });
+
+  it("clears expense category food when the row is saved as income", () => {
+    const existing: NormalizedTransactionRow = {
+      ...FOREIGN_ROW,
+      type: "expense",
+      category: "food",
+      original_amount: null,
+      original_currency: null,
+      conversion_rate: null,
+      conversion_date: null,
+      rate_source: null,
+    };
+
+    const asIncome = formValuesToNormalized(
+      formValues({ type: "income", category: "food", amount: 50, currency: "ILS" }),
+      "ILS",
+      existing,
+      FILE_IMPORT,
+      "income",
+    );
+    expect(asIncome.type).toBe("income");
+    expect(asIncome.category).toBeNull();
+
+    const asExpense = formValuesToNormalized(
+      formValues({ type: "expense", category: "food", amount: 50, currency: "ILS" }),
+      "ILS",
+      existing,
+      FILE_IMPORT,
+      "expense",
+    );
+    expect(asExpense.type).toBe("expense");
+    expect(asExpense.category).toBe("food");
+  });
 });
