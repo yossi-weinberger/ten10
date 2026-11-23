@@ -130,6 +130,10 @@ export default defineConfig(() => {
     //
     // Exclude Tauri modules ONLY in web-only builds (Vercel or standalone CI).
     // Include them in ALL Tauri builds (local or CI doesn't matter).
+    // Module workers (needed for import parseFile worker — IIFE cannot code-split).
+    worker: {
+      format: "es" as const,
+    },
     build: {
       // Silence Rollup's large chunk warning (does not change output, only logging)
       chunkSizeWarningLimit: 4000,

@@ -56,11 +56,6 @@ vi.mock("@/lib/import/index", async (importOriginal) => {
   };
 });
 
-vi.mock("./steps/PrepareStep", () => ({
-  PrepareStep: ({ onNext }: { onNext: () => void }) => (
-    <button type="button" onClick={onNext}>prepare-next</button>
-  ),
-}));
 vi.mock("./steps/FileUploadStep", () => ({
   FileUploadStep: ({
     onFileParsed,
@@ -160,14 +155,18 @@ afterEach(() => {
 });
 
 describe("ImportWizard without props", () => {
-  it("walks prepare, upload, mapping and review, and back to mapping", async () => {
+  it("starts on upload with 3 labeled steps and no back on upload", async () => {
     const user = userEvent.setup();
     render(<ImportWizard />);
 
-    expect(screen.getByRole("button", { name: "prepare-next" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "upload-file" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "navigation.back" })).not.toBeInTheDocument();
+    expect(screen.getByText("steps.upload")).toBeInTheDocument();
+    expect(screen.getByText("steps.mapping")).toBeInTheDocument();
+    expect(screen.getByText("steps.review")).toBeInTheDocument();
+    expect(screen.queryByText("steps.prepare")).not.toBeInTheDocument();
     expect(io.fetchExistingForDedup).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
     expect(screen.getByText("mapping-step")).toBeInTheDocument();
 
@@ -191,6 +190,10 @@ describe("ImportWizard without props", () => {
     expect(back).toBeEnabled();
     await user.click(back);
     expect(screen.getByText("mapping-step")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "navigation.back" }));
+    expect(screen.getByRole("button", { name: "upload-file" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "navigation.back" })).not.toBeInTheDocument();
   });
 
   it("saves approved rows through persistApprovedImport", async () => {
@@ -198,7 +201,6 @@ describe("ImportWizard without props", () => {
     const user = userEvent.setup();
     render(<ImportWizard />);
 
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
     await user.click(screen.getByRole("button", { name: "navigation.next" }));
     await screen.findByRole("list", { name: "review-step" });
@@ -219,7 +221,6 @@ describe("ImportWizard without props", () => {
     const user = userEvent.setup();
     render(<ImportWizard />);
 
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
 
     const next = screen.getByRole("button", { name: "navigation.next" });
@@ -262,7 +263,6 @@ describe("ImportWizard without props", () => {
 
     const user = userEvent.setup();
     render(<ImportWizard />);
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
     await user.click(screen.getByRole("button", { name: "mapping.summary.show" }));
 
@@ -315,10 +315,10 @@ const DRAFTS: TransactionDraftV1[] = [
 ];
 
 describe("ImportWizard with initialRows", () => {
-  it("lands on review without prepare, upload or mapping", async () => {
+  it("lands on review without upload or mapping", async () => {
     render(<ImportWizard initialRows={DRAFTS} />);
 
-    expect(screen.queryByRole("button", { name: "prepare-next" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "upload-file" })).not.toBeInTheDocument();
     await screen.findByRole("list", { name: "review-step" });
 
     expect(io.fetchExistingForDedup).toHaveBeenCalledWith("web", null);
