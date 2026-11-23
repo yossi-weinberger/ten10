@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
-import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
+import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { rowBlocksApproval } from "@/lib/import/approval-gates";
