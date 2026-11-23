@@ -1,6 +1,6 @@
 import type { ImportPreviewRow } from "./import-session.types";
 import { revalidateAfterEdit } from "./validation";
-import { getBulkCategoryFamily } from "@/lib/tableTransactions/bulkActions";
+import { categoryForTypeOrNull } from "@/lib/category-registry";
 import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
 
 export type ImportBulkEditPatch = {
@@ -34,23 +34,14 @@ export function applyBulkEdit(
       return row;
     }
 
-    const previousType = row.normalized.type;
-    const nextType = patch.type ?? previousType;
-    let nextCategory = row.normalized.category;
+    const nextType = patch.type ?? row.normalized.type;
+    let nextCategory =
+      patch.category !== undefined
+        ? patch.category
+        : row.normalized.category;
 
-    if (patch.type !== undefined) {
-      const previousFamily =
-        previousType == null
-          ? null
-          : getBulkCategoryFamily([{ type: previousType }]);
-      const nextFamily = getBulkCategoryFamily([{ type: patch.type }]);
-      if (previousFamily !== nextFamily && patch.category === undefined) {
-        nextCategory = null;
-      }
-    }
-
-    if (patch.category !== undefined) {
-      nextCategory = patch.category;
+    if (patch.type !== undefined && patch.category === undefined) {
+      nextCategory = categoryForTypeOrNull(patch.type, nextCategory);
     }
 
     const updated: ImportPreviewRow = {

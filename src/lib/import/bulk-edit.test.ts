@@ -84,6 +84,30 @@ describe("applyBulkEdit", () => {
     expect(next[0]?.normalized?.category).toBeNull();
   });
 
+  it("clears food when setting income on a refund row; keeps food for expense", () => {
+    stubReady();
+    const refund = row({
+      id: "a",
+      rowNumber: 1,
+      status: "needs_review",
+      issues: [{ code: "card_refund" }],
+      normalized: baseNormalized({ type: null, category: "food", amount: 50 }),
+    });
+
+    const asIncome = applyBulkEdit([refund], ["a"], { type: "income" }, context);
+    expect(asIncome[0]?.normalized?.type).toBe("income");
+    expect(asIncome[0]?.normalized?.category).toBeNull();
+
+    const asExpense = applyBulkEdit(
+      [refund],
+      ["a"],
+      { type: "expense" },
+      context,
+    );
+    expect(asExpense[0]?.normalized?.type).toBe("expense");
+    expect(asExpense[0]?.normalized?.category).toBe("food");
+  });
+
   it("keeps category when the type family stays the same", () => {
     stubReady();
     const rows = [row({ id: "a", rowNumber: 1 })];
