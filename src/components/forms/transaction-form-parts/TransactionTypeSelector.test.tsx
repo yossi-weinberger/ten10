@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FormProvider, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { FormProvider, useForm, type UseFormReturn } from "react-hook-form";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionTypeSelector } from "./TransactionTypeSelector";
 
@@ -15,12 +16,23 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+vi.mock("@/lib/data-layer/transactionForm.service", () => ({
+  normalizeToBaseType: (type: string) => {
+    if (type === "exempt-income") return "income";
+    if (type === "recognized-expense") return "expense";
+    if (type === "non_tithe_donation") return "donation";
+    return type;
+  },
+}));
+
 function Harness({
   initialType,
   initialCategory,
+  formRef,
 }: {
   initialType: TransactionFormValues["type"] | "";
   initialCategory: string;
+  formRef: { current: UseFormReturn<TransactionFormValues> | null };
 }) {
   const form = useForm<TransactionFormValues>({
     defaultValues: {
@@ -33,13 +45,13 @@ function Harness({
     },
   });
 
-  const selectedType = form.watch("type") || "";
-  const category = form.watch("category") ?? "";
+  useEffect(() => {
+    formRef.current = form;
+  }, [form, formRef]);
 
   return (
     <FormProvider {...form}>
-      <TransactionTypeSelector form={form} selectedType={selectedType} />
-      <output data-testid="category-value">{category}</output>
+      <TransactionTypeSelector form={form} selectedType={initialType} />
     </FormProvider>
   );
 }
@@ -49,9 +61,20 @@ afterEach(() => cleanup());
 describe("TransactionTypeSelector category sync", () => {
   it("clears an expense category when switching to income", async () => {
     const user = userEvent.setup();
-    render(<Harness initialType="expense" initialCategory="food" />);
+    const formRef: {
+      current: UseFormReturn<TransactionFormValues> | null;
+    } = { current: null };
 
-    expect(screen.getByTestId("category-value")).toHaveTextContent("food");
+    render(
+      <Harness
+        initialType="expense"
+        initialCategory="food"
+        formRef={formRef}
+      />,
+    );
+
+    await waitFor(() => expect(formRef.current).not.toBeNull());
+    expect(formRef.current?.getValues("category")).toBe("food");
 
     await user.click(
       screen.getByRole("tab", {
@@ -59,12 +82,24 @@ describe("TransactionTypeSelector category sync", () => {
       }),
     );
 
-    expect(screen.getByTestId("category-value")).toHaveTextContent("");
+    expect(formRef.current?.getValues("category")).toBe("");
   });
 
   it("keeps a custom category that remains valid for the new type", async () => {
     const user = userEvent.setup();
-    render(<Harness initialType="expense" initialCategory="Gym Membership" />);
+    const formRef: {
+      current: UseFormReturn<TransactionFormValues> | null;
+    } = { current: null };
+
+    render(
+      <Harness
+        initialType="expense"
+        initialCategory="Gym Membership"
+        formRef={formRef}
+      />,
+    );
+
+    await waitFor(() => expect(formRef.current).not.toBeNull());
 
     await user.click(
       screen.getByRole("tab", {
@@ -72,8 +107,6 @@ describe("TransactionTypeSelector category sync", () => {
       }),
     );
 
-    expect(screen.getByTestId("category-value")).toHaveTextContent(
-      "Gym Membership",
-    );
+    expect(formRef.current?.getValues("category")).toBe("Gym Membership");
   });
 });
