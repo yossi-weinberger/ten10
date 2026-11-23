@@ -15,7 +15,7 @@ import { TransactionType } from "@/types/transaction";
 
 interface DescriptionCategoryFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
-  selectedType: TransactionType;
+  selectedType: TransactionType | "";
 }
 
 // Transaction types that should show the category field
@@ -27,7 +27,8 @@ export function DescriptionCategoryFields({
 }: DescriptionCategoryFieldsProps) {
   const { t } = useTranslation("transactions");
   
-  const showCategoryField = CATEGORY_TYPES.includes(selectedType);
+  const showCategoryField =
+    selectedType !== "" && CATEGORY_TYPES.includes(selectedType);
   const showRecipientField = selectedType === "donation";
   
   return (
@@ -66,7 +67,7 @@ export function DescriptionCategoryFields({
                 <CategoryCombobox
                   value={field.value ?? null}
                   onChange={(value) => field.onChange(value)}
-                  transactionType={selectedType}
+                  transactionType={selectedType as TransactionType}
                   placeholder={
                     selectedType === "income"
                       ? t("transactionForm.category.incomePlaceholder", "Income category (optional)")

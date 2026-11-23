@@ -87,21 +87,34 @@ function toPreviewRow(
   const cardRefundIssue = checkCardRefund(mapped);
   if (cardRefundIssue) allIssues.push(cardRefundIssue);
 
-  if (normalized) {
-    validateDonationRules(normalized, allIssues);
+  // Card refunds must not carry a tentative type — user picks income/expense.
+  const previewNormalized =
+    normalized && cardRefundIssue ? { ...normalized, type: null } : normalized;
 
-    const dupIssue = checkDuplicate(normalized, context.existingFingerprints);
+  if (previewNormalized) {
+    validateDonationRules(previewNormalized, allIssues);
+
+    const dupIssue = checkDuplicate(previewNormalized, context.existingFingerprints);
     if (dupIssue) allIssues.push(dupIssue);
 
-    const batchDupIssue = context.batchDeduper.check(normalized);
+    const batchDupIssue = context.batchDeduper.check(previewNormalized);
     if (batchDupIssue && !dupIssue) allIssues.push(batchDupIssue);
 
-    const recurringCandidates = context.recurringIndex.get(`${normalized.currency}:${normalized.type}`) ?? [];
-    const recurringIssue = checkRecurringWarning(normalized, recurringCandidates);
+    const recurringCandidates =
+      context.recurringIndex.get(
+        `${previewNormalized.currency}:${previewNormalized.type}`,
+      ) ?? [];
+    const recurringIssue = checkRecurringWarning(
+      previewNormalized,
+      recurringCandidates,
+    );
     if (recurringIssue) allIssues.push(recurringIssue);
   }
 
-  const status: ImportRowStatus = computeRowStatus({ normalized: normalized ?? undefined, issues: allIssues });
+  const status: ImportRowStatus = computeRowStatus({
+    normalized: previewNormalized ?? undefined,
+    issues: allIssues,
+  });
   const approved = defaultApprovalForStatus(status);
 
   return {
@@ -109,7 +122,7 @@ function toPreviewRow(
     rowNumber,
     raw,
     mapped,
-    normalized: normalized ?? undefined,
+    normalized: previewNormalized ?? undefined,
     status,
     issues: allIssues,
     approved,

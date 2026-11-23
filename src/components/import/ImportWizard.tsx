@@ -221,7 +221,9 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return {
         ...state,
         previewRows: state.previewRows.map((r) =>
-          r.status === "ready" && !r.approved ? { ...r, approved: true } : r
+          r.status === "ready" && !r.approved && !rowBlocksApproval(r)
+            ? { ...r, approved: true }
+            : r
         ),
       };
 
