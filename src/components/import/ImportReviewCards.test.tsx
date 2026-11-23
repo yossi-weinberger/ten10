@@ -190,13 +190,14 @@ describe("ImportReviewCards B4a", () => {
       />,
     );
 
+    const editButton = screen.getByRole("button", {
+      name: 'review.editRowAria:{"row":7}',
+    });
     expect(
       screen.getByRole("checkbox", { name: 'review.selectRowAria:{"row":7}' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", {
-        name: 'review.editRowAria:{"row":7,"description":"Salary"}',
-      }),
-    ).toBeInTheDocument();
+    expect(editButton).toBeInTheDocument();
+    expect(editButton.getAttribute("aria-label") ?? "").not.toMatch(/Salary/i);
+    expect(editButton.getAttribute("aria-label") ?? "").not.toMatch(/10/);
   });
 });

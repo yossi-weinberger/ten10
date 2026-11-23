@@ -86,10 +86,10 @@ export function ImportReviewCards({
 
   return (
     <>
-      <div className="space-y-2 [@media(max-width:767px)_and_(max-height:700px)]:space-y-1.5">
+      <div className="space-y-2">
         {!selectMode ? (
-          <div className="flex items-center gap-2 min-h-11 px-1 [@media(max-width:767px)_and_(max-height:700px)]:min-h-9">
-            <div className="grid h-11 w-11 place-items-center shrink-0 [@media(max-width:767px)_and_(max-height:700px)]:h-9 [@media(max-width:767px)_and_(max-height:700px)]:w-9">
+          <div className="flex items-center gap-2 min-h-11 px-1">
+            <div className="grid h-11 w-11 place-items-center shrink-0">
               <Checkbox
                 checked={someSelected ? "indeterminate" : allSelected}
                 onCheckedChange={handleSelectAll}
@@ -189,7 +189,7 @@ function RowCard({
   return (
     <div
       className={cn(
-        "flex min-h-[60px] overflow-hidden rounded-[10px] border bg-white",
+        "flex min-h-[60px] overflow-hidden rounded-[10px] border bg-white dark:bg-card text-foreground",
         !selectMode && optimisticApproved && "bg-primary/5",
         selectMode && isSelected && "border-2 border-primary bg-primary/5",
         isInvalid && "opacity-60",
@@ -227,7 +227,6 @@ function RowCard({
             ? t("review.selectRowAria", { row: row.rowNumber })
             : t("review.editRowAria", {
                 row: row.rowNumber,
-                description,
               })
         }
       >

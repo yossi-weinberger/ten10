@@ -265,12 +265,9 @@ function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
     const debitIndex = debitIndices[0];
     const debitHeader = normalizeHeaderName(resolved[debitIndex].sourceColumn);
     if (isChargeAmountHeader(debitHeader)) {
-      // Card exports use "סכום חיוב" as the ILS amount column.
+      // Card exports: keep "סכום חיוב" as debit so normalize-core signs it
+      // negative → expense. Remapping to amount would treat purchases as income.
       clearTarget(resolved, (mapping) => mapping.targetField === "amount");
-      resolved[debitIndex] = {
-        ...resolved[debitIndex],
-        targetField: "amount",
-      };
     } else if (hasAmount) {
       clearTarget(resolved, (mapping) => mapping.targetField === "debit");
     }
@@ -279,9 +276,14 @@ function resolveMappingConflicts(mappings: ColumnMapping[]): ColumnMapping[] {
   }
 
   const finalAmountIndices = indicesFor("amount");
-  const preferChargeCurrency = finalAmountIndices.some((index) =>
-    isChargeAmountHeader(normalizeHeaderName(resolved[index].sourceColumn)),
-  );
+  const finalDebitIndices = indicesFor("debit");
+  const preferChargeCurrency =
+    finalAmountIndices.some((index) =>
+      isChargeAmountHeader(normalizeHeaderName(resolved[index].sourceColumn)),
+    ) ||
+    finalDebitIndices.some((index) =>
+      isChargeAmountHeader(normalizeHeaderName(resolved[index].sourceColumn)),
+    );
 
   const currencyIndices = indicesFor("currency");
   if (currencyIndices.length > 1) {
