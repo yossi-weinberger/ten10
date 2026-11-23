@@ -1,4 +1,5 @@
 import type { TransactionFormValues } from "@/lib/schemas";
+import { categoryForTypeOrNull } from "@/lib/category-registry";
 import type { Currency, Transaction, TransactionType } from "@/types/transaction";
 import type { ValidationProfile } from "../../../supabase/functions/_shared/transaction-domain/transaction-types.ts";
 import type {
@@ -149,7 +150,9 @@ export function formValuesToNormalized(
     currency: (values.currency as Currency) ?? defaultCurrency,
     description: values.description ?? null,
     type: finalType,
-    category: isDonation ? null : (values.category ?? null),
+    category: isDonation
+      ? null
+      : categoryForTypeOrNull(finalType, values.category ?? null),
     recipient: values.recipient ?? null,
     payment_method: values.payment_method ?? null,
     is_chomesh: values.is_chomesh ?? false,
