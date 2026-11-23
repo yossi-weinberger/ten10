@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
+import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -22,6 +22,8 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SupportChargeNote } from "@/components/support/SupportChargeNote";
+import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { PlatformIndicator } from "./PlatformIndicator";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -237,7 +239,7 @@ export function Sidebar({
     href?: string;
     icon: React.ElementType;
     children: React.ReactNode;
-    tooltip?: string;
+    tooltip?: ReactNode;
     className?: string;
     [key: string]: any;
   }) => {
@@ -424,7 +426,7 @@ export function Sidebar({
 
             {/* Support Us Button - Standard Style */}
             <NavLink
-              href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
+              href={SUPPORT_PAYMENT_URL}
               icon={({ className, ...props }: { className?: string }) => (
                 <img
                   src="/donate.svg"
@@ -439,7 +441,12 @@ export function Sidebar({
               )}
               target="_blank"
               rel="noopener noreferrer"
-              tooltip={t("menu.donateTooltip")}
+              tooltip={
+                <span className="block space-y-1">
+                  <span className="block">{t("menu.donateTooltip")}</span>
+                  <SupportChargeNote />
+                </span>
+              }
               className="hover:bg-golden-hover hover:text-yellow-900 dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
             >
               {t("menu.supportUs")}

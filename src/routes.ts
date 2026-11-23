@@ -11,6 +11,7 @@ import App from "./App";
 import { getCachedSession } from "./lib/supabaseClient";
 import { checkIsAdmin } from "./lib/data-layer/admin.service";
 import { PUBLIC_ROUTES } from "./lib/constants";
+import { SUPPORT_FAILED_PATH, SUPPORT_THANKS_PATH } from "./lib/support-payment";
 
 // Critical pages loaded synchronously (needed immediately)
 import { HomePage } from "./pages/HomePage";
@@ -94,6 +95,14 @@ const TransactionImportPage = lazyRouteComponent(
 const ChangelogPage = lazyRouteComponent(
   () => import("./pages/ChangelogPage"),
   "ChangelogPage"
+);
+const SupportThanksPage = lazyRouteComponent(
+  () => import("./pages/SupportResultPage"),
+  "SupportThanksPage"
+);
+const SupportFailedPage = lazyRouteComponent(
+  () => import("./pages/SupportResultPage"),
+  "SupportFailedPage"
 );
 
 const rootRoute = createRootRoute({
@@ -276,6 +285,18 @@ const accessibilityRoute = createRoute({
   component: AccessibilityPage,
 });
 
+const supportThanksRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SUPPORT_THANKS_PATH,
+  component: SupportThanksPage,
+});
+
+const supportFailedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SUPPORT_FAILED_PATH,
+  component: SupportFailedPage,
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
@@ -333,6 +354,8 @@ const routeTree = rootRoute.addChildren([
   termsRoute,
   betaTermsRoute,
   accessibilityRoute,
+  supportThanksRoute,
+  supportFailedRoute,
   adminRoute,
   transactionsTableRoute.addChildren([
     transactionsTableIndexRoute,

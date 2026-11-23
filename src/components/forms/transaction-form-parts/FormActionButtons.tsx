@@ -9,6 +9,8 @@ import {
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
 import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
+import { SupportChargeNote } from "@/components/support/SupportChargeNote";
+import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 
 interface FormActionButtonsProps {
   isSubmitting: boolean;
@@ -31,9 +33,6 @@ const SUBMIT_LABELS = {
     saved: "transactionForm.messages.updateSuccess",
   },
 } as const;
-
-const DONATION_URL =
-  "https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10";
 
 export function FormActionButtons({
   isSubmitting,
@@ -64,7 +63,7 @@ export function FormActionButtons({
               )}
             >
               <a
-                href={DONATION_URL}
+                href={SUPPORT_PAYMENT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2"
@@ -77,8 +76,9 @@ export function FormActionButtons({
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p className="max-w-xs text-sm" dir={i18n.dir()}>
-              {t("transactionForm.actions.donateTooltip")}
+            <p className="max-w-xs space-y-1 text-sm" dir={i18n.dir()}>
+              <span className="block">{t("transactionForm.actions.donateTooltip")}</span>
+              <SupportChargeNote />
             </p>
           </TooltipContent>
         </Tooltip>

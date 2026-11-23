@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
+import { SupportChargeNote } from "@/components/support/SupportChargeNote";
+import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   useScrollAnimation,
@@ -138,6 +140,9 @@ export function AboutPage() {
                   <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                     {t("institute.supportDescription")}
                   </p>
+                  <p className="mt-2 text-sm font-medium leading-relaxed text-gray-950 dark:text-white">
+                    <SupportChargeNote />
+                  </p>
                 </div>
               </div>
 
@@ -147,7 +152,7 @@ export function AboutPage() {
                   className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
                 >
                   <a
-                    href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
+                    href={SUPPORT_PAYMENT_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center"
