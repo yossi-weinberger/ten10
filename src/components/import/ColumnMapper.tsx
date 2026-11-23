@@ -291,7 +291,13 @@ function MobileColumnMapper({
   const { t } = useTranslation("import");
   const [unmappedExpanded, setUnmappedExpanded] = useState(() => {
     const hasDate = mappings.some((m) => m.targetField === "date");
-    const hasAmount = mappings.some((m) => m.targetField === "amount");
+    // Match validateMappings: amount OR debit OR credit satisfies amount.
+    const hasAmount = mappings.some(
+      (m) =>
+        m.targetField === "amount" ||
+        m.targetField === "debit" ||
+        m.targetField === "credit",
+    );
     return !hasDate || !hasAmount;
   });
   const [openColumn, setOpenColumn] = useState<string | null>(null);

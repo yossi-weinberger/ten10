@@ -522,6 +522,18 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   const scrollToFirstMappingIssue = useCallback(() => {
     const flagged = [...issueColumns(mappingIssues, state.columnMappings)];
+    const hasMissingRequired = mappingIssues.some(
+      (issue) =>
+        issue.code === "dateMissing" || issue.code === "amountMissing",
+    );
+    // Missing date/amount have no flagged row — scroll to the visible summary.
+    if (flagged.length === 0 && hasMissingRequired) {
+      const summary = document.getElementById("mapping-issues-summary");
+      if (summary && typeof summary.scrollIntoView === "function") {
+        summary.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+    }
     let target: HTMLElement | null = null;
     const rows = document.querySelectorAll<HTMLElement>("[data-mapping-column]");
     if (flagged.length > 0) {
@@ -533,7 +545,6 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         }
       }
     } else {
-      // dateMissing / amountMissing: no flagged row — scroll to first unmapped column
       for (const row of rows) {
         if (row.dataset.mappingUnmapped === "true") {
           target = row;
@@ -1097,7 +1108,17 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
           {state.step === "mapping" && mappingBlocked && isMobile && (
             <button
               type="button"
-              id="mapping-issues-summary"
+              // When date/amount-missing text lives in the step Alert, keep that
+              // element as #mapping-issues-summary for aria-describedby + Show.
+              id={
+                mappingIssues.some(
+                  (issue) =>
+                    issue.code === "dateMissing" ||
+                    issue.code === "amountMissing",
+                )
+                  ? undefined
+                  : "mapping-issues-summary"
+              }
               onClick={scrollToFirstMappingIssue}
               className="flex h-11 w-full items-center justify-between gap-2 border-t border-red-200 bg-red-50 px-3 text-red-700"
               aria-label={t("mapping.summary.show")}
