@@ -384,7 +384,7 @@ function MobileColumnMapper({
         data-mapping-unmapped={!isMapped ? "true" : undefined}
         data-mapping-card=""
         className={cn(
-          "flex flex-col gap-2.5 rounded-xl border bg-white p-3 scroll-mb-[140px]",
+          "flex flex-col gap-2.5 rounded-xl border bg-white dark:bg-card p-3 scroll-mb-[140px]",
           isIssue && "border-destructive bg-red-50 dark:bg-red-950/20"
         )}
       >
