@@ -28,6 +28,7 @@ export type ImportIssueCode =
   | "donation_recipient_required"
   | "possible_duplicate"
   | "possible_recurring"
+  | "card_refund"
   | "ambiguous_debit_credit"
   | "formula_cell"
   | "income_keyword_match";
@@ -102,12 +103,18 @@ export interface NormalizedTransactionRow
 export interface ImportNormalizedRow
   extends Omit<
     NormalizedTransactionRow,
+    | "type"
     | "original_amount"
     | "original_currency"
     | "conversion_rate"
     | "conversion_date"
     | "rate_source"
   > {
+  /**
+   * Null when the row needs an explicit type choice (e.g. card_refund).
+   * Persist and approval must not proceed until the user sets a type.
+   */
+  type: TransactionType | null;
   original_amount: null;
   original_currency: null;
   conversion_rate: null;

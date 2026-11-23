@@ -181,7 +181,8 @@
     "editRow": "עריכה",
     "saveRow": "שמור",
     "cancelEdit": "ביטול",
-    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}"
+    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}",
+    "typeUnset": "בחרו סוג"
   },
   "confirm": {
     "title": "אישור ייבוא",
@@ -221,6 +222,7 @@
     "donation_recipient_required": "נדרש נמען עבור תרומות",
     "possible_duplicate": "כפילות אפשרית",
     "possible_recurring": "עשוי להתאים לעסקה קבועה",
+    "card_refund": "זיכוי/החזר בכרטיס, בחר את סוג התנועה",
     "ambiguous_debit_credit": "גם חיוב וגם זיכוי מכילים ערכים",
     "formula_cell": "התא מכיל נוסחה (הערך שימש)",
     "income_keyword_match": "סווג כהכנסה לפי טקסט בתיאור"

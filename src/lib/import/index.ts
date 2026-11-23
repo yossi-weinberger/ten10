@@ -25,6 +25,7 @@ export { resolveType } from "./type-resolver";
 export { computeRowStatus, validateDonationRules, defaultApprovalForStatus, revalidateAfterEdit } from "./validation";
 export { buildExistingFingerprintSet, checkDuplicate, buildBatchFingerprintSet } from "./duplicate-detector";
 export { checkRecurringWarning } from "./recurring-warning-detector";
+export { checkCardRefund } from "./card-refund-detector";
 export { persistApprovedImport } from "./persist-approved-import";
 
 import { nanoid } from "nanoid";
@@ -40,6 +41,7 @@ import { normalizeRow, type NormalizeRowResult } from "./normalize";
 import { validateDonationRules, computeRowStatus, defaultApprovalForStatus } from "./validation";
 import { buildExistingFingerprintSet, checkDuplicate, buildBatchFingerprintSet } from "./duplicate-detector";
 import { checkRecurringWarning } from "./recurring-warning-detector";
+import { checkCardRefund } from "./card-refund-detector";
 
 const BUILD_PREVIEW_CHUNK_SIZE = 100;
 
@@ -82,21 +84,37 @@ function toPreviewRow(
 ): ImportPreviewRow {
   const allIssues: ImportRowIssue[] = [...issues];
 
-  if (normalized) {
-    validateDonationRules(normalized, allIssues);
+  const cardRefundIssue = checkCardRefund(mapped);
+  if (cardRefundIssue) allIssues.push(cardRefundIssue);
 
-    const dupIssue = checkDuplicate(normalized, context.existingFingerprints);
+  // Card refunds must not carry a tentative type — user picks income/expense.
+  const previewNormalized =
+    normalized && cardRefundIssue ? { ...normalized, type: null } : normalized;
+
+  if (previewNormalized) {
+    validateDonationRules(previewNormalized, allIssues);
+
+    const dupIssue = checkDuplicate(previewNormalized, context.existingFingerprints);
     if (dupIssue) allIssues.push(dupIssue);
 
-    const batchDupIssue = context.batchDeduper.check(normalized);
+    const batchDupIssue = context.batchDeduper.check(previewNormalized);
     if (batchDupIssue && !dupIssue) allIssues.push(batchDupIssue);
 
-    const recurringCandidates = context.recurringIndex.get(`${normalized.currency}:${normalized.type}`) ?? [];
-    const recurringIssue = checkRecurringWarning(normalized, recurringCandidates);
+    const recurringCandidates =
+      context.recurringIndex.get(
+        `${previewNormalized.currency}:${previewNormalized.type}`,
+      ) ?? [];
+    const recurringIssue = checkRecurringWarning(
+      previewNormalized,
+      recurringCandidates,
+    );
     if (recurringIssue) allIssues.push(recurringIssue);
   }
 
-  const status: ImportRowStatus = computeRowStatus({ normalized: normalized ?? undefined, issues: allIssues });
+  const status: ImportRowStatus = computeRowStatus({
+    normalized: previewNormalized ?? undefined,
+    issues: allIssues,
+  });
   const approved = defaultApprovalForStatus(status);
 
   return {
@@ -104,7 +122,7 @@ function toPreviewRow(
     rowNumber,
     raw,
     mapped,
-    normalized: normalized ?? undefined,
+    normalized: previewNormalized ?? undefined,
     status,
     issues: allIssues,
     approved,

@@ -13,7 +13,7 @@ import { useDonationStore } from "@/lib/store";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
-  selectedType: TransactionType;
+  selectedType: TransactionType | "";
   isExemptChecked?: boolean;
 }
 

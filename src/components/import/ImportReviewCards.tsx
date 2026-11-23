@@ -8,6 +8,7 @@ import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -61,7 +62,7 @@ export function ImportReviewCards({
   const typeLabel = (type: string) =>
     tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
-  const selectableRows = useMemo(() => rows.filter((r) => r.status !== "invalid"), [rows]);
+  const selectableRows = useMemo(() => rows.filter((r) => !rowBlocksApproval(r)), [rows]);
   const approvedCount = useMemo(() => selectableRows.filter((r) => r.approved).length, [selectableRows]);
   const allSelected = selectableRows.length > 0 && approvedCount === selectableRows.length;
   const someSelected = approvedCount > 0 && approvedCount < selectableRows.length;
@@ -153,6 +154,7 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
   );
 
   const isInvalid = row.status === "invalid";
+  const approvalBlocked = rowBlocksApproval(row);
   const n = row.normalized;
 
   return (
@@ -163,7 +165,7 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
     >
       <Checkbox
         checked={optimisticApproved}
-        disabled={isInvalid}
+        disabled={approvalBlocked}
         onCheckedChange={(checked) => handleToggle(!!checked)}
         className="shrink-0"
         aria-label={`Select row ${row.rowNumber}`}
@@ -184,14 +186,18 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
               {Object.values(formatDisplayDate(n.date)).join(" · ")}
             </span>
           )}
-          {n?.type && (
+          {n?.type ? (
             <Badge
               variant="outline"
               className={cn("border text-xs px-1.5 py-0 h-4 font-normal", typeBadgeColors[n.type as TransactionType])}
             >
               {typeLabel(n.type)}
             </Badge>
-          )}
+          ) : row.issues.some((i) => i.code === "card_refund") ? (
+            <span className="text-xs text-muted-foreground">
+              {t("review.typeUnset")}
+            </span>
+          ) : null}
           {row.issues.map((issue, i) => (
             <span key={i} className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-3 w-3 shrink-0" />

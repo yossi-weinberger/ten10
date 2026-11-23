@@ -48,6 +48,7 @@ function isWarningIssue(issue: ImportRowIssue): boolean {
     "ambiguous_debit_credit",
     "possible_duplicate",
     "possible_recurring",
+    "card_refund",
     "formula_cell",
     "invalid_type",
     "income_keyword_match",
@@ -87,6 +88,9 @@ export function defaultApprovalForStatus(status: ImportRowStatus): boolean {
  * If `context` is provided, duplicate and recurring checks are re-run against
  * the live data. If omitted, stale possible_duplicate / possible_recurring
  * warnings are cleared rather than blindly preserved.
+ *
+ * `card_refund` is cleared only when the user has set an explicit type on the
+ * row. Category, description, or other edits leave the block in place.
  */
 export function revalidateAfterEdit(
   row: ImportPreviewRow,
@@ -99,6 +103,7 @@ export function revalidateAfterEdit(
     return { issues: row.issues, status: "invalid" };
   }
 
+  const hadCardRefund = row.issues.some((i) => i.code === "card_refund");
   const issues: ImportRowIssue[] = [];
 
   validateDonationRules(row.normalized, issues);
@@ -113,6 +118,10 @@ export function revalidateAfterEdit(
   }
   // When context is absent, possible_duplicate and possible_recurring are
   // intentionally dropped — stale warnings must not persist after an edit.
+  // Keep card_refund until an explicit type is present on the row.
+  if (hadCardRefund && row.normalized.type == null) {
+    issues.push({ code: "card_refund" });
+  }
 
   const status = computeRowStatus({ normalized: row.normalized, issues });
 

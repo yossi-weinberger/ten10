@@ -52,6 +52,7 @@ import {
   fetchExistingForDedup,
   fetchRecurringForImport,
 } from "@/lib/import/persist-approved-import";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { FileUploadStep } from "./steps/FileUploadStep";
 import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
@@ -180,20 +181,22 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     case "TOGGLE_APPROVAL":
       return {
         ...state,
-        previewRows: state.previewRows.map((r) =>
-          r.id === action.id ? { ...r, approved: action.approved } : r
-        ),
+        previewRows: state.previewRows.map((r) => {
+          if (r.id !== action.id) return r;
+          if (action.approved && rowBlocksApproval(r)) return r;
+          return { ...r, approved: action.approved };
+        }),
       };
 
     case "BULK_TOGGLE": {
       const idSet = new Set(action.ids);
       return {
         ...state,
-        previewRows: state.previewRows.map((r) =>
-          idSet.has(r.id) && r.status !== "invalid" && r.approved !== action.approved
-            ? { ...r, approved: action.approved }
-            : r
-        ),
+        previewRows: state.previewRows.map((r) => {
+          if (!idSet.has(r.id) || r.approved === action.approved) return r;
+          if (action.approved && rowBlocksApproval(r)) return r;
+          return { ...r, approved: action.approved };
+        }),
       };
     }
 
@@ -201,7 +204,9 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return {
         ...state,
         previewRows: state.previewRows.map((r) =>
-          r.status === "ready" && !r.approved ? { ...r, approved: true } : r
+          r.status === "ready" && !r.approved && !rowBlocksApproval(r)
+            ? { ...r, approved: true }
+            : r
         ),
       };
 
@@ -700,7 +705,9 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
           r.approved &&
           r.issues.some(
             (i) =>
-              i.code === "possible_duplicate" || i.code === "possible_recurring"
+              i.code === "possible_duplicate" ||
+              i.code === "possible_recurring" ||
+              i.code === "card_refund"
           )
       ).length,
     [state.previewRows]

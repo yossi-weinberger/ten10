@@ -106,6 +106,7 @@ export function ImportRowEditModal({
       initialData={transactionForForm}
       onOverrideSubmit={handleOverrideSubmit}
       onCancel={onClose}
+      alignCategoryWithType
     />
   );
 

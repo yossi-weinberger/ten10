@@ -15,6 +15,11 @@ import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
+import {
+  categoryBaseForType,
+  formatCategory,
+} from "@/lib/category-registry";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -78,6 +83,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
     tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
   const isInvalid = row.status === "invalid";
+  const approvalBlocked = rowBlocksApproval(row);
 
   return (
     <TableRow
@@ -93,7 +99,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
         <div className="flex items-center justify-center">
           <Checkbox
             checked={optimisticApproved}
-            disabled={isInvalid}
+            disabled={approvalBlocked}
             onCheckedChange={(checked) => handleToggle(!!checked)}
             aria-label={`Row ${row.rowNumber}`}
           />
@@ -130,14 +136,20 @@ const ReviewTableRow = memo(function ReviewTableRow({
 
       {/* Type */}
       <TableCell className="whitespace-nowrap">
-        {row.normalized ? (
+        {row.normalized?.type ? (
           <Badge
             variant="outline"
             className={cn("border text-xs font-normal", typeBadgeColors[row.normalized.type as TransactionType])}
           >
             {typeLabel(row.normalized.type)}
           </Badge>
-        ) : "—"}
+        ) : row.issues.some((i) => i.code === "card_refund") ? (
+          <span className="text-xs text-muted-foreground">
+            {t("review.typeUnset")}
+          </span>
+        ) : (
+          "—"
+        )}
       </TableCell>
 
       {/* Description */}
@@ -155,7 +167,13 @@ const ReviewTableRow = memo(function ReviewTableRow({
       {/* Category */}
       <TableCell>
         <span className="text-sm">
-          {row.normalized?.category ?? (
+          {row.normalized?.category ? (
+            formatCategory(
+              categoryBaseForType(row.normalized.type) ?? undefined,
+              row.normalized.category,
+              i18n.language,
+            )
+          ) : (
             <span className="text-muted-foreground">—</span>
           )}
         </span>
@@ -240,7 +258,7 @@ export function ImportReviewTable({
 
   // Select-all state: based on selectable (non-invalid) rows
   const selectableRows = useMemo(
-    () => rows.filter((r) => r.status !== "invalid"),
+    () => rows.filter((r) => !rowBlocksApproval(r)),
     [rows]
   );
   const approvedCount = useMemo(
