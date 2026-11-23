@@ -33,6 +33,13 @@ vi.mock("@/lib/store", () => ({
 
 vi.mock("@/lib/utils/export-pdf", () => ({ exportTransactionsToPDF: vi.fn() }));
 
+vi.mock("@/lib/category-registry", () => ({
+  formatCategory: (
+    _base: "income" | "expense" | undefined | null,
+    value: string | null | undefined,
+  ) => (value === "food" ? "מזון" : value ?? ""),
+}));
+
 vi.mock("./ImportRowEditModal", () => ({
   ImportRowEditModal: ({
     isOpen,
@@ -119,6 +126,22 @@ describe("ImportReviewCards B4a", () => {
     );
     expect(onToggle).toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows the localized category label for a known key after edit", () => {
+    render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 1 })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(screen.getByText("מזון")).toBeInTheDocument();
+    expect(screen.queryByText("food")).not.toBeInTheDocument();
   });
 
   it("hides the ready status badge and shows needs_review", () => {
