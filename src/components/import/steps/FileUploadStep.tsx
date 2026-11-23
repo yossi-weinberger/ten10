@@ -49,16 +49,6 @@ const UPLOAD_REJECTION_KEYS = {
 
 const SHEET_RADIO_THRESHOLD = 5;
 
-const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d] as const; // %PDF-
-
-/** Extension or leading magic bytes — never reads the whole file. */
-async function looksLikePdf(file: File): Promise<boolean> {
-  if (file.name.toLowerCase().endsWith(".pdf")) return true;
-  const head = new Uint8Array(await file.slice(0, PDF_MAGIC.length).arrayBuffer());
-  if (head.length < PDF_MAGIC.length) return false;
-  return PDF_MAGIC.every((byte, i) => head[i] === byte);
-}
-
 export interface FileParsedMeta {
   fileExtension: ImportFileExtension;
 }
@@ -108,18 +98,6 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       setIsLoading(true);
       setError(null);
       const fileExtension = extensionFromFileName(file.name);
-
-      if (await looksLikePdf(file)) {
-        setIsLoading(false);
-        trackProductEvent("transaction_import_parse_error", {
-          platform,
-          step: "upload",
-          errorCode: "pdf",
-          fileExtension,
-        });
-        setError(t("upload.errors.pdfNotSupported"));
-        return;
-      }
 
       let result: Awaited<ReturnType<typeof parseFileInWorker>>;
       try {
@@ -305,20 +283,6 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
           const fileName = filePath.replace(/\\/g, "/").split("/").pop() ?? "file";
           const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
 
-          if (ext === "pdf") {
-            setPendingFile(null);
-            setAvailableSheets(null);
-            setIsLoading(false);
-            trackProductEvent("transaction_import_parse_error", {
-              platform,
-              step: "upload",
-              errorCode: "pdf",
-              fileExtension: "other",
-            });
-            setError(t("upload.errors.pdfNotSupported"));
-            return;
-          }
-
           if (ext !== "csv" && ext !== "xlsx" && ext !== "xls") {
             setPendingFile(null);
             setAvailableSheets(null);
@@ -375,8 +339,6 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
       "application/vnd.ms-excel": [".xls", ".xlsx"],
       "application/octet-stream": [".csv", ".xlsx", ".xls"],
-      // Accepted only so we can show pdfNotSupported — never parsed.
-      "application/pdf": [".pdf"],
     },
     maxFiles: 1,
     maxSize: MAX_FILE_SIZE_BYTES,
