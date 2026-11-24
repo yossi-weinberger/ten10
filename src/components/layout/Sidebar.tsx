@@ -307,9 +307,16 @@ export function Sidebar({
         <Tooltip>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
           <TooltipContent
-            side={isRtl ? "left" : "right"}
+            // Beside a 176px sheet the side tooltip is wider than the free
+            // space, and collision padding will not slide it back onto the screen.
+            // Under the row, at the row's own width, the whole note stays visible.
+            side={inSheet ? "bottom" : isRtl ? "left" : "right"}
             sideOffset={8}
-            className="max-w-[calc(100vw-2rem)]"
+            className={
+              inSheet
+                ? "w-[var(--radix-tooltip-trigger-width)] max-w-[min(var(--radix-tooltip-trigger-width),calc(100vw-2rem))]"
+                : "max-w-xs"
+            }
           >
             <div className="whitespace-normal break-words text-start text-sm" dir={i18n.dir()}>
               {tooltip}
