@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { SupportChargeNote } from "@/components/support/SupportChargeNote";
 import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -98,7 +97,33 @@ export function AboutPage() {
                 </div>
               </div>
 
-              <div className={panelFooterClass}>
+              <div className={`${panelFooterClass} space-y-3`}>
+                <div className={`${insetBoxClass} p-4`}>
+                  <div className="mb-2 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                    <span className="font-semibold text-gray-950 dark:text-white">
+                      {t("appInfo.support")}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                    {t("appInfo.supportDescription")}
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
+                >
+                  <a
+                    href={SUPPORT_PAYMENT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center"
+                  >
+                    <Gift className="me-2 h-4 w-4" />
+                    {t("appInfo.donateButton")}
+                    <ExternalLink className="ms-2 h-4 w-4" />
+                  </a>
+                </Button>
                 <Link to="/landing">
                   <Button className="h-11 w-full">
                     {t("appInfo.learnMore")}
@@ -130,38 +155,9 @@ export function AboutPage() {
                   {t("institute.description")}
                 </p>
 
-                <div className={`${insetBoxClass} p-4`}>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
-                    <span className="font-semibold text-gray-950 dark:text-white">
-                      {t("institute.support")}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                    {t("institute.supportDescription")}
-                  </p>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-gray-950 dark:text-white">
-                    <SupportChargeNote />
-                  </p>
-                </div>
               </div>
 
-              <div className={`${panelFooterClass} space-y-3`}>
-                <Button
-                  asChild
-                  className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
-                >
-                  <a
-                    href={SUPPORT_PAYMENT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center"
-                  >
-                    <Gift className="me-2 h-4 w-4" />
-                    {t("institute.donateButton")}
-                    <ExternalLink className="ms-2 h-4 w-4" />
-                  </a>
-                </Button>
+              <div className={panelFooterClass}>
                 <Button asChild variant="outline" className="h-11 w-full">
                   <a
                     href="https://veahavta-kamocha.org/"
