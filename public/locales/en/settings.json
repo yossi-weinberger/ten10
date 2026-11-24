@@ -113,10 +113,10 @@
     "exportDescription": "Export all your data to a JSON file — useful for migrating between platforms (desktop ↔ web) or for a full backup.",
     "exportButton": "Export Data",
     "exporting": "Exporting data...",
-    "importTitle": "Import Data",
-    "importDescription": "Import data from a backup file",
-    "importButton": "Import Data",
-    "importing": "Importing data..."
+    "importTitle": "Restore from backup",
+    "importDescription": "Restore all data from a TEN10 backup file (JSON). To import bank transactions: Transactions table → Import.",
+    "importButton": "Restore from backup (JSON)",
+    "importing": "Restoring…"
   },
   "clearData": {
     "title": "Clear Data",

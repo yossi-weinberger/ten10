@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from "react";
+import { useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,14 +33,12 @@ import type {
   ImportResult,
   ImportTargetField,
   ParsedFile,
-  MappingValidationError,
 } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import type { TransactionDraftV1 } from "@/lib/intake/contracts";
 import { draftToNormalizedRow } from "@/lib/intake/draft-to-import";
 import {
   suggestMappings,
-  validateMappings,
   detectTen10Template,
   analyzeParsedFile,
   buildPreviewRows,
@@ -52,11 +50,21 @@ import {
   fetchExistingForDedup,
   fetchRecurringForImport,
 } from "@/lib/import/persist-approved-import";
-import { FileUploadStep } from "./steps/FileUploadStep";
+import {
+  rowCountBucket as toRowCountBucket,
+  type ImportFileExtension,
+} from "@/lib/import/import-analytics";
+import {
+  getMappingIssues,
+  issueColumns,
+  mappingIssueErrorCodes,
+} from "@/lib/import/mapping-issues";
+import { rowBlocksApproval } from "@/lib/import/approval-gates";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { FileUploadStep, type FileParsedMeta } from "./steps/FileUploadStep";
 import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
-import { PrepareStep } from "./steps/PrepareStep";
 import { PageTourButton } from "@/components/onboarding/PageTourButton";
 
 const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
@@ -65,14 +73,16 @@ const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 // State machine
 // ---------------------------------------------------------------------------
 
-type WizardStep = "prepare" | "upload" | "mapping" | "review" | "result";
+type WizardStep = "upload" | "mapping" | "review" | "result";
 
 interface WizardState {
   step: WizardStep;
   parsedFile: ParsedFile | null;
   columnMappings: ColumnMapping[];
   isTen10Template: boolean;
-  mappingErrors: MappingValidationError[];
+  autoMappedColumns: Record<string, ImportTargetField>;
+  fileExtension: ImportFileExtension | null;
+  rowCountBucket: string | null;
   previewRows: ImportPreviewRow[];
   existingTransactions: Transaction[];
   recurringTransactions: RecurringTransaction[];
@@ -85,9 +95,15 @@ interface WizardState {
 
 type WizardAction =
   | { type: "SET_STEP"; step: WizardStep }
-  | { type: "FILE_PARSED"; file: ParsedFile; mappings: ColumnMapping[]; isTen10: boolean }
+  | {
+      type: "FILE_PARSED";
+      file: ParsedFile;
+      mappings: ColumnMapping[];
+      isTen10: boolean;
+      autoMappedColumns: Record<string, ImportTargetField>;
+      fileExtension: ImportFileExtension;
+    }
   | { type: "UPDATE_MAPPING"; sourceColumn: string; targetField: ImportTargetField | null }
-  | { type: "SET_MAPPING_ERRORS"; errors: MappingValidationError[] }
   | { type: "SET_EXISTING_TRANSACTIONS"; transactions: Transaction[] }
   | { type: "SET_RECURRING_TRANSACTIONS"; transactions: RecurringTransaction[] }
   | { type: "SET_PREVIEW_ROWS"; rows: ImportPreviewRow[]; processing: boolean }
@@ -95,6 +111,7 @@ type WizardAction =
   | { type: "UPDATE_ROW"; id: string; updates: Partial<ImportPreviewRow> }
   | { type: "TOGGLE_APPROVAL"; id: string; approved: boolean }
   | { type: "BULK_TOGGLE"; ids: string[]; approved: boolean }
+  | { type: "BULK_UPDATE_ROWS"; rows: ImportPreviewRow[] }
   | { type: "TOGGLE_ALL_READY" }
   | { type: "CLEAR_SELECTION" }
   | { type: "OPEN_CONFIRM" }
@@ -104,11 +121,13 @@ type WizardAction =
   | { type: "RESET" };
 
 const initialState: WizardState = {
-  step: "prepare",
+  step: "upload",
   parsedFile: null,
   columnMappings: [],
   isTen10Template: false,
-  mappingErrors: [],
+  autoMappedColumns: {},
+  fileExtension: null,
+  rowCountBucket: null,
   previewRows: [],
   existingTransactions: [],
   recurringTransactions: [],
@@ -130,7 +149,9 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         parsedFile: action.file,
         columnMappings: action.mappings,
         isTen10Template: action.isTen10,
-        mappingErrors: [],
+        autoMappedColumns: action.autoMappedColumns,
+        fileExtension: action.fileExtension,
+        rowCountBucket: toRowCountBucket(action.file.rowCount),
         processingError: null,
         step: "mapping",
       };
@@ -143,9 +164,6 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       );
       return { ...state, columnMappings: mappings };
     }
-
-    case "SET_MAPPING_ERRORS":
-      return { ...state, mappingErrors: action.errors };
 
     case "SET_EXISTING_TRANSACTIONS":
       return { ...state, existingTransactions: action.transactions };
@@ -180,28 +198,38 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     case "TOGGLE_APPROVAL":
       return {
         ...state,
-        previewRows: state.previewRows.map((r) =>
-          r.id === action.id ? { ...r, approved: action.approved } : r
-        ),
+        previewRows: state.previewRows.map((r) => {
+          if (r.id !== action.id) return r;
+          if (action.approved && rowBlocksApproval(r)) return r;
+          return { ...r, approved: action.approved };
+        }),
       };
 
     case "BULK_TOGGLE": {
       const idSet = new Set(action.ids);
       return {
         ...state,
-        previewRows: state.previewRows.map((r) =>
-          idSet.has(r.id) && r.status !== "invalid" && r.approved !== action.approved
-            ? { ...r, approved: action.approved }
-            : r
-        ),
+        previewRows: state.previewRows.map((r) => {
+          if (!idSet.has(r.id) || r.approved === action.approved) return r;
+          if (action.approved && rowBlocksApproval(r)) return r;
+          return { ...r, approved: action.approved };
+        }),
       };
     }
+
+    case "BULK_UPDATE_ROWS":
+      return {
+        ...state,
+        previewRows: action.rows,
+      };
 
     case "TOGGLE_ALL_READY":
       return {
         ...state,
         previewRows: state.previewRows.map((r) =>
-          r.status === "ready" && !r.approved ? { ...r, approved: true } : r
+          r.status === "ready" && !r.approved && !rowBlocksApproval(r)
+            ? { ...r, approved: true }
+            : r
         ),
       };
 
@@ -394,25 +422,47 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
 
   const [state, dispatch] = useReducer(wizardReducer, initialState);
+  const [reviewSelectMode, setReviewSelectMode] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const mappingIssues = useMemo(
+    () => getMappingIssues(state.columnMappings),
+    [state.columnMappings]
+  );
+  const mappingBlocked = state.step === "mapping" && mappingIssues.length > 0;
+  const blockedEventSentRef = useRef(false);
 
   const isRtl = i18n.dir() === "rtl";
 
   // Emit analytics on start
   useEffect(() => {
     trackProductEvent("transaction_import_started", { platform });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [platform]);
+
+  useEffect(() => {
+    if (!mappingBlocked) {
+      blockedEventSentRef.current = false;
+      return;
+    }
+    if (blockedEventSentRef.current) return;
+    blockedEventSentRef.current = true;
+    trackProductEvent("transaction_import_mapping_blocked", {
+      platform,
+      step: "mapping",
+      errorCodes: mappingIssueErrorCodes(mappingIssues),
+      fileExtension: state.fileExtension,
+      rowCountBucket: state.rowCountBucket,
+    });
+  }, [
+    mappingBlocked,
+    mappingIssues,
+    platform,
+    state.fileExtension,
+    state.rowCountBucket,
+  ]);
 
   useEffect(() => {
     return subscribeOnboardingImportWizardScreen((screen) => {
-      if (screen === "prepare" && state.step === "upload") {
-        dispatch({ type: "SET_STEP", step: "prepare" });
-        return;
-      }
-      if (
-        screen === "upload" &&
-        (state.step === "prepare" || state.step === "mapping")
-      ) {
+      if (screen === "upload" && state.step === "mapping") {
         dispatch({ type: "SET_STEP", step: "upload" });
         return;
       }
@@ -432,26 +482,31 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   // Handlers
   // ---------------------------------------------------------------------------
 
-  const handleFileParsed = useCallback(
-    (file: ParsedFile) => {
-      const isTen10 = detectTen10Template(file.headers);
-      const mappings = suggestMappings(file.headers);
-      const fileWithDiagnostics = {
-        ...file,
-        diagnostics: [
-          ...(file.diagnostics ?? []),
-          ...analyzeParsedFile(file, mappings),
-        ],
-      };
-      dispatch({
-        type: "FILE_PARSED",
-        file: fileWithDiagnostics,
-        mappings,
-        isTen10,
-      });
-    },
-    []
-  );
+  const handleFileParsed = useCallback((file: ParsedFile, meta: FileParsedMeta) => {
+    const isTen10 = detectTen10Template(file.headers);
+    const mappings = suggestMappings(file.headers);
+    const autoMappedColumns: Record<string, ImportTargetField> = {};
+    for (const mapping of mappings) {
+      if (mapping.targetField) {
+        autoMappedColumns[mapping.sourceColumn] = mapping.targetField;
+      }
+    }
+    const fileWithDiagnostics = {
+      ...file,
+      diagnostics: [
+        ...(file.diagnostics ?? []),
+        ...analyzeParsedFile(file, mappings),
+      ],
+    };
+    dispatch({
+      type: "FILE_PARSED",
+      file: fileWithDiagnostics,
+      mappings,
+      isTen10,
+      autoMappedColumns,
+      fileExtension: meta.fileExtension,
+    });
+  }, []);
 
   const handleMappingChange = useCallback(
     (sourceColumn: string, targetField: ImportTargetField | null) => {
@@ -465,10 +520,51 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   // they don't change while the wizard is in the "processing" step.
   const processingParamsRef = useRef<ProcessingParams | null>(null);
 
+  const scrollToFirstMappingIssue = useCallback(() => {
+    const flagged = [...issueColumns(mappingIssues, state.columnMappings)];
+    const hasMissingRequired = mappingIssues.some(
+      (issue) =>
+        issue.code === "dateMissing" || issue.code === "amountMissing",
+    );
+    // Missing date/amount have no flagged row — scroll to the visible summary.
+    if (flagged.length === 0 && hasMissingRequired) {
+      const summary = document.getElementById("mapping-issues-summary");
+      if (summary && typeof summary.scrollIntoView === "function") {
+        summary.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+    }
+    let target: HTMLElement | null = null;
+    const rows = document.querySelectorAll<HTMLElement>("[data-mapping-column]");
+    if (flagged.length > 0) {
+      const first = flagged[0]!;
+      for (const row of rows) {
+        if (row.dataset.mappingColumn === first) {
+          target = row;
+          break;
+        }
+      }
+    } else {
+      for (const row of rows) {
+        if (row.dataset.mappingUnmapped === "true") {
+          target = row;
+          break;
+        }
+      }
+      if (!target) target = rows[0] ?? null;
+    }
+    if (target && typeof target.scrollIntoView === "function") {
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    const picker =
+      target?.matches?.("[data-mapping-picker]")
+        ? target
+        : target?.querySelector<HTMLElement>("[data-mapping-picker]");
+    picker?.focus?.();
+  }, [mappingIssues, state.columnMappings]);
+
   const handleMappingNext = useCallback(() => {
-    const validation = validateMappings(state.columnMappings);
-    if (!validation.valid) {
-      dispatch({ type: "SET_MAPPING_ERRORS", errors: validation.errors });
+    if (getMappingIssues(state.columnMappings).length > 0) {
       return;
     }
 
@@ -482,7 +578,6 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       platform,
     };
 
-    dispatch({ type: "SET_MAPPING_ERRORS", errors: [] });
     dispatch({ type: "SET_PROCESSING_ERROR", error: null });
     // isProcessingRows: true keeps step="mapping" and swaps the visible
     // content to the loading skeleton. useEffect below does the heavy work
@@ -492,7 +587,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
 
   const draftsStartedRef = useRef(false);
 
-  // Layout effect: the prepare step must not paint before the drafts load.
+  // Layout effect: drafts path must not paint upload before review loads.
   useLayoutEffect(() => {
     if (!initialRows || platform === "loading" || draftsStartedRef.current) return;
     draftsStartedRef.current = true;
@@ -609,6 +704,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
     []
   );
 
+  const handleBulkUpdateRows = useCallback((rows: ImportPreviewRow[]) => {
+    dispatch({ type: "BULK_UPDATE_ROWS", rows });
+  }, []);
+
   const handleReviewNext = useCallback(() => {
     dispatch({ type: "OPEN_CONFIRM" });
   }, []);
@@ -646,21 +745,44 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         if (hasNewPaymentMethods) clearPaymentMethodCache();
       }
 
-      trackProductEvent("transaction_import_completed", {
+      const analyticsBase = {
         platform,
-        approvedCount: result.inserted,
-        failedCount: result.failed,
-        skippedCount: result.skipped,
-        fileType: state.parsedFile?.sheetName ? "xlsx" : "csv",
+        step: "review" as const,
+        fileExtension:
+          state.fileExtension ??
+          (state.parsedFile?.sheetName ? "xlsx" : ("csv" as ImportFileExtension)),
+        rowCountBucket: state.rowCountBucket,
         isTen10Template: state.isTen10Template,
-      });
+      };
+
+      // persistApprovedImport returns errors instead of throwing.
+      if (result.failed > 0 || result.errors.length > 0) {
+        trackProductEvent("transaction_import_failed", {
+          ...analyticsBase,
+          errorCode: result.errors[0]?.code ?? "unknown",
+          failedCount: result.failed,
+          insertedCount: result.inserted,
+        });
+      } else {
+        trackProductEvent("transaction_import_completed", {
+          ...analyticsBase,
+          approvedCount: result.inserted,
+          failedCount: result.failed,
+          skippedCount: result.skipped,
+        });
+      }
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Unknown import error";
 
       trackProductEvent("transaction_import_failed", {
         platform,
-        error: errorMsg.slice(0, 100),
+        step: "review",
+        errorCode: "unknown",
+        failedCount: state.previewRows.filter((r) => r.approved).length,
+        insertedCount: 0,
+        fileExtension: state.fileExtension,
+        rowCountBucket: state.rowCountBucket,
       });
 
       dispatch({
@@ -673,9 +795,18 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         },
       });
     }
-  }, [state.previewRows, state.parsedFile, state.isTen10Template, platform, defaultCurrency]);
+  }, [
+    state.previewRows,
+    state.parsedFile,
+    state.isTen10Template,
+    state.fileExtension,
+    state.rowCountBucket,
+    platform,
+    defaultCurrency,
+  ]);
 
   const handleReset = useCallback(() => {
+    setReviewSelectMode(false);
     dispatch({ type: "RESET" });
   }, []);
 
@@ -700,7 +831,9 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
           r.approved &&
           r.issues.some(
             (i) =>
-              i.code === "possible_duplicate" || i.code === "possible_recurring"
+              i.code === "possible_duplicate" ||
+              i.code === "possible_recurring" ||
+              i.code === "card_refund"
           )
       ).length,
     [state.previewRows]
@@ -710,8 +843,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   // Step navigation helpers
   // ---------------------------------------------------------------------------
 
-  const STEPS: WizardStep[] = ["prepare", "upload", "mapping", "review", "result"];
+  const STEPS: WizardStep[] = ["upload", "mapping", "review", "result"];
+  const labeledSteps = STEPS.filter((s) => s !== "result");
   const currentStepIndex = STEPS.indexOf(state.step);
+  const labeledStepIndex = Math.max(0, labeledSteps.indexOf(state.step as (typeof labeledSteps)[number]));
   const progressPercent = (currentStepIndex / (STEPS.length - 1)) * 100;
 
   // Separate animation keys so loaders get their own enter/exit, independent
@@ -727,13 +862,12 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   function canGoBack() {
     // Drafts reach review without a file, so there is no mapping to return to.
     if (state.step === "review") return state.parsedFile !== null;
-    return state.step !== "prepare" && state.step !== "result";
+    return state.step !== "upload" && state.step !== "result";
   }
 
   function handleBack() {
     switch (state.step) {
       case "upload":
-        dispatch({ type: "SET_STEP", step: "prepare" });
         break;
       case "mapping":
         dispatch({ type: "SET_STEP", step: "upload" });
@@ -741,8 +875,13 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       case "review":
         dispatch({ type: "SET_STEP", step: "mapping" });
         break;
-      default:
+      case "result":
         break;
+      default: {
+        const _exhaustive: never = state.step;
+        void _exhaustive;
+        break;
+      }
     }
   }
 
@@ -753,10 +892,72 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const BackIcon = isRtl ? ArrowRight : ArrowLeft;
   const NextIcon = isRtl ? ArrowLeft : ArrowRight;
 
+  const exitButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-11 w-11 shrink-0"
+      onClick={() => navigate({ to: "/transactions-table" })}
+      aria-label={t("navigation.cancel")}
+    >
+      <X className="h-4 w-4" aria-hidden="true" />
+    </Button>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+    <div
+      className={cn(
+        // Desktop keeps space-y. Mobile review uses flex + gap only — any
+        // space-y-* (including space-y-0) sets margin-top on `> * + *` with
+        // higher specificity than mt-auto, so the footer pin would lose.
+        // min-h fills to the viewport bottom (below the top bar); -mb-24 sinks
+        // into the shell’s pb-24 so short pages don’t grow an extra scroll.
+        state.step === "review"
+          ? cn(
+              "md:space-y-6",
+              "max-md:flex max-md:flex-col max-md:gap-6",
+              "max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] max-md:-mb-24",
+            )
+          : "space-y-6",
+      )}
+      data-import-wizard-root=""
+    >
+      {/* Mobile header (<768px): title + compact step + tour + close, then progress bar */}
+      <div className="md:hidden space-y-3">
+        <div className="flex items-center gap-2" data-onboarding="import-intro">
+          <h1 className="text-[17px] font-semibold flex-1 min-w-0 truncate">{t("title")}</h1>
+          {state.step !== "result" && (
+            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0">
+              {t("steps.compact", {
+                current: labeledStepIndex + 1,
+                label: t(`steps.${state.step}`),
+              })}
+            </span>
+          )}
+          {state.step === "upload" && (
+            <PageTourButton tour="import" className="h-11 w-11" />
+          )}
+          {exitButton}
+        </div>
+        {state.step !== "result" && (
+          <div
+            className="h-1 overflow-hidden rounded-full bg-muted"
+            data-onboarding="import-steps"
+            role="progressbar"
+            aria-valuenow={Math.round(progressPercent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full bg-primary transition-[width] duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Desktop header */}
+      <div className="hidden md:flex items-start justify-between gap-4">
         <div className="space-y-1" data-onboarding="import-intro">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
@@ -765,31 +966,24 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          {state.step === "prepare" && <PageTourButton tour="import" />}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate({ to: "/transactions-table" })}
-            aria-label={t("navigation.cancel")}
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </Button>
+          {state.step === "upload" && <PageTourButton tour="import" />}
+          {exitButton}
         </div>
       </div>
 
-      {/* Step indicator */}
+      {/* Desktop step indicator — 3 dots */}
       {state.step !== "result" && (
-        <div className="relative py-1" data-onboarding="import-steps">
-          {/* Background line */}
+        <div className="relative hidden md:block py-1" data-onboarding="import-steps">
           <div className="absolute top-[14px] inset-x-0 h-0.5 bg-border" />
-          {/* Filled line — mirrors horizontally in RTL */}
           <div
-            className={cn("absolute top-[14px] h-0.5 bg-primary transition-[width] duration-300", isRtl ? "right-0" : "left-0")}
+            className={cn(
+              "absolute top-[14px] h-0.5 bg-primary transition-[width] duration-300",
+              isRtl ? "right-0" : "left-0"
+            )}
             style={{ width: `${progressPercent}%` }}
           />
-          {/* Dots + labels */}
           <div className="relative flex justify-between">
-            {STEPS.filter((s) => s !== "result").map((s, i) => {
+            {labeledSteps.map((s, i) => {
               const isCompleted = currentStepIndex > i;
               const isActive = currentStepIndex === i;
               return (
@@ -813,7 +1007,11 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   <span
                     className={cn(
                       "text-[11px] whitespace-nowrap",
-                      isActive ? "text-foreground font-semibold" : isCompleted ? "text-primary" : "text-muted-foreground"
+                      isActive
+                        ? "text-foreground font-semibold"
+                        : isCompleted
+                          ? "text-primary"
+                          : "text-muted-foreground"
                     )}
                   >
                     {t(`steps.${s}`)}
@@ -825,15 +1023,10 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         </div>
       )}
 
-
       {/* Step content */}
       <Card>
         <CardContent className="p-4 md:p-6">
           <div key={animationKey}>
-              {animationKey === "prepare" && (
-                <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
-              )}
-
               {animationKey === "upload" && (
                 <FileUploadStep onFileParsed={handleFileParsed} />
               )}
@@ -843,7 +1036,8 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   parsedFile={state.parsedFile}
                   mappings={state.columnMappings}
                   isTen10Template={state.isTen10Template}
-                  validationErrors={state.mappingErrors}
+                  issues={mappingIssues}
+                  autoMappedColumns={state.autoMappedColumns}
                   onMappingChange={handleMappingChange}
                 />
               )}
@@ -881,6 +1075,8 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
                   onToggleAllReady={handleToggleAllReady}
                   onClearSelection={handleClearSelection}
                   onUpdateRow={handleUpdateRow}
+                  onBulkUpdateRows={handleBulkUpdateRows}
+                  onSelectModeChange={setReviewSelectMode}
                   existingTransactions={state.existingTransactions}
                   recurringTransactions={state.recurringTransactions}
                 />
@@ -896,47 +1092,95 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
         </CardContent>
       </Card>
 
-      {/* Navigation footer — sticky so the import button stays visible while scrolling */}
-      {state.step !== "result" && state.step !== "prepare" && !state.processingError && (
+      {/* Navigation footer — sticky while scrolling; mt-auto pins it on short mobile pages */}
+      {state.step !== "result" &&
+        state.step !== "upload" &&
+        !state.processingError &&
+        !(state.step === "review" && reviewSelectMode) && (
         <div
-          className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10"
+          className={cn(
+            "sticky bottom-0 z-10 space-y-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 -mx-1 px-1",
+            "pb-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
+            state.step === "review" && "max-md:mt-auto",
+          )}
           data-onboarding-import-nav=""
         >
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={!canGoBack() || state.isProcessingRows || state.isImporting}
-            className="gap-1.5"
-          >
-            <BackIcon className="h-4 w-4" aria-hidden="true" />
-            {t("navigation.back")}
-          </Button>
+          {state.step === "mapping" && mappingBlocked && isMobile && (
+            <button
+              type="button"
+              // When date/amount-missing text lives in the step Alert, keep that
+              // element as #mapping-issues-summary for aria-describedby + Show.
+              id={
+                mappingIssues.some(
+                  (issue) =>
+                    issue.code === "dateMissing" ||
+                    issue.code === "amountMissing",
+                )
+                  ? undefined
+                  : "mapping-issues-summary"
+              }
+              onClick={scrollToFirstMappingIssue}
+              className="flex h-11 w-full items-center justify-between gap-2 border-t border-red-200 bg-red-50 px-3 text-red-700"
+              aria-label={t("mapping.summary.show")}
+            >
+              <span className="inline-flex items-center gap-2 text-sm font-medium">
+                <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t("mapping.summary.remaining", { count: mappingIssues.length })}
+              </span>
+              <span className="text-sm font-semibold underline-offset-2">
+                {t("mapping.summary.show")} ↑
+              </span>
+            </button>
+          )}
 
-          <div className="flex gap-2">
-            {state.step === "mapping" && (
-              <Button
-                onClick={handleMappingNext}
-                disabled={state.isProcessingRows}
-                className="gap-1.5"
-              >
-                {state.isProcessingRows
-                  ? t("review.processing")
-                  : t("navigation.next")}
-                {!state.isProcessingRows && <NextIcon className="h-4 w-4" aria-hidden="true" />}
-              </Button>
-            )}
+          <div className="flex justify-between gap-3 pt-0 max-md:items-stretch">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              disabled={!canGoBack() || state.isProcessingRows || state.isImporting}
+              className="gap-1.5 max-md:h-11"
+            >
+              <BackIcon className="h-4 w-4" aria-hidden="true" />
+              {t("navigation.back")}
+            </Button>
 
-            {state.step === "review" && (
-              <Button
-                onClick={handleReviewNext}
-                disabled={approvedCount === 0 || state.isImporting}
-                className="gap-1.5"
-                data-onboarding="import-approve"
-              >
-                {t("confirm.proceed")} ({approvedCount})
-                <NextIcon className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            )}
+            <div className="flex gap-2 max-md:flex-1 max-md:justify-end items-center">
+              {state.step === "mapping" && mappingBlocked && !isMobile && (
+                <span className="hidden md:inline-flex items-center gap-1.5 text-sm text-destructive me-1">
+                  <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                  {t("mapping.summary.remaining", { count: mappingIssues.length })}
+                </span>
+              )}
+
+              {state.step === "mapping" && (
+                <Button
+                  onClick={handleMappingNext}
+                  disabled={state.isProcessingRows || mappingBlocked}
+                  aria-disabled={mappingBlocked || state.isProcessingRows}
+                  aria-describedby={
+                    mappingBlocked ? "mapping-issues-summary" : undefined
+                  }
+                  className="gap-1.5 max-md:h-11 max-md:flex-1"
+                >
+                  {state.isProcessingRows
+                    ? t("review.processing")
+                    : t("navigation.next")}
+                  {!state.isProcessingRows && <NextIcon className="h-4 w-4" aria-hidden="true" />}
+                </Button>
+              )}
+
+              {state.step === "review" && (
+                <Button
+                  onClick={handleReviewNext}
+                  disabled={approvedCount === 0 || state.isImporting}
+                  className="gap-1.5 max-md:h-11 max-md:flex-1"
+                  data-onboarding="import-approve"
+                >
+                  {t("review.saveCta", { count: approvedCount })}
+                  <NextIcon className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -945,15 +1189,15 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
       <Dialog open={state.confirmOpen} onOpenChange={(open) => !open && dispatch({ type: "CLOSE_CONFIRM" })}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("confirm.title")}</DialogTitle>
+            <DialogTitle>{t("confirm.title", { count: approvedCount })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              {t("confirm.description_other", { count: approvedCount })}
+              {t("confirm.description", { count: approvedCount })}
             </p>
             {riskyApproved > 0 && (
               <p className="text-amber-600 dark:text-amber-400">
-                {t("confirm.riskyRows_other", { count: riskyApproved })}
+                {t("confirm.riskyRows", { count: riskyApproved })}
               </p>
             )}
           </div>

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { WEB_IMPORT_BATCH_SIZE } from "@/lib/data-layer/dataManagement/importPrepare";
 import { nanoid } from "nanoid";
+import { getApprovedRows } from "./approval-gates";
 
 /** Fields needed for deduplication — minimal fetch. */
 const DEDUP_FIELDS = "date,amount,currency,type,description,category";
@@ -101,13 +102,6 @@ export async function fetchRecurringForImport(
     logger.warn("fetchRecurringForImport: could not fetch recurring transactions:", err);
   }
   return [];
-}
-
-/** Only approved, non-invalid rows with a normalized value. */
-function getApprovedRows(rows: ImportPreviewRow[]): ImportPreviewRow[] {
-  return rows.filter(
-    (r) => r.approved && r.status !== "invalid" && r.normalized
-  );
 }
 
 // ---------------------------------------------------------------------------

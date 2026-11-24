@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ImportPreviewRow, ParsedFile } from "@/lib/import/import-session.types";
+import type { ColumnMapping, ImportPreviewRow, ParsedFile } from "@/lib/import/import-session.types";
 import type { TransactionDraftV1 } from "@/lib/intake/contracts";
 import { parseCSVText } from "@/lib/import/parsers";
 
@@ -12,6 +12,8 @@ const io = vi.hoisted(() => ({
   fetchRecurringForImport: vi.fn(),
   persistApprovedImport: vi.fn(),
   trackProductEvent: vi.fn(),
+  suggestMappings: vi.fn(),
+  mediaQueryMatches: false,
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -19,12 +21,16 @@ vi.mock("@/lib/utils/export-pdf", () => ({ exportTransactionsToPDF: vi.fn() }));
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, opts?: { count?: number }) =>
+      opts?.count !== undefined ? `${key}:${opts.count}` : key,
     i18n: { language: "en", dir: () => "ltr" },
   }),
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/contexts/PlatformContext", () => ({ usePlatform: () => ({ platform: "web" }) }));
+vi.mock("@/hooks/use-media-query", () => ({
+  useMediaQuery: () => io.mediaQueryMatches,
+}));
 vi.mock("@/lib/store", () => ({
   useDonationStore: Object.assign(
     (select: (state: { settings: { defaultCurrency: string } }) => unknown) =>
@@ -40,19 +46,55 @@ vi.mock("@/lib/import/persist-approved-import", () => ({
   fetchRecurringForImport: io.fetchRecurringForImport,
   persistApprovedImport: io.persistApprovedImport,
 }));
-vi.mock("@/components/onboarding/PageTourButton", () => ({ PageTourButton: () => null }));
-vi.mock("./steps/PrepareStep", () => ({
-  PrepareStep: ({ onNext }: { onNext: () => void }) => (
-    <button type="button" onClick={onNext}>prepare-next</button>
+vi.mock("@/components/onboarding/PageTourButton", () => ({
+  PageTourButton: ({
+    tour,
+    className,
+  }: {
+    tour: string;
+    className?: string;
+  }) => (
+    <button type="button" aria-label={`page-tour-${tour}`} className={className}>
+      tour
+    </button>
   ),
 }));
+
+vi.mock("@/lib/import/index", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/import/index")>();
+  return {
+    ...actual,
+    suggestMappings: (...args: unknown[]) => io.suggestMappings(...args),
+  };
+});
+
 vi.mock("./steps/FileUploadStep", () => ({
-  FileUploadStep: ({ onFileParsed }: { onFileParsed: (file: ParsedFile) => void }) => (
-    <button type="button" onClick={() => onFileParsed(parsedCsv())}>upload-file</button>
+  FileUploadStep: ({
+    onFileParsed,
+  }: {
+    onFileParsed: (file: ParsedFile, meta: { fileExtension: "csv" }) => void;
+  }) => (
+    <button
+      type="button"
+      onClick={() => onFileParsed(parsedCsv(), { fileExtension: "csv" })}
+    >
+      upload-file
+    </button>
   ),
 }));
 vi.mock("./steps/ColumnMappingStep", () => ({
-  ColumnMappingStep: () => <p>mapping-step</p>,
+  ColumnMappingStep: ({
+    onMappingChange,
+  }: {
+    onMappingChange: (sourceColumn: string, targetField: ColumnMapping["targetField"]) => void;
+  }) => (
+    <div>
+      <p>mapping-step</p>
+      <button type="button" onClick={() => onMappingChange("תאריך ערך", null)}>
+        fix-duplicate
+      </button>
+    </div>
+  ),
 }));
 vi.mock("./steps/ImportReviewStep", () => ({
   ImportReviewStep: ({ rows }: { rows: ImportPreviewRow[] }) => (
@@ -67,6 +109,15 @@ vi.mock("./steps/ImportReviewStep", () => ({
 }));
 
 import { ImportWizard } from "./ImportWizard";
+
+/** Hand-built Leumi-like mapping (spec §8) — not matcher output. */
+const LEUMI_HAND_BUILT: ColumnMapping[] = [
+  { sourceColumn: "תאריך", targetField: "date" },
+  { sourceColumn: "תאריך ערך", targetField: "date" },
+  { sourceColumn: "סכום", targetField: "amount" },
+  { sourceColumn: "תיאור", targetField: "description" },
+  { sourceColumn: "יתרה", targetField: null },
+];
 
 const CSV = [
   "date,amount,description,type,category",
@@ -86,9 +137,29 @@ function reviewLines(): string[] {
 }
 
 beforeEach(() => {
-  for (const fn of Object.values(io)) fn.mockReset();
+  for (const fn of Object.values(io)) {
+    if (typeof fn === "function" && "mockReset" in fn) fn.mockReset();
+  }
+  io.mediaQueryMatches = false;
   io.fetchExistingForDedup.mockResolvedValue([]);
   io.fetchRecurringForImport.mockResolvedValue([]);
+  io.suggestMappings.mockImplementation((headers: string[]) =>
+    headers.map((sourceColumn) => {
+      const lower = sourceColumn.toLowerCase();
+      if (lower.includes("date") || sourceColumn === "תאריך") {
+        return { sourceColumn, targetField: "date" as const };
+      }
+      if (lower.includes("amount") || sourceColumn === "סכום") {
+        return { sourceColumn, targetField: "amount" as const };
+      }
+      if (lower.includes("description") || sourceColumn === "תיאור") {
+        return { sourceColumn, targetField: "description" as const };
+      }
+      if (lower.includes("type")) return { sourceColumn, targetField: "type" as const };
+      if (lower.includes("category")) return { sourceColumn, targetField: "category" as const };
+      return { sourceColumn, targetField: null };
+    })
+  );
 });
 
 afterEach(() => {
@@ -96,14 +167,42 @@ afterEach(() => {
 });
 
 describe("ImportWizard without props", () => {
-  it("walks prepare, upload, mapping and review, and back to mapping", async () => {
+  it("renders the import tour entry in the mobile header on upload", () => {
+    const { container } = render(<ImportWizard />);
+    const mobileHeader = container.querySelector(
+      '.md\\:hidden [data-onboarding="import-intro"]',
+    );
+    expect(mobileHeader).toBeTruthy();
+    const tour = within(mobileHeader as HTMLElement).getByRole("button", {
+      name: "page-tour-import",
+    });
+    expect(tour).toBeInTheDocument();
+    expect(tour.className).toContain("h-11");
+    expect(tour.className).toContain("w-11");
+
+    const desktopHeader = container.querySelector(
+      '.hidden.md\\:flex [data-onboarding="import-intro"]',
+    )?.parentElement;
+    expect(desktopHeader).toBeTruthy();
+    expect(
+      within(desktopHeader as HTMLElement).getByRole("button", {
+        name: "page-tour-import",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("starts on upload with 3 labeled steps and no back on upload", async () => {
     const user = userEvent.setup();
     render(<ImportWizard />);
 
-    expect(screen.getByRole("button", { name: "prepare-next" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "upload-file" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "navigation.back" })).not.toBeInTheDocument();
+    expect(screen.getByText("steps.upload")).toBeInTheDocument();
+    expect(screen.getByText("steps.mapping")).toBeInTheDocument();
+    expect(screen.getByText("steps.review")).toBeInTheDocument();
+    expect(screen.queryByText("steps.prepare")).not.toBeInTheDocument();
     expect(io.fetchExistingForDedup).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
     expect(screen.getByText("mapping-step")).toBeInTheDocument();
 
@@ -127,6 +226,10 @@ describe("ImportWizard without props", () => {
     expect(back).toBeEnabled();
     await user.click(back);
     expect(screen.getByText("mapping-step")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "navigation.back" }));
+    expect(screen.getByRole("button", { name: "upload-file" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "navigation.back" })).not.toBeInTheDocument();
   });
 
   it("saves approved rows through persistApprovedImport", async () => {
@@ -134,12 +237,11 @@ describe("ImportWizard without props", () => {
     const user = userEvent.setup();
     render(<ImportWizard />);
 
-    await user.click(screen.getByRole("button", { name: "prepare-next" }));
     await user.click(screen.getByRole("button", { name: "upload-file" }));
     await user.click(screen.getByRole("button", { name: "navigation.next" }));
     await screen.findByRole("list", { name: "review-step" });
 
-    await user.click(screen.getByRole("button", { name: /confirm\.proceed \(3\)/ }));
+    await user.click(screen.getByRole("button", { name: /review\.saveCta:3/ }));
     await user.click(await screen.findByRole("button", { name: "confirm.proceed" }));
 
     await waitFor(() => expect(io.persistApprovedImport).toHaveBeenCalledTimes(1));
@@ -147,6 +249,87 @@ describe("ImportWizard without props", () => {
     expect(platform).toBe("web");
     expect(currency).toBe("ILS");
     expect((rows as ImportPreviewRow[]).filter((r) => r.approved)).toHaveLength(3);
+  });
+
+  it("disables Next while hand-built Leumi mappings have duplicates, then enables after a fix", async () => {
+    io.suggestMappings.mockReturnValue(LEUMI_HAND_BUILT);
+    io.mediaQueryMatches = true;
+    const user = userEvent.setup();
+    render(<ImportWizard />);
+
+    await user.click(screen.getByRole("button", { name: "upload-file" }));
+
+    const next = screen.getByRole("button", { name: "navigation.next" });
+    expect(next).toBeDisabled();
+    expect(next).toHaveAttribute("aria-disabled", "true");
+    expect(next).toHaveAttribute("aria-describedby", "mapping-issues-summary");
+    expect(next.className).toContain("max-md:h-11");
+    expect(next.className).toContain("max-md:flex-1");
+
+    expect(
+      screen.getByRole("button", { name: "mapping.summary.show" })
+    ).toBeInTheDocument();
+    expect(io.trackProductEvent).toHaveBeenCalledWith(
+      "transaction_import_mapping_blocked",
+      expect.objectContaining({
+        platform: "web",
+        step: "mapping",
+        errorCodes: ["duplicateTarget"],
+      })
+    );
+
+    await user.click(screen.getByRole("button", { name: "fix-duplicate" }));
+    expect(screen.getByRole("button", { name: "navigation.next" })).toBeEnabled();
+  });
+
+  it("scrolls to the first flagged mapping row from the summary bar", async () => {
+    io.suggestMappings.mockReturnValue(LEUMI_HAND_BUILT);
+    io.mediaQueryMatches = true;
+    const scrollIntoView = vi.fn();
+    const focus = vi.fn();
+    const flagged = document.createElement("div");
+    flagged.setAttribute("data-mapping-column", "תאריך");
+    flagged.setAttribute("data-mapping-issue", "true");
+    flagged.scrollIntoView = scrollIntoView;
+    const picker = document.createElement("button");
+    picker.setAttribute("data-mapping-picker", "תאריך");
+    picker.focus = focus;
+    flagged.appendChild(picker);
+    document.body.appendChild(flagged);
+
+    const user = userEvent.setup();
+    render(<ImportWizard />);
+    await user.click(screen.getByRole("button", { name: "upload-file" }));
+    await user.click(screen.getByRole("button", { name: "mapping.summary.show" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
+    expect(focus).toHaveBeenCalled();
+    flagged.remove();
+  });
+
+  it("scrolls Show to the missing-required summary on mobile (RG-304)", async () => {
+    // No date/amount mapping → dateMissing+amountMissing; sticky Show targets the summary.
+    io.suggestMappings.mockReturnValue([
+      { sourceColumn: "תיאור", targetField: "description" },
+      { sourceColumn: "יתרה", targetField: null },
+    ]);
+    io.mediaQueryMatches = true;
+    const scrollIntoView = vi.fn();
+    const summary = document.createElement("div");
+    summary.id = "mapping-issues-summary";
+    summary.scrollIntoView = scrollIntoView;
+    document.body.appendChild(summary);
+
+    const user = userEvent.setup();
+    render(<ImportWizard />);
+    await user.click(screen.getByRole("button", { name: "upload-file" }));
+    await user.click(screen.getByRole("button", { name: "mapping.summary.show" }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: "center",
+      behavior: "smooth",
+    });
+    summary.remove();
   });
 });
 
@@ -193,10 +376,10 @@ const DRAFTS: TransactionDraftV1[] = [
 ];
 
 describe("ImportWizard with initialRows", () => {
-  it("lands on review without prepare, upload or mapping", async () => {
+  it("lands on review without upload or mapping", async () => {
     render(<ImportWizard initialRows={DRAFTS} />);
 
-    expect(screen.queryByRole("button", { name: "prepare-next" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "upload-file" })).not.toBeInTheDocument();
     await screen.findByRole("list", { name: "review-step" });
 
     expect(io.fetchExistingForDedup).toHaveBeenCalledWith("web", null);
@@ -214,13 +397,43 @@ describe("ImportWizard with initialRows", () => {
     expect(screen.queryByText("mapping-step")).not.toBeInTheDocument();
   });
 
+  it("uses flex gap on mobile review so footer mt-auto is not overridden by space-y", async () => {
+    const { container } = render(<ImportWizard initialRows={DRAFTS} />);
+    await screen.findByRole("list", { name: "review-step" });
+
+    const root = container.querySelector("[data-import-wizard-root]");
+    const rootClasses = root?.className.split(/\s+/) ?? [];
+    // Mobile: flex + gap only (any space-y-* sibling margin beats mt-auto).
+    expect(rootClasses).toContain("max-md:flex");
+    expect(rootClasses).toContain("max-md:flex-col");
+    expect(rootClasses).toContain("max-md:gap-6");
+    expect(rootClasses).toContain(
+      "max-md:min-h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))]",
+    );
+    expect(rootClasses).toContain("max-md:-mb-24");
+    expect(rootClasses.some((c) => c.includes("space-y-0"))).toBe(false);
+    expect(rootClasses.some((c) => c === "space-y-6" || c.startsWith("max-md:space-y-"))).toBe(
+      false,
+    );
+    // Desktop spacing unchanged (space-y-6 only from md up).
+    expect(rootClasses).toContain("md:space-y-6");
+
+    const footer = container.querySelector("[data-onboarding-import-nav]");
+    const footerClasses = footer?.className.split(/\s+/) ?? [];
+    expect(footerClasses).toContain("sticky");
+    expect(footerClasses).toContain("bottom-0");
+    expect(footerClasses).toContain("max-md:mt-auto");
+    expect(footerClasses).not.toContain("md:mt-auto");
+    expect(rootClasses.some((c) => c.startsWith("md:min-h-"))).toBe(false);
+  });
+
   it("saves through the regular import save without origin", async () => {
     io.persistApprovedImport.mockResolvedValue({ inserted: 2, failed: 0, skipped: 1, errors: [] });
     const user = userEvent.setup();
     render(<ImportWizard initialRows={DRAFTS} />);
     await screen.findByRole("list", { name: "review-step" });
 
-    await user.click(screen.getByRole("button", { name: /confirm\.proceed \(2\)/ }));
+    await user.click(screen.getByRole("button", { name: /review\.saveCta:2/ }));
     await user.click(await screen.findByRole("button", { name: "confirm.proceed" }));
 
     await waitFor(() => expect(io.persistApprovedImport).toHaveBeenCalledTimes(1));
