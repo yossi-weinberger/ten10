@@ -76,25 +76,6 @@ export function AboutPage() {
                 <p className="leading-relaxed text-gray-600 dark:text-gray-300">
                   {t("appInfo.description")}
                 </p>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature1")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature2")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature3")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature4")}
-                  </div>
-                </div>
               </div>
 
               <div className={`${panelFooterClass} space-y-3`}>
