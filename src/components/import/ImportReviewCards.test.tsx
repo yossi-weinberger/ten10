@@ -227,4 +227,100 @@ describe("ImportReviewCards B4a", () => {
     expect(editButton.getAttribute("aria-label") ?? "").not.toMatch(/Salary/i);
     expect(editButton.getAttribute("aria-label") ?? "").not.toMatch(/10/);
   });
+
+  it("uses the bulk select label in select mode", () => {
+    render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 4, approved: false })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+        selectMode
+        selectedIds={new Set()}
+        onToggleSelect={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: 'review.bulk.selectRowAria:{"row":4}' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: 'review.bulk.selectRowAria:{"row":4}' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /review\.selectRowAria:/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps every card the same height and announces status without a wrapping chip", () => {
+    const { container } = render(
+      <ImportReviewCards
+        rows={[
+          row({ id: "ready", rowNumber: 1, status: "ready" }),
+          row({
+            id: "review",
+            rowNumber: 2,
+            status: "needs_review",
+            issues: [{ code: "possible_duplicate" }],
+          }),
+          row({
+            id: "bad",
+            rowNumber: 3,
+            status: "invalid",
+            issues: [{ code: "invalid_amount" }],
+            normalized: {
+              date: "2026-01-15",
+              amount: 10,
+              currency: "ILS",
+              type: null,
+              description: "Refund",
+              category: null,
+              recipient: "Very long recipient name",
+              payment_method: null,
+              is_chomesh: false,
+              original_amount: null,
+              original_currency: null,
+              conversion_rate: null,
+              conversion_date: null,
+              rate_source: null,
+              source_recurring_id: null,
+              occurrence_number: null,
+            },
+          }),
+        ]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    const cards = container.querySelectorAll("[data-testid='import-review-card']");
+    expect(cards).toHaveLength(3);
+    for (const card of cards) {
+      expect(card.className).toContain("h-[54px]");
+      expect(card.querySelector(".flex-wrap")).toBeNull();
+      expect(card.innerHTML).not.toContain("flex-wrap");
+    }
+    expect(screen.getByText("status.needs_review")).toHaveClass("sr-only");
+    expect(screen.getByText("status.invalid")).toHaveClass("sr-only");
+    expect(screen.getByText("Very long recipient name")).toBeInTheDocument();
+  });
+
+  it("shows how many eligible rows will be imported, including zero", () => {
+    render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 1, approved: false })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(screen.getByText(/review\.selection\.willImport:/)).toHaveTextContent('"selected":0');
+    expect(screen.getByText(/review\.selection\.willImport:/)).toHaveTextContent('"count":1');
+  });
 });

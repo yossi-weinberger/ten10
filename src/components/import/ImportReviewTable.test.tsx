@@ -110,6 +110,57 @@ describe("ImportReviewTable B4a", () => {
     expect(screen.queryByText("Select row")).not.toBeInTheDocument();
     expect(screen.queryByText(/^Row /)).not.toBeInTheDocument();
   });
+
+  it("uses the bulk select label in select mode", () => {
+    render(
+      <ImportReviewTable
+        rows={[row()]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+        selectMode
+        selectedIds={new Set()}
+        onToggleSelect={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: 'review.bulk.selectRowAria:{"row":3}' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: 'review.selectRowAria:{"row":3}' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("truncates long category and recipient values but keeps them in the DOM", () => {
+    const longValue = "x".repeat(60);
+    render(
+      <ImportReviewTable
+        rows={[
+          row({
+            normalized: baseNormalized({
+              category: longValue,
+              recipient: longValue,
+            }),
+          }),
+        ]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    const matches = screen.getAllByTitle(longValue);
+    expect(matches.length).toBeGreaterThanOrEqual(2);
+    for (const el of matches) {
+      expect(el).toHaveClass("truncate");
+      expect(el).toHaveTextContent(longValue);
+    }
+  });
 });
 
 describe("ImportReviewTable category labels", () => {

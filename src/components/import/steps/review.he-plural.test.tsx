@@ -16,6 +16,7 @@ function heCountText(
   table: Record<string, string>,
   key: string,
   count: number,
+  extra: Record<string, string | number> = {},
 ): string {
   const suffix = hePluralSuffix(count);
   const template = table[`${key}_${suffix}`] ?? table[`${key}_other`];
@@ -23,7 +24,10 @@ function heCountText(
   expect(template, `raw key leaked for ${key} count=${count}`).not.toMatch(
     new RegExp(`${key}_${suffix}|${key}_other`),
   );
-  return template.replace(/\{\{\s*count\s*\}\}/g, String(count));
+  return Object.entries({ count, ...extra }).reduce(
+    (text, [name, value]) => text.replace(new RegExp(`\\{\\{\\s*${name}\\s*\\}\\}`, "g"), String(value)),
+    template,
+  );
 }
 
 describe("Hebrew review/confirm plurals (B4a)", () => {
@@ -47,5 +51,18 @@ describe("Hebrew review/confirm plurals (B4a)", () => {
       confirm.description_two,
     );
     expect(heCountText(confirm, "riskyRows", 2)).toBe(confirm.riskyRows_two);
+  });
+
+  it("labels how many eligible rows will be imported", () => {
+    const selection = heImport.review.selection as unknown as Record<string, string>;
+
+    expect(selection.willImport_one).toContain("{{selected}}");
+    expect(selection.willImport_two).toContain("שתיים");
+    expect(selection.willImport_many).toBe(selection.willImport_other);
+    expect(heCountText(selection, "willImport", 1, { selected: 0 })).toBe("0 מתוך אחת ייובאו");
+    expect(heCountText(selection, "willImport", 2, { selected: 2 })).toBe("2 מתוך שתיים ייובאו");
+    expect(heCountText(selection, "willImport", 452, { selected: 444 })).toBe(
+      "444 מתוך 452 ייובאו",
+    );
   });
 });

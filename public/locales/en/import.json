@@ -198,6 +198,10 @@
     "editRow": "Edit",
     "editRowAria": "Edit row {{row}}",
     "selectRowAria": "Include row {{row}}",
+    "selection": {
+      "willImport_one": "{{selected}} of 1 will be imported",
+      "willImport_other": "{{selected}} of {{count}} will be imported"
+    },
     "saveCta_one": "Save 1 transaction",
     "saveCta_other": "Save {{count}} transactions",
     "saveRow": "Save",
@@ -205,6 +209,7 @@
     "issuesAriaLabel": "{{count}} issues in row {{row}}",
     "bulk": {
       "enter": "Select",
+      "selectRowAria": "Select row {{row}}",
       "selectAllVisible": "Select all shown ({{count}})",
       "done": "Done",
       "count_one": "1 selected",

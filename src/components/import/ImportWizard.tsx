@@ -37,6 +37,7 @@ import type {
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import type { TransactionDraftV1 } from "@/lib/intake/contracts";
 import { draftToNormalizedRow } from "@/lib/intake/draft-to-import";
+import { getStepProgress } from "./stepProgress";
 import {
   suggestMappings,
   detectTen10Template,
@@ -847,7 +848,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   const labeledSteps = STEPS.filter((s) => s !== "result");
   const currentStepIndex = STEPS.indexOf(state.step);
   const labeledStepIndex = Math.max(0, labeledSteps.indexOf(state.step as (typeof labeledSteps)[number]));
-  const progressPercent = (currentStepIndex / (STEPS.length - 1)) * 100;
+  const stepProgress = getStepProgress(state.step);
 
   // Separate animation keys so loaders get their own enter/exit, independent
   // of the underlying step key — prevents re-rendering with stale state.
@@ -907,6 +908,8 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
   return (
     <div
       className={cn(
+        // Upload, mapping, and result stay boxed. Review uses the page container.
+        state.step !== "review" && "mx-auto w-full max-w-5xl",
         // Desktop keeps space-y. Mobile review uses flex + gap only — any
         // space-y-* (including space-y-0) sets margin-top on `> * + *` with
         // higher specificity than mt-auto, so the footer pin would lose.
@@ -944,13 +947,13 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
             className="h-1 overflow-hidden rounded-full bg-muted"
             data-onboarding="import-steps"
             role="progressbar"
-            aria-valuenow={Math.round(progressPercent)}
+            aria-valuenow={Math.round(stepProgress.bar)}
             aria-valuemin={0}
             aria-valuemax={100}
           >
             <div
               className="h-full bg-primary transition-[width] duration-300"
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${stepProgress.bar}%` }}
             />
           </div>
         )}
@@ -980,7 +983,7 @@ export function ImportWizard({ initialRows }: ImportWizardProps) {
               "absolute top-[14px] h-0.5 bg-primary transition-[width] duration-300",
               isRtl ? "right-0" : "left-0"
             )}
-            style={{ width: `${progressPercent}%` }}
+            style={{ width: `${stepProgress.line}%` }}
           />
           <div className="relative flex justify-between">
             {labeledSteps.map((s, i) => {

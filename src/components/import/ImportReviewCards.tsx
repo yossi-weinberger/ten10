@@ -1,10 +1,8 @@
 import { useState, useCallback, useOptimistic, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
-import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { rowBlocksApproval } from "@/lib/import/approval-gates";
 import { PH_SENSITIVE_PROPS } from "@/lib/analytics/posthog-masking";
@@ -12,7 +10,12 @@ import {
   categoryBaseForType,
   formatCategory,
 } from "@/lib/category-registry";
-import { AmountPanel, TypeIconChip } from "@/components/card-list/TypeVisual";
+import {
+  AmountPanel,
+  MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+  MOBILE_NEUTRAL_CARD_PAD_CLASS,
+  TypeIconChip,
+} from "@/components/card-list/TypeVisual";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
@@ -53,7 +56,6 @@ export function ImportReviewCards({
   onToggleSelect,
 }: ImportReviewCardsProps) {
   const { t } = useTranslation("import");
-  const { t: tTx } = useTranslation("transactions");
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const editingRow = editingRowId
     ? (rows.find((r) => r.id === editingRowId) ?? null)
@@ -67,9 +69,6 @@ export function ImportReviewCards({
     },
     [onUpdateRow]
   );
-
-  const typeLabel = (type: string) =>
-    tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
   const selectableRows = useMemo(() => rows.filter((r) => !rowBlocksApproval(r)), [rows]);
   const approvedCount = useMemo(() => selectableRows.filter((r) => r.approved).length, [selectableRows]);
@@ -103,12 +102,15 @@ export function ImportReviewCards({
                 aria-label={t("review.actions.selectAllSelectable")}
               />
             </div>
-            <span className="text-sm text-muted-foreground flex-1">
+            <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
               {t("review.actions.selectAllSelectable")}
             </span>
-            {approvedCount > 0 && (
-              <span className="text-xs text-muted-foreground tabular-nums pe-1">
-                {approvedCount}/{selectableRows.length}
+            {selectableRows.length > 0 && (
+              <span className="max-w-[58%] shrink truncate text-xs tabular-nums text-muted-foreground pe-1">
+                {t("review.selection.willImport", {
+                  selected: approvedCount,
+                  count: selectableRows.length,
+                })}
               </span>
             )}
           </div>
@@ -118,7 +120,6 @@ export function ImportReviewCards({
           <RowCard
             key={row.id}
             row={row}
-            typeLabel={typeLabel}
             onToggleApproval={onToggleApproval}
             onRequestEdit={setEditingRowId}
             selectMode={selectMode}
@@ -143,7 +144,6 @@ export function ImportReviewCards({
 
 interface RowCardProps {
   row: ImportPreviewRow;
-  typeLabel: (type: string) => string;
   onToggleApproval: (id: string, approved: boolean) => void;
   onRequestEdit: (id: string) => void;
   selectMode: boolean;
@@ -154,7 +154,6 @@ interface RowCardProps {
 
 function RowCard({
   row,
-  typeLabel,
   onToggleApproval,
   onRequestEdit,
   selectMode,
@@ -184,6 +183,27 @@ function RowCard({
   const n = row.normalized;
   const txType = n?.type ?? null;
   const description = n?.description ?? "";
+  const showTypeUnset = !txType && row.issues.some((issue) => issue.code === "card_refund");
+  const statusLabel =
+    row.status === "needs_review"
+      ? t("status.needs_review")
+      : row.status === "invalid"
+        ? t("status.invalid")
+        : null;
+  const statusDotClass =
+    row.status === "needs_review"
+      ? "bg-amber-500"
+      : row.status === "invalid"
+        ? "bg-red-500"
+        : showTypeUnset
+          ? "bg-muted-foreground/40"
+          : null;
+  const categoryText = n?.category
+    ? formatCategory(categoryBaseForType(txType), n.category, i18n.language)
+    : "";
+  const metaDetail = categoryText || n?.recipient || "";
+  const dateText = n?.date ? Object.values(formatDisplayDate(n.date)).join(" · ") : "";
+  const rowAriaKey = selectMode ? "review.bulk.selectRowAria" : "review.selectRowAria";
   const amountInner = (
     <span
       className={PH_SENSITIVE_PROPS.className}
@@ -204,14 +224,16 @@ function RowCard({
 
   return (
     <div
+      data-testid="import-review-card"
       className={cn(
-        "flex min-h-[60px] overflow-hidden rounded-[10px] border bg-white dark:bg-card text-foreground",
+        MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
+        "flex overflow-hidden rounded-[10px] border bg-white text-foreground dark:bg-card",
         !selectMode && optimisticApproved && "bg-primary/5",
         selectMode && isSelected && "border-2 border-primary bg-primary/5",
         isInvalid && "opacity-60",
       )}
     >
-      <div className="grid h-auto w-11 shrink-0 place-items-center self-stretch">
+      <div className="grid w-11 shrink-0 place-items-center self-stretch">
         {selectMode ? (
           <Checkbox
             checked={isSelected}
@@ -220,7 +242,7 @@ function RowCard({
               if (!isInvalid) onToggleSelect?.(row.id);
             }}
             className="h-[22px] w-[22px] rounded-full"
-            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+            aria-label={t(rowAriaKey, { row: row.rowNumber })}
           />
         ) : (
           <Checkbox
@@ -228,27 +250,28 @@ function RowCard({
             disabled={approvalBlocked}
             onCheckedChange={(checked) => handleToggle(!!checked)}
             className="h-[22px] w-[22px]"
-            aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+            aria-label={t(rowAriaKey, { row: row.rowNumber })}
           />
         )}
       </div>
 
       <button
         type="button"
-        className="flex min-w-0 flex-1 items-stretch text-start"
+        className={cn(
+          "flex min-w-0 flex-1 items-stretch overflow-hidden text-start",
+          MOBILE_NEUTRAL_CARD_PAD_CLASS,
+        )}
         disabled={isInvalid && !selectMode}
         onClick={handleCardActivate}
         aria-label={
           selectMode
-            ? t("review.selectRowAria", { row: row.rowNumber })
-            : t("review.editRowAria", {
-                row: row.rowNumber,
-              })
+            ? t(rowAriaKey, { row: row.rowNumber })
+            : t("review.editRowAria", { row: row.rowNumber })
         }
       >
         <div
           className={cn(
-            "flex min-w-0 flex-1 items-center gap-2 py-2 pe-1",
+            "flex min-w-0 flex-1 items-center gap-1 overflow-hidden",
             PH_SENSITIVE_PROPS.className,
           )}
           data-ph-mask={PH_SENSITIVE_PROPS["data-ph-mask"]}
@@ -256,70 +279,49 @@ function RowCard({
           {txType ? (
             <TypeIconChip type={txType} />
           ) : (
-            <div
-              className="size-6 shrink-0 rounded-full bg-muted/50"
-              aria-hidden
-            />
+            <div className="size-6 shrink-0 rounded-full bg-muted/50" aria-hidden="true" />
           )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold leading-tight">
-              {description || <span className="text-muted-foreground">—</span>}
-            </p>
-            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-1.5">
-              {n?.date && (
-                <span className="text-xs text-muted-foreground" dir="ltr">
-                  {Object.values(formatDisplayDate(n.date)).join(" · ")}
-                </span>
-              )}
-              {txType ? (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "h-6 border px-2 text-[13px] font-semibold",
-                    typeBadgeColors[txType],
-                  )}
-                >
-                  {typeLabel(txType)}
-                </Badge>
-              ) : row.issues.some((i) => i.code === "card_refund") ? (
-                <span className="text-[13px] text-muted-foreground">
-                  {t("review.typeUnset")}
-                </span>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <div className="flex min-w-0 items-center gap-1 overflow-hidden text-[12px] font-medium leading-none">
+              {statusDotClass ? (
+                <span
+                  className={cn("size-2 shrink-0 rounded-full", statusDotClass)}
+                  aria-hidden="true"
+                />
               ) : null}
-              {row.status === "needs_review" && (
-                <span className="inline-flex h-6 items-center rounded-md border border-amber-300 bg-amber-50 px-2 text-[13px] font-semibold text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-                  {t("status.needs_review")}
-                </span>
-              )}
-              {row.status === "invalid" && (
-                <span className="inline-flex h-6 items-center rounded-md border border-red-300 bg-red-50 px-2 text-[13px] font-semibold text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
-                  {t("status.invalid")}
-                </span>
-              )}
+              <span
+                className={cn(
+                  "block min-w-0 flex-1 truncate",
+                  !description && "text-muted-foreground",
+                )}
+              >
+                {description || "—"}
+              </span>
+              {statusLabel ? <span className="sr-only">{statusLabel}</span> : null}
+              {showTypeUnset ? <span className="sr-only">{t("review.typeUnset")}</span> : null}
             </div>
-            {(n?.category || n?.recipient) && (
-              <div className="mt-0.5 flex min-w-0 flex-wrap gap-x-2 text-xs text-muted-foreground">
-                {n.category ? (
-                  <span className="truncate">
-                    {formatCategory(
-                      categoryBaseForType(txType),
-                      n.category,
-                      i18n.language,
-                    )}
+            {dateText || metaDetail ? (
+              <div className="mt-0.5 flex min-w-0 flex-nowrap items-center gap-x-1 overflow-hidden text-[10px] leading-none text-muted-foreground">
+                {dateText ? (
+                  <span className="shrink-0 whitespace-nowrap" dir="ltr">
+                    {dateText}
                   </span>
                 ) : null}
-                {n.recipient ? <span className="truncate">{n.recipient}</span> : null}
+                {metaDetail ? (
+                  <span className="min-w-0 flex-1 truncate">
+                    {dateText ? <span aria-hidden="true">· </span> : null}
+                    {metaDetail}
+                  </span>
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
         {txType ? (
           <AmountPanel type={txType}>{amountInner}</AmountPanel>
         ) : (
-          <div className="relative isolate -my-1 -me-1 grid w-auto min-w-[88px] max-[359px]:min-w-[72px] shrink-0 place-items-center self-stretch rounded-s-[8px] bg-muted/40 px-1.5 text-center text-[13px] font-bold leading-none tabular-nums max-[359px]:px-1 max-[359px]:text-[11px]">
-            {amountInner}
-          </div>
+          <AmountPanel neutral>{amountInner}</AmountPanel>
         )}
       </button>
     </div>
