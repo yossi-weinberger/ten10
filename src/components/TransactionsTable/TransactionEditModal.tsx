@@ -61,7 +61,7 @@ export function TransactionEditModal({
             <DrawerTitle>{t("modal.editTitle")}</DrawerTitle>
             <DrawerDescription>{t("modal.editDescription")}</DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-6 max-h-[80vh] overflow-y-auto">
+          <div className="min-w-0 w-full px-4 pb-6 max-h-[80vh] overflow-y-auto">
             <TransactionForm
               isEditMode={true}
               initialData={transaction}

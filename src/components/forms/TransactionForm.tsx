@@ -533,7 +533,7 @@ export function TransactionForm({
         onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         autoComplete="on"
         className={cn(
-          "space-y-6 p-4 rounded-xl transition-colors duration-500 ease-in-out",
+          "w-full min-w-0 max-w-full space-y-6 p-4 rounded-xl transition-colors duration-500 ease-in-out",
           backgroundStyles[selectedType]
         )}
         data-onboarding="transaction-form"

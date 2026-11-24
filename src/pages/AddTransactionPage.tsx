@@ -23,7 +23,7 @@ export function AddTransactionPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3 md:items-start">
-        <div className="md:col-span-2 space-y-3">
+        <div className="min-w-0 md:col-span-2 space-y-3">
           <ImportBanner />
           <Card>
             <CardHeader></CardHeader>

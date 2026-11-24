@@ -1,5 +1,5 @@
 import { forwardRef, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
-import { useHoldTouchTooltipNavigation } from "@/components/ui/tooltip";
+import { useHoldTouchTooltipNavigation } from "@/components/ui/tooltip-interaction";
 import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 
 type SupportPayLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {

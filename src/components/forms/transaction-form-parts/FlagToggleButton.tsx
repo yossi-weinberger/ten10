@@ -187,7 +187,7 @@ export function FlagToggleButton({
       </div>
 
       {/* Label - Centered */}
-      <span className="text-xs font-medium text-center leading-tight px-1 select-none z-10 relative">
+      <span className="absolute inset-0 z-10 flex items-center justify-center px-2 pt-5 text-center text-xs font-medium leading-tight select-none">
         {label}
       </span>
     </motion.div>

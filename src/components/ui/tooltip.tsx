@@ -4,6 +4,7 @@ import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { cn } from "@/lib/utils";
+import { TooltipInteractionContext } from "@/components/ui/tooltip-interaction";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
@@ -13,16 +14,6 @@ type TooltipRootProps = React.ComponentPropsWithoutRef<
 type TooltipTriggerProps = React.ComponentPropsWithoutRef<
   typeof TooltipPrimitive.Trigger
 >;
-
-type TooltipInteractionContextValue = {
-  isTouchLikeDevice: boolean;
-  isOpen: boolean;
-  toggle: () => void;
-  markPointerDown: () => void;
-};
-
-const TooltipInteractionContext =
-  React.createContext<TooltipInteractionContextValue | null>(null);
 
 function useIsTouchLikeDevice() {
   const [isTouchLikeDevice, setIsTouchLikeDevice] = React.useState(false);
@@ -190,16 +181,5 @@ const TooltipContent = React.forwardRef<
   </TooltipPrimitive.Portal>
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
-
-/** On a touch device, the first tap shows the tooltip and does not follow the link. */
-export function useHoldTouchTooltipNavigation() {
-  const interaction = React.useContext(TooltipInteractionContext);
-  return (event: { preventDefault(): void }) => {
-    if (!interaction?.isTouchLikeDevice || interaction.isOpen) return false;
-    event.preventDefault();
-    interaction.toggle();
-    return true;
-  };
-}
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
