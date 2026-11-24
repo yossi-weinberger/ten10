@@ -1,11 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
 import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
@@ -47,53 +42,52 @@ export function FormActionButtons({
   const saveState = isSuccess ? "saved" : isSubmitting ? "saving" : "idle";
 
   return (
-    <div className="flex justify-end items-center gap-4">
-      {/* Support Institute Button - Only show when donation type is selected */}
+    <div className="flex flex-col gap-3">
       {isDonation && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              asChild
-              className={cn(
-                "text-yellow-950 dark:text-yellow-900 rounded-md border-none",
-                "bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950",
-                "brightness-90 hover:brightness-95 saturate-110",
-                "ring-1 ring-white/30 shadow-[0_0_16px_rgba(218,165,32,0.28)] hover:shadow-[0_0_22px_rgba(218,165,32,0.42)]",
-                "transition-all duration-300"
-              )}
+        <div className="space-y-1 text-start text-sm" dir={i18n.dir()}>
+          <p className="text-muted-foreground">{t("transactionForm.actions.donateTooltip")}</p>
+          <p className="font-medium text-foreground">
+            <SupportChargeNote />
+          </p>
+        </div>
+      )}
+      <div className="flex items-center justify-end gap-4">
+        {isDonation && (
+          <Button
+            asChild
+            className={cn(
+              "text-yellow-950 dark:text-yellow-900 rounded-md border-none",
+              "bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950",
+              "brightness-90 hover:brightness-95 saturate-110",
+              "ring-1 ring-white/30 shadow-[0_0_16px_rgba(218,165,32,0.28)] hover:shadow-[0_0_22px_rgba(218,165,32,0.42)]",
+              "transition-all duration-300"
+            )}
+          >
+            <a
+              href={SUPPORT_PAYMENT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2"
+              dir={i18n.dir()}
             >
-              <a
-                href={SUPPORT_PAYMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2"
-                dir={i18n.dir()}
-              >
-                <img src="/donate.svg" alt="Donate" className="h-6 w-6" />
-                {t("transactionForm.actions.donateToInstitute")}
-                <ExternalLink className="h-4 w-4 text-yellow-950 dark:text-yellow-900" />
-              </a>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p className="max-w-xs space-y-1 text-sm" dir={i18n.dir()}>
-              <span className="block">{t("transactionForm.actions.donateTooltip")}</span>
-              <SupportChargeNote />
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      )}
+              <img src="/donate.svg" alt="" className="h-6 w-6" />
+              {t("transactionForm.actions.donateToInstitute")}
+              <ExternalLink className="h-4 w-4 text-yellow-950 dark:text-yellow-900" />
+            </a>
+          </Button>
+        )}
 
-      {onCancel && (
-        <Button type="button" variant="outline" onClick={onCancel}>
-          {t("transactionForm.actions.cancel")}
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {t("transactionForm.actions.cancel")}
+          </Button>
+        )}
+        {/* Disabled while saving and after success, but not dimmed: the symbol shows the progress. */}
+        <Button type="submit" disabled={saveState !== "idle"} className="disabled:opacity-100">
+          {saveState !== "idle" && <BrandSaveIcon status={saveState} />}
+          {t(SUBMIT_LABELS[isEditMode ? "edit" : "add"][saveState])}
         </Button>
-      )}
-      {/* Disabled while saving and after success, but not dimmed: the symbol shows the progress. */}
-      <Button type="submit" disabled={saveState !== "idle"} className="disabled:opacity-100">
-        {saveState !== "idle" && <BrandSaveIcon status={saveState} />}
-        {t(SUBMIT_LABELS[isEditMode ? "edit" : "add"][saveState])}
-      </Button>
+      </div>
     </div>
   );
 }

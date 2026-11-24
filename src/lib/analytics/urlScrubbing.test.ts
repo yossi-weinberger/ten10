@@ -52,6 +52,16 @@ describe("scrubSensitiveUrl", () => {
     expect(scrubSensitiveUrl(url)).toBe(url);
   });
 
+  it("drops the query and hash from Takbull support return URLs", () => {
+    const returned =
+      "https://ten10-app.com/support/thanks?order_reference=613&uniqId=6e1a&token=SECRET&Last4Digits=0000&TokenExpirationMonth=04#paid";
+    expect(scrubSensitiveUrl(returned)).toBe("https://ten10-app.com/support/thanks");
+    expect(scrubSensitiveUrl("https://ten10-app.com/support/failed?statusDescription=declined")).toBe(
+      "https://ten10-app.com/support/failed"
+    );
+    expect(scrubSensitiveUrl("/support/thanks?Last4Digits=0000")).toBe("/support/thanks");
+  });
+
   it("returns an empty string for nullish or non-string input", () => {
     expect(scrubSensitiveUrl(null)).toBe("");
     expect(scrubSensitiveUrl(undefined)).toBe("");

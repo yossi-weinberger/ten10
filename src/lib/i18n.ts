@@ -20,6 +20,8 @@ import currency_features_en from "../../public/locales/en/currency-features.json
 import currency_features_he from "../../public/locales/he/currency-features.json";
 import import_en from "../../public/locales/en/import.json";
 import import_he from "../../public/locales/he/import.json";
+import support_en from "../../public/locales/en/support.json";
+import support_he from "../../public/locales/he/support.json";
 
 // Read the language from Zustand store if available
 const getInitialLanguage = (): string => {
@@ -47,6 +49,7 @@ const bundledResources = {
     contact: contact_en,
     "currency-features": currency_features_en,
     import: import_en,
+    support: support_en,
   },
   he: {
     common: common_he,
@@ -56,6 +59,7 @@ const bundledResources = {
     contact: contact_he,
     "currency-features": currency_features_he,
     import: import_he,
+    support: support_he,
   },
 };
 
@@ -79,7 +83,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
 
     // CRITICAL: Only load bundled namespaces at init time
     // Other namespaces will be lazy-loaded when components request them
-    ns: ["common", "navigation", "dashboard", "auth", "contact", "currency-features", "import"],
+    ns: ["common", "navigation", "dashboard", "auth", "contact", "currency-features", "import", "support"],
     defaultNS: "common",
     
     // Don't preload all namespaces - let them load on demand

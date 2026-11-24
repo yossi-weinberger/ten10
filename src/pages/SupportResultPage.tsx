@@ -4,6 +4,8 @@ import { XCircle } from "lucide-react";
 import { BrandDone } from "@/components/brand/BrandDone";
 import { SupportChargeNote } from "@/components/support/SupportChargeNote";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform } from "@/contexts/PlatformContext";
 import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 
 export type SupportOutcome = "thanks" | "failed";
@@ -38,7 +40,10 @@ export function SupportFailedPage() {
 
 export function SupportResultPage({ outcome }: SupportResultPageProps) {
   const { t, i18n } = useTranslation("support");
+  const { user, loading } = useAuth();
+  const { platform } = usePlatform();
   const copy = outcomeCopy(outcome);
+  const homeTo = platform === "desktop" || (!loading && user) ? "/" : "/landing";
 
   return (
     <div
@@ -67,7 +72,7 @@ export function SupportResultPage({ outcome }: SupportResultPageProps) {
       )}
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Button asChild size="lg">
-          <Link to="/">{t("backHome")}</Link>
+          <Link to={homeTo}>{t("backHome")}</Link>
         </Button>
         {outcome === "failed" && (
           <Button asChild size="lg" variant="outline">

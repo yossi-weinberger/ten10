@@ -14,8 +14,27 @@ import {
 import he from "../../public/locales/he/support.json";
 import en from "../../public/locales/en/support.json";
 
+const session = vi.hoisted(() => ({
+  user: null as { id: string } | null,
+  loading: false,
+  platform: "web" as "web" | "desktop",
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...props }: { children: React.ReactNode }) => <a {...props}>{children}</a>,
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({
+    user: session.user,
+    loading: session.loading,
+    session: session.user,
+    signOut: vi.fn(),
+  }),
+}));
+
+vi.mock("@/contexts/PlatformContext", () => ({
+  usePlatform: () => ({ platform: session.platform }),
 }));
 
 type CopyI18n = I18n & {
@@ -44,6 +63,30 @@ describe("SupportResultPage", () => {
       defaultNS: "support",
       interpolation: { escapeValue: false },
     });
+  });
+
+  it("sends a logged-out web visitor home to the landing page", () => {
+    session.user = null;
+    session.loading = false;
+    session.platform = "web";
+    render(
+      <I18nextProvider i18n={i18n}>
+        <SupportResultPage outcome="thanks" />
+      </I18nextProvider>,
+    );
+    expect(screen.getByText(he.backHome).closest("a")).toHaveAttribute("to", "/landing");
+  });
+
+  it("sends a signed-in visitor home to the app", async () => {
+    cleanup();
+    session.user = { id: "user-1" };
+    session.platform = "web";
+    render(
+      <I18nextProvider i18n={i18n}>
+        <SupportResultPage outcome="thanks" />
+      </I18nextProvider>,
+    );
+    expect(screen.getByText(he.backHome).closest("a")).toHaveAttribute("to", "/");
   });
 
   it("keeps the return pages public", () => {

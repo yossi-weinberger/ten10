@@ -16,6 +16,10 @@ import {
   initPostHog,
   isPostHogSupported,
 } from "./lib/analytics/posthogClient";
+import {
+  scrubSensitiveUrl,
+  stripSupportReturnFromAddressBar,
+} from "./lib/analytics/urlScrubbing";
 import { registerSW } from "virtual:pwa-register";
 import "./index.css";
 import "./lib/i18n";
@@ -24,6 +28,10 @@ import { removeStaticPreloader } from "./lib/staticPreloader";
 
 // Clean up any stale service workers in Tauri environment
 unregisterServiceWorkersInTauri();
+
+// Takbull appends the card token and last four digits to the return URL.
+// Remove them before PostHog or Vercel read `location`.
+stripSupportReturnFromAddressBar();
 
 // Register the PWA service worker with a custom error handler. Some web clients
 // (observed on Chrome/Windows) reject navigator.serviceWorker.register() with a
@@ -52,8 +60,12 @@ const appTree = (
         <AuthProvider>
           <RefreshOnReturn />
           <RouterProvider router={router} />
-          <SpeedInsights />
-          <Analytics />
+          <SpeedInsights
+            beforeSend={(event) => ({ ...event, url: scrubSensitiveUrl(event.url) })}
+          />
+          <Analytics
+            beforeSend={(event) => ({ ...event, url: scrubSensitiveUrl(event.url) })}
+          />
         </AuthProvider>
       </TWAProvider>
     </PlatformProvider>

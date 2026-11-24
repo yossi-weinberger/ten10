@@ -15,9 +15,9 @@
     "title": "Torat Ha’adam La’adam Institute",
     "badge": "Halachically Approved",
     "description": "The Torat Ha’adam La’adam Institute was founded to revive interpersonal commandments (Bein Adam Lechavero) and to disseminate the study and practical observance of these laws. The institute is the leader in the field of research of interpersonal commandments. The institute's activities include publishing books, delivering lectures, and providing halachic guidance on various topics, with the goal of increasing respect for others and Ahavat Yisrael. In addition, the institute guided the development of Ten10 and approved the accuracy of halachic calculations, ensuring the system meets all halachic requirements.",
-    "support": "Support the Institute",
-    "supportDescription": "The institute operates as a non-profit organization and relies on donations. Every donation helps continue the important work.",
-    "donateButton": "Donate to the Institute",
+    "support": "Support Ten10",
+    "supportDescription": "This support keeps Ten10 running: development, maintenance, and the ongoing costs of the site. It can be given from ma'aser funds.",
+    "donateButton": "Support Ten10",
     "visitWebsite": "Visit Institute Website"
   },
   "team": {

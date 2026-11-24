@@ -442,15 +442,23 @@ export function Sidebar({
               target="_blank"
               rel="noopener noreferrer"
               tooltip={
-                <span className="block space-y-1">
-                  <span className="block">{t("menu.donateTooltip")}</span>
-                  <SupportChargeNote />
-                </span>
+                expanded ? undefined : (
+                  <span className="block space-y-1">
+                    <span className="block">{t("menu.donateTooltip")}</span>
+                    <SupportChargeNote />
+                  </span>
+                )
               }
               className="hover:bg-golden-hover hover:text-yellow-900 dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
             >
               {t("menu.supportUs")}
             </NavLink>
+            {expanded ? (
+              <p className="px-4 pb-1 text-xs leading-relaxed text-muted-foreground">
+                <span className="block">{t("menu.donateTooltip")}</span>
+                <SupportChargeNote className="mt-1 font-medium text-foreground" />
+              </p>
+            ) : null}
           </nav>
         </div>
 
