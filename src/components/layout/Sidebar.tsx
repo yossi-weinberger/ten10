@@ -22,6 +22,8 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SupportChargeNote } from "@/components/support/SupportChargeNote";
+import { SupportPayLink } from "@/components/support/SupportPayLink";
 import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { PlatformIndicator } from "./PlatformIndicator";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -278,16 +280,16 @@ export function Sidebar({
           className // הוספת className בסוף כדי לאפשר דריסה
         )}
         asChild
-        onClick={onLinkClick}
+        onClick={href ? undefined : onLinkClick}
       >
         {href ? (
-          <a
-            href={href}
+          <SupportPayLink
             className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
+            onNavigate={onLinkClick}
             {...props}
           >
             {content}
-          </a>
+          </SupportPayLink>
         ) : (
           <Link
             to={to!}
@@ -305,10 +307,14 @@ export function Sidebar({
       return (
         <Tooltip>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
-          <TooltipContent side={isRtl ? "left" : "right"} sideOffset={8}>
-            <p className="max-w-xs text-sm" dir={i18n.dir()}>
+          <TooltipContent
+            side={isRtl ? "left" : "right"}
+            sideOffset={8}
+            className="max-w-[calc(100vw-2rem)]"
+          >
+            <div className="whitespace-normal break-words text-start text-sm" dir={i18n.dir()}>
               {tooltip}
-            </p>
+            </div>
           </TooltipContent>
         </Tooltip>
       );
@@ -429,7 +435,7 @@ export function Sidebar({
               icon={({ className, ...props }: { className?: string }) => (
                 <img
                   src="/donate.svg"
-                  alt="Donate"
+                  alt=""
                   className={cn(
                     className,
                     "h-7 w-7 min-w-[28px]",
@@ -440,7 +446,12 @@ export function Sidebar({
               )}
               target="_blank"
               rel="noopener noreferrer"
-              tooltip={t("menu.donateTooltip")}
+              tooltip={
+                <span className="block space-y-1">
+                  <span className="block">{t("menu.donateTooltip")}</span>
+                  <SupportChargeNote />
+                </span>
+              }
               className="hover:bg-golden-hover hover:text-yellow-900 dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
             >
               {t("menu.supportUs")}

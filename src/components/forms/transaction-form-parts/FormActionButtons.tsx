@@ -9,7 +9,8 @@ import {
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
 import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
-import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
+import { SupportChargeNote } from "@/components/support/SupportChargeNote";
+import { SupportPayLink } from "@/components/support/SupportPayLink";
 
 interface FormActionButtonsProps {
   isSubmitting: boolean;
@@ -46,13 +47,14 @@ export function FormActionButtons({
   const saveState = isSuccess ? "saved" : isSubmitting ? "saving" : "idle";
 
   return (
-    <div className="flex justify-end items-center gap-4">
+    <div className="flex flex-wrap items-center justify-end gap-3">
       {isDonation && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               asChild
               className={cn(
+                "h-auto min-h-9 w-full max-w-full whitespace-normal md:w-auto",
                 "text-yellow-950 dark:text-yellow-900 rounded-md border-none",
                 "bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950",
                 "brightness-90 hover:brightness-95 saturate-110",
@@ -60,22 +62,20 @@ export function FormActionButtons({
                 "transition-all duration-300"
               )}
             >
-              <a
-                href={SUPPORT_PAYMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2"
+              <SupportPayLink
+                className="inline-flex max-w-full items-center justify-center gap-2"
                 dir={i18n.dir()}
               >
-                <img src="/donate.svg" alt="Donate" className="h-6 w-6" />
+                <img src="/donate.svg" alt="" className="h-6 w-6" />
                 {t("transactionForm.actions.donateToInstitute")}
                 <ExternalLink className="h-4 w-4 text-yellow-950 dark:text-yellow-900" />
-              </a>
+              </SupportPayLink>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">
-            <p className="max-w-xs text-sm" dir={i18n.dir()}>
-              {t("transactionForm.actions.donateTooltip")}
+          <TooltipContent side="top" className="max-w-[calc(100vw-2rem)]">
+            <p className="whitespace-normal break-words text-start text-sm" dir={i18n.dir()}>
+              <span className="block">{t("transactionForm.actions.donateTooltip")}</span>
+              <SupportChargeNote />
             </p>
           </TooltipContent>
         </Tooltip>

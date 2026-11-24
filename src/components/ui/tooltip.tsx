@@ -16,6 +16,7 @@ type TooltipTriggerProps = React.ComponentPropsWithoutRef<
 
 type TooltipInteractionContextValue = {
   isTouchLikeDevice: boolean;
+  isOpen: boolean;
   toggle: () => void;
   markPointerDown: () => void;
 };
@@ -99,10 +100,11 @@ const Tooltip = ({
   const interactionContextValue = React.useMemo(
     () => ({
       isTouchLikeDevice,
+      isOpen: resolvedOpen,
       toggle: toggleTouchTooltip,
       markPointerDown,
     }),
-    [isTouchLikeDevice, toggleTouchTooltip, markPointerDown],
+    [isTouchLikeDevice, resolvedOpen, toggleTouchTooltip, markPointerDown],
   );
 
   const rootProps: TooltipRootProps = isTouchLikeDevice
@@ -146,10 +148,8 @@ const TooltipTrigger = React.forwardRef<
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
-    if (event.defaultPrevented) return;
-    if (interactionContext?.isTouchLikeDevice) {
-      interactionContext.toggle();
-    }
+    if (!interactionContext?.isTouchLikeDevice) return;
+    interactionContext.toggle();
   };
 
   const handlePointerLeave = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -185,9 +185,21 @@ const TooltipContent = React.forwardRef<
         className,
       )}
       {...props}
+      collisionPadding={16}
     />
   </TooltipPrimitive.Portal>
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+
+/** On a touch device, the first tap shows the tooltip and does not follow the link. */
+export function useHoldTouchTooltipNavigation() {
+  const interaction = React.useContext(TooltipInteractionContext);
+  return (event: { preventDefault(): void }) => {
+    if (!interaction?.isTouchLikeDevice || interaction.isOpen) return false;
+    event.preventDefault();
+    interaction.toggle();
+    return true;
+  };
+}
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
