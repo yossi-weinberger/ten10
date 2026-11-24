@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
@@ -296,11 +296,10 @@ describe("ImportReviewCards B4a", () => {
       />,
     );
 
-    const cards = container.querySelectorAll("[data-testid='import-review-card']");
+    const cards = container.querySelectorAll("[data-swipe-row]");
     expect(cards).toHaveLength(3);
     for (const card of cards) {
-      expect(card.className).toContain("h-[54px]");
-      expect(card.querySelector(".flex-wrap")).toBeNull();
+      expect(card.querySelector("[class*='h-[54px]']")).not.toBeNull();
       expect(card.innerHTML).not.toContain("flex-wrap");
     }
     expect(screen.getByText("status.needs_review")).toHaveClass("sr-only");
@@ -322,5 +321,110 @@ describe("ImportReviewCards B4a", () => {
 
     expect(screen.getByText(/review\.selection\.willImport:/)).toHaveTextContent('"selected":0');
     expect(screen.getByText(/review\.selection\.willImport:/)).toHaveTextContent('"count":1');
+  });
+});
+
+function phoneMatchMedia(query: string) {
+  return {
+    matches: query === "(pointer: coarse)" || query.includes("max-width: 767px"),
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+  };
+}
+
+function swipeOpen(card: HTMLElement) {
+  fireEvent.pointerDown(card, { clientX: 40, clientY: 20, pointerType: "touch" });
+  fireEvent.pointerMove(card, { clientX: 160, clientY: 20, pointerType: "touch" });
+  fireEvent.pointerUp(card, { clientX: 160, clientY: 20, pointerType: "touch" });
+}
+
+describe("ImportReviewCards swipe", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    delete document.body.dataset.mobileSwipeOpen;
+  });
+
+  it("includes or excludes from the swipe strip and covers the assistant", () => {
+    vi.stubGlobal("matchMedia", phoneMatchMedia);
+    const onToggle = vi.fn();
+    render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 1, approved: false })]}
+        onToggleApproval={onToggle}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    const card = screen.getByRole("button", { name: /review\.editRowAria:.*"row":1/ });
+    fireEvent.pointerDown(card, { clientX: 40, clientY: 20, pointerType: "touch" });
+    fireEvent.pointerMove(card, { clientX: 40, clientY: 80, pointerType: "touch" });
+    expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+    fireEvent.pointerUp(card, { clientX: 40, clientY: 80, pointerType: "touch" });
+    swipeOpen(card);
+
+    expect(document.body.dataset.mobileSwipeOpen).toBe("true");
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "review.swipe.include" }));
+    expect(onToggle).toHaveBeenCalledWith("r1", true);
+  });
+
+  it("does not swipe in select mode and ignores a long press", () => {
+    vi.stubGlobal("matchMedia", phoneMatchMedia);
+    vi.useFakeTimers();
+    const onToggleSelect = vi.fn();
+    render(
+      <ImportReviewCards
+        rows={[row({ id: "r1", rowNumber: 1 })]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+        selectMode
+        selectedIds={new Set()}
+        onToggleSelect={onToggleSelect}
+      />,
+    );
+
+    const card = screen.getByRole("button", { name: /review\.bulk\.selectRowAria:.*"row":1/ });
+    swipeOpen(card);
+    expect(document.body.dataset.mobileSwipeOpen).toBeUndefined();
+
+    fireEvent.pointerDown(card, { clientX: 40, clientY: 20, pointerType: "touch" });
+    vi.advanceTimersByTime(500);
+    expect(onToggleSelect).not.toHaveBeenCalled();
+  });
+
+  it("disables include and edit on an invalid row", () => {
+    vi.stubGlobal("matchMedia", phoneMatchMedia);
+    render(
+      <ImportReviewCards
+        rows={[
+          row({
+            id: "bad",
+            rowNumber: 2,
+            status: "invalid",
+            approved: false,
+            issues: [{ code: "invalid_amount" }],
+          }),
+        ]}
+        onToggleApproval={vi.fn()}
+        onBulkToggle={vi.fn()}
+        onUpdateRow={vi.fn()}
+        existingTransactions={[]}
+        recurringTransactions={[]}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "review.editRow", hidden: true })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "review.swipe.include", hidden: true })).toBeDisabled();
   });
 });

@@ -1,5 +1,7 @@
-import { useState, useCallback, useOptimistic, startTransition, useMemo } from "react";
+import { useState, useCallback, useOptimistic, startTransition, useMemo, useRef } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { Check, Edit3, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
@@ -16,6 +18,8 @@ import {
   MOBILE_NEUTRAL_CARD_PAD_CLASS,
   TypeIconChip,
 } from "@/components/card-list/TypeVisual";
+import { SwipeableCardRow } from "@/components/card-list/SwipeableCardRow";
+import { useSwipeOpenRow } from "@/hooks/useSwipeOpenRow";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
@@ -82,6 +86,8 @@ export function ImportReviewCards({
     });
   }, [selectableRows, allSelected, onBulkToggle]);
 
+  const { openId, open: onSwipeOpen, close: onSwipeClose } = useSwipeOpenRow(selectMode);
+
   if (rows.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-8">{t("review.noRows")}</p>
@@ -125,6 +131,9 @@ export function ImportReviewCards({
             selectMode={selectMode}
             isSelected={selectedIds?.has(row.id) ?? false}
             onToggleSelect={onToggleSelect}
+            swipeOpenId={openId}
+            onSwipeOpen={onSwipeOpen}
+            onSwipeClose={onSwipeClose}
             t={t}
           />
         ))}
@@ -149,6 +158,9 @@ interface RowCardProps {
   selectMode: boolean;
   isSelected: boolean;
   onToggleSelect?: (id: string) => void;
+  swipeOpenId: string | null;
+  onSwipeOpen: (id: string) => void;
+  onSwipeClose: () => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
@@ -159,9 +171,14 @@ function RowCard({
   selectMode,
   isSelected,
   onToggleSelect,
+  swipeOpenId,
+  onSwipeOpen,
+  onSwipeClose,
   t,
 }: RowCardProps) {
   const { i18n } = useTranslation("import");
+  const isRTL = i18n.dir() === "rtl";
+  const longPressTriggeredRef = useRef(false);
   const formatDisplayDate = useDisplayDate();
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
     row.approved,
@@ -222,18 +239,64 @@ function RowCard({
     if (!isInvalid) onRequestEdit(row.id);
   };
 
+  const handleKeyDown = (event: ReactKeyboardEvent) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    handleCardActivate();
+  };
+
   return (
-    <div
-      data-testid="import-review-card"
-      className={cn(
+    <SwipeableCardRow
+      id={row.id}
+      role="group"
+      tabIndex={-1}
+      surfaceClassName={cn(
         MOBILE_NEUTRAL_CARD_HEIGHT_CLASS,
-        "flex overflow-hidden rounded-[10px] border bg-white text-foreground dark:bg-card",
+        "!items-stretch !gap-0 !p-0 shadow-none",
+        "overflow-hidden bg-white text-foreground dark:bg-card",
         !selectMode && optimisticApproved && "bg-primary/5",
         selectMode && isSelected && "border-2 border-primary bg-primary/5",
         isInvalid && "opacity-60",
       )}
+      isSelected={selectMode && isSelected}
+      inSelectionMode={selectMode}
+      selectionDisabled
+      onActivate={handleCardActivate}
+      onKeyDown={handleKeyDown}
+      longPressTriggeredRef={longPressTriggeredRef}
+      isRTL={isRTL}
+      openId={swipeOpenId}
+      onSwipeOpen={onSwipeOpen}
+      onSwipeClose={onSwipeClose}
+      actions={[
+        {
+          icon: <Edit3 className="h-5 w-5" aria-hidden="true" />,
+          label: t("review.editRow"),
+          disabled: isInvalid,
+          onClick: () => {
+            if (!isInvalid) onRequestEdit(row.id);
+          },
+        },
+        {
+          icon: optimisticApproved ? (
+            <X className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <Check className="h-5 w-5" aria-hidden="true" />
+          ),
+          label: t(optimisticApproved ? "review.swipe.exclude" : "review.swipe.include"),
+          disabled: approvalBlocked,
+          onClick: () => {
+            if (!approvalBlocked) handleToggle(!optimisticApproved);
+          },
+        },
+      ]}
     >
-      <div className="grid w-11 shrink-0 place-items-center self-stretch">
+      <div
+        data-testid="import-review-card"
+        className="grid w-11 shrink-0 place-items-center self-stretch"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+      >
         {selectMode ? (
           <Checkbox
             checked={isSelected}
@@ -262,7 +325,11 @@ function RowCard({
           MOBILE_NEUTRAL_CARD_PAD_CLASS,
         )}
         disabled={isInvalid && !selectMode}
-        onClick={handleCardActivate}
+        onClick={(event) => {
+          event.stopPropagation();
+          handleCardActivate();
+        }}
+        onKeyDown={(event) => event.stopPropagation()}
         aria-label={
           selectMode
             ? t(rowAriaKey, { row: row.rowNumber })
@@ -324,6 +391,6 @@ function RowCard({
           <AmountPanel neutral>{amountInner}</AmountPanel>
         )}
       </button>
-    </div>
+    </SwipeableCardRow>
   );
 }

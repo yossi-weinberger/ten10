@@ -200,6 +200,10 @@
     },
     "noRows": "אין כאן שורות. נסו סינון אחר.",
     "editRow": "עריכה",
+    "swipe": {
+      "include": "לכלול",
+      "exclude": "להוציא"
+    },
     "editRowAria": "עריכת שורה {{row}}",
     "selectRowAria": "סימון שורה {{row}} לשמירה",
     "selection": {
