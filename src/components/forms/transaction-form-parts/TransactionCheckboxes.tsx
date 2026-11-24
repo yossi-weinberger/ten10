@@ -39,7 +39,8 @@ export function TransactionCheckboxes({
       currentValue: boolean,
       onChange: (val: boolean) => void
     ) => void,
-    isGolden: boolean = false
+    isGolden: boolean = false,
+    onboardingId?: string
   ) => (
     <FormField
       control={form.control}
@@ -49,7 +50,10 @@ export function TransactionCheckboxes({
         const isChecked = !!field.value;
 
         return (
-          <FormItem className="flex-1 min-w-[100px] max-w-[160px]">
+          <FormItem
+            className="flex-1 min-w-[100px] max-w-[160px]"
+            data-onboarding={onboardingId}
+          >
             <FormControl>
               <FlagToggleButton
                 checked={isChecked}
@@ -76,11 +80,10 @@ export function TransactionCheckboxes({
   );
 
   return (
-    <div className="flex flex-col gap-3 mt-2 w-full">
-      <div
-        className="flex flex-row flex-wrap gap-3 w-fit max-w-full mx-auto justify-center"
-        data-onboarding="transaction-flags"
-      >
+    <div
+      className="mt-2 flex w-fit max-w-full flex-row flex-wrap justify-center gap-3 mx-auto"
+      data-onboarding="transaction-flags"
+    >
       {selectedType === "income" && (
         <>
           {/* Exempt Income */}
@@ -168,17 +171,15 @@ export function TransactionCheckboxes({
         </>
       )}
 
-      </div>
-      <div
-        className="flex flex-row flex-wrap gap-3 w-fit max-w-full mx-auto justify-center"
-        data-onboarding="recurring-toggle"
-      >
       {renderToggleButton(
         "is_recurring",
         "transactionForm.recurringTransaction.isRecurring",
-        "transactionForm.recurringTransaction.tooltip"
+        "transactionForm.recurringTransaction.tooltip",
+        false,
+        undefined,
+        false,
+        "recurring-toggle"
       )}
-      </div>
     </div>
   );
 }
