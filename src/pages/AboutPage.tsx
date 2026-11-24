@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
+import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   useScrollAnimation,
@@ -75,34 +76,43 @@ export function AboutPage() {
                 <p className="leading-relaxed text-gray-600 dark:text-gray-300">
                   {t("appInfo.description")}
                 </p>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature1")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature2")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature3")}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {t("appInfo.feature4")}
-                  </div>
-                </div>
               </div>
 
-              <div className={panelFooterClass}>
-                <Link to="/landing">
-                  <Button className="h-11 w-full">
-                    {t("appInfo.learnMore")}
-                    <LearnMoreIcon className="ms-2 h-4 w-4" />
+              <div className={`${panelFooterClass} space-y-3`}>
+                <div className={`${insetBoxClass} p-4`}>
+                  <div className="mb-2 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                    <span className="font-semibold text-gray-950 dark:text-white">
+                      {t("appInfo.support")}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                    {t("appInfo.supportDescription")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-5">
+                  <Button
+                    asChild
+                    className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
+                  >
+                    <a
+                      href={SUPPORT_PAYMENT_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center"
+                    >
+                      <Gift className="me-2 h-4 w-4" />
+                      {t("appInfo.donateButton")}
+                      <ExternalLink className="ms-2 h-4 w-4" />
+                    </a>
                   </Button>
-                </Link>
+                  <Link to="/landing">
+                    <Button className="h-11 w-full">
+                      {t("appInfo.learnMore")}
+                      <LearnMoreIcon className="ms-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </article>
           </motion.div>
@@ -128,35 +138,9 @@ export function AboutPage() {
                   {t("institute.description")}
                 </p>
 
-                <div className={`${insetBoxClass} p-4`}>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
-                    <span className="font-semibold text-gray-950 dark:text-white">
-                      {t("institute.support")}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                    {t("institute.supportDescription")}
-                  </p>
-                </div>
               </div>
 
-              <div className={`${panelFooterClass} space-y-3`}>
-                <Button
-                  asChild
-                  className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
-                >
-                  <a
-                    href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center"
-                  >
-                    <Gift className="me-2 h-4 w-4" />
-                    {t("institute.donateButton")}
-                    <ExternalLink className="ms-2 h-4 w-4" />
-                  </a>
-                </Button>
+              <div className={panelFooterClass}>
                 <Button asChild variant="outline" className="h-11 w-full">
                   <a
                     href="https://veahavta-kamocha.org/"

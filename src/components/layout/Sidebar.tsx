@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
+import { lazy, Suspense, useState, useLayoutEffect, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -22,6 +22,8 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SupportPayLink } from "@/components/support/SupportPayLink";
+import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { PlatformIndicator } from "./PlatformIndicator";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -237,7 +239,7 @@ export function Sidebar({
     href?: string;
     icon: React.ElementType;
     children: React.ReactNode;
-    tooltip?: string;
+    tooltip?: ReactNode;
     className?: string;
     [key: string]: any;
   }) => {
@@ -277,16 +279,16 @@ export function Sidebar({
           className // הוספת className בסוף כדי לאפשר דריסה
         )}
         asChild
-        onClick={onLinkClick}
+        onClick={href ? undefined : onLinkClick}
       >
         {href ? (
-          <a
-            href={href}
+          <SupportPayLink
             className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
+            onNavigate={onLinkClick}
             {...props}
           >
             {content}
-          </a>
+          </SupportPayLink>
         ) : (
           <Link
             to={to!}
@@ -304,10 +306,21 @@ export function Sidebar({
       return (
         <Tooltip>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
-          <TooltipContent side={isRtl ? "left" : "right"} sideOffset={8}>
-            <p className="max-w-xs text-sm" dir={i18n.dir()}>
+          <TooltipContent
+            // Beside a 176px sheet the side tooltip is wider than the free
+            // space, and collision padding will not slide it back onto the screen.
+            // Under the row, at the row's own width, the whole note stays visible.
+            side={inSheet ? "bottom" : isRtl ? "left" : "right"}
+            sideOffset={8}
+            className={
+              inSheet
+                ? "w-[var(--radix-tooltip-trigger-width)] max-w-[min(var(--radix-tooltip-trigger-width),calc(100vw-2rem))]"
+                : "max-w-xs"
+            }
+          >
+            <div className="whitespace-normal break-words text-start text-sm" dir={i18n.dir()}>
               {tooltip}
-            </p>
+            </div>
           </TooltipContent>
         </Tooltip>
       );
@@ -424,11 +437,11 @@ export function Sidebar({
 
             {/* Support Us Button - Standard Style */}
             <NavLink
-              href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
+              href={SUPPORT_PAYMENT_URL}
               icon={({ className, ...props }: { className?: string }) => (
                 <img
                   src="/donate.svg"
-                  alt="Donate"
+                  alt=""
                   className={cn(
                     className,
                     "h-7 w-7 min-w-[28px]",

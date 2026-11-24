@@ -155,8 +155,8 @@
       "save": "Save Changes",
       "reset": "Reset",
       "cancel": "Cancel",
-      "donateToInstitute": "Donate to Institute",
-      "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds"
+      "donateToInstitute": "Support Ten10",
+      "donateTooltip": "Support for running the site, including development and maintenance, can be from ma'aser funds."
     },
     "messages": {
       "success": "Transaction added successfully",

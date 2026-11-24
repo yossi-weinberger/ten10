@@ -1,0 +1,13 @@
+{
+  "chargeName": "The credit card charge will appear in the name of {{merchant}}.",
+  "thanks": {
+    "title": "Support received",
+    "body": "The payment is complete. If you entered an email address, the receipt is on its way."
+  },
+  "failed": {
+    "title": "The payment was not completed",
+    "body": "You can go back and try again."
+  },
+  "backHome": "Back to Ten10",
+  "retry": "Try again"
+}

@@ -10,6 +10,8 @@ export const PUBLIC_ROUTES = [
   "/terms",
   "/beta-terms",
   "/accessibility",
+  "/support/thanks",
+  "/support/failed",
 ];
 
 // Routes that should ALWAYS be full screen (no sidebar), regardless of auth state
