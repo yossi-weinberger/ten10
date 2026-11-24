@@ -90,27 +90,29 @@ export function AboutPage() {
                     {t("appInfo.supportDescription")}
                   </p>
                 </div>
-                <Button
-                  asChild
-                  className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
-                >
-                  <a
-                    href={SUPPORT_PAYMENT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center"
+                <div className="flex flex-col gap-5">
+                  <Button
+                    asChild
+                    className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
                   >
-                    <Gift className="me-2 h-4 w-4" />
-                    {t("appInfo.donateButton")}
-                    <ExternalLink className="ms-2 h-4 w-4" />
-                  </a>
-                </Button>
-                <Link to="/landing">
-                  <Button className="h-11 w-full">
-                    {t("appInfo.learnMore")}
-                    <LearnMoreIcon className="ms-2 h-4 w-4" />
+                    <a
+                      href={SUPPORT_PAYMENT_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center"
+                    >
+                      <Gift className="me-2 h-4 w-4" />
+                      {t("appInfo.donateButton")}
+                      <ExternalLink className="ms-2 h-4 w-4" />
+                    </a>
                   </Button>
-                </Link>
+                  <Link to="/landing">
+                    <Button className="h-11 w-full">
+                      {t("appInfo.learnMore")}
+                      <LearnMoreIcon className="ms-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </article>
           </motion.div>
