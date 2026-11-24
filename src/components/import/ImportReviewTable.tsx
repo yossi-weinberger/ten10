@@ -24,6 +24,9 @@ import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
+const COMPACT_HEAD = "h-10 px-2 py-2";
+const COMPACT_CELL = "px-2 py-2";
+
 const fmtAmountCache = new Map<string, Intl.NumberFormat>();
 
 function fmtAmount(amount: number, currency: string): string {
@@ -87,6 +90,14 @@ const ReviewTableRow = memo(function ReviewTableRow({
   const isInvalid = row.status === "invalid";
   const approvalBlocked = rowBlocksApproval(row);
   const selected = selectMode ? isSelected : optimisticApproved;
+  const categoryLabel = row.normalized?.category
+    ? formatCategory(
+        categoryBaseForType(row.normalized.type) ?? undefined,
+        row.normalized.category,
+        i18n.language,
+      )
+    : "";
+  const recipientLabel = row.normalized?.recipient ?? "";
 
   return (
     <TableRow
@@ -107,7 +118,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
                 if (!isInvalid) onToggleSelect?.(row.id);
               }}
               className="rounded-full"
-              aria-label={t("review.selectRowAria", { row: row.rowNumber })}
+              aria-label={t("review.bulk.selectRowAria", { row: row.rowNumber })}
             />
           ) : (
             <Checkbox
@@ -120,22 +131,22 @@ const ReviewTableRow = memo(function ReviewTableRow({
         </div>
       </TableCell>
 
-      <TableCell className="text-center align-middle text-muted-foreground text-xs tabular-nums" dir="ltr">
+      <TableCell className={cn(COMPACT_CELL, "text-center align-middle text-muted-foreground text-xs tabular-nums")} dir="ltr">
         {row.rowNumber}
       </TableCell>
 
-      <TableCell className="text-center align-middle">
+      <TableCell className={cn(COMPACT_CELL, "text-center align-middle")}>
         <ImportRowStatusBadge status={row.status} />
       </TableCell>
 
-      <TableCell dir="auto" className="whitespace-nowrap">
+      <TableCell dir="auto" className={cn(COMPACT_CELL, "whitespace-nowrap")}>
         {row.normalized
           ? Object.values(formatDisplayDate(row.normalized.date)).join(" · ")
           : "—"}
       </TableCell>
 
       <TableCell
-        className="ph-mask text-center align-middle whitespace-nowrap"
+        className={cn(COMPACT_CELL, "ph-mask text-center align-middle whitespace-nowrap")}
         data-ph-mask
         dir="ltr"
       >
@@ -144,7 +155,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
           : "—"}
       </TableCell>
 
-      <TableCell className="whitespace-nowrap">
+      <TableCell className={cn(COMPACT_CELL, "whitespace-nowrap")}>
         {row.normalized?.type ? (
           <Badge
             variant="outline"
@@ -164,7 +175,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
         )}
       </TableCell>
 
-      <TableCell className="max-w-[160px]">
+      <TableCell className={cn(COMPACT_CELL, "max-w-[160px]")}>
         <span
           className="truncate block max-w-[160px]"
           title={row.normalized?.description ?? ""}
@@ -175,29 +186,19 @@ const ReviewTableRow = memo(function ReviewTableRow({
         </span>
       </TableCell>
 
-      <TableCell>
-        <span className="text-sm">
-          {row.normalized?.category ? (
-            formatCategory(
-              categoryBaseForType(row.normalized.type) ?? undefined,
-              row.normalized.category,
-              i18n.language,
-            )
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
+      <TableCell className={COMPACT_CELL}>
+        <span className="block max-w-[140px] truncate text-sm" title={categoryLabel}>
+          {categoryLabel || <span className="text-muted-foreground">—</span>}
         </span>
       </TableCell>
 
-      <TableCell>
-        <span className="text-sm">
-          {row.normalized?.recipient ?? (
-            <span className="text-muted-foreground">—</span>
-          )}
+      <TableCell className={COMPACT_CELL}>
+        <span className="block max-w-[140px] truncate text-sm" title={recipientLabel}>
+          {recipientLabel || <span className="text-muted-foreground">—</span>}
         </span>
       </TableCell>
 
-      <TableCell className="text-center align-middle">
+      <TableCell className={cn(COMPACT_CELL, "text-center align-middle")}>
         {row.issues.length > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -222,7 +223,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
         )}
       </TableCell>
 
-      <TableCell className="text-center align-middle">
+      <TableCell className={cn(COMPACT_CELL, "text-center align-middle")}>
         {!isInvalid && !selectMode && (
           <Button
             variant="outline"
@@ -336,7 +337,7 @@ export function ImportReviewTable({
         >
           <thead className="sticky top-0 z-20 bg-background border-b-2 border-border [&_tr]:border-b">
             <tr>
-              <TableHead className="w-10 min-w-10 sticky start-0 bg-background z-30 p-0 text-center align-middle">
+              <TableHead className="h-10 w-10 min-w-10 sticky start-0 bg-background z-30 p-0 text-center align-middle">
                 <div className="flex items-center justify-center">
                   <Checkbox
                     checked={
@@ -361,34 +362,34 @@ export function ImportReviewTable({
                   />
                 </div>
               </TableHead>
-              <TableHead className="w-12 bg-background text-center align-middle">
+              <TableHead className={cn(COMPACT_HEAD, "w-12 bg-background text-center align-middle")}>
                 {t("review.columns.row")}
               </TableHead>
-              <TableHead className="bg-background text-center align-middle">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background text-center align-middle")}>
                 {t("review.columns.status")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background")}>
                 {t("review.columns.date")}
               </TableHead>
-              <TableHead className="bg-background text-center align-middle">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background text-center align-middle")}>
                 {t("review.columns.amount")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background")}>
                 {t("review.columns.type")}
               </TableHead>
-              <TableHead className="max-w-[160px] bg-background">
+              <TableHead className={cn(COMPACT_HEAD, "max-w-[160px] bg-background")}>
                 {t("review.columns.description")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background")}>
                 {t("review.columns.category")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background")}>
                 {t("review.columns.recipient")}
               </TableHead>
-              <TableHead className="bg-background text-center align-middle">
+              <TableHead className={cn(COMPACT_HEAD, "bg-background text-center align-middle")}>
                 {t("review.columns.issues")}
               </TableHead>
-              <TableHead className="w-24 bg-background text-center align-middle" />
+              <TableHead className={cn(COMPACT_HEAD, "w-24 bg-background text-center align-middle")} />
             </tr>
           </thead>
 
@@ -397,7 +398,7 @@ export function ImportReviewTable({
               <TableRow>
                 <TableCell
                   colSpan={11}
-                  className="text-center text-muted-foreground h-24"
+                  className={cn(COMPACT_CELL, "h-24 text-center text-muted-foreground")}
                 >
                   {t("review.noRows")}
                 </TableCell>

@@ -35,18 +35,28 @@ export function TypeIconChip({ type }: { type: TransactionType }) {
   );
 }
 
-export function AmountPanel({
-  type,
-  children,
-  conversion,
-}: {
-  type: TransactionType;
+type AmountPanelProps = {
   children: ReactNode;
   /** Inline original-currency / live-rate row pinned to the panel bottom. */
   conversion?: ReactNode;
-}) {
+} & (
+  | { neutral?: false; type: TransactionType }
+  | { neutral: true; type?: TransactionType }
+);
+
+export function AmountPanel({
+  type,
+  neutral = false,
+  children,
+  conversion,
+}: AmountPanelProps) {
   return (
-    <div className={cn(AMOUNT_PANEL_CLASS, TYPE_PANEL[type])}>
+    <div
+      className={cn(
+        AMOUNT_PANEL_CLASS,
+        neutral || !type ? "bg-muted/40" : TYPE_PANEL[type],
+      )}
+    >
       <div className="col-start-1 row-start-1 place-self-center whitespace-nowrap px-0.5">
         {children}
       </div>

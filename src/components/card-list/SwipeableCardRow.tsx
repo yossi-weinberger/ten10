@@ -84,6 +84,9 @@ export interface SwipeableCardRowProps {
   openId: string | null;
   onSwipeOpen: (id: string) => void;
   onSwipeClose: () => void;
+  /** Defaults to the transactions card: a single button. */
+  role?: "button" | "group";
+  tabIndex?: number;
 }
 
 export function SwipeableCardRow({
@@ -102,6 +105,8 @@ export function SwipeableCardRow({
   openId,
   onSwipeOpen,
   onSwipeClose,
+  role = "button",
+  tabIndex = 0,
 }: SwipeableCardRowProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -331,8 +336,8 @@ export function SwipeableCardRow({
   const card = (
       <Card
         ref={cardRef}
-        role="button"
-        tabIndex={0}
+        role={role}
+        tabIndex={tabIndex}
         aria-selected={inSelectionMode ? isSelected : undefined}
         aria-pressed={inSelectionMode ? isSelected : undefined}
         className={cn(

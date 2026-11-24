@@ -200,8 +200,18 @@
     },
     "noRows": "אין כאן שורות. נסו סינון אחר.",
     "editRow": "עריכה",
+    "swipe": {
+      "include": "לכלול",
+      "exclude": "להוציא"
+    },
     "editRowAria": "עריכת שורה {{row}}",
     "selectRowAria": "סימון שורה {{row}} לשמירה",
+    "selection": {
+      "willImport_one": "{{selected}} מתוך אחת ייובאו",
+      "willImport_two": "{{selected}} מתוך שתיים ייובאו",
+      "willImport_many": "{{selected}} מתוך {{count}} ייובאו",
+      "willImport_other": "{{selected}} מתוך {{count}} ייובאו"
+    },
     "saveCta_one": "שמירת תנועה אחת",
     "saveCta_two": "שמירת שתי תנועות",
     "saveCta_other": "שמירת {{count}} תנועות",
@@ -210,6 +220,7 @@
     "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}",
     "bulk": {
       "enter": "בחירה",
+      "selectRowAria": "בחירת שורה {{row}}",
       "selectAllVisible": "בחירת כל המוצגות ({{count}})",
       "done": "סיום",
       "count_one": "אחת נבחרה",
