@@ -22,7 +22,6 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { SupportChargeNote } from "@/components/support/SupportChargeNote";
 import { SupportPayLink } from "@/components/support/SupportPayLink";
 import { SUPPORT_PAYMENT_URL } from "@/lib/support-payment";
 import { PlatformIndicator } from "./PlatformIndicator";
@@ -446,12 +445,7 @@ export function Sidebar({
               )}
               target="_blank"
               rel="noopener noreferrer"
-              tooltip={
-                <span className="block space-y-1">
-                  <span className="block">{t("menu.donateTooltip")}</span>
-                  <SupportChargeNote />
-                </span>
-              }
+              tooltip={t("menu.donateTooltip")}
               className="hover:bg-golden-hover hover:text-yellow-900 dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
             >
               {t("menu.supportUs")}

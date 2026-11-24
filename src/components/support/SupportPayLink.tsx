@@ -9,7 +9,7 @@ type SupportPayLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">
 
 /**
  * Opens the Takbull page. On a touch device the first tap only reveals the
- * tooltip, so the charge note is visible before the browser leaves.
+ * tooltip, and the next tap opens the payment page.
  */
 export const SupportPayLink = forwardRef<HTMLAnchorElement, SupportPayLinkProps>(
   function SupportPayLink({ onClick, onNavigate, children, ...props }, ref) {

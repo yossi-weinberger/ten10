@@ -9,7 +9,6 @@ import {
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
 import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
-import { SupportChargeNote } from "@/components/support/SupportChargeNote";
 import { SupportPayLink } from "@/components/support/SupportPayLink";
 
 interface FormActionButtonsProps {
@@ -75,8 +74,7 @@ export function FormActionButtons({
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[min(20rem,calc(100vw-2rem))]">
               <p className="whitespace-normal break-words text-start text-sm" dir={i18n.dir()}>
-                <span className="block">{t("transactionForm.actions.donateTooltip")}</span>
-                <SupportChargeNote />
+                {t("transactionForm.actions.donateTooltip")}
               </p>
             </TooltipContent>
           </Tooltip>
